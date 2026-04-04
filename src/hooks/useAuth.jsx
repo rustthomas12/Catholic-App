@@ -1,7 +1,12 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import i18n from '../utils/i18n'
 
 const AuthContext = createContext(null)
+
+function t(key) {
+  return i18n.t(key)
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -16,79 +21,111 @@ export function AuthProvider({ children }) {
       .single()
 
     if (error) {
-      // If profile doesn't exist yet, create a minimal one
       if (error.code === 'PGRST116') {
         const { data: newProfile } = await supabase
           .from('profiles')
           .insert({ id: userId })
           .select()
           .single()
-        setProfile(newProfile)
+        return newProfile ?? null
       }
-    } else {
-      setProfile(data)
+      return null
     }
+    return data
   }, [])
 
   useEffect(() => {
-    // Check current session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Initial session check — prevents flash to login for already-authenticated users
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false))
-      } else {
-        setLoading(false)
+        const p = await fetchProfile(session.user.id)
+        setProfile(p)
       }
+      setLoading(false)
     })
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          return
+        }
+        if (session?.user) {
+          setUser(session.user)
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+            const p = await fetchProfile(session.user.id)
+            setProfile(p)
+          }
+        }
       }
-    })
+    )
 
     return () => subscription.unsubscribe()
   }, [fetchProfile])
 
   async function signIn(email, password) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (!error) {
-      // Update last_active_at
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      if (currentUser) {
-        await supabase
-          .from('profiles')
-          .update({ last_active_at: new Date().toISOString() })
-          .eq('id', currentUser.id)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: t('auth:login.error_invalid') }
+        }
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          return { error: t('auth:login.error_network') }
+        }
+        return { error: t('common:status.error') }
       }
+      if (data.user) {
+        supabase.from('profiles')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('id', data.user.id)
+          .then(() => {})
+      }
+      return { error: null }
+    } catch {
+      return { error: t('auth:login.error_network') }
     }
-    return { error }
   }
 
   async function signUp(email, password, { fullName, parishId, vocationState }) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    })
-    if (error) return { error }
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      })
+      if (error) {
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          return { error: t('auth:signup.error_email_taken') }
+        }
+        if (error.message.includes('Password should be at least')) {
+          return { error: t('auth:signup.error_password_weak') }
+        }
+        return { error: t('common:status.error') }
+      }
 
-    if (data.user) {
-      await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          parish_id: parishId || null,
-          vocation_state: vocationState || null,
+      const newUser = data.user
+      if (!newUser) return { error: t('common:status.error') }
+
+      await supabase.from('profiles').update({
+        full_name: fullName,
+        parish_id: parishId || null,
+        vocation_state: vocationState || null,
+      }).eq('id', newUser.id)
+
+      if (parishId) {
+        await supabase.from('parish_follows').insert({
+          user_id: newUser.id,
+          parish_id: parishId,
         })
-        .eq('id', data.user.id)
-    }
+      }
 
-    return { error: null }
+      return { error: null }
+    } catch {
+      return { error: t('auth:login.error_network') }
+    }
   }
 
   async function signOut() {
@@ -98,21 +135,26 @@ export function AuthProvider({ children }) {
   }
 
   async function updateProfile(updates) {
-    if (!user) return { error: new Error('Not authenticated') }
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single()
-
-    if (!error) setProfile(data)
-    return { error }
+    if (!user) return { error: 'Not authenticated' }
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single()
+      if (error) return { error: t('common:status.error') }
+      setProfile(data)
+      return { error: null }
+    } catch {
+      return { error: t('common:status.error') }
+    }
   }
 
   async function refreshProfile() {
     if (!user) return
-    await fetchProfile(user.id)
+    const p = await fetchProfile(user.id)
+    setProfile(p)
   }
 
   const value = {
@@ -139,3 +181,5 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
 }
+
+export default useAuth
