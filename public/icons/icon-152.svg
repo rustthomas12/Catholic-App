@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 152 152" width="152" height="152">
+  <rect width="152" height="152" rx="27.36" fill="#1B2A4A"/>
+  <!-- Vertical bar -->
+  <rect x="62.3" y="15.2" width="27.4" height="121.6" rx="5.5" fill="#C9A84C"/>
+  <!-- Horizontal bar -->
+  <rect x="21.3" y="48.6" width="109.4" height="27.4" rx="5.5" fill="#C9A84C"/>
+</svg>

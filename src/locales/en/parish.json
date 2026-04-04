@@ -1,0 +1,25 @@
+{
+  "parish": {
+    "directory_title": "Parish Directory",
+    "search_placeholder": "Search by name, city, or zip...",
+    "near_me": "Near me",
+    "map_view": "Map",
+    "list_view": "List",
+    "follow": "Follow Parish",
+    "following": "Following",
+    "my_parish": "My Parish",
+    "official_badge": "Official Parish Page",
+    "address": "Address",
+    "phone": "Phone",
+    "website": "Website",
+    "mass_times": "Mass Times",
+    "tab_feed": "Feed",
+    "tab_events": "Events",
+    "tab_groups": "Groups",
+    "tab_about": "About",
+    "members": "{{count}} parishioners here",
+    "empty_feed": "This parish has not posted yet",
+    "b2b_prompt": "Is this your parish? Contact us to set up your official page.",
+    "distance": "{{distance}} miles away"
+  }
+}

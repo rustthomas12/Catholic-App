@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Parish App",
+    "tagline": "The digital parish hall"
+  },
+  "nav": {
+    "home": "Home",
+    "groups": "Groups",
+    "faith": "Faith",
+    "directory": "Directory",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "retry": "Try again",
+    "share": "Share",
+    "report": "Report"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "offline": "You are offline. Changes will sync when you reconnect.",
+    "empty": "Nothing here yet.",
+    "updated": "App updated. Tap to refresh."
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} minutes ago",
+    "hours_ago": "{{count}} hours ago",
+    "days_ago": "{{count}} days ago",
+    "weeks_ago": "{{count}} weeks ago"
+  }
+}

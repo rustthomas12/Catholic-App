@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "title": "Admin",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "parishes": "Parishes",
+    "reports": "Reports",
+    "flags": "Flagged Content",
+    "settings": "App Settings",
+    "stats_users": "Total Users",
+    "stats_parishes": "Parishes",
+    "stats_posts": "Posts Today",
+    "stats_active": "Active This Week",
+    "flag_review": "Review",
+    "flag_dismiss": "Dismiss",
+    "flag_remove": "Remove Content",
+    "flag_ban": "Ban User",
+    "ban_confirm": "Ban {{name}}? This will prevent them from logging in.",
+    "content_removed": "Content removed",
+    "user_banned": "User banned"
+  }
+}

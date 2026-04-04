@@ -1,0 +1,74 @@
+{
+  "feed": {
+    "title": "Home",
+    "all": "All",
+    "my_parish": "My Parish",
+    "my_groups": "My Groups",
+    "prayer_requests": "Prayer",
+    "events": "Events",
+    "caught_up": "You are all caught up",
+    "caught_up_sub": "Check back later for new posts",
+    "empty_title": "Your feed is quiet",
+    "empty_body": "Follow your parish to see posts here",
+    "find_parish": "Find my parish",
+    "load_more": "Load more"
+  },
+  "post": {
+    "placeholder": "Share a thought, reflection, or ask your community...",
+    "parish_label": "My Parish",
+    "group_label": "Group",
+    "prayer_toggle": "Prayer request",
+    "char_limit": "{{count}} / 500",
+    "image_add": "Add photo",
+    "image_remove": "Remove photo",
+    "submit": "Post",
+    "posting": "Posting...",
+    "success": "Your post was shared",
+    "deleted": "Post deleted",
+    "removed": "[This post was removed]",
+    "edit": "Edit post",
+    "delete": "Delete post",
+    "delete_confirm": "Delete this post? This cannot be undone.",
+    "report": "Report post"
+  },
+  "like": {
+    "like": "Like",
+    "liked": "Liked",
+    "count_one": "{{count}} like",
+    "count_other": "{{count}} likes"
+  },
+  "comment": {
+    "placeholder": "Write a comment...",
+    "submit": "Send",
+    "view_all": "View all {{count}} comments",
+    "count_one": "{{count}} comment",
+    "count_other": "{{count}} comments",
+    "removed": "[Comment removed]",
+    "delete": "Delete comment"
+  },
+  "prayer": {
+    "title": "Prayer Requests",
+    "subtitle": "Pray for your brothers and sisters",
+    "placeholder": "Share a prayer intention...",
+    "anonymous_toggle": "Post anonymously",
+    "submit": "Share intention",
+    "pray": "I will pray",
+    "praying": "Praying for you",
+    "anonymous": "Anonymous",
+    "count_one": "{{count}} prayer",
+    "count_other": "{{count}} prayers",
+    "empty": "No intentions yet. Be the first to share.",
+    "success": "Your intention was shared"
+  },
+  "report": {
+    "title": "Report this post",
+    "spam": "Spam",
+    "hateful": "Hateful content",
+    "misinformation": "Misinformation",
+    "violates_values": "Violates Catholic values",
+    "other": "Other",
+    "notes_placeholder": "Optional: add more details...",
+    "submit": "Submit report",
+    "success": "Thank you. Our team will review this."
+  }
+}
