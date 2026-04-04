@@ -11,7 +11,8 @@
     "empty_title": "Your feed is quiet",
     "empty_body": "Follow your parish to see posts here",
     "find_parish": "Find my parish",
-    "load_more": "Load more"
+    "load_more": "Load more",
+    "new_post_available": "↑ New post"
   },
   "post": {
     "placeholder": "Share a thought, reflection, or ask your community...",
@@ -27,9 +28,16 @@
     "deleted": "Post deleted",
     "removed": "[This post was removed]",
     "edit": "Edit post",
+    "edit_coming_soon": "Editing posts is coming soon",
     "delete": "Delete post",
     "delete_confirm": "Delete this post? This cannot be undone.",
-    "report": "Report post"
+    "confirm_delete": "Delete this post?",
+    "confirm_delete_body": "This cannot be undone.",
+    "uploading": "Uploading image...",
+    "destination_label": "Posting to",
+    "destination_public": "Public",
+    "report": "Report post",
+    "deleted": "Post deleted"
   },
   "like": {
     "like": "Like",

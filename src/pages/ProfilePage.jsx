@@ -7,9 +7,9 @@ import Avatar from '../components/shared/Avatar'
 import Badge from '../components/shared/Badge'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import { truncate } from '../utils/text'
-import { formatRelativeTime } from '../utils/dates'
+import Feed from '../components/feed/Feed'
 import { format } from 'date-fns'
+
 
 function ProfileSkeleton() {
   return (
@@ -35,7 +35,6 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState(null)
   const [parish, setParish] = useState(null)
-  const [posts, setPosts] = useState([])
   const [postCount, setPostCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -70,17 +69,14 @@ export default function ProfilePage() {
         setParish(par || null)
       }
 
-      // Load recent posts
-      const { data: postData, count } = await supabase
+      // Get post count for stats
+      const { count } = await supabase
         .from('posts')
-        .select('*', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('author_id', targetId)
         .is('deleted_at', null)
-        .is('is_removed', false)
-        .order('created_at', { ascending: false })
-        .limit(10)
+        .eq('is_removed', false)
 
-      setPosts(postData || [])
       setPostCount(count || 0)
       setLoading(false)
     }
@@ -217,31 +213,28 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Recent posts */}
-          <div>
-            <h2 className="text-base font-bold text-navy mb-3">Recent Posts</h2>
-            {posts.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {posts.map(post => (
-                  <div key={post.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <p className="text-navy text-sm leading-relaxed">{truncate(post.content, 200)}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                      <span>{formatRelativeTime(post.created_at)}</span>
-                      <span>{post.like_count || 0} likes</span>
-                      <span>{post.comment_count || 0} comments</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
-                <p className="text-gray-400 text-sm">
-                  {isOwnProfile
-                    ? 'Share your first post with your community'
-                    : `${profile.full_name?.split(' ')[0] || 'They'} hasn't posted yet`}
-                </p>
-              </div>
-            )}
+          {/* Posts feed */}
+          <div className="-mx-4">
+            <h2 className="text-base font-bold text-navy px-4 mb-3">Posts</h2>
+            <Feed
+              userId={targetId}
+              showCreatePost={false}
+              emptyMessage={
+                isOwnProfile
+                  ? 'Share your first post'
+                  : `${profile.full_name?.split(' ')[0] || 'They'} hasn't posted yet`
+              }
+              emptySubtext={
+                isOwnProfile
+                  ? 'Share a thought, reflection, or prayer with your community'
+                  : ''
+              }
+              emptyAction={
+                isOwnProfile
+                  ? { label: 'Create a post', onClick: () => navigate('/') }
+                  : null
+              }
+            />
           </div>
         </div>
       </div>
