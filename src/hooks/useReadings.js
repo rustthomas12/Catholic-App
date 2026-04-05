@@ -3,114 +3,120 @@ import { format } from 'date-fns'
 import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
 
 // ── TLM HTML Parser ────────────────────────────────────────
-// Parses Divinum Officium HTML for the key TLM Mass propers.
+// Parses Divinum Officium POST response.
+// Structure: two-column table — Latin (TD with ID attr) | English (TD without ID).
+// Section headers: <FONT SIZE='+1' COLOR="red"><B><I>Section</I></B></FONT>
+// References:      <FONT COLOR="red"><I>1 Cor 5:7-8</I></FONT>
 function parseTLMHtml(html) {
   try {
     const parser = new DOMParser()
     const doc = parser.parseFromString(html, 'text/html')
 
-    const result = {
-      massName: null,
-      epistle: null,
-      gradual: null,
-      gospel: null,
+    const result = { massName: null, epistle: null, gradual: null, gospel: null }
+
+    // English content is in TDs without an ID attribute (Latin TDs have ID='1', '2', etc.)
+    // Select those TDs, then extract sections from each.
+    const allTds = Array.from(doc.querySelectorAll('td[width="50%"], td[WIDTH="50%"]'))
+    const englishTds = allTds.filter(td => !td.hasAttribute('id') && !td.hasAttribute('ID'))
+
+    // Section names as they appear in the English column
+    const SECTION_KEYS = {
+      'lesson': 'epistle',
+      'epistle': 'epistle',
+      'graduale': 'gradual',
+      'gradual': 'gradual',
+      'alleluia': 'gradual',
+      'tract': 'gradual',
+      'gospel': 'gospel',
     }
 
-    // Mass name is typically in the page title or a main heading
-    const title = doc.querySelector('h1, h2, .title, #title')
-    if (title) result.massName = title.textContent.trim()
-
-    // Divinum Officium wraps each section in a <div class="section"> or similar,
-    // with a header. We look for key Latin/English section identifiers.
-    const sectionMap = [
-      { key: 'epistle', patterns: ['epistola', 'lectio', 'epistle', 'lesson'] },
-      { key: 'gradual', patterns: ['graduale', 'alleluia', 'tractus', 'gradual', 'tract'] },
-      { key: 'gospel', patterns: ['evangelium', 'gospel'] },
-    ]
-
-    function detectTLMSection(text) {
-      const lower = text.toLowerCase().trim()
-      for (const { key, patterns } of sectionMap) {
-        if (patterns.some(p => lower.includes(p))) return key
-      }
-      return null
+    function isSectionHeader(el) {
+      // DO marks section headers as <FONT SIZE='+1' COLOR="red"><B><I>text</I></B></FONT>
+      const tag = el.tagName?.toLowerCase()
+      if (tag !== 'font') return false
+      const size = el.getAttribute('size') || el.getAttribute('SIZE') || ''
+      const color = (el.getAttribute('color') || el.getAttribute('COLOR') || '').toLowerCase()
+      return size.includes('+1') && color === 'red'
     }
 
-    // Strategy 1: look for bold/heading elements that label sections
-    const headings = doc.querySelectorAll('b, strong, h2, h3, h4, .rubric, .section-title')
-    let activeSec = null
-    let refBuf = null
-    let textBuf = []
-
-    function flush() {
-      if (!activeSec || (!refBuf && textBuf.length === 0)) return
-      const text = textBuf.join(' ').trim()
-      if (!result[activeSec]) {
-        result[activeSec] = { reference: refBuf ?? '', text }
-      }
+    function isReference(el) {
+      const tag = el.tagName?.toLowerCase()
+      if (tag !== 'font') return false
+      const size = el.getAttribute('size') || el.getAttribute('SIZE') || ''
+      const color = (el.getAttribute('color') || el.getAttribute('COLOR') || '').toLowerCase()
+      return !size && color === 'red'
     }
 
-    // Walk all content nodes
-    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT)
-    let node = walker.nextNode()
-    while (node) {
-      const tag = node.tagName
-      const text = node.textContent?.trim() ?? ''
+    // Extract text content from a TD, skipping navigation links and rubric markers
+    function extractTdContent(td) {
+      const sections = []
+      let currentKey = null
+      let currentRef = null
+      let currentText = []
 
-      if (!text) { node = walker.nextNode(); continue }
-
-      if (['B', 'STRONG', 'H2', 'H3', 'H4'].includes(tag) && text.length < 60) {
-        const sec = detectTLMSection(text)
-        if (sec) {
-          flush()
-          activeSec = sec
-          refBuf = null
-          textBuf = []
-          node = walker.nextNode()
-          continue
+      function flush() {
+        if (!currentKey) return
+        const text = currentText.join(' ').trim()
+        if (!result[currentKey] && (currentRef || text)) {
+          result[currentKey] = { reference: currentRef ?? '', text }
         }
+        currentKey = null
+        currentRef = null
+        currentText = []
       }
 
-      if (activeSec && tag === 'P') {
-        const inner = text
-        // Scripture reference is usually short and in parentheses or starts with a book name
-        if (!refBuf && inner.length < 80 && /^[A-Z]/.test(inner) && !/[.]{2}/.test(inner)) {
-          refBuf = inner
-        } else if (inner.length > 30) {
-          textBuf.push(inner)
+      // Walk child nodes
+      const walk = (node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const t = node.textContent.trim()
+          // Skip liturgical response markers like ℟. ℣. S.
+          if (t && !['℟.', '℣.', 'S.', 'R.', 'V.'].includes(t) && currentKey) {
+            currentText.push(t)
+          }
+          return
         }
-      }
+        if (node.nodeType !== Node.ELEMENT_NODE) return
 
-      node = walker.nextNode()
-    }
-    flush()
-
-    // Strategy 2: if strategy 1 got nothing, try <td> cells (DO uses table layout)
-    if (!result.epistle && !result.gospel) {
-      const cells = doc.querySelectorAll('td')
-      activeSec = null
-      refBuf = null
-      textBuf = []
-
-      cells.forEach(cell => {
-        const inner = cell.textContent?.trim() ?? ''
-        if (!inner) return
-
-        const sec = detectTLMSection(inner)
-        if (sec && inner.length < 80) {
-          flush()
-          activeSec = sec
-          refBuf = null
-          textBuf = []
+        if (isSectionHeader(node)) {
+          const name = node.textContent.trim().toLowerCase()
+          const key = SECTION_KEYS[name]
+          if (key) {
+            flush()
+            currentKey = key
+          }
           return
         }
 
-        if (!activeSec) return
+        if (isReference(node) && currentKey) {
+          const inner = node.querySelector('i, I')
+          const ref = inner ? inner.textContent.trim() : node.textContent.trim()
+          // Only use it as a reference if it looks like a scripture citation
+          if (/[0-9]/.test(ref) || ref.includes('Ps')) {
+            currentRef = ref
+            return
+          }
+        }
 
-        if (!refBuf && inner.length < 80) refBuf = inner
-        else if (inner.length > 30) textBuf.push(inner)
-      })
+        // Skip navigation divs
+        if (node.tagName === 'DIV' && node.querySelector('a[href="#top"]')) return
+
+        for (const child of node.childNodes) walk(child)
+      }
+
+      for (const child of td.childNodes) walk(child)
       flush()
+    }
+
+    englishTds.forEach(extractTdContent)
+
+    // Try to get the gospel label (it starts "Continuation of the Holy Gospel according to X")
+    if (result.gospel) {
+      const gospelText = result.gospel.text
+      const match = gospelText.match(/(?:Holy Gospel according to|Gospel according to)\s+(\w+)/)
+      if (match) {
+        // Clean up the gospel text — remove the header line
+        result.gospel.text = gospelText.replace(/^.*?(?:Glory be to Thee, O Lord\.|℟\. Glory.*?)\s*/i, '').trim()
+      }
     }
 
     const hasContent = result.epistle || result.gospel

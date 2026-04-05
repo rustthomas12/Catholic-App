@@ -74,6 +74,9 @@ export function useFeed(options = {}) {
   } = options
 
   const { user } = useAuth()
+  // Stable user ID reference — prevents feed re-fetch when auth fires
+  // onAuthStateChange with a new object reference for the same user.
+  const userId_stable = user?.id ?? null
 
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -234,9 +237,9 @@ export function useFeed(options = {}) {
 
   // ── Initial load (with module-level cache) ────────────────
   useEffect(() => {
-    if (!user) return
+    if (!userId_stable) return
 
-    const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
     const cached = _feedCache.get(cacheKey)
 
     if (cached && Date.now() - cached.ts < FEED_TTL) {
@@ -254,7 +257,7 @@ export function useFeed(options = {}) {
     setLoading(true)
     offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
-  }, [user, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
+  }, [userId_stable, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
 
   // ── Real-time: disabled in feed to avoid Supabase channel reuse errors.
   // New posts appear instantly via addPost() (optimistic update in CreatePost).

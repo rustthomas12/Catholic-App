@@ -10,6 +10,7 @@ import ProtectedRoute from './components/shared/ProtectedRoute'
 import Navigation from './components/shared/Navigation'
 import LoadingSpinner from './components/shared/LoadingSpinner'
 import { Toaster, toast } from './components/shared/Toast'
+import InstallPrompt from './components/shared/InstallPrompt'
 import { supabase } from './lib/supabase'
 
 // ── Lazy page imports ──────────────────────────────────────
@@ -87,6 +88,7 @@ function AppInner() {
     <>
       <OfflineDetector />
       <LastActiveUpdater />
+      <InstallPrompt />
       <Navigation />
       <Suspense fallback={<LoadingSpinner fullPage />}>
         <Routes>
