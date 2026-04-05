@@ -4,6 +4,20 @@ import { useAuth } from './useAuth.jsx'
 
 const DEFAULT_PAGE_SIZE = 20
 
+// ── Module-level cache ─────────────────────────────────────
+// Prevents 3 re-fetches every time the user navigates back to the feed.
+// Keyed by `${userId}-${filter}-${parishId}-${groupId}`.
+// TTL: 3 minutes — fresh enough to feel live, fast enough to feel instant.
+const FEED_TTL = 3 * 60 * 1000
+const GRAPH_TTL = 10 * 60 * 1000
+
+const _feedCache = new Map()  // cacheKey → { posts, hasMore, ts }
+const _graphCache = new Map() // userId → { parishIds, groupIds, ts }
+
+function getFeedKey(userId, filter, parishId, groupId) {
+  return `${userId}-${filter}-${parishId}-${groupId}`
+}
+
 const POST_SELECT = `
   *,
   author:profiles!author_id(
@@ -78,17 +92,28 @@ export function useFeed(options = {}) {
   // Channel ref for cleanup
   const channelRef = useRef(null)
 
-  // ── Fetch user's social graph once ────────────────────────
+  // ── Fetch user's social graph (with module-level cache) ───
   const loadSocialGraph = useCallback(async () => {
     if (!user) return
+
+    const cached = _graphCache.get(user.id)
+    if (cached && Date.now() - cached.ts < GRAPH_TTL) {
+      followedParishIds.current = cached.parishIds
+      joinedGroupIds.current = cached.groupIds
+      return
+    }
 
     const [parishRes, groupRes] = await Promise.all([
       supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
       supabase.from('group_members').select('group_id').eq('user_id', user.id),
     ])
 
-    followedParishIds.current = (parishRes.data ?? []).map((r) => r.parish_id)
-    joinedGroupIds.current = (groupRes.data ?? []).map((r) => r.group_id)
+    const parishIds = (parishRes.data ?? []).map((r) => r.parish_id)
+    const groupIds = (groupRes.data ?? []).map((r) => r.group_id)
+
+    followedParishIds.current = parishIds
+    joinedGroupIds.current = groupIds
+    _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
   }, [user])
 
   // ── Build the filtered query ───────────────────────────────
@@ -158,32 +183,44 @@ export function useFeed(options = {}) {
   )
 
   // ── Fetch a page of posts ──────────────────────────────────
+  // background=true: update state quietly without showing spinner
   const fetchPage = useCallback(
-    async (offset, append = false) => {
+    async (offset, append = false, background = false) => {
       if (!user) return
 
       const query = buildQuery(offset)
       if (query === null) {
-        setPosts([])
-        setHasMore(false)
-        setLoading(false)
-        setLoadingMore(false)
+        if (!background) {
+          setPosts([])
+          setHasMore(false)
+          setLoading(false)
+          setLoadingMore(false)
+        }
         return
       }
 
       const { data, error: queryError } = await query
 
       if (queryError) {
-        setError(queryError.message)
-        setLoading(false)
-        setLoadingMore(false)
+        if (!background) {
+          setError(queryError.message)
+          setLoading(false)
+          setLoadingMore(false)
+        }
         return
       }
 
       const normalised = (data ?? []).map((p) => normalisePost(p, user.id))
+      const newHasMore = normalised.length === pageSize
+
+      if (!append) {
+        // Write to module cache
+        const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+        _feedCache.set(cacheKey, { posts: normalised, hasMore: newHasMore, ts: Date.now() })
+      }
 
       setPosts((prev) => (append ? [...prev, ...normalised] : normalised))
-      setHasMore(normalised.length === pageSize)
+      setHasMore(newHasMore)
       setError(null)
 
       if (!append) setTotalCount(normalised.length)
@@ -192,19 +229,31 @@ export function useFeed(options = {}) {
       setLoading(false)
       setLoadingMore(false)
     },
-    [user, buildQuery, pageSize]
+    [user, buildQuery, pageSize, filter, parishId, groupId]
   )
 
-  // ── Initial load ───────────────────────────────────────────
+  // ── Initial load (with module-level cache) ────────────────
   useEffect(() => {
     if (!user) return
 
+    const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+    const cached = _feedCache.get(cacheKey)
+
+    if (cached && Date.now() - cached.ts < FEED_TTL) {
+      // Serve from cache immediately — no loading flash
+      setPosts(cached.posts)
+      setHasMore(cached.hasMore)
+      setLoading(false)
+      offsetRef.current = cached.posts.length
+
+      // Revalidate in background so stale data gets refreshed
+      loadSocialGraph().then(() => fetchPage(0, false, true))
+      return
+    }
+
     setLoading(true)
     offsetRef.current = 0
-
-    loadSocialGraph().then(() => {
-      fetchPage(0, false)
-    })
+    loadSocialGraph().then(() => fetchPage(0, false))
   }, [user, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
 
   // ── Real-time: disabled in feed to avoid Supabase channel reuse errors.
@@ -231,10 +280,16 @@ export function useFeed(options = {}) {
   const addPost = useCallback((post) => {
     setPosts((prev) => {
       if (prev.some((p) => p.id === post.id)) return prev
-      return [post, ...prev]
+      const next = [post, ...prev]
+      // Invalidate cache so next mount re-fetches fresh
+      if (user) {
+        const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+        _feedCache.delete(cacheKey)
+      }
+      return next
     })
     setTotalCount((c) => c + 1)
-  }, [])
+  }, [user, filter, parishId, groupId])
 
   const updatePost = useCallback((id, updates) => {
     setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)))

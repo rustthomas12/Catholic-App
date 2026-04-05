@@ -2,6 +2,124 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
 
+// ── TLM HTML Parser ────────────────────────────────────────
+// Parses Divinum Officium HTML for the key TLM Mass propers.
+function parseTLMHtml(html) {
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+
+    const result = {
+      massName: null,
+      epistle: null,
+      gradual: null,
+      gospel: null,
+    }
+
+    // Mass name is typically in the page title or a main heading
+    const title = doc.querySelector('h1, h2, .title, #title')
+    if (title) result.massName = title.textContent.trim()
+
+    // Divinum Officium wraps each section in a <div class="section"> or similar,
+    // with a header. We look for key Latin/English section identifiers.
+    const sectionMap = [
+      { key: 'epistle', patterns: ['epistola', 'lectio', 'epistle', 'lesson'] },
+      { key: 'gradual', patterns: ['graduale', 'alleluia', 'tractus', 'gradual', 'tract'] },
+      { key: 'gospel', patterns: ['evangelium', 'gospel'] },
+    ]
+
+    function detectTLMSection(text) {
+      const lower = text.toLowerCase().trim()
+      for (const { key, patterns } of sectionMap) {
+        if (patterns.some(p => lower.includes(p))) return key
+      }
+      return null
+    }
+
+    // Strategy 1: look for bold/heading elements that label sections
+    const headings = doc.querySelectorAll('b, strong, h2, h3, h4, .rubric, .section-title')
+    let activeSec = null
+    let refBuf = null
+    let textBuf = []
+
+    function flush() {
+      if (!activeSec || (!refBuf && textBuf.length === 0)) return
+      const text = textBuf.join(' ').trim()
+      if (!result[activeSec]) {
+        result[activeSec] = { reference: refBuf ?? '', text }
+      }
+    }
+
+    // Walk all content nodes
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT)
+    let node = walker.nextNode()
+    while (node) {
+      const tag = node.tagName
+      const text = node.textContent?.trim() ?? ''
+
+      if (!text) { node = walker.nextNode(); continue }
+
+      if (['B', 'STRONG', 'H2', 'H3', 'H4'].includes(tag) && text.length < 60) {
+        const sec = detectTLMSection(text)
+        if (sec) {
+          flush()
+          activeSec = sec
+          refBuf = null
+          textBuf = []
+          node = walker.nextNode()
+          continue
+        }
+      }
+
+      if (activeSec && tag === 'P') {
+        const inner = text
+        // Scripture reference is usually short and in parentheses or starts with a book name
+        if (!refBuf && inner.length < 80 && /^[A-Z]/.test(inner) && !/[.]{2}/.test(inner)) {
+          refBuf = inner
+        } else if (inner.length > 30) {
+          textBuf.push(inner)
+        }
+      }
+
+      node = walker.nextNode()
+    }
+    flush()
+
+    // Strategy 2: if strategy 1 got nothing, try <td> cells (DO uses table layout)
+    if (!result.epistle && !result.gospel) {
+      const cells = doc.querySelectorAll('td')
+      activeSec = null
+      refBuf = null
+      textBuf = []
+
+      cells.forEach(cell => {
+        const inner = cell.textContent?.trim() ?? ''
+        if (!inner) return
+
+        const sec = detectTLMSection(inner)
+        if (sec && inner.length < 80) {
+          flush()
+          activeSec = sec
+          refBuf = null
+          textBuf = []
+          return
+        }
+
+        if (!activeSec) return
+
+        if (!refBuf && inner.length < 80) refBuf = inner
+        else if (inner.length > 30) textBuf.push(inner)
+      })
+      flush()
+    }
+
+    const hasContent = result.epistle || result.gospel
+    return hasContent ? result : null
+  } catch {
+    return null
+  }
+}
+
 // ── HTML Parser ────────────────────────────────────────────
 function parseReadingsHtml(html) {
   try {
@@ -202,4 +320,72 @@ export function useReadings() {
     feastInfo,
     todayFormatted,
   }
+}
+
+// ── TLM module-level cache ─────────────────────────────────
+let _tlmCache = null
+let _tlmPromise = null
+let _tlmError = false
+
+function fetchTLMOnce(dateParam) {
+  if (_tlmPromise) return _tlmPromise
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+
+  _tlmPromise = fetch(`/api/tlm-readings?date=${dateParam}`, { signal: controller.signal })
+    .then(res => { if (!res.ok) throw new Error(); return res.json() })
+    .then(data => {
+      clearTimeout(timeout)
+      if (!data.success || !data.html) { _tlmError = true; return null }
+      const parsed = parseTLMHtml(data.html)
+      if (!parsed) { _tlmError = true; return null }
+      const withMeta = { ...parsed, fetchedAt: new Date().toISOString() }
+      try { localStorage.setItem(`tlm_readings_${dateParam}`, JSON.stringify(withMeta)) } catch { /* quota */ }
+      _tlmCache = withMeta
+      return withMeta
+    })
+    .catch(() => {
+      clearTimeout(timeout)
+      _tlmError = true
+      return null
+    })
+
+  return _tlmPromise
+}
+
+// ── useTLMReadings ─────────────────────────────────────────
+export function useTLMReadings(enabled = false) {
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const lsKey = `tlm_readings_${today}`
+
+  const [state, setState] = useState(() => {
+    if (!enabled) return { readings: null, loading: false, error: false }
+    // Check localStorage
+    try {
+      const raw = localStorage.getItem(lsKey)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed.fetchedAt && new Date(parsed.fetchedAt).toDateString() === new Date().toDateString()) {
+          _tlmCache = parsed
+          return { readings: parsed, loading: false, error: false }
+        }
+      }
+    } catch { /* ignore */ }
+    if (_tlmCache) return { readings: _tlmCache, loading: false, error: false }
+    return { readings: null, loading: true, error: false }
+  })
+
+  useEffect(() => {
+    if (!enabled) return
+    if (_tlmCache || _tlmError) {
+      setState({ readings: _tlmCache, loading: false, error: _tlmError })
+      return
+    }
+    fetchTLMOnce(today).then(result => {
+      setState({ readings: result, loading: false, error: _tlmError })
+    })
+  }, [enabled, today])
+
+  return { readings: state.readings, loading: state.loading, error: state.error }
 }
