@@ -45,17 +45,19 @@ export function AuthProvider({ children }) {
       }
     }, 5000)
 
-    // Initial session check — prevents flash to login for already-authenticated users
+    // Initial session check — prevents flash to login for already-authenticated users.
+    // setLoading(false) fires as soon as auth state is known — profile loads in background
+    // so the page renders immediately without waiting for a second network round-trip.
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (settled) return
       settled = true
       clearTimeout(timeout)
       setUser(session?.user ?? null)
+      setLoading(false)
       if (session?.user) {
         const p = await fetchProfile(session.user.id)
         setProfile(p)
       }
-      setLoading(false)
     }).catch(() => {
       if (!settled) {
         settled = true

@@ -3,8 +3,6 @@ import { format } from 'date-fns'
 import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
 
 // ── HTML Parser ────────────────────────────────────────────
-// Resilient parser for USCCB readings page.
-// Returns null if parsing fails — graceful fallback handles that.
 function parseReadingsHtml(html) {
   try {
     const parser = new DOMParser()
@@ -36,7 +34,7 @@ function parseReadingsHtml(html) {
       return null
     }
 
-    // ── Strategy 1: look for USCCB-specific classes ────────
+    // Strategy 1: USCCB-specific classes
     const readingWrappers = doc.querySelectorAll(
       '.content-body, [class*="reading"], [class*="Reading"], article section, .reading'
     )
@@ -66,7 +64,7 @@ function parseReadingsHtml(html) {
       if (result.gospel || result.firstReading) return result
     }
 
-    // ── Strategy 2: walk all elements, detect section by heading text ──
+    // Strategy 2: walk headings to detect section boundaries
     const allEls = doc.querySelectorAll('h1, h2, h3, h4, h5, p, cite')
     let activeSec = null
     let refBuf = null
@@ -114,82 +112,92 @@ function parseReadingsHtml(html) {
   }
 }
 
+// ── Module-level cache ─────────────────────────────────────
+// Shared across all useReadings() calls in the same session so
+// HomePage and FaithPage don't each trigger a separate network request.
+let _cache = null          // resolved readings object
+let _promise = null        // in-flight fetch promise
+let _error = false
+
+function getFromLocalStorage(cacheKey) {
+  try {
+    const cached = localStorage.getItem(cacheKey)
+    if (!cached) return null
+    const parsed = JSON.parse(cached)
+    const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
+    if (cachedDate === new Date().toDateString()) return parsed
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function fetchReadingsOnce(dateStr) {
+  if (_promise) return _promise
+
+  const controller = new AbortController()
+  const fetchTimeout = setTimeout(() => controller.abort(), 5000)
+
+  _promise = fetch(`/api/readings?date=${dateStr}`, { signal: controller.signal })
+    .then(res => {
+      if (!res.ok) throw new Error('Proxy error')
+      return res.json()
+    })
+    .then(data => {
+      clearTimeout(fetchTimeout)
+      if (!data.success || !data.html) { _error = true; return null }
+      const parsed = parseReadingsHtml(data.html)
+      if (!parsed) { _error = true; return null }
+      const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString() }
+      try { localStorage.setItem(`readings_${dateStr}`, JSON.stringify(withMeta)) } catch { /* quota */ }
+      _cache = withMeta
+      return withMeta
+    })
+    .catch(() => {
+      clearTimeout(fetchTimeout)
+      _error = true
+      return null
+    })
+
+  return _promise
+}
+
 // ── useReadings ────────────────────────────────────────────
 export function useReadings() {
-  const [readings, setReadings] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const dateStr = getTodayReadingsDate()
+  const cacheKey = `readings_${dateStr}`
 
-  // These are cheap synchronous calculations — compute once
+  // Synchronous initializer: hit localStorage before first render
+  const [state, setState] = useState(() => {
+    const ls = getFromLocalStorage(cacheKey)
+    if (ls) { _cache = ls }
+    return {
+      readings: _cache,
+      loading: !_cache && !_error,
+      error: _error,
+    }
+  })
+
   const liturgicalInfo = getLiturgicalSeason(new Date())
   const feastInfo = isMajorFeastDay(new Date())
   const todayFormatted = format(new Date(), 'EEEE, MMMM d')
 
   useEffect(() => {
-    const dateStr = getTodayReadingsDate()
-    const cacheKey = `readings_${dateStr}`
-
-    // Check localStorage cache
-    try {
-      const cached = localStorage.getItem(cacheKey)
-      if (cached) {
-        const parsed = JSON.parse(cached)
-        const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
-        if (cachedDate === new Date().toDateString()) {
-          setReadings(parsed)
-          setLoading(false)
-          return
-        }
-      }
-    } catch {
-      // Ignore cache errors
+    // Already have data or already errored — nothing to do
+    if (_cache || _error) {
+      setState({ readings: _cache, loading: false, error: _error })
+      return
     }
 
-    // Fetch fresh via Vercel proxy
-    async function fetchReadings() {
-      try {
-        const response = await fetch(`/api/readings?date=${dateStr}`)
-
-        if (!response.ok) throw new Error('Proxy error')
-
-        const data = await response.json()
-
-        if (!data.success || !data.html) {
-          setError(true)
-          return
-        }
-
-        const parsed = parseReadingsHtml(data.html)
-        if (parsed) {
-          const withMeta = {
-            ...parsed,
-            date: dateStr,
-            fetchedAt: new Date().toISOString(),
-          }
-          try {
-            localStorage.setItem(cacheKey, JSON.stringify(withMeta))
-          } catch {
-            // Storage quota exceeded — skip caching
-          }
-          setReadings(withMeta)
-        } else {
-          // Parsed but got no content — show fallback
-          setError(true)
-        }
-      } catch {
-        setError(true)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchReadings()
-  }, [])
+    fetchReadingsOnce(dateStr).then(result => {
+      setState({ readings: result, loading: false, error: _error })
+    })
+  }, [dateStr])
 
   return {
-    readings,
-    loading,
-    error,
+    readings: state.readings,
+    loading: state.loading,
+    error: state.error,
     liturgicalInfo,
     feastInfo,
     todayFormatted,
