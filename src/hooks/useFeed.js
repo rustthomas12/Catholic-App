@@ -77,7 +77,6 @@ export function useFeed(options = {}) {
 
   // Channel ref for cleanup
   const channelRef = useRef(null)
-  const channelIdRef = useRef(0)
 
   // ── Fetch user's social graph once ────────────────────────
   const loadSocialGraph = useCallback(async () => {
@@ -208,68 +207,9 @@ export function useFeed(options = {}) {
     })
   }, [user, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
 
-  // ── Real-time subscription ─────────────────────────────────
-  useEffect(() => {
-    if (!user) return
-
-    // Clean up existing channel first
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current)
-    }
-
-    channelIdRef.current += 1
-    const channelName = `feed-${filter}-${parishId ?? ''}-${groupId ?? ''}-${userId ?? ''}-${channelIdRef.current}`
-
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'posts' },
-        async (payload) => {
-          const newPostId = payload.new?.id
-          if (!newPostId) return
-
-          // Fetch full post with all joins before adding to feed
-          const { data, error: fetchError } = await supabase
-            .from('posts')
-            .select(POST_SELECT)
-            .eq('id', newPostId)
-            .is('deleted_at', null)
-            .eq('is_removed', false)
-            .single()
-
-          if (fetchError || !data) return
-
-          const normalised = normalisePost(data, user.id)
-
-          // Only add if it matches the current scope
-          const matchesFilter = checkPostMatchesFilter(normalised, {
-            filter,
-            parishId,
-            groupId,
-            userId,
-            followedParishIds: followedParishIds.current,
-            joinedGroupIds: joinedGroupIds.current,
-          })
-          if (!matchesFilter) return
-
-          setPosts((prev) => {
-            // Avoid duplicates (optimistic post already added)
-            if (prev.some((p) => p.id === normalised.id)) return prev
-            return [normalised, ...prev]
-          })
-          setTotalCount((c) => c + 1)
-        }
-      )
-      .subscribe()
-
-    channelRef.current = channel
-
-    return () => {
-      supabase.removeChannel(channel)
-      channelRef.current = null
-    }
-  }, [user, filter, parishId, groupId, userId])
+  // ── Real-time: disabled in feed to avoid Supabase channel reuse errors.
+  // New posts appear instantly via addPost() (optimistic update in CreatePost).
+  // Real-time comment subscriptions are handled per-post in usePost.js.
 
   // ── Public API ─────────────────────────────────────────────
 
@@ -320,30 +260,3 @@ export function useFeed(options = {}) {
   }
 }
 
-// ── Helper — filter check for real-time inserts ────────────
-function checkPostMatchesFilter(post, { filter, parishId, groupId, userId, followedParishIds, joinedGroupIds }) {
-  if (userId) return post.author?.id === userId
-  if (groupId) return post.group?.id === groupId
-  if (parishId) return post.parish?.id === parishId
-
-  switch (filter) {
-    case 'parish':
-      return post.parish && followedParishIds.includes(post.parish.id)
-    case 'groups':
-      return post.group && joinedGroupIds.includes(post.group.id)
-    case 'prayer':
-      return (
-        post.is_prayer_request &&
-        ((post.parish && followedParishIds.includes(post.parish.id)) ||
-          (post.group && joinedGroupIds.includes(post.group.id)))
-      )
-    case 'events':
-      return false
-    case 'all':
-    default:
-      return (
-        (post.parish && followedParishIds.includes(post.parish.id)) ||
-        (post.group && joinedGroupIds.includes(post.group.id))
-      )
-  }
-}
