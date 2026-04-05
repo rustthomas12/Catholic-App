@@ -263,9 +263,17 @@ function fetchReadingsOnce(dateStr) {
     })
     .then(data => {
       clearTimeout(fetchTimeout)
-      if (!data.success || !data.html) { _error = true; return null }
+      if (!data.success || !data.html) {
+        _promise = null // allow retry
+        _error = true
+        return null
+      }
       const parsed = parseReadingsHtml(data.html)
-      if (!parsed) { _error = true; return null }
+      if (!parsed) {
+        _promise = null // allow retry
+        _error = true
+        return null
+      }
       const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString() }
       try { localStorage.setItem(`readings_${dateStr}`, JSON.stringify(withMeta)) } catch { /* quota */ }
       _cache = withMeta
@@ -273,6 +281,7 @@ function fetchReadingsOnce(dateStr) {
     })
     .catch(() => {
       clearTimeout(fetchTimeout)
+      _promise = null // allow retry on next render
       _error = true
       return null
     })

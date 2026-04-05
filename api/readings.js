@@ -6,9 +6,9 @@
 export default async function handler(req, res) {
   const { date } = req.query
 
-  // Validate: must be exactly 8 digits (MMDDYYYY)
-  if (!date || !/^\d{8}$/.test(date)) {
-    return res.status(400).json({ success: false, html: null, error: 'Invalid date format' })
+  // Validate: must be exactly 6 digits (MMDDYY — USCCB URL format)
+  if (!date || !/^\d{6}$/.test(date)) {
+    return res.status(400).json({ success: false, html: null, error: 'Invalid date format, expected MMDDYY' })
   }
 
   try {
