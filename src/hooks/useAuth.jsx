@@ -35,14 +35,33 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    let settled = false
+
+    // Safety timeout — if Supabase never responds, stop spinning after 5s
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        setLoading(false)
+      }
+    }, 5000)
+
     // Initial session check — prevents flash to login for already-authenticated users
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timeout)
       setUser(session?.user ?? null)
       if (session?.user) {
         const p = await fetchProfile(session.user.id)
         setProfile(p)
       }
       setLoading(false)
+    }).catch(() => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timeout)
+        setLoading(false)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -62,7 +81,10 @@ export function AuthProvider({ children }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
   }, [fetchProfile])
 
   async function signIn(email, password) {
@@ -129,9 +151,9 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
     setUser(null)
     setProfile(null)
+    await supabase.auth.signOut()
   }
 
   async function updateProfile(updates) {
