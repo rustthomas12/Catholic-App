@@ -77,6 +77,7 @@ export function useFeed(options = {}) {
 
   // Channel ref for cleanup
   const channelRef = useRef(null)
+  const channelIdRef = useRef(0)
 
   // ── Fetch user's social graph once ────────────────────────
   const loadSocialGraph = useCallback(async () => {
@@ -216,8 +217,11 @@ export function useFeed(options = {}) {
       supabase.removeChannel(channelRef.current)
     }
 
+    channelIdRef.current += 1
+    const channelName = `feed-${filter}-${parishId ?? ''}-${groupId ?? ''}-${userId ?? ''}-${channelIdRef.current}`
+
     const channel = supabase
-      .channel(`feed-${filter}-${parishId ?? ''}-${groupId ?? ''}-${userId ?? ''}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'posts' },
