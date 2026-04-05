@@ -1,8 +1,304 @@
+import { useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowLeftIcon,
+  BuildingLibraryIcon,
+  MapPinIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  UserGroupIcon,
+  CalendarDaysIcon,
+  CheckBadgeIcon as CheckBadgeOutline,
+} from '@heroicons/react/24/outline'
+import { CheckBadgeIcon } from '@heroicons/react/24/solid'
+import { useAuth } from '../hooks/useAuth.jsx'
+import { useParish } from '../hooks/useParish.js'
+import Feed from '../components/feed/Feed'
+import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleton'
+import ParishEvents from '../components/parish/ParishEvents'
+import ParishGroups from '../components/parish/ParishGroups'
+import { format, isPast } from 'date-fns'
+
+const TABS = [
+  { id: 'feed', label: 'Feed' },
+  { id: 'events', label: 'Events' },
+  { id: 'groups', label: 'Groups' },
+  { id: 'about', label: 'About' },
+]
+
 export default function ParishPage() {
-  document.title = 'Parish | Parish App'
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { profile } = useAuth()
+  const [activeTab, setActiveTab] = useState('feed')
+
+  const {
+    parish,
+    loading,
+    error,
+    followerCount,
+    isFollowing,
+    isMyParish,
+    followLoading,
+    follow,
+    setAsMyParish,
+  } = useParish(id)
+
+  if (loading) return <ParishPageSkeleton />
+
+  if (error || !parish) {
+    return (
+      <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
+        <div className="text-center">
+          <BuildingLibraryIcon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <p className="font-bold text-navy mb-1">Parish not found</p>
+          <p className="text-gray-400 text-sm mb-4">This parish may have been removed.</p>
+          <Link to="/directory" className="text-navy text-sm font-semibold hover:underline">
+            ← Back to directory
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  document.title = `${parish.name} | Parish App`
+
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-navy">Parish</h1>
+    <div className="min-h-screen bg-cream md:pl-60">
+
+      {/* ── Header ── */}
+      <div className="bg-navy relative">
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+          <span className="hidden sm:inline">Directory</span>
+        </button>
+
+        <div className="px-4 pt-14 pb-5 max-w-3xl mx-auto">
+          {/* Parish icon + name */}
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <BuildingLibraryIcon className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-2 flex-wrap">
+                <h1 className="text-white font-bold text-lg leading-snug">{parish.name}</h1>
+                {parish.is_official && (
+                  <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Parish Page" />
+                )}
+              </div>
+              <p className="text-gray-300 text-sm mt-0.5">
+                {parish.city}, {parish.state}
+                {parish.diocese ? ` · ${parish.diocese}` : ''}
+              </p>
+              <p className="text-gray-400 text-xs mt-1">
+                {followerCount.toLocaleString()} parishioner{followerCount !== 1 ? 's' : ''} here
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 mt-4 flex-wrap">
+            <button
+              onClick={follow}
+              disabled={followLoading || isMyParish}
+              className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
+                isFollowing || isMyParish
+                  ? 'bg-white/20 text-white hover:bg-white/30'
+                  : 'bg-gold text-navy hover:bg-gold/90'
+              }`}
+            >
+              {followLoading ? '…' : isMyParish ? 'Following' : isFollowing ? 'Following' : 'Follow Parish'}
+            </button>
+
+            {!isMyParish && (
+              <button
+                onClick={setAsMyParish}
+                className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                Set as my parish
+              </button>
+            )}
+
+            {isMyParish && (
+              <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-3 py-2.5">
+                <CheckBadgeIcon className="w-4 h-4" />
+                Your parish
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto flex">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Tab content ── */}
+      <div className="max-w-3xl mx-auto pb-24 md:pb-8">
+        {activeTab === 'feed' && (
+          <Feed
+            parishId={id}
+            showCreatePost={isFollowing || isMyParish}
+            emptyMessage="No posts yet"
+            emptySubtext="This parish hasn't posted anything yet."
+          />
+        )}
+
+        {activeTab === 'events' && <ParishEvents parishId={id} />}
+        {activeTab === 'groups' && <ParishGroups parishId={id} />}
+        {activeTab === 'about' && <ParishAbout parish={parish} />}
+      </div>
+    </div>
+  )
+}
+
+// ── About tab ──────────────────────────────────────────────
+function ParishAbout({ parish }) {
+  const hasContact = parish.address || parish.phone || parish.website || parish.email
+
+  return (
+    <div className="px-4 pt-4 space-y-4 pb-8">
+      {hasContact && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-navy px-4 py-3">
+            <h2 className="text-white font-bold text-sm">Contact & Location</h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {parish.address && (
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(
+                  `${parish.address}, ${parish.city}, ${parish.state} ${parish.zip}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors"
+              >
+                <MapPinIcon className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-navy">{parish.address}</p>
+                  <p className="text-xs text-gray-500">
+                    {parish.city}, {parish.state} {parish.zip}
+                  </p>
+                  <p className="text-xs text-navy font-medium mt-0.5">Open in Maps →</p>
+                </div>
+              </a>
+            )}
+            {parish.phone && (
+              <a
+                href={`tel:${parish.phone}`}
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors"
+              >
+                <PhoneIcon className="w-5 h-5 text-navy flex-shrink-0" />
+                <span className="text-sm text-navy">{parish.phone}</span>
+              </a>
+            )}
+            {parish.website && (
+              <a
+                href={parish.website.startsWith('http') ? parish.website : `https://${parish.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors"
+              >
+                <GlobeAltIcon className="w-5 h-5 text-navy flex-shrink-0" />
+                <span className="text-sm text-navy truncate">{parish.website}</span>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mass Times */}
+      {parish.mass_times ? (
+        <MassTimes massTimes={parish.mass_times} />
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+          <p className="text-gray-400 text-sm">Mass times not listed.</p>
+          {parish.website && (
+            <a
+              href={parish.website.startsWith('http') ? parish.website : `https://${parish.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-navy text-sm font-semibold hover:underline mt-1 inline-block"
+            >
+              Visit parish website →
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* B2B prompt */}
+      {!parish.is_official && (
+        <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
+          <p className="text-navy text-sm font-semibold mb-1">Is this your parish?</p>
+          <p className="text-gray-500 text-xs">
+            Contact us to set up your official page and manage announcements, events, and more.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MassTimes({ massTimes }) {
+  // massTimes can be a string, an array, or an object
+  const renderContent = () => {
+    if (typeof massTimes === 'string') {
+      return <p className="text-sm text-navy whitespace-pre-line">{massTimes}</p>
+    }
+    if (Array.isArray(massTimes)) {
+      return (
+        <ul className="space-y-1.5">
+          {massTimes.map((t, i) => (
+            <li key={i} className="text-sm text-navy flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 flex-shrink-0" />
+              {typeof t === 'string' ? t : JSON.stringify(t)}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    if (typeof massTimes === 'object') {
+      return (
+        <dl className="space-y-2">
+          {Object.entries(massTimes).map(([day, time]) => (
+            <div key={day} className="flex items-start gap-3">
+              <dt className="text-xs font-semibold text-gray-500 uppercase w-24 flex-shrink-0 pt-0.5">
+                {day}
+              </dt>
+              <dd className="text-sm text-navy">{String(time)}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+    return null
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-navy px-4 py-3">
+        <h2 className="text-white font-bold text-sm">Mass Times</h2>
+      </div>
+      <div className="p-4">{renderContent()}</div>
     </div>
   )
 }

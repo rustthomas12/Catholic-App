@@ -71,10 +71,7 @@ const parishes = [
 async function seed() {
   console.log(`Seeding ${parishes.length} Massachusetts parishes...\n`)
 
-  const { error } = await supabase.from('parishes').upsert(parishes, {
-    onConflict: 'name,city',
-    ignoreDuplicates: true,
-  })
+  const { error } = await supabase.from('parishes').insert(parishes)
 
   if (error) {
     console.error('Error seeding parishes:', error.message)

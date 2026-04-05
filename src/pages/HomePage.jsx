@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
-import { getLiturgicalSeason } from '../utils/liturgical'
-import { format, differenceInDays } from 'date-fns'
+import { differenceInDays } from 'date-fns'
 import Feed from '../components/feed/Feed'
 import FeedFilters from '../components/feed/FeedFilters'
+import ReadingsCard from '../components/faith/ReadingsCard'
+import { useReadings } from '../hooks/useReadings'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -22,7 +23,8 @@ export default function HomePage() {
   )
   const [activeFilter, setActiveFilter] = useState('all')
 
-  const season = getLiturgicalSeason()
+  const { readings: homeReadings, loading: readingsLoading, error: readingsError,
+          liturgicalInfo, feastInfo, todayFormatted } = useReadings()
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
   const isNewUser = profile?.created_at &&
     differenceInDays(new Date(), new Date(profile.created_at)) <= 7
@@ -85,27 +87,17 @@ export default function HomePage() {
         )}
 
         {/* Daily faith card */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="bg-navy px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <svg viewBox="0 0 20 20" className="w-4 h-4 fill-gold">
-                <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
-              </svg>
-              <span className="text-white text-sm font-semibold">Today's Readings</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: season.color }} />
-              <span className="text-gray-300 text-xs">{season.label}</span>
-            </div>
-          </div>
-          <div className="p-4">
-            <p className="text-xs text-gray-400 mb-2">{format(new Date(), 'EEEE, MMMM d')}</p>
-            <p className="text-navy text-sm leading-relaxed mb-3">
-              Open the Faith tab for today's Mass readings and your parish community's prayer intentions.
-            </p>
-            <Link to="/faith" className="text-navy text-sm font-semibold hover:underline">
-              Read today's readings →
-            </Link>
+        <div className="px-0 border-b border-gray-100">
+          <div className="px-4 py-3">
+            <ReadingsCard
+              variant="compact"
+              readings={homeReadings}
+              loading={readingsLoading}
+              error={readingsError}
+              liturgicalInfo={liturgicalInfo}
+              feastInfo={feastInfo}
+              todayFormatted={todayFormatted}
+            />
           </div>
         </div>
 
@@ -213,26 +205,15 @@ export default function HomePage() {
           )}
 
           {/* Daily faith card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="bg-navy px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg viewBox="0 0 20 20" className="w-4 h-4 fill-gold">
-                  <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
-                </svg>
-                <span className="text-white text-sm font-semibold">Today's Readings</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: season.color }} />
-                <span className="text-gray-300 text-xs">{season.label}</span>
-              </div>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-gray-400 mb-2">{format(new Date(), 'EEEE, MMMM d')}</p>
-              <Link to="/faith" className="text-navy text-sm font-semibold hover:underline">
-                Read today's readings →
-              </Link>
-            </div>
-          </div>
+          <ReadingsCard
+            variant="compact"
+            readings={homeReadings}
+            loading={readingsLoading}
+            error={readingsError}
+            liturgicalInfo={liturgicalInfo}
+            feastInfo={feastInfo}
+            todayFormatted={todayFormatted}
+          />
 
           {/* Parish card */}
           {parish ? (

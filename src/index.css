@@ -68,3 +68,26 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* ── Leaflet overrides ── */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 0;
+}
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255,255,255,0.7) !important;
+}
+.leaflet-bar {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  border: none !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  border-bottom-color: #e5e7eb !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  color: #1B2A4A !important;
+}
