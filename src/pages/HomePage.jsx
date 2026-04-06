@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { differenceInDays } from 'date-fns'
@@ -8,6 +8,7 @@ import Feed from '../components/feed/Feed'
 import FeedFilters from '../components/feed/FeedFilters'
 import ReadingsCard from '../components/faith/ReadingsCard'
 import { useReadings } from '../hooks/useReadings'
+import GroupCard from '../components/groups/GroupCard'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -141,14 +142,7 @@ export default function HomePage() {
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }}>
               {groups.map(g => (
-                <Link key={g.id} to={`/group/${g.id}`}
-                  className="flex-shrink-0 bg-white rounded-xl border border-gray-100 shadow-sm p-3 w-36 hover:border-navy transition-colors">
-                  <div className="w-8 h-8 bg-lightbg rounded-lg flex items-center justify-center mb-2">
-                    <UserGroupIcon className="w-4 h-4 text-navy" />
-                  </div>
-                  <p className="text-xs font-semibold text-navy leading-tight truncate">{g.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{g.member_count || 0} members</p>
-                </Link>
+                <GroupCard key={g.id} group={g} compact isMember />
               ))}
             </div>
           </div>
@@ -249,15 +243,9 @@ export default function HomePage() {
                 <h2 className="text-sm font-bold text-navy">My Groups</h2>
                 <Link to="/groups" className="text-xs text-gray-400 hover:text-navy">See all</Link>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                 {groups.slice(0, 4).map(g => (
-                  <Link key={g.id} to={`/group/${g.id}`}
-                    className="flex items-center gap-2 hover:bg-lightbg rounded-lg p-1.5 transition-colors">
-                    <div className="w-7 h-7 bg-lightbg rounded-lg flex items-center justify-center flex-shrink-0">
-                      <UserGroupIcon className="w-4 h-4 text-navy" />
-                    </div>
-                    <p className="text-xs font-medium text-navy truncate flex-1">{g.name}</p>
-                  </Link>
+                  <GroupCard key={g.id} group={g} compact isMember />
                 ))}
               </div>
             </div>

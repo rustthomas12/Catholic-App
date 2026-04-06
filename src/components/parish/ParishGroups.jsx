@@ -1,55 +1,69 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { UserGroupIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth.jsx'
-
-const CATEGORY_LABELS = {
-  parish: 'Parish',
-  diocese: 'Diocese',
-  interest: 'Interest',
-  vocation: 'Vocation',
-  rcia: 'RCIA',
-  mens: "Men's",
-  womens: "Women's",
-  young_adults: 'Young Adults',
-  families: 'Families',
-  other: 'Other',
-}
+import { useGroupMemberships, useGroupJoin } from '../../hooks/useGroups'
+import GroupCard from '../groups/GroupCard'
+import Modal from '../shared/Modal'
 
 export default function ParishGroups({ parishId }) {
-  const { user } = useAuth()
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
-  const [joinedIds, setJoinedIds] = useState(new Set())
+  const [leaveTarget, setLeaveTarget] = useState(null)
+
+  const { memberGroupIds, adminGroupIds, refresh } = useGroupMemberships()
+  const { joinGroup, leaveGroup, requestToJoin, hasRequested } = useGroupJoin()
 
   useEffect(() => {
     if (!parishId) return
     setLoading(true)
-
-    const groupsQuery = supabase
+    supabase
       .from('groups')
-      .select('id, name, description, category, is_private, member_count, avatar_url')
+      .select('id, name, description, category, is_private, member_count, avatar_url, parishes(name, city)')
       .eq('parish_id', parishId)
       .order('member_count', { ascending: false })
+      .then(({ data }) => {
+        setGroups(data ?? [])
+        setLoading(false)
+      })
+  }, [parishId])
 
-    const membershipsQuery = user
-      ? supabase.from('group_members').select('group_id').eq('user_id', user.id)
-      : Promise.resolve({ data: [] })
+  async function handleJoin(group) {
+    await joinGroup(group.id, () => refresh())
+  }
 
-    Promise.all([groupsQuery, membershipsQuery]).then(([groupsRes, membershipsRes]) => {
-      setGroups(groupsRes.data ?? [])
-      const ids = new Set((membershipsRes.data ?? []).map((m) => m.group_id))
-      setJoinedIds(ids)
-      setLoading(false)
+  async function handleLeave(group) {
+    setLeaveTarget(group)
+  }
+
+  async function confirmLeave() {
+    if (!leaveTarget) return
+    await leaveGroup(leaveTarget.id, adminGroupIds, () => {
+      refresh()
+      setLeaveTarget(null)
     })
-  }, [parishId, user])
+    setLeaveTarget(null)
+  }
+
+  async function handleRequest(group) {
+    await requestToJoin(group.id, group.name)
+  }
+
+  function groupActions(group) {
+    return {
+      isMember: memberGroupIds.has(group.id),
+      isAdmin: adminGroupIds.has(group.id),
+      hasRequested: hasRequested(group.id),
+      onJoin: () => handleJoin(group),
+      onLeave: () => handleLeave(group),
+      onRequest: () => handleRequest(group),
+    }
+  }
 
   if (loading) {
     return (
-      <div className="px-4 pt-4 grid gap-3 sm:grid-cols-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-2xl h-28 animate-pulse border border-gray-100" />
+      <div className="px-4 pt-4 space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-gray-100" />
         ))}
       </div>
     )
@@ -68,37 +82,35 @@ export default function ParishGroups({ parishId }) {
   }
 
   return (
-    <div className="px-4 pt-4 pb-8 grid gap-3 sm:grid-cols-2">
-      {groups.map((group) => (
-        <Link
-          key={group.id}
-          to={`/group/${group.id}`}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow block"
-        >
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
-              <UserGroupIcon className="w-5 h-5 text-navy" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-bold text-navy text-sm leading-snug truncate">{group.name}</p>
-                {joinedIds.has(group.id) && (
-                  <span className="text-xs text-gold font-semibold flex-shrink-0">Joined</span>
-                )}
-              </div>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {CATEGORY_LABELS[group.category] ?? group.category}
-                {group.is_private ? ' · Private' : ''}
-                {' · '}
-                {(group.member_count ?? 0).toLocaleString()} member{group.member_count !== 1 ? 's' : ''}
-              </p>
-              {group.description && (
-                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{group.description}</p>
-              )}
-            </div>
-          </div>
-        </Link>
+    <div className="px-4 pt-4 pb-8">
+      {groups.map(group => (
+        <GroupCard key={group.id} group={group} {...groupActions(group)} />
       ))}
+
+      <Modal
+        isOpen={!!leaveTarget}
+        onClose={() => setLeaveTarget(null)}
+        title="Leave group"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600 mb-5">
+          Are you sure you want to leave {leaveTarget?.name}?
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setLeaveTarget(null)}
+            className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmLeave}
+            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
+          >
+            Leave
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

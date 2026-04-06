@@ -23,6 +23,7 @@ const EditProfilePage          = lazy(() => import('./pages/EditProfilePage'))
 const GroupsPage               = lazy(() => import('./pages/GroupsPage'))
 const GroupPage                = lazy(() => import('./pages/GroupPage'))
 const CreateGroupPage          = lazy(() => import('./pages/CreateGroupPage'))
+const GroupSettingsPage        = lazy(() => import('./pages/GroupSettingsPage'))
 const DirectoryPage            = lazy(() => import('./pages/DirectoryPage'))
 const ParishPage               = lazy(() => import('./pages/ParishPage'))
 const FaithPage                = lazy(() => import('./pages/FaithPage'))
@@ -107,6 +108,7 @@ function AppInner() {
           <Route path="/groups"                    element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
           <Route path="/groups/new"                element={<ProtectedRoute><CreateGroupPage /></ProtectedRoute>} />
           <Route path="/group/:id"                 element={<ProtectedRoute><GroupPage /></ProtectedRoute>} />
+          <Route path="/group/:id/settings"        element={<ProtectedRoute><GroupSettingsPage /></ProtectedRoute>} />
           <Route path="/directory"                 element={<ProtectedRoute><DirectoryPage /></ProtectedRoute>} />
           <Route path="/parish/:id"                element={<ProtectedRoute><ParishPage /></ProtectedRoute>} />
           <Route path="/faith"                     element={<ProtectedRoute><FaithPage /></ProtectedRoute>} />
