@@ -1,45 +1,95 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
 import { toast } from '../components/shared/Toast'
 
+// ── Memberships module-level cache (shared across all hook instances) ──────
+let _membershipsCache = null        // { userId, data, ts }
+let _membershipsPromise = null      // in-flight request
+const MEMBERSHIPS_TTL = 60_000     // 1 minute
+
+function _invalidateMemberships() {
+  _membershipsCache = null
+  _membershipsPromise = null
+}
+
+async function _fetchMemberships(userId) {
+  if (_membershipsPromise) return _membershipsPromise
+  _membershipsPromise = supabase
+    .from('group_members')
+    .select(`
+      group_id, role,
+      groups(
+        id, name, category, avatar_url, description,
+        is_private, parish_id, member_count,
+        parishes(name, city)
+      )
+    `)
+    .eq('user_id', userId)
+    .then(({ data }) => {
+      const result = (data ?? []).filter(d => d.groups).map(d => ({ group: d.groups, role: d.role }))
+      _membershipsCache = { userId, data: result, ts: Date.now() }
+      _membershipsPromise = null
+      return result
+    })
+    .catch(() => {
+      _membershipsPromise = null
+      return []
+    })
+  return _membershipsPromise
+}
+
 // ── useGroupMemberships ────────────────────────────────────
 export function useGroupMemberships() {
   const { user } = useAuth()
-  const [memberships, setMemberships] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const fetch = useCallback(async () => {
-    if (!user) { setLoading(false); return }
-    const { data } = await supabase
-      .from('group_members')
-      .select(`
-        group_id, role,
-        groups(
-          id, name, category, avatar_url, description,
-          is_private, parish_id, member_count,
-          parishes(name, city)
-        )
-      `)
-      .eq('user_id', user.id)
-
-    setMemberships(
-      (data ?? [])
-        .filter(d => d.groups)
-        .map(d => ({ group: d.groups, role: d.role }))
-    )
-    setLoading(false)
-  }, [user])
-
-  useEffect(() => { fetch() }, [fetch])
-
-  const memberGroupIds = new Set(memberships.map(m => m.group.id))
-  const adminGroupIds = new Set(
-    memberships.filter(m => m.role === 'admin').map(m => m.group.id)
+  const userId = user?.id ?? null
+  const [memberships, setMemberships] = useState(() => {
+    // Serve cache immediately on mount if valid
+    if (_membershipsCache && _membershipsCache.userId === userId &&
+        Date.now() - _membershipsCache.ts < MEMBERSHIPS_TTL) {
+      return _membershipsCache.data
+    }
+    return []
+  })
+  const [loading, setLoading] = useState(
+    !(_membershipsCache && _membershipsCache.userId === userId &&
+      Date.now() - _membershipsCache.ts < MEMBERSHIPS_TTL)
   )
 
-  return { memberships, memberGroupIds, adminGroupIds, loading, refresh: fetch }
+  const refresh = useCallback(async () => {
+    if (!userId) { setLoading(false); return }
+    _invalidateMemberships()
+    const result = await _fetchMemberships(userId)
+    setMemberships(result)
+    setLoading(false)
+  }, [userId])
+
+  useEffect(() => {
+    if (!userId) { setLoading(false); return }
+    const cached = _membershipsCache
+    const isFresh = cached && cached.userId === userId && Date.now() - cached.ts < MEMBERSHIPS_TTL
+    if (isFresh) {
+      setMemberships(cached.data)
+      setLoading(false)
+      return
+    }
+    _fetchMemberships(userId).then(result => {
+      setMemberships(result)
+      setLoading(false)
+    })
+  }, [userId])
+
+  const memberGroupIds = useMemo(
+    () => new Set(memberships.map(m => m.group.id)),
+    [memberships]
+  )
+  const adminGroupIds = useMemo(
+    () => new Set(memberships.filter(m => m.role === 'admin').map(m => m.group.id)),
+    [memberships]
+  )
+
+  return { memberships, memberGroupIds, adminGroupIds, loading, refresh }
 }
 
 // ── useGroupSearch ─────────────────────────────────────────
@@ -265,6 +315,7 @@ export function useGroupJoin() {
 
     // Increment member_count
     await supabase.rpc('increment_member_count', { group_id_param: groupId }).catch(() => {})
+    _invalidateMemberships()
     onSuccess?.()
     return { error: null }
   }, [user])
@@ -296,6 +347,7 @@ export function useGroupJoin() {
       return { error }
     }
 
+    _invalidateMemberships()
     onSuccess?.()
     return { error: null }
   }, [user])
@@ -362,6 +414,7 @@ export function useGroupJoin() {
       .from('group_members')
       .insert({ group_id: groupId, user_id: requestUserId, role: 'member' })
 
+    _invalidateMemberships()
     // Remove from pending list
     setPendingRequests(prev => prev.filter(r => r.id !== requestId))
 

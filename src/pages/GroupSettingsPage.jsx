@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -23,13 +23,14 @@ export default function GroupSettingsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
-  // Initialize form once group loads
-  if (group && !initialized) {
-    setName(group.name)
-    setDescription(group.description ?? '')
-    setIsPrivate(group.is_private)
-    setInitialized(true)
-  }
+  useEffect(() => {
+    if (group && !initialized) {
+      setName(group.name)
+      setDescription(group.description ?? '')
+      setIsPrivate(group.is_private)
+      setInitialized(true)
+    }
+  }, [group, initialized])
 
   if (loading) return <GroupPageSkeleton />
 
