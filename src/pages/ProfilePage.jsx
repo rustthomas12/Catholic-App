@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import Avatar from '../components/shared/Avatar'
@@ -127,13 +127,20 @@ export default function ProfilePage() {
             <ArrowLeftIcon className="w-5 h-5 text-navy" />
           </button>
 
-          {/* Edit button */}
+          {/* Edit + Settings buttons */}
           {isOwnProfile && (
-            <Link to="/settings/profile"
-              className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur text-navy text-sm font-medium px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
-              <PencilIcon className="w-4 h-4" />
-              Edit
-            </Link>
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+              <Link to="/settings"
+                className="flex items-center justify-center w-9 h-9 bg-white/90 backdrop-blur text-navy rounded-full shadow-sm hover:bg-white transition-colors md:hidden"
+                aria-label="Settings">
+                <Cog6ToothIcon className="w-5 h-5" />
+              </Link>
+              <Link to="/settings/profile"
+                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-navy text-sm font-medium px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                <PencilIcon className="w-4 h-4" />
+                Edit
+              </Link>
+            </div>
           )}
 
           {/* Banner gradient */}

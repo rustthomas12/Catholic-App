@@ -301,7 +301,12 @@ export function useFeed(options = {}) {
   const removePost = useCallback((id) => {
     setPosts((prev) => prev.filter((p) => p.id !== id))
     setTotalCount((c) => Math.max(0, c - 1))
-  }, [])
+    // Clear cache so the deletion persists across navigations
+    if (userId_stable) {
+      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+      _feedCache.delete(cacheKey)
+    }
+  }, [userId_stable, filter, parishId, groupId])
 
   return {
     posts,

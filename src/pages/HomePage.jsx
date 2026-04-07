@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useFollowedParishes } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import { differenceInDays } from 'date-fns'
 import Feed from '../components/feed/Feed'
@@ -35,6 +36,9 @@ export default function HomePage() {
     localStorage.getItem(WELCOME_DISMISSED_KEY) === '1'
   )
   const [activeFilter, setActiveFilter] = useState('all')
+
+  const { parishes: followedParishes } = useFollowedParishes()
+  const hasParish = !!parish || followedParishes.length > 0
 
   const { readings: homeReadings, loading: readingsLoading, error: readingsError,
           liturgicalInfo, feastInfo, todayFormatted } = useReadings()
@@ -149,7 +153,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : !hasParish ? (
           <div className="bg-white border-b border-gray-100 p-5 text-center">
             <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
             <p className="font-semibold text-navy text-sm mb-1">Connect with your parish</p>
@@ -161,7 +165,7 @@ export default function HomePage() {
               Find my parish →
             </Link>
           </div>
-        )}
+        ) : null}
 
         {/* Groups horizontal scroll */}
         {groups.length > 0 && (
@@ -256,7 +260,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : !hasParish ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
               <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
               <p className="font-semibold text-navy text-sm mb-2">Connect with your parish</p>
@@ -264,7 +268,7 @@ export default function HomePage() {
                 Find my parish →
               </Link>
             </div>
-          )}
+          ) : null}
 
           {/* Groups */}
           {groups.length > 0 && (
