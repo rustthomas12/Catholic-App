@@ -64,7 +64,7 @@ export default function ProfilePage() {
         p.parish_id
           ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', p.parish_id).single()
           : Promise.resolve({ data: null }),
-        supabase.from('posts').select('*', { count: 'exact', head: true })
+        supabase.from('posts').select('id', { count: 'exact', head: true })
           .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false),
       ])
 

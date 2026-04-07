@@ -52,7 +52,7 @@ export async function uploadPostImage(userId, file) {
   if (err) return { url: null, error: err }
 
   const ext = getExtension(file)
-  const path = `posts/${userId}/${Date.now()}.${ext}`
+  const path = `posts/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
   const { error: uploadError } = await supabase.storage
     .from('posts')

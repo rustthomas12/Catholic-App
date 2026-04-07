@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -34,6 +34,8 @@ export default function Feed({
   const sentinelRef = useRef(null)
   const [newPostPending, setNewPostPending] = useState(false)
   const isAtTopRef = useRef(true)
+
+  const handleDelete = useCallback((id) => feed.removePost(id), [feed.removePost])
 
   // Track scroll position to know if user is at top
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function Feed({
         <PostCard
           key={post.id}
           post={post}
-          onDelete={(id) => feed.removePost(id)}
+          onDelete={handleDelete}
           showSource
         />
       ))}

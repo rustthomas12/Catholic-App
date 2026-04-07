@@ -220,6 +220,7 @@ function getFromLocalStorage(cacheKey) {
 
 function fetchReadingsOnce(dateStr) {
   if (_promise) return _promise
+  _error = false  // reset so a fresh attempt can succeed
 
   const controller = new AbortController()
   const fetchTimeout = setTimeout(() => controller.abort(), 5000)
@@ -278,12 +279,12 @@ export function useReadings() {
   const todayFormatted = format(new Date(), 'EEEE, MMMM d')
 
   useEffect(() => {
-    // Already have data or already errored — nothing to do
-    if (_cache || _error) {
-      setState({ readings: _cache, loading: false, error: _error })
+    // Already have data — nothing to do
+    if (_cache) {
+      setState({ readings: _cache, loading: false, error: false })
       return
     }
-
+    // On error, allow retry (fetchReadingsOnce resets _error and _promise was cleared)
     fetchReadingsOnce(dateStr).then(result => {
       setState({ readings: result, loading: false, error: _error })
     })
@@ -306,6 +307,7 @@ let _tlmError = false
 
 function fetchTLMOnce(dateParam) {
   if (_tlmPromise) return _tlmPromise
+  _tlmError = false  // reset so a fresh attempt can succeed
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 8000)
@@ -355,10 +357,11 @@ export function useTLMReadings(enabled = false) {
 
   useEffect(() => {
     if (!enabled) return
-    if (_tlmCache || _tlmError) {
-      setState({ readings: _tlmCache, loading: false, error: _tlmError })
+    if (_tlmCache) {
+      setState({ readings: _tlmCache, loading: false, error: false })
       return
     }
+    // Allow retry on error (fetchTLMOnce resets _tlmError and _tlmPromise was cleared)
     fetchTLMOnce(today).then(result => {
       setState({ readings: result, loading: false, error: _tlmError })
     })

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react'
 import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { toast } from '../components/shared/Toast'
 import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import ParishCard from '../components/parish/ParishCard'
@@ -82,25 +83,29 @@ export default function DirectoryPage() {
       }))
 
       if (current.isFollowing) {
-        await supabase
+        const { error } = await supabase
           .from('parish_follows')
           .delete()
           .eq('parish_id', parishId)
           .eq('user_id', user.id)
-        invalidateFollowedParishesCache()
-        setFollowStates((prev) => ({
-          ...prev,
-          [parishId]: { isFollowing: false, loading: false },
-        }))
+        if (error) {
+          toast.error('Could not unfollow parish. Please try again.')
+          setFollowStates((prev) => ({ ...prev, [parishId]: current }))
+        } else {
+          invalidateFollowedParishesCache()
+          setFollowStates((prev) => ({ ...prev, [parishId]: { isFollowing: false, loading: false } }))
+        }
       } else {
-        await supabase
+        const { error } = await supabase
           .from('parish_follows')
           .insert({ parish_id: parishId, user_id: user.id })
-        invalidateFollowedParishesCache()
-        setFollowStates((prev) => ({
-          ...prev,
-          [parishId]: { isFollowing: true, loading: false },
-        }))
+        if (error) {
+          toast.error('Could not follow parish. Please try again.')
+          setFollowStates((prev) => ({ ...prev, [parishId]: current }))
+        } else {
+          invalidateFollowedParishesCache()
+          setFollowStates((prev) => ({ ...prev, [parishId]: { isFollowing: true, loading: false } }))
+        }
       }
     },
     [user, followStates]
