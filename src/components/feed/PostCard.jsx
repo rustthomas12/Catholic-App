@@ -473,7 +473,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               </div>
             ) : (
               <div className="pt-2">
-                {comments.slice(0, 3).map((c) => (
+                {comments.map((c) => (
                   <CommentItem
                     key={c.id}
                     comment={c}
@@ -481,11 +481,6 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     onDelete={deleteComment}
                   />
                 ))}
-                {comments.length > 3 && (
-                  <button className="text-xs text-gold font-medium mt-1 min-h-[36px]">
-                    {t('comment.view_all', { count: comments.length })}
-                  </button>
-                )}
               </div>
             )}
 

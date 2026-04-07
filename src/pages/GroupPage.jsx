@@ -15,6 +15,7 @@ import {
   MapPinIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+import { toast } from '../components/shared/Toast'
 import { format, isPast, isSameDay } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -80,7 +81,11 @@ export default function GroupPage() {
   }
 
   async function handleDelete() {
-    await supabase.from('groups').delete().eq('id', id)
+    const { error } = await supabase.from('groups').delete().eq('id', id)
+    if (error) {
+      toast.error('Could not delete group. Please try again.')
+      return
+    }
     setDeleteOpen(false)
     navigate('/groups')
   }
@@ -418,21 +423,23 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
   const [openMenuId, setOpenMenuId] = useState(null)
 
   async function handlePromote(userId) {
-    await supabase
+    const { error } = await supabase
       .from('group_members')
       .update({ role: 'moderator' })
       .eq('group_id', groupId)
       .eq('user_id', userId)
+    if (error) { toast.error('Could not promote member.'); return }
     setOpenMenuId(null)
     onRefresh()
   }
 
   async function handleRemove(userId) {
-    await supabase
+    const { error } = await supabase
       .from('group_members')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', userId)
+    if (error) { toast.error('Could not remove member.'); return }
     setOpenMenuId(null)
     onRefresh()
   }

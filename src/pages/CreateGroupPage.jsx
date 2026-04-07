@@ -76,7 +76,8 @@ export default function CreateGroupPage() {
         }
       }
 
-      // Create the group
+      // Create the group — member_count starts at 0 and is incremented
+      // by the trg_group_members_count trigger when the admin row is inserted below.
       const { data: group, error } = await supabase
         .from('groups')
         .insert({
@@ -87,7 +88,6 @@ export default function CreateGroupPage() {
           avatar_url: avatarUrl,
           creator_id: user.id,
           parish_id: profile?.parish_id ?? null,
-          member_count: 1,
         })
         .select('id')
         .single()

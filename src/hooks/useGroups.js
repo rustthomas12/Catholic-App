@@ -199,7 +199,7 @@ export function useSuggestedGroups() {
     }
 
     load()
-  }, [user, profile])
+  }, [user?.id, profile?.parish_id, profile?.vocation_state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { suggested, loading }
 }

@@ -23,6 +23,7 @@ export async function createNotification({ userId, type, referenceId, message, a
     type,
     reference_id: referenceId,
     message,
+    actor_id: actorId,
     is_read: false,
   })
 

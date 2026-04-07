@@ -36,6 +36,15 @@ export const toast = {
       icon: '📡',
       style: { ...baseStyle, background: '#6b7280', color: '#fff' },
     }),
+
+  online: () => {
+    hotToast.dismiss('offline')
+    hotToast.success('You are back online.', {
+      duration: 3000,
+      style: { ...baseStyle, background: '#fff', color: '#1B2A4A', border: '1px solid #C9A84C' },
+      iconTheme: { primary: '#C9A84C', secondary: '#fff' },
+    })
+  },
 }
 
 export function Toaster() {

@@ -47,14 +47,19 @@ export default function Feed({
   }, [])
 
   // Infinite scroll via IntersectionObserver
+  // Use stable primitive deps so the observer isn't torn down on every render
+  const loadMore = feed.loadMore
+  const hasMore = feed.hasMore
+  const loadingMore = feed.loadingMore
+  const feedLoading = feed.loading
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && feed.hasMore && !feed.loadingMore && !feed.loading) {
-          feed.loadMore()
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !feedLoading) {
+          loadMore()
         }
       },
       { rootMargin: '200px' }
@@ -62,7 +67,7 @@ export default function Feed({
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [feed])
+  }, [loadMore, hasMore, loadingMore, feedLoading])
 
   // When a new real-time post arrives while user has scrolled down,
   // show a floating "new post" pill instead of silently prepending

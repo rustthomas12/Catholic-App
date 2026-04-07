@@ -72,7 +72,7 @@ function LastActiveUpdater() {
 function OfflineDetector() {
   useEffect(() => {
     const handleOffline = () => toast.offline()
-    const handleOnline = () => {}
+    const handleOnline = () => toast.online()
     window.addEventListener('offline', handleOffline)
     window.addEventListener('online', handleOnline)
     return () => {

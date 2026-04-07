@@ -34,7 +34,7 @@ export default function EditProfilePage() {
   const [parishResults, setParishResults] = useState([])
   const [parishSearching, setParishSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
-  const [parishDebounce, setParishDebounce] = useState(null)
+  const parishDebounceRef = useRef(null)
   const dropdownRef = useRef(null)
 
   const [saving, setSaving] = useState(false)
@@ -75,8 +75,8 @@ export default function EditProfilePage() {
       setShowDropdown(false)
       return
     }
-    clearTimeout(parishDebounce)
-    const timer = setTimeout(async () => {
+    clearTimeout(parishDebounceRef.current)
+    parishDebounceRef.current = setTimeout(async () => {
       setParishSearching(true)
       const { data } = await supabase
         .from('parishes')
@@ -87,8 +87,7 @@ export default function EditProfilePage() {
       setShowDropdown(true)
       setParishSearching(false)
     }, 400)
-    setParishDebounce(timer)
-    return () => clearTimeout(timer)
+    return () => clearTimeout(parishDebounceRef.current)
   }, [parishQuery])
 
   function handleAvatarChange(e) {
