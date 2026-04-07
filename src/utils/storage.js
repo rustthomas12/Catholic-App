@@ -18,20 +18,26 @@ function getExtension(file) {
   return file.name.split('.').pop().toLowerCase()
 }
 
+// Ensure Supabase has a fresh token before any storage operation.
+// On page refresh the in-memory token may not be initialized yet,
+// causing RLS to reject the upload even for valid sessions.
+async function ensureSession() {
+  await supabase.auth.getSession()
+}
+
 /**
  * Uploads a user avatar.
- * @param {string} userId
- * @param {File} file
- * @returns {Promise<{ url: string|null, error: string|null }>}
+ * Bucket: avatars   Path: {userId}/avatar.{ext}
+ * RLS policy: (storage.foldername(name))[1] = auth.uid()::text
  */
 export async function uploadAvatar(userId, file) {
   const err = validateImage(file, AVATAR_MAX_BYTES)
   if (err) return { url: null, error: err }
 
-  await supabase.auth.getSession()
+  await ensureSession()
 
   const ext = getExtension(file)
-  const path = `avatars/${userId}/avatar.${ext}`
+  const path = `${userId}/avatar.${ext}`
 
   const { error: uploadError } = await supabase.storage
     .from('avatars')
@@ -45,21 +51,16 @@ export async function uploadAvatar(userId, file) {
 
 /**
  * Uploads an image for a post.
- * @param {string} userId
- * @param {File} file
- * @returns {Promise<{ url: string|null, error: string|null }>}
+ * Bucket: posts   Path: {userId}/{timestamp}-{random}.{ext}
+ * RLS policy: (storage.foldername(name))[1] = auth.uid()::text
  */
 export async function uploadPostImage(userId, file) {
   const err = validateImage(file, POST_MAX_BYTES)
   if (err) return { url: null, error: err }
 
-  // Ensure Supabase client has a fresh token before uploading.
-  // Without this, an expired token from localStorage causes RLS rejection.
-  await supabase.auth.getSession()
+  await ensureSession()
 
   const ext = getExtension(file)
-  // Path must start with userId so the storage RLS policy
-  // "(storage.foldername(name))[1] = auth.uid()" is satisfied.
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
   const { error: uploadError } = await supabase.storage
@@ -74,18 +75,18 @@ export async function uploadPostImage(userId, file) {
 
 /**
  * Uploads a group avatar.
- * @param {string} groupId
- * @param {File} file
- * @returns {Promise<{ url: string|null, error: string|null }>}
+ * Bucket: groups   Path: {groupId}/avatar.{ext}
+ * RLS policy: authenticated users can insert (group membership check
+ * is enforced at the application layer)
  */
 export async function uploadGroupAvatar(groupId, file) {
   const err = validateImage(file, AVATAR_MAX_BYTES)
   if (err) return { url: null, error: err }
 
-  await supabase.auth.getSession()
+  await ensureSession()
 
   const ext = getExtension(file)
-  const path = `groups/${groupId}/avatar.${ext}`
+  const path = `${groupId}/avatar.${ext}`
 
   const { error: uploadError } = await supabase.storage
     .from('groups')
@@ -99,9 +100,6 @@ export async function uploadGroupAvatar(groupId, file) {
 
 /**
  * Returns a Supabase Storage public URL with optional transform params.
- * @param {string|null} avatarUrl
- * @param {number} [size=200]
- * @returns {string|null}
  */
 export function getAvatarUrl(avatarUrl, size = 200) {
   if (!avatarUrl) return null
