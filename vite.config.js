@@ -71,15 +71,10 @@ export default defineConfig({
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'api-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 5 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
+          // Supabase REST/auth requests are intentionally NOT cached here.
+          // They are authenticated (Bearer token) and already cached at the
+          // hook level. Service-worker caching of these calls causes stale
+          // data and can break auth token refreshes on page reload.
         ],
       },
     }),

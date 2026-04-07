@@ -250,7 +250,7 @@ export function usePost(postId, initialPost) {
 
     const { error } = await supabase
       .from('posts')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', postId)
       .eq('author_id', user.id) // security: own only
 

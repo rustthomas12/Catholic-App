@@ -35,55 +35,50 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    let settled = false
+    let cancelled = false
 
-    // Safety timeout — if Supabase never responds, stop spinning after 5s
+    // Fallback: if INITIAL_SESSION never fires (shouldn't happen in supabase-js v2)
+    // unblock the spinner after 10 seconds
     const timeout = setTimeout(() => {
-      if (!settled) {
-        settled = true
-        setLoading(false)
-      }
-    }, 5000)
+      if (!cancelled) setLoading(false)
+    }, 10_000)
 
-    // Initial session check — prevents flash to login for already-authenticated users.
-    // setLoading(false) fires as soon as auth state is known — profile loads in background
-    // so the page renders immediately without waiting for a second network round-trip.
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (settled) return
-      settled = true
-      clearTimeout(timeout)
-      setUser(session?.user ?? null)
-      setLoading(false)
-      if (session?.user) {
-        const p = await fetchProfile(session.user.id)
-        setProfile(p)
-      }
-    }).catch(() => {
-      if (!settled) {
-        settled = true
-        clearTimeout(timeout)
-        setLoading(false)
-      }
-    })
-
+    // onAuthStateChange fires immediately with INITIAL_SESSION when subscribed.
+    // This is the primary mechanism for hydrating auth state on refresh/cold open.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (cancelled) return
+
+        if (event === 'INITIAL_SESSION') {
+          // First event on every page load — resolves the loading state immediately
+          clearTimeout(timeout)
+          setUser(session?.user ?? null)
+          setLoading(false)
+          if (session?.user) {
+            const p = await fetchProfile(session.user.id)
+            if (!cancelled) setProfile(p)
+          }
+          return
+        }
+
         if (event === 'SIGNED_OUT') {
           setUser(null)
           setProfile(null)
           return
         }
+
         if (session?.user) {
           setUser(session.user)
           if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
             const p = await fetchProfile(session.user.id)
-            setProfile(p)
+            if (!cancelled) setProfile(p)
           }
         }
       }
     )
 
     return () => {
+      cancelled = true
       clearTimeout(timeout)
       subscription.unsubscribe()
     }
