@@ -126,25 +126,10 @@ function parseTLMHtml(html) {
   }
 }
 
-// ── Strip USCCB copyright / footer boilerplate from reading text ──
-const COPYRIGHT_PATTERNS = [
-  /Lectionary for Mass for Use in the Dioceses[\s\S]*/i,
-  /©\s*20\d\d United States Conference[\s\S]*/i,
-  /United States Conference of Catholic Bishops'?[\s\S]*/i,
-  /Neither this work nor any part[\s\S]*/i,
-  /Made possible by funding from[\s\S]*/i,
-]
-
-function stripCopyright(text) {
-  if (!text) return text
-  let t = text
-  for (const pat of COPYRIGHT_PATTERNS) {
-    t = t.replace(pat, '').trim()
-  }
-  return t
-}
-
-// ── HTML Parser ────────────────────────────────────────────
+// ── HTML Parser (Universalis) ──────────────────────────────
+// Structure: <table class="each"><tr><th>Section Label</th><th>Reference</th></tr></table>
+// followed by <div class="p"> and <div class="pi"> for paragraph text,
+// <h4> for the reading title, until the next <table class="each">.
 function parseReadingsHtml(html) {
   try {
     const parser = new DOMParser()
@@ -158,96 +143,54 @@ function parseReadingsHtml(html) {
       gospel: null,
     }
 
-    const sectionMap = [
-      { key: 'firstReading', patterns: ['first reading', 'reading i\b', '1st reading'] },
-      { key: 'psalm', patterns: ['responsorial psalm'] },
-      { key: 'secondReading', patterns: ['second reading', 'reading ii\b', '2nd reading'] },
-      { key: 'gospelAcclamation', patterns: ['gospel acclamation', 'alleluia verse'] },
-      { key: 'gospel', patterns: ['^gospel$', 'the gospel'] },
-    ]
-
-    function detectSection(text) {
-      const lower = text.toLowerCase().trim()
-      for (const { key, patterns } of sectionMap) {
-        for (const p of patterns) {
-          if (new RegExp(p, 'i').test(lower)) return key
-        }
-      }
+    // Map Universalis section labels to result keys
+    function detectSection(label) {
+      const l = label.toLowerCase().trim()
+      if (l.includes('first reading')) return 'firstReading'
+      if (l.includes('second reading')) return 'secondReading'
+      if (l.includes('responsorial psalm') || l === 'psalm') return 'psalm'
+      if (l.includes('gospel acclamation') || l === 'sequence') return 'gospelAcclamation'
+      if (l === 'gospel') return 'gospel'
       return null
     }
 
-    // Strategy 1: USCCB-specific classes
-    const readingWrappers = doc.querySelectorAll(
-      '.content-body, [class*="reading"], [class*="Reading"], article section, .reading'
-    )
+    // Find all <table class="each"> section headers
+    const sectionTables = Array.from(doc.querySelectorAll('table.each'))
 
-    if (readingWrappers.length >= 2) {
-      readingWrappers.forEach((wrapper) => {
-        const heading =
-          wrapper.querySelector('h3, h4, h2, [class*="heading"], [class*="title"]')?.textContent?.trim() ?? ''
-        const section = detectSection(heading)
-        if (!section) return
+    sectionTables.forEach((table, idx) => {
+      const ths = table.querySelectorAll('th')
+      if (ths.length < 1) return
+      const label = ths[0]?.textContent?.trim() ?? ''
+      const reference = ths[1]?.textContent?.trim() ?? ''
+      const key = detectSection(label)
+      if (!key) return
 
-        const ref =
-          wrapper.querySelector('cite, [class*="ref"], [class*="cite"], h4')?.textContent?.trim() ?? ''
-        const textEls = wrapper.querySelectorAll('p')
-        const text = Array.from(textEls)
-          .map((p) => p.textContent?.trim())
-          .filter(Boolean)
-          .join(' ')
+      // Collect all sibling nodes between this table and the next section table
+      const textParts = []
+      let node = table.nextElementSibling
+      const nextTable = sectionTables[idx + 1] ?? null
 
-        if (section === 'gospelAcclamation') {
-          result.gospelAcclamation = { text: stripCopyright(text || ref) }
-        } else if (text || ref) {
-          result[section] = { reference: ref, text: stripCopyright(text) }
+      while (node && node !== nextTable) {
+        const tag = node.tagName?.toLowerCase()
+        // <div class="p"> and <div class="pi"> hold the reading paragraphs
+        // <h4> holds the reading title (skip — it's the subtitle, not scripture)
+        if ((tag === 'div') && (node.className === 'p' || node.className === 'pi')) {
+          const t = node.textContent?.trim()
+          if (t) textParts.push(t)
         }
-      })
-
-      if (result.gospel || result.firstReading) return result
-    }
-
-    // Strategy 2: walk headings to detect section boundaries
-    const allEls = doc.querySelectorAll('h1, h2, h3, h4, h5, p, cite')
-    let activeSec = null
-    let refBuf = null
-    let textBuf = []
-
-    function flush() {
-      if (!activeSec) return
-      const text = stripCopyright(textBuf.join(' '))
-      if (activeSec === 'gospelAcclamation') {
-        result.gospelAcclamation = { text: stripCopyright(refBuf ?? text) }
-      } else if (refBuf || text) {
-        result[activeSec] = { reference: refBuf ?? '', text }
-      }
-    }
-
-    for (const el of allEls) {
-      const raw = el.textContent?.trim()
-      if (!raw) continue
-
-      if (/^H[1-5]$/.test(el.tagName)) {
-        const sec = detectSection(raw)
-        if (sec) {
-          flush()
-          activeSec = sec
-          refBuf = null
-          textBuf = []
-          continue
-        }
+        node = node.nextElementSibling
       }
 
-      if (!activeSec) continue
+      const text = textParts.join('\n\n')
 
-      if (el.tagName === 'CITE' && !refBuf) {
-        refBuf = raw
-      } else if (el.tagName === 'P' && raw.length > 20) {
-        textBuf.push(raw)
+      if (key === 'gospelAcclamation') {
+        result.gospelAcclamation = { text: reference ? `${label} ${reference}` : text }
+      } else {
+        result[key] = { reference, text }
       }
-    }
-    flush()
+    })
 
-    const hasContent = result.firstReading || result.psalm || result.gospel
+    const hasContent = result.firstReading || result.gospel
     return hasContent ? result : null
   } catch {
     return null
@@ -268,7 +211,7 @@ function getFromLocalStorage(cacheKey) {
     const parsed = JSON.parse(cached)
     const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
     // v:2 ensures old cached entries missing copyright strip are ignored
-    if (cachedDate === new Date().toDateString() && parsed.v === 2) return parsed
+    if (cachedDate === new Date().toDateString() && parsed.v === 3) return parsed
   } catch {
     // ignore
   }
@@ -299,7 +242,7 @@ function fetchReadingsOnce(dateStr) {
         _error = true
         return null
       }
-      const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString(), v: 2 }
+      const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString(), v: 3 }
       try { localStorage.setItem(`readings_${dateStr}`, JSON.stringify(withMeta)) } catch { /* quota */ }
       _cache = withMeta
       return withMeta

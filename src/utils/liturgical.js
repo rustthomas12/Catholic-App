@@ -176,8 +176,8 @@ export function isMajorFeastDay(date = new Date()) {
  */
 export function getTodayReadingsDate() {
   const d = new Date()
+  const yyyy = String(d.getFullYear())
   const mm = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
-  const yy = String(d.getFullYear()).slice(-2)
-  return `${mm}${dd}${yy}`
+  return `${yyyy}${mm}${dd}`
 }
