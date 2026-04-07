@@ -59,25 +59,17 @@ export default function ProfilePage() {
       setProfile(p)
       document.title = `${p.full_name || 'Profile'} | Parish App`
 
-      // Load parish
-      if (p.parish_id) {
-        const { data: par } = await supabase
-          .from('parishes')
-          .select('id, name, city, state, diocese')
-          .eq('id', p.parish_id)
-          .single()
-        setParish(par || null)
-      }
+      // Load parish and post count in parallel
+      const [parRes, countRes] = await Promise.all([
+        p.parish_id
+          ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', p.parish_id).single()
+          : Promise.resolve({ data: null }),
+        supabase.from('posts').select('*', { count: 'exact', head: true })
+          .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false),
+      ])
 
-      // Get post count for stats
-      const { count } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('author_id', targetId)
-        .is('deleted_at', null)
-        .eq('is_removed', false)
-
-      setPostCount(count || 0)
+      setParish(parRes.data || null)
+      setPostCount(countRes.count || 0)
       setLoading(false)
     }
 

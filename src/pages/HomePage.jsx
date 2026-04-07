@@ -12,13 +12,25 @@ import GroupCard from '../components/groups/GroupCard'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
+// Module-level cache — persists across navigations within the same session
+let _homeParishCache = null  // { parishId, data }
+let _homeGroupsCache = null  // { userId, data }
+
 export default function HomePage() {
   document.title = 'Home | Parish App'
   const { profile } = useAuth()
   const navigate = useNavigate()
 
-  const [parish, setParish] = useState(null)
-  const [groups, setGroups] = useState([])
+  const [parish, setParish] = useState(() =>
+    profile?.parish_id && _homeParishCache?.parishId === profile.parish_id
+      ? _homeParishCache.data
+      : null
+  )
+  const [groups, setGroups] = useState(() =>
+    profile?.id && _homeGroupsCache?.userId === profile.id
+      ? _homeGroupsCache.data
+      : []
+  )
   const [dismissed, setDismissed] = useState(() =>
     localStorage.getItem(WELCOME_DISMISSED_KEY) === '1'
   )
@@ -30,27 +42,45 @@ export default function HomePage() {
   const isNewUser = profile?.created_at &&
     differenceInDays(new Date(), new Date(profile.created_at)) <= 7
 
-  useEffect(() => {
-    if (!profile) return
+  const parishId = profile?.parish_id
+  const profileId = profile?.id
 
-    if (profile.parish_id) {
-      supabase.from('parishes')
-        .select('id, name, city, state')
-        .eq('id', profile.parish_id)
-        .single()
-        .then(({ data }) => { if (data) setParish(data) })
+  useEffect(() => {
+    if (!profileId) return
+
+    // Parish — only fetch if parishId changed or cache is missing
+    if (parishId) {
+      if (_homeParishCache?.parishId === parishId) {
+        setParish(_homeParishCache.data)
+      } else {
+        supabase.from('parishes')
+          .select('id, name, city, state')
+          .eq('id', parishId)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              _homeParishCache = { parishId, data }
+              setParish(data)
+            }
+          })
+      }
     }
 
-    if (profile.id) {
+    // Groups — only fetch if userId changed or cache is missing
+    if (_homeGroupsCache?.userId === profileId) {
+      setGroups(_homeGroupsCache.data)
+    } else {
       supabase.from('group_members')
         .select('groups(id, name, member_count, category)')
-        .eq('user_id', profile.id)
+        .eq('user_id', profileId)
         .limit(6)
         .then(({ data }) => {
-          if (data) setGroups(data.map(d => d.groups).filter(Boolean))
+          const result = (data ?? []).map(d => d.groups).filter(Boolean)
+          _homeGroupsCache = { userId: profileId, data: result }
+          setGroups(result)
         })
     }
-  }, [profile])
+  }, [parishId, profileId])
 
   function dismissWelcome() {
     localStorage.setItem(WELCOME_DISMISSED_KEY, '1')

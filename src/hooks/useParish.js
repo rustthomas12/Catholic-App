@@ -84,14 +84,33 @@ export function useParishSearch() {
   return { results, loading, error, search, clear }
 }
 
-// ── useNearbyParishes ──────────────────────────────────────
+// ── useNearbyParishes — module-level cache ─────────────────
+// Cache nearby results per location (rounded to ~1 km grid)
+let _nearbyCache = null  // { parishes, lat, lng }
+
+function locationKey(lat, lng) {
+  return `${Math.round(lat * 100) / 100},${Math.round(lng * 100) / 100}`
+}
+
 export function useNearbyParishes(userLocation) {
-  const [parishes, setParishes] = useState([])
-  const [loading, setLoading] = useState(false)
+  const cachedForLocation =
+    _nearbyCache &&
+    userLocation &&
+    locationKey(_nearbyCache.lat, _nearbyCache.lng) === locationKey(userLocation.lat, userLocation.lng)
+
+  const [parishes, setParishes] = useState(() => (cachedForLocation ? _nearbyCache.parishes : []))
+  const [loading, setLoading] = useState(() => !!userLocation && !cachedForLocation)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!userLocation) return
+
+    const key = locationKey(userLocation.lat, userLocation.lng)
+    if (_nearbyCache && locationKey(_nearbyCache.lat, _nearbyCache.lng) === key) {
+      setParishes(_nearbyCache.parishes)
+      setLoading(false)
+      return
+    }
 
     let cancelled = false
     setLoading(true)
@@ -122,21 +141,32 @@ export function useNearbyParishes(userLocation) {
           .sort((a, b) => a.distance - b.distance)
           .slice(0, 25)
 
+        _nearbyCache = { parishes: nearby, lat, lng }
         setParishes(nearby)
         setLoading(false)
       })
 
     return () => { cancelled = true }
-  }, [userLocation])
+  }, [userLocation?.lat, userLocation?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { parishes, loading, error }
 }
 
-// ── useFollowedParishes ────────────────────────────────────
+// ── useFollowedParishes — module-level cache ───────────────
+let _followedCache = null    // { parishes, userId }
+let _followedPromise = null  // in-flight fetch
+
+export function invalidateFollowedParishesCache() {
+  _followedCache = null
+}
+
 export function useFollowedParishes() {
   const { user } = useAuth()
-  const [parishes, setParishes] = useState([])
-  const [loading, setLoading] = useState(true)
+
+  const cachedForUser = _followedCache?.userId === user?.id
+
+  const [parishes, setParishes] = useState(() => (cachedForUser ? _followedCache.parishes : []))
+  const [loading, setLoading] = useState(() => !!user && !cachedForUser)
 
   useEffect(() => {
     if (!user) {
@@ -144,15 +174,34 @@ export function useFollowedParishes() {
       return
     }
 
-    supabase
-      .from('parish_follows')
-      .select(`parish:parishes(${PARISH_SELECT})`)
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        setParishes((data ?? []).map((d) => d.parish).filter(Boolean))
-        setLoading(false)
-      })
-  }, [user])
+    if (_followedCache?.userId === user.id) {
+      setParishes(_followedCache.parishes)
+      setLoading(false)
+      return
+    }
+
+    if (!_followedPromise) {
+      _followedPromise = supabase
+        .from('parish_follows')
+        .select(`parish:parishes(${PARISH_SELECT})`)
+        .eq('user_id', user.id)
+        .then(({ data }) => {
+          const result = (data ?? []).map((d) => d.parish).filter(Boolean)
+          _followedCache = { parishes: result, userId: user.id }
+          _followedPromise = null
+          return result
+        })
+        .catch(() => {
+          _followedPromise = null
+          return []
+        })
+    }
+
+    _followedPromise.then((result) => {
+      setParishes(result)
+      setLoading(false)
+    })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { parishes, loading }
 }
@@ -169,6 +218,9 @@ export function useParish(parishId) {
   const [isMyParish, setIsMyParish] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
 
+  const userId = user?.id
+  const profileParishId = profile?.parish_id
+
   useEffect(() => {
     if (!parishId) return
 
@@ -176,12 +228,12 @@ export function useParish(parishId) {
     setLoading(true)
     setError(null)
 
-    const followCheck = user
+    const followCheck = userId
       ? supabase
           .from('parish_follows')
           .select('id')
           .eq('parish_id', parishId)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .maybeSingle()
       : Promise.resolve({ data: null })
 
@@ -201,15 +253,15 @@ export function useParish(parishId) {
       }
       setFollowerCount(countRes.count ?? 0)
       setIsFollowing(!!followRes.data)
-      setIsMyParish(profile?.parish_id === parishId)
+      setIsMyParish(profileParishId === parishId)
       setLoading(false)
     })
 
     return () => { cancelled = true }
-  }, [parishId, user, profile])
+  }, [parishId, userId, profileParishId])
 
   const follow = useCallback(async () => {
-    if (!user || followLoading) return
+    if (!userId || followLoading) return
     setFollowLoading(true)
 
     if (isFollowing) {
@@ -217,41 +269,44 @@ export function useParish(parishId) {
         .from('parish_follows')
         .delete()
         .eq('parish_id', parishId)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       if (!err) {
         setIsFollowing(false)
         setFollowerCount((c) => Math.max(0, c - 1))
+        invalidateFollowedParishesCache()
       }
     } else {
       const { error: err } = await supabase
         .from('parish_follows')
-        .insert({ parish_id: parishId, user_id: user.id })
+        .insert({ parish_id: parishId, user_id: userId })
       if (!err) {
         setIsFollowing(true)
         setFollowerCount((c) => c + 1)
+        invalidateFollowedParishesCache()
       }
     }
 
     setFollowLoading(false)
-  }, [user, parishId, isFollowing, followLoading])
+  }, [userId, parishId, isFollowing, followLoading])
 
   const setAsMyParish = useCallback(async () => {
-    if (!user) return { error: 'Not authenticated' }
+    if (!userId) return { error: 'Not authenticated' }
     const { error: err } = await updateProfile({ parish_id: parishId })
     if (!err) {
       setIsMyParish(true)
       if (!isFollowing) {
         const { error: fErr } = await supabase
           .from('parish_follows')
-          .insert({ parish_id: parishId, user_id: user.id })
+          .insert({ parish_id: parishId, user_id: userId })
         if (!fErr) {
           setIsFollowing(true)
           setFollowerCount((c) => c + 1)
+          invalidateFollowedParishesCache()
         }
       }
     }
     return { error: err }
-  }, [user, parishId, updateProfile, isFollowing])
+  }, [userId, parishId, updateProfile, isFollowing])
 
   return {
     parish,

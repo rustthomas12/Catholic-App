@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react'
 import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useParishSearch, useNearbyParishes, useFollowedParishes } from '../hooks/useParish.js'
+import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import ParishCard from '../components/parish/ParishCard'
 
@@ -87,6 +87,7 @@ export default function DirectoryPage() {
           .delete()
           .eq('parish_id', parishId)
           .eq('user_id', user.id)
+        invalidateFollowedParishesCache()
         setFollowStates((prev) => ({
           ...prev,
           [parishId]: { isFollowing: false, loading: false },
@@ -95,6 +96,7 @@ export default function DirectoryPage() {
         await supabase
           .from('parish_follows')
           .insert({ parish_id: parishId, user_id: user.id })
+        invalidateFollowedParishesCache()
         setFollowStates((prev) => ({
           ...prev,
           [parishId]: { isFollowing: true, loading: false },

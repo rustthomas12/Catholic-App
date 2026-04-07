@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
@@ -10,27 +10,49 @@ const SAINT_LIST_SELECT =
 // Full select — used when isPremium or on detail page
 const SAINT_FULL_SELECT = '*'
 
-// ── useTodaySaint ──────────────────────────────────────────
+// ── useTodaySaint — module-level cache ─────────────────────
+let _todaySaintCache = null   // { data, date }
+let _todaySaintPromise = null // in-flight fetch
+
 export function useTodaySaint() {
-  const [saint, setSaint] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const todayMMDD = format(new Date(), 'MM-dd')
+  const cachedToday = _todaySaintCache?.date === todayMMDD
+
+  const [saint, setSaint] = useState(() => (cachedToday ? _todaySaintCache.data : null))
+  const [loading, setLoading] = useState(() => !cachedToday)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const todayMMDD = format(new Date(), 'MM-dd')
+    if (_todaySaintCache?.date === todayMMDD) {
+      setSaint(_todaySaintCache.data)
+      setLoading(false)
+      return
+    }
 
-    supabase
-      .from('saints')
-      .select(SAINT_LIST_SELECT)
-      .eq('feast_day', todayMMDD)
-      .limit(1)
-      .maybeSingle()
-      .then(({ data, error: err }) => {
-        if (err) setError(err.message)
-        else setSaint(data)
-        setLoading(false)
-      })
-  }, [])
+    if (!_todaySaintPromise) {
+      _todaySaintPromise = supabase
+        .from('saints')
+        .select(SAINT_LIST_SELECT)
+        .eq('feast_day', todayMMDD)
+        .limit(1)
+        .maybeSingle()
+        .then(({ data, error: err }) => {
+          _todaySaintCache = { data: data ?? null, date: todayMMDD }
+          _todaySaintPromise = null
+          return { data, err }
+        })
+        .catch((err) => {
+          _todaySaintPromise = null
+          return { data: null, err }
+        })
+    }
+
+    _todaySaintPromise.then(({ data, err }) => {
+      if (err) setError(err.message)
+      else setSaint(data)
+      setLoading(false)
+    })
+  }, [todayMMDD])
 
   return { saint, loading, error }
 }
@@ -128,9 +150,9 @@ export function useSaintFavorites() {
       })
   }, [user])
 
-  const favoriteIds = new Set(favorites.map((s) => s.id))
+  const favoriteIds = useMemo(() => new Set(favorites.map((s) => s.id)), [favorites])
 
-  const isFavorite = useCallback((saintId) => favoriteIds.has(saintId), [favorites])
+  const isFavorite = useCallback((saintId) => favoriteIds.has(saintId), [favoriteIds])
 
   const addFavorite = useCallback(
     async (saintId) => {
@@ -140,7 +162,6 @@ export function useSaintFavorites() {
 
       setFavorites((prev) => {
         if (prev.some((s) => s.id === saintId)) return prev
-        // We may not have the full saint object here if not in list
         return saint ? [...prev, saint] : prev
       })
 

@@ -16,6 +16,11 @@ import ReadingsCard from '../components/faith/ReadingsCard'
 import SaintCard from '../components/faith/SaintCard'
 import Avatar from '../components/shared/Avatar'
 
+// Module-level caches — shared across mounts/navigations
+let _intentionsCache = null   // { data, fetchedAt }
+let _confessionCache = null   // { data, userId }
+const INTENTIONS_TTL = 5 * 60 * 1000  // 5 minutes
+
 export default function FaithPage() {
   document.title = 'Faith | Parish App'
 
@@ -26,13 +31,23 @@ export default function FaithPage() {
   const { saint, loading: saintLoading } = useTodaySaint()
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()
 
-  const [intentions, setIntentions] = useState([])
-  const [intentionsLoading, setIntentionsLoading] = useState(true)
-  const [lastConfession, setLastConfession] = useState(null)
+  const cachedIntentions = _intentionsCache && (Date.now() - _intentionsCache.fetchedAt) < INTENTIONS_TTL
+
+  const [intentions, setIntentions] = useState(() => cachedIntentions ? _intentionsCache.data : [])
+  const [intentionsLoading, setIntentionsLoading] = useState(() => !cachedIntentions)
+  const [lastConfession, setLastConfession] = useState(() =>
+    _confessionCache?.userId === user?.id ? _confessionCache.data : null
+  )
   const [confessionLoading, setConfessionLoading] = useState(false)
 
-  // Fetch last 5 prayer requests
+  // Fetch last 5 prayer requests (cached 5 min)
   useEffect(() => {
+    if (_intentionsCache && (Date.now() - _intentionsCache.fetchedAt) < INTENTIONS_TTL) {
+      setIntentions(_intentionsCache.data)
+      setIntentionsLoading(false)
+      return
+    }
+
     supabase
       .from('prayer_requests')
       .select(`
@@ -42,14 +57,22 @@ export default function FaithPage() {
       .order('created_at', { ascending: false })
       .limit(5)
       .then(({ data }) => {
-        setIntentions(data ?? [])
+        const result = data ?? []
+        _intentionsCache = { data: result, fetchedAt: Date.now() }
+        setIntentions(result)
         setIntentionsLoading(false)
       })
   }, [])
 
-  // Fetch last confession (premium only)
+  // Fetch last confession (premium only, cached per user)
   useEffect(() => {
     if (!user || !isPremium) return
+
+    if (_confessionCache?.userId === user.id) {
+      setLastConfession(_confessionCache.data)
+      return
+    }
+
     setConfessionLoading(true)
     supabase
       .from('confession_tracker')
@@ -59,10 +82,11 @@ export default function FaithPage() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
+        _confessionCache = { data, userId: user.id }
         setLastConfession(data)
         setConfessionLoading(false)
       })
-  }, [user, isPremium])
+  }, [user?.id, isPremium])
 
   const handleFavoriteToggle = () => {
     if (!saint) return
