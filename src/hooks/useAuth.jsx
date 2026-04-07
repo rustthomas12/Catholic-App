@@ -8,10 +8,7 @@ function t(key) {
   return i18n.t(key)
 }
 
-// ── Read user from localStorage synchronously ──────────────
-// Supabase persists the session under sb-{projectRef}-auth-token.
-// Reading it directly means we never block on a network call to show
-// the page — if a token needs refreshing, that happens in the background.
+// ── localStorage helpers ───────────────────────────────────
 const _projectRef = (import.meta.env.VITE_SUPABASE_URL || '')
   .match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] ?? ''
 const _sessionKey = `sb-${_projectRef}-auth-token`
@@ -26,12 +23,38 @@ function getStoredUser() {
   }
 }
 
+function getStoredProfile(userId) {
+  if (!userId) return null
+  try {
+    const raw = localStorage.getItem(`parish_profile_${userId}`)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+function setStoredProfile(userId, profile) {
+  if (!userId || !profile) return
+  try {
+    localStorage.setItem(`parish_profile_${userId}`, JSON.stringify(profile))
+  } catch { /* quota */ }
+}
+
+function clearStoredProfile(userId) {
+  if (!userId) return
+  try {
+    localStorage.removeItem(`parish_profile_${userId}`)
+  } catch { /* ignore */ }
+}
+
 export function AuthProvider({ children }) {
-  // Initialize synchronously from localStorage — zero loading flash on refresh
-  const [user, setUser] = useState(() => getStoredUser())
-  const [profile, setProfile] = useState(null)
-  // loading is only used so existing consumers don't break;
-  // it is never true at startup because we read from storage synchronously
+  const storedUser = getStoredUser()
+
+  // Both user and profile initialize synchronously from localStorage.
+  // No network call, no loading state, no spinner on refresh.
+  const [user, setUser] = useState(() => storedUser)
+  const [profile, setProfile] = useState(() => getStoredProfile(storedUser?.id))
   const [loading, setLoading] = useState(false)
 
   const fetchProfile = useCallback(async (userId) => {
@@ -48,10 +71,12 @@ export function AuthProvider({ children }) {
           .insert({ id: userId })
           .select()
           .single()
+        if (newProfile) setStoredProfile(userId, newProfile)
         return newProfile ?? null
       }
       return null
     }
+    setStoredProfile(userId, data)
     return data
   }, [])
 
@@ -63,13 +88,13 @@ export function AuthProvider({ children }) {
         if (cancelled) return
 
         if (event === 'SIGNED_OUT') {
+          if (user) clearStoredProfile(user.id)
           setUser(null)
           setProfile(null)
           return
         }
 
         if (session?.user) {
-          // Always update user with the freshest object from Supabase
           setUser(session.user)
 
           if (
@@ -79,7 +104,7 @@ export function AuthProvider({ children }) {
             event === 'USER_UPDATED'
           ) {
             const p = await fetchProfile(session.user.id)
-            if (!cancelled) setProfile(p)
+            if (!cancelled && p) setProfile(p)
           }
         }
       }
@@ -89,7 +114,7 @@ export function AuthProvider({ children }) {
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [fetchProfile])
+  }, [fetchProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function signIn(email, password) {
     try {
@@ -155,6 +180,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    if (user) clearStoredProfile(user.id)
     setUser(null)
     setProfile(null)
     await supabase.auth.signOut()
@@ -170,6 +196,7 @@ export function AuthProvider({ children }) {
         .select()
         .single()
       if (error) return { error: t('common:status.error') }
+      setStoredProfile(user.id, data)
       setProfile(data)
       return { error: null }
     } catch {
@@ -180,7 +207,7 @@ export function AuthProvider({ children }) {
   async function refreshProfile() {
     if (!user) return
     const p = await fetchProfile(user.id)
-    setProfile(p)
+    if (p) setProfile(p)
   }
 
   const value = {

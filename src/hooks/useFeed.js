@@ -5,14 +5,34 @@ import { useAuth } from './useAuth.jsx'
 const DEFAULT_PAGE_SIZE = 20
 
 // ── Module-level cache ─────────────────────────────────────
-// Prevents 3 re-fetches every time the user navigates back to the feed.
-// Keyed by `${userId}-${filter}-${parishId}-${groupId}`.
-// TTL: 3 minutes — fresh enough to feel live, fast enough to feel instant.
 const FEED_TTL = 3 * 60 * 1000
 const GRAPH_TTL = 10 * 60 * 1000
 
 const _feedCache = new Map()  // cacheKey → { posts, hasMore, ts }
 const _graphCache = new Map() // userId → { parishIds, groupIds, ts }
+
+// ── localStorage-backed social graph ──────────────────────
+// Persists across page refreshes so the feed can load in one round-trip
+// instead of two (graph fetch → then feed fetch sequentially).
+function _lsGraphKey(userId) { return `parish_graph_${userId}` }
+
+function _getStoredGraph(userId) {
+  try {
+    const raw = localStorage.getItem(_lsGraphKey(userId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (Date.now() - parsed.ts > GRAPH_TTL) return null
+    return parsed
+  } catch { return null }
+}
+
+function _setStoredGraph(userId, parishIds, groupIds) {
+  try {
+    localStorage.setItem(_lsGraphKey(userId), JSON.stringify({
+      parishIds, groupIds, ts: Date.now()
+    }))
+  } catch { /* quota */ }
+}
 
 function getFeedKey(userId, filter, parishId, groupId) {
   return `${userId}-${filter}-${parishId}-${groupId}`
@@ -85,9 +105,11 @@ export function useFeed(options = {}) {
   const [hasMore, setHasMore] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
 
-  // Tracks followed parish IDs and joined group IDs
-  const followedParishIds = useRef([])
-  const joinedGroupIds = useRef([])
+  // Tracks followed parish IDs and joined group IDs.
+  // Pre-seed from localStorage so the first buildQuery call has data.
+  const _storedGraph = userId_stable ? _getStoredGraph(userId_stable) : null
+  const followedParishIds = useRef(_storedGraph?.parishIds ?? [])
+  const joinedGroupIds = useRef(_storedGraph?.groupIds ?? [])
 
   // Pagination offset — useRef avoids spurious re-renders
   const offsetRef = useRef(0)
@@ -95,10 +117,13 @@ export function useFeed(options = {}) {
   // Channel ref for cleanup
   const channelRef = useRef(null)
 
-  // ── Fetch user's social graph (with module-level cache) ───
+  // ── Fetch user's social graph ─────────────────────────────
+  // Checks module cache → localStorage → Supabase (in that order).
+  // localStorage means a page refresh costs zero extra round-trips.
   const loadSocialGraph = useCallback(async () => {
     if (!user) return
 
+    // 1. Module-level cache (same-session navigation)
     const cached = _graphCache.get(user.id)
     if (cached && Date.now() - cached.ts < GRAPH_TTL) {
       followedParishIds.current = cached.parishIds
@@ -106,6 +131,28 @@ export function useFeed(options = {}) {
       return
     }
 
+    // 2. localStorage (page refresh — instant, no network)
+    const stored = _getStoredGraph(user.id)
+    if (stored) {
+      followedParishIds.current = stored.parishIds
+      joinedGroupIds.current = stored.groupIds
+      _graphCache.set(user.id, stored)
+      // Revalidate in background — don't await
+      Promise.all([
+        supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
+        supabase.from('group_members').select('group_id').eq('user_id', user.id),
+      ]).then(([parishRes, groupRes]) => {
+        const parishIds = (parishRes.data ?? []).map((r) => r.parish_id)
+        const groupIds = (groupRes.data ?? []).map((r) => r.group_id)
+        followedParishIds.current = parishIds
+        joinedGroupIds.current = groupIds
+        _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
+        _setStoredGraph(user.id, parishIds, groupIds)
+      })
+      return
+    }
+
+    // 3. Fresh fetch from Supabase
     const [parishRes, groupRes] = await Promise.all([
       supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
       supabase.from('group_members').select('group_id').eq('user_id', user.id),
@@ -117,6 +164,7 @@ export function useFeed(options = {}) {
     followedParishIds.current = parishIds
     joinedGroupIds.current = groupIds
     _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
+    _setStoredGraph(user.id, parishIds, groupIds)
   }, [user])
 
   // ── Build the filtered query ───────────────────────────────

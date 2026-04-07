@@ -28,6 +28,8 @@ export async function uploadAvatar(userId, file) {
   const err = validateImage(file, AVATAR_MAX_BYTES)
   if (err) return { url: null, error: err }
 
+  await supabase.auth.getSession()
+
   const ext = getExtension(file)
   const path = `avatars/${userId}/avatar.${ext}`
 
@@ -51,8 +53,14 @@ export async function uploadPostImage(userId, file) {
   const err = validateImage(file, POST_MAX_BYTES)
   if (err) return { url: null, error: err }
 
+  // Ensure Supabase client has a fresh token before uploading.
+  // Without this, an expired token from localStorage causes RLS rejection.
+  await supabase.auth.getSession()
+
   const ext = getExtension(file)
-  const path = `posts/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  // Path must start with userId so the storage RLS policy
+  // "(storage.foldername(name))[1] = auth.uid()" is satisfied.
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
   const { error: uploadError } = await supabase.storage
     .from('posts')
@@ -73,6 +81,8 @@ export async function uploadPostImage(userId, file) {
 export async function uploadGroupAvatar(groupId, file) {
   const err = validateImage(file, AVATAR_MAX_BYTES)
   if (err) return { url: null, error: err }
+
+  await supabase.auth.getSession()
 
   const ext = getExtension(file)
   const path = `groups/${groupId}/avatar.${ext}`
