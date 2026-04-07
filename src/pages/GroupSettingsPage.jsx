@@ -21,6 +21,7 @@ export default function GroupSettingsPage() {
   const [isPrivate, setIsPrivate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
@@ -139,18 +140,27 @@ export default function GroupSettingsPage() {
         </div>
       </div>
 
-      <Modal isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} title={t('delete_group')} size="sm">
-        <p className="text-sm text-gray-600 mb-5">{t('delete_confirm', { name: group?.name })}</p>
+      <Modal isOpen={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteConfirmText('') }} title={t('delete_group')} size="sm">
+        <p className="text-sm text-gray-600 mb-3">{t('delete_confirm', { name: group?.name })}</p>
+        <p className="text-xs text-gray-500 mb-2">Type <strong>{group?.name}</strong> to confirm:</p>
+        <input
+          type="text"
+          value={deleteConfirmText}
+          onChange={e => setDeleteConfirmText(e.target.value)}
+          placeholder={group?.name}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-red-300"
+        />
         <div className="flex gap-3">
           <button
-            onClick={() => setDeleteOpen(false)}
+            onClick={() => { setDeleteOpen(false); setDeleteConfirmText('') }}
             className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
             onClick={handleDelete}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
+            disabled={deleteConfirmText !== group?.name}
+            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40"
           >
             {t('delete_group')}
           </button>

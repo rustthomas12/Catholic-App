@@ -283,6 +283,14 @@ export default function CreateGroupPage() {
                 </div>
               </div>
             </div>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => setStep(1)} className="text-xs text-navy font-semibold hover:underline">
+                Edit details
+              </button>
+              <button onClick={() => setStep(2)} className="text-xs text-navy font-semibold hover:underline">
+                Edit photo
+              </button>
+            </div>
             <p className="text-xs text-gray-400 text-center px-4">
               You will be set as the admin of this group. You can invite members after creating it.
             </p>

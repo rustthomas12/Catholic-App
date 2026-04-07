@@ -291,14 +291,16 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
 }
 
 // ── Compose trigger bar (shown at top of feed) ─────────────
-export default function CreatePost({ onPost }) {
+export default function CreatePost({ onPost, groupId: contextGroupId = null, parishId: contextParishId = null }) {
   const { t } = useTranslation('feed')
   const { user, profile } = useAuth()
   const [modalOpen, setModalOpen] = useState(false)
   const [destinations, setDestinations] = useState([])
   const [defaultDestination, setDefaultDestination] = useState(null)
 
-  // Build destination options from user's parish + groups
+  // Build destination options from user's parish + groups.
+  // If a contextGroupId or contextParishId is provided (e.g. posting from a
+  // group page or parish page), that context is pre-selected and pinned as default.
   useEffect(() => {
     if (!user) return
     async function loadDestinations() {
@@ -312,14 +314,12 @@ export default function CreatePost({ onPost }) {
           .eq('id', profile.parish_id)
           .single()
         if (parish) {
-          const opt = {
+          opts.push({
             value: `parish-${parish.id}`,
             type: 'parish',
             label: `My Parish: ${parish.name}`,
             parishId: parish.id,
-          }
-          opts.push(opt)
-          setDefaultDestination(opt)
+          })
         }
       }
 
@@ -345,13 +345,23 @@ export default function CreatePost({ onPost }) {
 
       if (opts.length === 0) {
         opts.push({ value: 'public', type: 'public', label: t('post.destination_public') })
-        setDefaultDestination(opts[0])
       }
 
       setDestinations(opts)
+
+      // Pin to context if provided, otherwise fall back to first option
+      if (contextGroupId) {
+        const match = opts.find(o => o.groupId === contextGroupId)
+        setDefaultDestination(match ?? opts[0] ?? null)
+      } else if (contextParishId) {
+        const match = opts.find(o => o.parishId === contextParishId)
+        setDefaultDestination(match ?? opts[0] ?? null)
+      } else {
+        setDefaultDestination(opts[0] ?? null)
+      }
     }
     loadDestinations()
-  }, [user, profile?.parish_id, t])
+  }, [user, profile?.parish_id, contextGroupId, contextParishId, t])
 
   function handlePost(rawPost) {
     if (!rawPost) return

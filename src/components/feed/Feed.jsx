@@ -122,7 +122,7 @@ export default function Feed({
       )}
 
       {/* Compose bar */}
-      {showCreatePost && <CreatePost onPost={handleNewPost} />}
+      {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} />}
 
       {/* Empty state */}
       {feed.posts.length === 0 && (
