@@ -8,10 +8,31 @@ function t(key) {
   return i18n.t(key)
 }
 
+// ── Read user from localStorage synchronously ──────────────
+// Supabase persists the session under sb-{projectRef}-auth-token.
+// Reading it directly means we never block on a network call to show
+// the page — if a token needs refreshing, that happens in the background.
+const _projectRef = (import.meta.env.VITE_SUPABASE_URL || '')
+  .match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] ?? ''
+const _sessionKey = `sb-${_projectRef}-auth-token`
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(_sessionKey)
+    if (!raw) return null
+    return JSON.parse(raw)?.user ?? null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  // Initialize synchronously from localStorage — zero loading flash on refresh
+  const [user, setUser] = useState(() => getStoredUser())
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // loading is only used so existing consumers don't break;
+  // it is never true at startup because we read from storage synchronously
+  const [loading, setLoading] = useState(false)
 
   const fetchProfile = useCallback(async (userId) => {
     const { data, error } = await supabase
@@ -37,29 +58,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false
 
-    // Fallback: if INITIAL_SESSION never fires (shouldn't happen in supabase-js v2)
-    // unblock the spinner after 10 seconds
-    const timeout = setTimeout(() => {
-      if (!cancelled) setLoading(false)
-    }, 10_000)
-
-    // onAuthStateChange fires immediately with INITIAL_SESSION when subscribed.
-    // This is the primary mechanism for hydrating auth state on refresh/cold open.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (cancelled) return
-
-        if (event === 'INITIAL_SESSION') {
-          // First event on every page load — resolves the loading state immediately
-          clearTimeout(timeout)
-          setUser(session?.user ?? null)
-          setLoading(false)
-          if (session?.user) {
-            const p = await fetchProfile(session.user.id)
-            if (!cancelled) setProfile(p)
-          }
-          return
-        }
 
         if (event === 'SIGNED_OUT') {
           setUser(null)
@@ -68,8 +69,15 @@ export function AuthProvider({ children }) {
         }
 
         if (session?.user) {
+          // Always update user with the freshest object from Supabase
           setUser(session.user)
-          if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+
+          if (
+            event === 'INITIAL_SESSION' ||
+            event === 'SIGNED_IN' ||
+            event === 'TOKEN_REFRESHED' ||
+            event === 'USER_UPDATED'
+          ) {
             const p = await fetchProfile(session.user.id)
             if (!cancelled) setProfile(p)
           }
@@ -79,7 +87,6 @@ export function AuthProvider({ children }) {
 
     return () => {
       cancelled = true
-      clearTimeout(timeout)
       subscription.unsubscribe()
     }
   }, [fetchProfile])
