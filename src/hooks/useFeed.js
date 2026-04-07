@@ -3,41 +3,60 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 
 const DEFAULT_PAGE_SIZE = 20
+const FEED_TTL   = 3  * 60 * 1000  // 3 min
+const GRAPH_TTL  = 10 * 60 * 1000  // 10 min
 
-// ── Module-level cache ─────────────────────────────────────
-const FEED_TTL = 3 * 60 * 1000
-const GRAPH_TTL = 10 * 60 * 1000
-
-const _feedCache = new Map()  // cacheKey → { posts, hasMore, ts }
-const _graphCache = new Map() // userId → { parishIds, groupIds, ts }
-
-// ── localStorage-backed social graph ──────────────────────
-// Persists across page refreshes so the feed can load in one round-trip
-// instead of two (graph fetch → then feed fetch sequentially).
-function _lsGraphKey(userId) { return `parish_graph_${userId}` }
-
-function _getStoredGraph(userId) {
-  try {
-    const raw = localStorage.getItem(_lsGraphKey(userId))
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (Date.now() - parsed.ts > GRAPH_TTL) return null
-    return parsed
-  } catch { return null }
-}
-
-function _setStoredGraph(userId, parishIds, groupIds) {
-  try {
-    localStorage.setItem(_lsGraphKey(userId), JSON.stringify({
-      parishIds, groupIds, ts: Date.now()
-    }))
-  } catch { /* quota */ }
-}
+// ── Module-level caches (same-session navigation) ──────────
+const _feedCache  = new Map() // cacheKey → { posts, hasMore, ts }
+const _graphCache = new Map() // userId   → { parishIds, groupIds, ts }
 
 function getFeedKey(userId, filter, parishId, groupId) {
   return `${userId}-${filter}-${parishId}-${groupId}`
 }
 
+// ── localStorage helpers ───────────────────────────────────
+// Persist feed + graph across page refreshes so content shows instantly.
+
+function _lsFeedKey(cacheKey)    { return `parish_feed_${cacheKey}` }
+function _lsGraphKey(userId)     { return `parish_graph_${userId}` }
+
+function _getStoredFeed(cacheKey) {
+  try {
+    const raw = localStorage.getItem(_lsFeedKey(cacheKey))
+    if (!raw) return null
+    const p = JSON.parse(raw)
+    if (Date.now() - p.ts > FEED_TTL) return null
+    return p
+  } catch { return null }
+}
+
+function _setStoredFeed(cacheKey, posts, hasMore) {
+  try {
+    localStorage.setItem(_lsFeedKey(cacheKey), JSON.stringify({ posts, hasMore, ts: Date.now() }))
+  } catch { /* storage quota */ }
+}
+
+function _clearStoredFeed(cacheKey) {
+  try { localStorage.removeItem(_lsFeedKey(cacheKey)) } catch { /* ignore */ }
+}
+
+function _getStoredGraph(userId) {
+  try {
+    const raw = localStorage.getItem(_lsGraphKey(userId))
+    if (!raw) return null
+    const p = JSON.parse(raw)
+    if (Date.now() - p.ts > GRAPH_TTL) return null
+    return p
+  } catch { return null }
+}
+
+function _setStoredGraph(userId, parishIds, groupIds) {
+  try {
+    localStorage.setItem(_lsGraphKey(userId), JSON.stringify({ parishIds, groupIds, ts: Date.now() }))
+  } catch { /* storage quota */ }
+}
+
+// ── Post shape ─────────────────────────────────────────────
 const POST_SELECT = `
   *,
   author:profiles!author_id(
@@ -50,268 +69,242 @@ const POST_SELECT = `
   comments(id)
 `
 
-/**
- * Normalises a raw Supabase post row into the shape
- * that PostCard and Feed components expect.
- */
 function normalisePost(raw, currentUserId) {
-  const likes = raw.likes ?? []
+  const likes    = raw.likes    ?? []
   const comments = raw.comments ?? []
   return {
-    id: raw.id,
-    content: raw.content,
-    image_url: raw.image_url ?? null,
+    id:               raw.id,
+    content:          raw.content,
+    image_url:        raw.image_url        ?? null,
     is_prayer_request: raw.is_prayer_request ?? false,
-    is_anonymous: raw.is_anonymous ?? false,
-    is_removed: raw.is_removed ?? false,
-    created_at: raw.created_at,
-    author: raw.author ?? null,
-    parish: raw.parish ?? null,
-    group: raw.group ?? null,
-    like_count: likes.length,
-    comment_count: comments.length,
-    is_liked_by_me: likes.some((l) => l.user_id === currentUserId),
+    is_anonymous:     raw.is_anonymous     ?? false,
+    is_removed:       raw.is_removed       ?? false,
+    created_at:       raw.created_at,
+    author:           raw.author           ?? null,
+    parish:           raw.parish           ?? null,
+    group:            raw.group            ?? null,
+    like_count:       likes.length,
+    comment_count:    comments.length,
+    is_liked_by_me:   likes.some((l) => l.user_id === currentUserId),
   }
 }
 
-/**
- * useFeed — powers the entire feed system.
- *
- * @param {object} options
- * @param {'all'|'parish'|'groups'|'prayer'|'events'} [options.filter='all']
- * @param {string|null} [options.parishId]    — scope to a specific parish
- * @param {string|null} [options.groupId]     — scope to a specific group
- * @param {string|null} [options.userId]      — scope to a specific author
- * @param {number}      [options.pageSize=20]
- */
+// ── useFeed ────────────────────────────────────────────────
 export function useFeed(options = {}) {
   const {
-    filter = 'all',
+    filter   = 'all',
     parishId = null,
-    groupId = null,
-    userId = null,
+    groupId  = null,
+    userId   = null,
     pageSize = DEFAULT_PAGE_SIZE,
   } = options
 
   const { user } = useAuth()
-  // Stable user ID reference — prevents feed re-fetch when auth fires
-  // onAuthStateChange with a new object reference for the same user.
   const userId_stable = user?.id ?? null
 
-  const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(true)
+  // ── Synchronous initialisation from localStorage ──────────
+  // On first render (including page refresh) we try to serve cached posts
+  // immediately so the UI never shows a loading skeleton.
+  const _initFromStorage = () => {
+    if (!userId_stable) return { posts: [], hasMore: true, loading: true }
+    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+
+    // Module cache (same-session navigation)
+    const mc = _feedCache.get(cacheKey)
+    if (mc && Date.now() - mc.ts < FEED_TTL) {
+      return { posts: mc.posts, hasMore: mc.hasMore, loading: false }
+    }
+
+    // localStorage (page refresh)
+    const ls = _getStoredFeed(cacheKey)
+    if (ls) {
+      // Warm the module cache too
+      _feedCache.set(cacheKey, ls)
+      return { posts: ls.posts, hasMore: ls.hasMore, loading: false }
+    }
+
+    return { posts: [], hasMore: true, loading: true }
+  }
+
+  const _init = _initFromStorage()
+
+  const [posts,       setPosts]       = useState(_init.posts)
+  const [loading,     setLoading]     = useState(_init.loading)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [error, setError] = useState(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
+  const [error,       setError]       = useState(null)
+  const [hasMore,     setHasMore]     = useState(_init.hasMore)
+  const [totalCount,  setTotalCount]  = useState(_init.posts.length)
 
-  // Tracks followed parish IDs and joined group IDs.
-  // Pre-seed from localStorage so the first buildQuery call has data.
-  const _storedGraph = userId_stable ? _getStoredGraph(userId_stable) : null
+  // Pre-seed social-graph refs from localStorage so buildQuery has data
+  // on the very first call without waiting for loadSocialGraph to finish.
+  const _storedGraph    = userId_stable ? _getStoredGraph(userId_stable) : null
   const followedParishIds = useRef(_storedGraph?.parishIds ?? [])
-  const joinedGroupIds = useRef(_storedGraph?.groupIds ?? [])
+  const joinedGroupIds    = useRef(_storedGraph?.groupIds  ?? [])
 
-  // Pagination offset — useRef avoids spurious re-renders
-  const offsetRef = useRef(0)
+  const offsetRef    = useRef(_init.posts.length)
 
-  // Channel ref for cleanup
-  const channelRef = useRef(null)
-
-  // ── Fetch user's social graph ─────────────────────────────
-  // Checks module cache → localStorage → Supabase (in that order).
-  // localStorage means a page refresh costs zero extra round-trips.
+  // ── Social graph loader ───────────────────────────────────
+  // module cache → localStorage → Supabase
   const loadSocialGraph = useCallback(async () => {
     if (!user) return
 
-    // 1. Module-level cache (same-session navigation)
-    const cached = _graphCache.get(user.id)
-    if (cached && Date.now() - cached.ts < GRAPH_TTL) {
-      followedParishIds.current = cached.parishIds
-      joinedGroupIds.current = cached.groupIds
+    const mc = _graphCache.get(user.id)
+    if (mc && Date.now() - mc.ts < GRAPH_TTL) {
+      followedParishIds.current = mc.parishIds
+      joinedGroupIds.current    = mc.groupIds
       return
     }
 
-    // 2. localStorage (page refresh — instant, no network)
     const stored = _getStoredGraph(user.id)
     if (stored) {
       followedParishIds.current = stored.parishIds
-      joinedGroupIds.current = stored.groupIds
+      joinedGroupIds.current    = stored.groupIds
       _graphCache.set(user.id, stored)
-      // Revalidate in background — don't await
+      // Revalidate silently in background
       Promise.all([
         supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
         supabase.from('group_members').select('group_id').eq('user_id', user.id),
-      ]).then(([parishRes, groupRes]) => {
-        const parishIds = (parishRes.data ?? []).map((r) => r.parish_id)
-        const groupIds = (groupRes.data ?? []).map((r) => r.group_id)
+      ]).then(([pr, gr]) => {
+        const parishIds = (pr.data ?? []).map((r) => r.parish_id)
+        const groupIds  = (gr.data ?? []).map((r) => r.group_id)
         followedParishIds.current = parishIds
-        joinedGroupIds.current = groupIds
+        joinedGroupIds.current    = groupIds
         _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
         _setStoredGraph(user.id, parishIds, groupIds)
       })
       return
     }
 
-    // 3. Fresh fetch from Supabase
-    const [parishRes, groupRes] = await Promise.all([
+    // No cache — must await
+    const [pr, gr] = await Promise.all([
       supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
       supabase.from('group_members').select('group_id').eq('user_id', user.id),
     ])
-
-    const parishIds = (parishRes.data ?? []).map((r) => r.parish_id)
-    const groupIds = (groupRes.data ?? []).map((r) => r.group_id)
-
+    const parishIds = (pr.data ?? []).map((r) => r.parish_id)
+    const groupIds  = (gr.data ?? []).map((r) => r.group_id)
     followedParishIds.current = parishIds
-    joinedGroupIds.current = groupIds
+    joinedGroupIds.current    = groupIds
     _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
     _setStoredGraph(user.id, parishIds, groupIds)
   }, [user])
 
-  // ── Build the filtered query ───────────────────────────────
-  const buildQuery = useCallback(
-    (offset) => {
-      let q = supabase
-        .from('posts')
-        .select(POST_SELECT)
-        .is('deleted_at', null)
-        .eq('is_removed', false)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + pageSize - 1)
+  // ── Query builder ─────────────────────────────────────────
+  const buildQuery = useCallback((offset) => {
+    let q = supabase
+      .from('posts')
+      .select(POST_SELECT)
+      .is('deleted_at', null)
+      .eq('is_removed', false)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
 
-      // Scope to a specific author (ProfilePage)
-      if (userId) {
-        return q.eq('author_id', userId)
+    if (userId)   return q.eq('author_id', userId)
+    if (groupId)  return q.eq('group_id',  groupId)
+    if (parishId) return q.eq('parish_id', parishId)
+
+    switch (filter) {
+      case 'parish': {
+        const ids = followedParishIds.current
+        return ids.length === 0 ? null : q.in('parish_id', ids)
       }
-
-      // Scope to a specific group
-      if (groupId) {
-        return q.eq('group_id', groupId)
+      case 'groups': {
+        const ids = joinedGroupIds.current
+        return ids.length === 0 ? null : q.in('group_id', ids)
       }
-
-      // Scope to a specific parish
-      if (parishId) {
-        return q.eq('parish_id', parishId)
+      case 'prayer': {
+        q = q.eq('is_prayer_request', true)
+        const pIds = followedParishIds.current
+        const gIds = joinedGroupIds.current
+        if (pIds.length === 0 && gIds.length === 0) return null
+        const parts = []
+        if (pIds.length > 0) parts.push(`parish_id.in.(${pIds.join(',')})`)
+        if (gIds.length > 0) parts.push(`group_id.in.(${gIds.join(',')})`)
+        return q.or(parts.join(','))
       }
-
-      // Filter-based queries for home feed
-      switch (filter) {
-        case 'parish': {
-          const ids = followedParishIds.current
-          if (ids.length === 0) return null // nothing to show
-          return q.in('parish_id', ids)
-        }
-        case 'groups': {
-          const ids = joinedGroupIds.current
-          if (ids.length === 0) return null
-          return q.in('group_id', ids)
-        }
-        case 'prayer': {
-          q = q.eq('is_prayer_request', true)
-          const pIds = followedParishIds.current
-          const gIds = joinedGroupIds.current
-          if (pIds.length === 0 && gIds.length === 0) return null
-          const filters = []
-          if (pIds.length > 0) filters.push(`parish_id.in.(${pIds.join(',')})`)
-          if (gIds.length > 0) filters.push(`group_id.in.(${gIds.join(',')})`)
-          return q.or(filters.join(','))
-        }
-        case 'events':
-          // Not implemented in Phase 3
-          return null
-        case 'all':
-        default: {
-          const pIds = followedParishIds.current
-          const gIds = joinedGroupIds.current
-          if (pIds.length === 0 && gIds.length === 0) return q // show nothing or all
-          const filters = []
-          if (pIds.length > 0) filters.push(`parish_id.in.(${pIds.join(',')})`)
-          if (gIds.length > 0) filters.push(`group_id.in.(${gIds.join(',')})`)
-          return q.or(filters.join(','))
-        }
+      case 'events': return null
+      case 'all':
+      default: {
+        const pIds = followedParishIds.current
+        const gIds = joinedGroupIds.current
+        if (pIds.length === 0 && gIds.length === 0) return q
+        const parts = []
+        if (pIds.length > 0) parts.push(`parish_id.in.(${pIds.join(',')})`)
+        if (gIds.length > 0) parts.push(`group_id.in.(${gIds.join(',')})`)
+        return q.or(parts.join(','))
       }
-    },
-    [filter, parishId, groupId, userId, pageSize]
-  )
+    }
+  }, [filter, parishId, groupId, userId, pageSize])
 
-  // ── Fetch a page of posts ──────────────────────────────────
-  // background=true: update state quietly without showing spinner
-  const fetchPage = useCallback(
-    async (offset, append = false, background = false) => {
-      if (!user) return
+  // ── Fetch a page ──────────────────────────────────────────
+  const fetchPage = useCallback(async (offset, append = false, background = false) => {
+    if (!user) return
 
-      const query = buildQuery(offset)
-      if (query === null) {
-        if (!background) {
-          setPosts([])
-          setHasMore(false)
-          setLoading(false)
-          setLoadingMore(false)
-        }
-        return
-      }
+    const query = buildQuery(offset)
+    if (query === null) {
+      if (!background) { setPosts([]); setHasMore(false); setLoading(false); setLoadingMore(false) }
+      return
+    }
 
-      const { data, error: queryError } = await query
+    const { data, error: queryError } = await query
+    if (queryError) {
+      if (!background) { setError(queryError.message); setLoading(false); setLoadingMore(false) }
+      return
+    }
 
-      if (queryError) {
-        if (!background) {
-          setError(queryError.message)
-          setLoading(false)
-          setLoadingMore(false)
-        }
-        return
-      }
+    const normalised = (data ?? []).map((p) => normalisePost(p, user.id))
+    const newHasMore = normalised.length === pageSize
 
-      const normalised = (data ?? []).map((p) => normalisePost(p, user.id))
-      const newHasMore = normalised.length === pageSize
+    if (!append) {
+      const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+      _feedCache.set(cacheKey, { posts: normalised, hasMore: newHasMore, ts: Date.now() })
+      _setStoredFeed(cacheKey, normalised, newHasMore)
+    }
 
-      if (!append) {
-        // Write to module cache
-        const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
-        _feedCache.set(cacheKey, { posts: normalised, hasMore: newHasMore, ts: Date.now() })
-      }
+    setPosts((prev) => append ? [...prev, ...normalised] : normalised)
+    setHasMore(newHasMore)
+    setError(null)
+    if (!append) setTotalCount(normalised.length)
+    else         setTotalCount((c) => c + normalised.length)
+    setLoading(false)
+    setLoadingMore(false)
+  }, [user, buildQuery, pageSize, filter, parishId, groupId])
 
-      setPosts((prev) => (append ? [...prev, ...normalised] : normalised))
-      setHasMore(newHasMore)
-      setError(null)
-
-      if (!append) setTotalCount(normalised.length)
-      else setTotalCount((c) => c + normalised.length)
-
-      setLoading(false)
-      setLoadingMore(false)
-    },
-    [user, buildQuery, pageSize, filter, parishId, groupId]
-  )
-
-  // ── Initial load (with module-level cache) ────────────────
+  // ── Initial load effect ───────────────────────────────────
   useEffect(() => {
     if (!userId_stable) return
 
     const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
-    const cached = _feedCache.get(cacheKey)
 
-    if (cached && Date.now() - cached.ts < FEED_TTL) {
-      // Serve from cache immediately — no loading flash
-      setPosts(cached.posts)
-      setHasMore(cached.hasMore)
+    // Module cache hit — serve instantly, revalidate in background
+    const mc = _feedCache.get(cacheKey)
+    if (mc && Date.now() - mc.ts < FEED_TTL) {
+      setPosts(mc.posts)
+      setHasMore(mc.hasMore)
       setLoading(false)
-      offsetRef.current = cached.posts.length
-
-      // Revalidate in background so stale data gets refreshed
+      offsetRef.current = mc.posts.length
       loadSocialGraph().then(() => fetchPage(0, false, true))
       return
     }
 
+    // localStorage hit — serve instantly, revalidate in background
+    const ls = _getStoredFeed(cacheKey)
+    if (ls) {
+      _feedCache.set(cacheKey, ls)
+      setPosts(ls.posts)
+      setHasMore(ls.hasMore)
+      setLoading(false)
+      offsetRef.current = ls.posts.length
+      loadSocialGraph().then(() => fetchPage(0, false, true))
+      return
+    }
+
+    // Nothing cached — show skeleton and fetch
     setLoading(true)
     offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
   }, [userId_stable, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
 
-  // ── Real-time: disabled in feed to avoid Supabase channel reuse errors.
-  // New posts appear instantly via addPost() (optimistic update in CreatePost).
-  // Real-time comment subscriptions are handled per-post in usePost.js.
-
-  // ── Public API ─────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────
 
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return
@@ -332,10 +325,10 @@ export function useFeed(options = {}) {
     setPosts((prev) => {
       if (prev.some((p) => p.id === post.id)) return prev
       const next = [post, ...prev]
-      // Invalidate cache so next mount re-fetches fresh
       if (user) {
         const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
         _feedCache.delete(cacheKey)
+        _clearStoredFeed(cacheKey)
       }
       return next
     })
@@ -343,16 +336,16 @@ export function useFeed(options = {}) {
   }, [user, filter, parishId, groupId])
 
   const updatePost = useCallback((id, updates) => {
-    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)))
+    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, ...updates } : p))
   }, [])
 
   const removePost = useCallback((id) => {
     setPosts((prev) => prev.filter((p) => p.id !== id))
     setTotalCount((c) => Math.max(0, c - 1))
-    // Clear cache so the deletion persists across navigations
     if (userId_stable) {
       const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
       _feedCache.delete(cacheKey)
+      _clearStoredFeed(cacheKey)
     }
   }, [userId_stable, filter, parishId, groupId])
 
@@ -370,4 +363,3 @@ export function useFeed(options = {}) {
     removePost,
   }
 }
-
