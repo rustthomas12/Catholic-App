@@ -126,6 +126,24 @@ function parseTLMHtml(html) {
   }
 }
 
+// ── Strip USCCB copyright / footer boilerplate from reading text ──
+const COPYRIGHT_PATTERNS = [
+  /Lectionary for Mass for Use in the Dioceses[\s\S]*/i,
+  /©\s*20\d\d United States Conference[\s\S]*/i,
+  /United States Conference of Catholic Bishops'?[\s\S]*/i,
+  /Neither this work nor any part[\s\S]*/i,
+  /Made possible by funding from[\s\S]*/i,
+]
+
+function stripCopyright(text) {
+  if (!text) return text
+  let t = text
+  for (const pat of COPYRIGHT_PATTERNS) {
+    t = t.replace(pat, '').trim()
+  }
+  return t
+}
+
 // ── HTML Parser ────────────────────────────────────────────
 function parseReadingsHtml(html) {
   try {
@@ -179,9 +197,9 @@ function parseReadingsHtml(html) {
           .join(' ')
 
         if (section === 'gospelAcclamation') {
-          result.gospelAcclamation = { text: text || ref }
+          result.gospelAcclamation = { text: stripCopyright(text || ref) }
         } else if (text || ref) {
-          result[section] = { reference: ref, text }
+          result[section] = { reference: ref, text: stripCopyright(text) }
         }
       })
 
@@ -196,9 +214,9 @@ function parseReadingsHtml(html) {
 
     function flush() {
       if (!activeSec) return
-      const text = textBuf.join(' ')
+      const text = stripCopyright(textBuf.join(' '))
       if (activeSec === 'gospelAcclamation') {
-        result.gospelAcclamation = { text: refBuf ?? text }
+        result.gospelAcclamation = { text: stripCopyright(refBuf ?? text) }
       } else if (refBuf || text) {
         result[activeSec] = { reference: refBuf ?? '', text }
       }
@@ -249,7 +267,8 @@ function getFromLocalStorage(cacheKey) {
     if (!cached) return null
     const parsed = JSON.parse(cached)
     const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
-    if (cachedDate === new Date().toDateString()) return parsed
+    // v:2 ensures old cached entries missing copyright strip are ignored
+    if (cachedDate === new Date().toDateString() && parsed.v === 2) return parsed
   } catch {
     // ignore
   }
@@ -280,7 +299,7 @@ function fetchReadingsOnce(dateStr) {
         _error = true
         return null
       }
-      const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString() }
+      const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString(), v: 2 }
       try { localStorage.setItem(`readings_${dateStr}`, JSON.stringify(withMeta)) } catch { /* quota */ }
       _cache = withMeta
       return withMeta
