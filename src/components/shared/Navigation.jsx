@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
@@ -114,7 +115,7 @@ const mobileTabs = [
   },
 ]
 
-export default function Navigation() {
+function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated, profile, signOut } = useAuth()
@@ -280,3 +281,5 @@ export default function Navigation() {
     </>
   )
 }
+
+export default memo(Navigation)

@@ -15,6 +15,20 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     margin: 0;
+    /* Prevent rubber-band overscroll on iOS from showing white gap */
+    overscroll-behavior-y: none;
+  }
+
+  /* iOS Safari: prevent auto-zoom on input focus (requires font-size >= 16px) */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Scrollable containers — smooth momentum scroll on iOS */
+  .overflow-y-auto,
+  .overflow-x-auto,
+  [style*="overflow"] {
+    -webkit-overflow-scrolling: touch;
   }
 
   ::selection {
@@ -66,6 +80,13 @@
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* iOS Safari: 100vh includes browser chrome, causing layout overflow.
+     Use 100dvh (dynamic viewport height) where full-page height is needed. */
+  .min-h-screen-ios {
+    min-height: 100dvh;
+    min-height: 100vh; /* fallback for browsers without dvh support */
   }
 }
 

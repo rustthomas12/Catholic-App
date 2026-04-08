@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import i18n from '../utils/i18n'
 
@@ -11,51 +11,49 @@ function t(key) {
 // ── localStorage helpers ───────────────────────────────────
 const _projectRef = (import.meta.env.VITE_SUPABASE_URL || '')
   .match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] ?? ''
-const _sessionKey = `sb-${_projectRef}-auth-token`
+const _sessionKey = 'sb-' + _projectRef + '-auth-token'
 
 function getStoredUser() {
   try {
     const raw = localStorage.getItem(_sessionKey)
     if (!raw) return null
     return JSON.parse(raw)?.user ?? null
-  } catch {
-    return null
-  }
+  } catch { return null }
 }
 
 function getStoredProfile(userId) {
   if (!userId) return null
   try {
-    const raw = localStorage.getItem(`parish_profile_${userId}`)
+    const raw = localStorage.getItem('parish_profile_' + userId)
     if (!raw) return null
     return JSON.parse(raw)
-  } catch {
-    return null
-  }
+  } catch { return null }
 }
 
 function setStoredProfile(userId, profile) {
   if (!userId || !profile) return
   try {
-    localStorage.setItem(`parish_profile_${userId}`, JSON.stringify(profile))
-  } catch { /* quota */ }
+    localStorage.setItem('parish_profile_' + userId, JSON.stringify(profile))
+  } catch {}
 }
 
 function clearStoredProfile(userId) {
   if (!userId) return
-  try {
-    localStorage.removeItem(`parish_profile_${userId}`)
-  } catch { /* ignore */ }
+  try { localStorage.removeItem('parish_profile_' + userId) } catch {}
 }
 
 export function AuthProvider({ children }) {
   const storedUser = getStoredUser()
 
-  // Both user and profile initialize synchronously from localStorage.
-  // No network call, no loading state, no spinner on refresh.
-  const [user, setUser] = useState(() => storedUser)
+  // Optimistic sync from localStorage, verified async by getSession().
+  // loading=true so ProtectedRoute waits until session is confirmed.
+  // getSession() resolves in <50ms for valid sessions (reads localStorage).
+  const [user,    setUser]    = useState(() => storedUser)
   const [profile, setProfile] = useState(() => getStoredProfile(storedUser?.id))
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Track current userId in a ref to avoid stale closures in async callbacks
+  const userIdRef = useRef(storedUser?.id ?? null)
 
   const fetchProfile = useCallback(async (userId) => {
     const { data, error } = await supabase
@@ -83,29 +81,72 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false
 
+    // Use getSession() instead of relying on the INITIAL_SESSION event.
+    // In React StrictMode, useEffect runs twice. The first subscription is
+    // cleaned up (cancelled=true) before INITIAL_SESSION can resolve, so
+    // profile never loads. getSession() reads the session from localStorage
+    // and works correctly on both StrictMode mounts with no extra network call.
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (cancelled) return
+
+      if (session?.user) {
+        userIdRef.current = session.user.id
+        setUser(session.user)
+
+        const cached = getStoredProfile(session.user.id)
+        if (cached && cached.id === session.user.id) {
+          // Serve cached profile immediately — no spinner for returning users
+          setProfile(cached)
+          setLoading(false)
+          // Background revalidate to pick up server-side changes (e.g. suspended_at)
+          fetchProfile(session.user.id).then(p => {
+            if (!cancelled && p) setProfile(p)
+          })
+        } else {
+          // No cached profile — fetch before unlocking protected routes
+          const p = await fetchProfile(session.user.id)
+          if (!cancelled) {
+            setProfile(p)
+            setLoading(false)
+          }
+        }
+      } else {
+        // No valid session — clear stale optimistic state
+        if (userIdRef.current) clearStoredProfile(userIdRef.current)
+        userIdRef.current = null
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+      }
+    })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (cancelled) return
 
         if (event === 'SIGNED_OUT') {
-          if (user) clearStoredProfile(user.id)
+          clearStoredProfile(userIdRef.current)
+          userIdRef.current = null
           setUser(null)
           setProfile(null)
+          setLoading(false)
           return
         }
 
-        if (session?.user) {
-          setUser(session.user)
+        // Skip INITIAL_SESSION — handled by getSession() above.
+        // This prevents double profile fetches and the StrictMode race condition
+        // where cancelled=true by the time INITIAL_SESSION fires.
+        if (event === 'INITIAL_SESSION') return
 
-          if (
-            event === 'INITIAL_SESSION' ||
-            event === 'SIGNED_IN' ||
-            event === 'TOKEN_REFRESHED' ||
-            event === 'USER_UPDATED'
-          ) {
-            const p = await fetchProfile(session.user.id)
-            if (!cancelled && p) setProfile(p)
-          }
+        if (session?.user && (
+          event === 'SIGNED_IN' ||
+          event === 'TOKEN_REFRESHED' ||
+          event === 'USER_UPDATED'
+        )) {
+          userIdRef.current = session.user.id
+          setUser(session.user)
+          const p = await fetchProfile(session.user.id)
+          if (!cancelled && p) setProfile(p)
         }
       }
     )
@@ -114,18 +155,14 @@ export function AuthProvider({ children }) {
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [fetchProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchProfile])
 
   async function signIn(email, password) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          return { error: t('auth:login.error_invalid') }
-        }
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-          return { error: t('auth:login.error_network') }
-        }
+        if (error.message.includes('Invalid login credentials')) return { error: t('auth:login.error_invalid') }
+        if (error.message.includes('network') || error.message.includes('fetch')) return { error: t('auth:login.error_network') }
         return { error: t('common:status.error') }
       }
       if (data.user) {
@@ -148,12 +185,10 @@ export function AuthProvider({ children }) {
         options: { data: { full_name: fullName } },
       })
       if (error) {
-        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+        if (error.message.includes('already registered') || error.message.includes('already been registered'))
           return { error: t('auth:signup.error_email_taken') }
-        }
-        if (error.message.includes('Password should be at least')) {
+        if (error.message.includes('Password should be at least'))
           return { error: t('auth:signup.error_password_weak') }
-        }
         return { error: t('common:status.error') }
       }
 
@@ -180,7 +215,8 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    if (user) clearStoredProfile(user.id)
+    clearStoredProfile(userIdRef.current)
+    userIdRef.current = null
     setUser(null)
     setProfile(null)
     await supabase.auth.signOut()

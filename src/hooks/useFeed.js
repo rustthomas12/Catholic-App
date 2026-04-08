@@ -271,7 +271,15 @@ export function useFeed(options = {}) {
 
   // ── Initial load effect ───────────────────────────────────
   useEffect(() => {
-    if (!userId_stable) return
+    if (!userId_stable) {
+      // Not authenticated or session not yet resolved — stop loading immediately.
+      // ProtectedRoute will redirect unauthenticated users; authenticated users
+      // will re-trigger this effect when userId_stable changes from null to a value.
+      setLoading(false)
+      setPosts([])
+      setHasMore(false)
+      return
+    }
 
     const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
 
@@ -303,6 +311,28 @@ export function useFeed(options = {}) {
     offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
   }, [userId_stable, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
+
+  // ── Foreground refresh (iOS / PWA background→foreground) ──
+  // When the app is backgrounded on iOS, module-level Maps may be GC'd and the
+  // feed TTL can expire. On resume, no React lifecycle re-triggers automatically.
+  // visibilitychange fires when the tab/app comes back into view so we can
+  // refresh stale data without requiring a hard reload.
+  useEffect(() => {
+    if (!userId_stable) return
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return
+      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+      const mc = _feedCache.get(cacheKey)
+      const isStale = !mc || (Date.now() - mc.ts > FEED_TTL)
+      if (isStale) {
+        refresh()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [userId_stable, filter, parishId, groupId, refresh])
 
   // ── Public API ────────────────────────────────────────────
 

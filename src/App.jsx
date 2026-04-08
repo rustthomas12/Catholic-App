@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 // Side-effect: initialize i18n
 import './utils/i18n'
@@ -8,9 +8,9 @@ import { AuthProvider, useAuth } from './hooks/useAuth.jsx'
 import ErrorBoundary from './components/shared/ErrorBoundary'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 import Navigation from './components/shared/Navigation'
-import LoadingSpinner from './components/shared/LoadingSpinner'
 import { Toaster, toast } from './components/shared/Toast'
 import InstallPrompt from './components/shared/InstallPrompt'
+import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
 
 // ── Lazy page imports ──────────────────────────────────────
@@ -46,24 +46,28 @@ const PolicyPage               = lazy(() => import('./pages/PolicyPage'))
 const NotFoundPage             = lazy(() => import('./pages/NotFoundPage'))
 
 // ── Last-active updater ────────────────────────────────────
-const ACTIVE_INTERVAL_MS = 5 * 60 * 1000
+// Fires once on mount (app opened) then every 10 minutes.
+// Previously triggered on every route change which was unnecessary.
+const ACTIVE_INTERVAL_MS = 10 * 60 * 1000
 
 function LastActiveUpdater() {
   const { user } = useAuth()
-  const lastUpdateRef = useRef(0)
-  const location = useLocation()
 
   useEffect(() => {
     if (!user) return
-    const now = Date.now()
-    if (now - lastUpdateRef.current < ACTIVE_INTERVAL_MS) return
-    lastUpdateRef.current = now
-    supabase
-      .from('profiles')
-      .update({ last_active_at: new Date().toISOString() })
-      .eq('id', user.id)
-      .then(() => {})
-  }, [location, user])
+
+    const update = () => {
+      supabase
+        .from('profiles')
+        .update({ last_active_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .then(() => {})
+    }
+
+    update() // fire immediately on mount / user change
+    const interval = setInterval(update, ACTIVE_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [user])
 
   return null
 }
@@ -103,7 +107,7 @@ function AppInner() {
       <SuspendedBanner />
       <InstallPrompt />
       <Navigation />
-      <Suspense fallback={<LoadingSpinner fullPage />}>
+      <Suspense fallback={<div className="min-h-screen bg-cream" />}>
         <Routes>
           {/* Public */}
           <Route path="/login"           element={<LoginPage />} />
@@ -116,28 +120,28 @@ function AppInner() {
           <Route path="/policy"          element={<PolicyPage />} />
 
           {/* Protected */}
-          <Route path="/"                          element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-          <Route path="/groups"                    element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-          <Route path="/groups/new"                element={<ProtectedRoute><CreateGroupPage /></ProtectedRoute>} />
-          <Route path="/group/:id"                 element={<ProtectedRoute><GroupPage /></ProtectedRoute>} />
-          <Route path="/group/:id/settings"        element={<ProtectedRoute><GroupSettingsPage /></ProtectedRoute>} />
-          <Route path="/directory"                 element={<ProtectedRoute><DirectoryPage /></ProtectedRoute>} />
-          <Route path="/parish/:id"                element={<ProtectedRoute><ParishPage /></ProtectedRoute>} />
-          <Route path="/faith"                     element={<ProtectedRoute><FaithPage /></ProtectedRoute>} />
-          <Route path="/faith/prayer"              element={<ProtectedRoute><PrayerRequestsPage /></ProtectedRoute>} />
-          <Route path="/profile"                   element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/profile/:id"               element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/settings"                  element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/settings/profile"          element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
-          <Route path="/settings/notifications"    element={<ProtectedRoute><NotificationSettingsPage /></ProtectedRoute>} />
-          <Route path="/notifications"             element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/premium"                   element={<ProtectedRoute><PremiumPage /></ProtectedRoute>} />
-          <Route path="/premium/examination"       element={<ProtectedRoute><ExaminationPage /></ProtectedRoute>} />
-          <Route path="/premium/confession-tracker" element={<ProtectedRoute><ConfessionTrackerPage /></ProtectedRoute>} />
-          <Route path="/saints"                    element={<ProtectedRoute><SaintsPage /></ProtectedRoute>} />
-          <Route path="/saints/:id"                element={<ProtectedRoute><SaintPage /></ProtectedRoute>} />
-          <Route path="/admin"                     element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
-          <Route path="/parish-admin/:parishId"    element={<ProtectedRoute><ParishAdminPage /></ProtectedRoute>} />
+          <Route path="/"                          element={<ProtectedRoute><RouteErrorBoundary><HomePage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/groups"                    element={<ProtectedRoute><RouteErrorBoundary><GroupsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/groups/new"                element={<ProtectedRoute><RouteErrorBoundary><CreateGroupPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/group/:id"                 element={<ProtectedRoute><RouteErrorBoundary><GroupPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/group/:id/settings"        element={<ProtectedRoute><RouteErrorBoundary><GroupSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/directory"                 element={<ProtectedRoute><RouteErrorBoundary><DirectoryPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/parish/:id"                element={<ProtectedRoute><RouteErrorBoundary><ParishPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith"                     element={<ProtectedRoute><RouteErrorBoundary><FaithPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/prayer"              element={<ProtectedRoute><RouteErrorBoundary><PrayerRequestsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/profile"                   element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/profile/:id"               element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/settings"                  element={<ProtectedRoute><RouteErrorBoundary><SettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/settings/profile"          element={<ProtectedRoute><RouteErrorBoundary><EditProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/settings/notifications"    element={<ProtectedRoute><RouteErrorBoundary><NotificationSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/notifications"             element={<ProtectedRoute><RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/premium"                   element={<ProtectedRoute><RouteErrorBoundary><PremiumPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/saints/:id"                element={<ProtectedRoute><RouteErrorBoundary><SaintPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/admin"                     element={<ProtectedRoute><RouteErrorBoundary><AdminPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/parish-admin/:parishId"    element={<ProtectedRoute><RouteErrorBoundary><ParishAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

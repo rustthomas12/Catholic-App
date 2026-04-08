@@ -30,7 +30,7 @@ function AppWithSWUpdater() {
       setNeedsRefresh(true)
     },
     onOfflineReady() {
-      console.log('App ready for offline use.')
+      // PWA is ready for offline use — no user-visible notification needed
     },
   })
 

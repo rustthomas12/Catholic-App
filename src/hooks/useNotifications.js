@@ -45,26 +45,18 @@ export function useNotifications() {
     const rows = data ?? []
     if (reset) {
       setNotifications(rows)
+      // Derive unread count from fetched data — no separate query needed
+      setUnreadCount(rows.filter(n => !n.is_read).length)
       offsetRef.current = rows.length
     } else {
       setNotifications(prev => [...prev, ...rows])
+      setUnreadCount(prev => prev + rows.filter(n => !n.is_read).length)
       offsetRef.current = offsetRef.current + rows.length
     }
 
     setHasMore(rows.length === PAGE_SIZE)
     setLoading(false)
     setLoadingMore(false)
-  }, [user])
-
-  // ── Fetch unread count ────────────────────────────────────
-  const fetchUnreadCount = useCallback(async () => {
-    if (!user) return
-    const { count } = await supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
-    setUnreadCount(count ?? 0)
   }, [user])
 
   // ── Initial load ─────────────────────────────────────────
@@ -76,8 +68,7 @@ export function useNotifications() {
       return
     }
     fetchNotifications(true)
-    fetchUnreadCount()
-  }, [user, fetchNotifications, fetchUnreadCount])
+  }, [user, fetchNotifications])
 
   // ── Real-time subscription ────────────────────────────────
   useEffect(() => {
@@ -171,8 +162,19 @@ export function useNotifications() {
   const refresh = useCallback(() => {
     offsetRef.current = 0
     fetchNotifications(true)
-    fetchUnreadCount()
-  }, [fetchNotifications, fetchUnreadCount])
+  }, [fetchNotifications])
+
+  // ── Foreground refresh (iOS / PWA background→foreground) ──
+  useEffect(() => {
+    if (!user) return
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refresh()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user, refresh])
 
   return {
     notifications,
