@@ -9,9 +9,8 @@ function t(key) {
 }
 
 // ── localStorage helpers ───────────────────────────────────
-const _projectRef = (import.meta.env.VITE_SUPABASE_URL || '')
-  .match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] ?? ''
-const _sessionKey = 'sb-' + _projectRef + '-auth-token'
+// Must match the storageKey set in src/lib/supabase.js
+const _sessionKey = 'parish-app-auth'
 
 function getStoredUser() {
   try {
@@ -43,16 +42,19 @@ function clearStoredProfile(userId) {
 }
 
 export function AuthProvider({ children }) {
-  const storedUser = getStoredUser()
+  const storedUser    = getStoredUser()
+  const storedProfile = getStoredProfile(storedUser?.id)
 
-  // Optimistic sync from localStorage, verified async by getSession().
-  // loading=true so ProtectedRoute waits until session is confirmed.
-  // getSession() resolves in <50ms for valid sessions (reads localStorage).
-  const [user,    setUser]    = useState(() => storedUser)
-  const [profile, setProfile] = useState(() => getStoredProfile(storedUser?.id))
-  const [loading, setLoading] = useState(true)
+  const [user,    setUser]    = useState(storedUser)
+  const [profile, setProfile] = useState(storedProfile)
 
-  // Track current userId in a ref to avoid stale closures in async callbacks
+  // If we have a stored user, start with loading=false so the app renders
+  // immediately without waiting for the token refresh network call.
+  // getSession() runs in the background to verify / silently refresh the token.
+  // If no stored user, start with loading=true and wait for session check
+  // (fast path — no expired token to refresh for brand-new visitors).
+  const [loading, setLoading] = useState(!storedUser)
+
   const userIdRef = useRef(storedUser?.id ?? null)
 
   const fetchProfile = useCallback(async (userId) => {
@@ -81,26 +83,20 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false
 
-    // Safety timeout: if getSession() hangs (network issue, Supabase outage,
-    // wrong env vars), stop the spinner after 5 s so the user sees the login
-    // page instead of an infinite spinner.
-    const timeoutId = setTimeout(() => setLoading(false), 5000)
+    // Fallback: if getSession() hangs (only relevant when storedUser=null and
+    // loading=true), stop the spinner after 8 s so the user sees login instead
+    // of an infinite spinner. For returning users loading is already false so
+    // this timeout is a no-op.
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) setLoading(false)
+    }, 8000)
 
-    // Use getSession() instead of relying on the INITIAL_SESSION event.
-    // In React StrictMode, useEffect runs twice. The first subscription is
-    // cleaned up (cancelled=true) before INITIAL_SESSION can resolve, so
-    // profile never loads. getSession() reads the session from localStorage
-    // and works correctly on both StrictMode mounts with no extra network call.
+    // getSession() may make a network call to refresh an expired token.
+    // For returning users this is fine — they already see their content
+    // (loading=false). For new users this resolves quickly (no token to refresh).
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       clearTimeout(timeoutId)
-
-      // Always stop the spinner, even if this effect instance was cancelled by
-      // StrictMode cleanup. Loading state is global — it must not depend on
-      // which effect instance resolves first.
-      if (cancelled) {
-        setLoading(false)
-        return
-      }
+      if (cancelled) return
 
       if (session?.user) {
         userIdRef.current = session.user.id
@@ -108,21 +104,21 @@ export function AuthProvider({ children }) {
 
         const cached = getStoredProfile(session.user.id)
         if (cached && cached.id === session.user.id) {
-          // Serve cached profile immediately — no spinner for returning users
           setProfile(cached)
           setLoading(false)
-          // Background revalidate to pick up server-side changes (e.g. suspended_at)
+          // Silent background revalidation — picks up suspended_at etc.
           fetchProfile(session.user.id).then(p => {
             if (!cancelled && p) setProfile(p)
           })
         } else {
-          // No cached profile — fetch before unlocking protected routes
           const p = await fetchProfile(session.user.id)
-          setProfile(p)
-          setLoading(false)
+          if (!cancelled) {
+            setProfile(p)
+            setLoading(false)
+          }
         }
       } else {
-        // No valid session — clear stale optimistic state
+        // No valid session — clear stale optimistic state and show login
         if (userIdRef.current) clearStoredProfile(userIdRef.current)
         userIdRef.current = null
         setUser(null)
@@ -135,6 +131,9 @@ export function AuthProvider({ children }) {
       async (event, session) => {
         if (cancelled) return
 
+        // Skip INITIAL_SESSION — handled by getSession() above
+        if (event === 'INITIAL_SESSION') return
+
         if (event === 'SIGNED_OUT') {
           clearStoredProfile(userIdRef.current)
           userIdRef.current = null
@@ -143,11 +142,6 @@ export function AuthProvider({ children }) {
           setLoading(false)
           return
         }
-
-        // Skip INITIAL_SESSION — handled by getSession() above.
-        // This prevents double profile fetches and the StrictMode race condition
-        // where cancelled=true by the time INITIAL_SESSION fires.
-        if (event === 'INITIAL_SESSION') return
 
         if (session?.user && (
           event === 'SIGNED_IN' ||
