@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeftIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +17,8 @@ export default function PrayerRequestsPage() {
   const navigate = useNavigate()
 
   document.title = `${t('prayer.title')} | Parish App`
+
+  const mountIdRef = useRef(0)
 
   const [intentions, setIntentions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -66,8 +68,9 @@ export default function PrayerRequestsPage() {
   }, [fetchIntentions])
 
   useEffect(() => {
+    mountIdRef.current += 1
     const channel = supabase
-      .channel('prayer-requests-realtime')
+      .channel(`prayer-requests-realtime-${mountIdRef.current}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'prayer_requests' },
