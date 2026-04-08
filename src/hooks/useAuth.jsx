@@ -81,13 +81,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false
 
+    // Safety timeout: if getSession() hangs (network issue, Supabase outage,
+    // wrong env vars), stop the spinner after 5 s so the user sees the login
+    // page instead of an infinite spinner.
+    const timeoutId = setTimeout(() => setLoading(false), 5000)
+
     // Use getSession() instead of relying on the INITIAL_SESSION event.
     // In React StrictMode, useEffect runs twice. The first subscription is
     // cleaned up (cancelled=true) before INITIAL_SESSION can resolve, so
     // profile never loads. getSession() reads the session from localStorage
     // and works correctly on both StrictMode mounts with no extra network call.
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (cancelled) return
+      clearTimeout(timeoutId)
+
+      // Always stop the spinner, even if this effect instance was cancelled by
+      // StrictMode cleanup. Loading state is global — it must not depend on
+      // which effect instance resolves first.
+      if (cancelled) {
+        setLoading(false)
+        return
+      }
 
       if (session?.user) {
         userIdRef.current = session.user.id
@@ -105,10 +118,8 @@ export function AuthProvider({ children }) {
         } else {
           // No cached profile — fetch before unlocking protected routes
           const p = await fetchProfile(session.user.id)
-          if (!cancelled) {
-            setProfile(p)
-            setLoading(false)
-          }
+          setProfile(p)
+          setLoading(false)
         }
       } else {
         // No valid session — clear stale optimistic state
@@ -153,6 +164,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       cancelled = true
+      clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
   }, [fetchProfile])
