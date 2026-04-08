@@ -31,7 +31,8 @@ function CrossIcon({ solid = false, className = '' }) {
   )
 }
 
-const tabs = [
+// ── Desktop sidebar tabs (all 5) ──────────────────────────
+const desktopTabs = [
   {
     label: 'Home',
     Icon: HomeIcon,
@@ -63,7 +64,49 @@ const tabs = [
   },
   {
     label: 'Profile',
-    Icon: null, // replaced by Avatar
+    Icon: null,
+    IconSolid: null,
+    active: (p) => p.startsWith('/profile') || p.startsWith('/settings'),
+    to: '/profile',
+    isProfile: true,
+  },
+]
+
+// ── Mobile bottom tabs (5: Home, Groups, Faith, Bell, Profile) ──
+const mobileTabs = [
+  {
+    label: 'Home',
+    Icon: HomeIcon,
+    IconSolid: HomeIconSolid,
+    active: (p) => p === '/',
+    to: '/',
+  },
+  {
+    label: 'Groups',
+    Icon: UserGroupIcon,
+    IconSolid: UserGroupIconSolid,
+    active: (p) => p.startsWith('/groups') || p.startsWith('/group/'),
+    to: '/groups',
+  },
+  {
+    label: 'Faith',
+    Icon: CrossIcon,
+    IconSolid: (props) => <CrossIcon solid {...props} />,
+    active: (p) => p.startsWith('/faith') || p.startsWith('/saints'),
+    to: '/faith',
+    isFaith: true,
+  },
+  {
+    label: 'Alerts',
+    Icon: BellIcon,
+    IconSolid: BellIconSolid,
+    active: (p) => p === '/notifications',
+    to: '/notifications',
+    isBell: true,
+  },
+  {
+    label: 'Profile',
+    Icon: null,
     IconSolid: null,
     active: (p) => p.startsWith('/profile') || p.startsWith('/settings'),
     to: '/profile',
@@ -93,9 +136,9 @@ export default function Navigation() {
       {/* ── Mobile bottom tab bar ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-navy border-t border-white/10 safe-bottom">
         <div className="flex items-center justify-around h-16">
-          {tabs.map((tab) => {
+          {mobileTabs.map((tab) => {
             const active = tab.active(location.pathname)
-            const { Icon, IconSolid, label, to, isFaith, isProfile } = tab
+            const { Icon, IconSolid, label, to, isFaith, isProfile, isBell } = tab
 
             return (
               <Link
@@ -120,16 +163,22 @@ export default function Navigation() {
                   )}
 
                   {isFaith && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-navy"
-                      style={{ backgroundColor: season.color }} />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-navy"
+                      style={{ backgroundColor: season.color }}
+                    />
                   )}
-                  {isProfile && unreadCount > 0 && (
+
+                  {/* Bell badge */}
+                  {isBell && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-medium ${active ? 'text-gold' : 'text-gray-400'}`}>{label}</span>
+                <span className={`text-[10px] font-medium ${active ? 'text-gold' : 'text-gray-400'}`}>
+                  {label}
+                </span>
               </Link>
             )
           })}
@@ -150,7 +199,7 @@ export default function Navigation() {
 
         {/* Main navigation */}
         <div className="flex flex-col gap-1 flex-1">
-          {tabs.map((tab) => {
+          {desktopTabs.map((tab) => {
             const active = tab.active(location.pathname)
             const { Icon, IconSolid, label, to, isFaith, isProfile } = tab
 
