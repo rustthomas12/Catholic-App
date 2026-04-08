@@ -6,6 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useNotifications } from '../hooks/useNotifications'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/shared/Modal'
 import Button from '../components/shared/Button'
@@ -33,6 +34,7 @@ function SectionHeader({ title }) {
 export default function SettingsPage() {
   document.title = 'Settings | Parish App'
   const { user, profile, signOut, updateProfile } = useAuth()
+  const { unreadCount } = useNotifications()
   const navigate = useNavigate()
 
   const [showSignOutModal, setShowSignOutModal] = useState(false)
@@ -88,7 +90,12 @@ export default function SettingsPage() {
           {/* Notifications */}
           <div className="border-t border-gray-100" />
           <SectionHeader title="Notifications" />
-          <SettingsRow icon={BellIcon} label="Notification preferences" to="/settings/notifications" />
+          <SettingsRow
+            icon={BellIcon}
+            label="Notification preferences"
+            to="/settings/notifications"
+            value={unreadCount > 0 ? `${unreadCount} unread` : undefined}
+          />
 
           {/* Subscription */}
           <div className="border-t border-gray-100" />
