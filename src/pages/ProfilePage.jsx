@@ -30,7 +30,7 @@ function ProfileSkeleton() {
 
 export default function ProfilePage() {
   const { id } = useParams()
-  const { user, profile: currentProfile } = useAuth()
+  const { user, profile: currentProfile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const [profile, setProfile] = useState(null)
@@ -43,7 +43,18 @@ export default function ProfilePage() {
   const targetId = id || user?.id
 
   useEffect(() => {
-    if (!targetId) return
+    // Wait for auth to finish before deciding what to load.
+    // On own-profile route (/profile with no id param), targetId = user?.id
+    // which starts undefined if the stored user hasn't resolved yet.
+    if (authLoading) return
+
+    if (!targetId) {
+      // Auth is done and we still have no targetId — not logged in
+      setNotFound(true)
+      setLoading(false)
+      return
+    }
+
     document.title = 'Profile | Parish App'
     setLoading(true)
 
@@ -74,7 +85,7 @@ export default function ProfilePage() {
     }
 
     load()
-  }, [targetId])
+  }, [targetId, authLoading])
 
   const isOwnProfile = user?.id === targetId
 

@@ -44,18 +44,8 @@ async function _fetchMemberships(userId) {
 export function useGroupMemberships() {
   const { user } = useAuth()
   const userId = user?.id ?? null
-  const [memberships, setMemberships] = useState(() => {
-    // Serve cache immediately on mount if valid
-    if (_membershipsCache && _membershipsCache.userId === userId &&
-        Date.now() - _membershipsCache.ts < MEMBERSHIPS_TTL) {
-      return _membershipsCache.data
-    }
-    return []
-  })
-  const [loading, setLoading] = useState(
-    !(_membershipsCache && _membershipsCache.userId === userId &&
-      Date.now() - _membershipsCache.ts < MEMBERSHIPS_TTL)
-  )
+  const [memberships, setMemberships] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     if (!userId) { setLoading(false); return }
