@@ -20,6 +20,7 @@ export function useNotifications() {
 
   const offsetRef    = useRef(0)
   const channelRef   = useRef(null)
+  const mountIdRef   = useRef(0)   // increments each mount so channel names never collide
 
   // ── Fetch a page ─────────────────────────────────────────
   const fetchNotifications = useCallback(async (reset = false) => {
@@ -71,11 +72,15 @@ export function useNotifications() {
   }, [user, fetchNotifications])
 
   // ── Real-time subscription ────────────────────────────────
+  // Each mount increments mountIdRef so the channel name is unique.
+  // This prevents the StrictMode double-invoke from hitting the same
+  // already-subscribed channel object before removeChannel completes.
   useEffect(() => {
     if (!user) return
 
+    mountIdRef.current += 1
     const channel = supabase
-      .channel(`notifications-${user.id}`)
+      .channel(`notifications-${user.id}-${mountIdRef.current}`)
       .on(
         'postgres_changes',
         {
