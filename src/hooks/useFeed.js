@@ -269,6 +269,15 @@ export function useFeed(options = {}) {
     setLoadingMore(false)
   }, [user, buildQuery, pageSize, filter, parishId, groupId])
 
+  // ── refresh — defined here so visibilitychange useEffect can depend on it ──
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    offsetRef.current = 0
+    await loadSocialGraph()
+    fetchPage(0, false)
+  }, [loadSocialGraph, fetchPage])
+
   // ── Initial load effect ───────────────────────────────────
   useEffect(() => {
     if (!userId_stable) {
@@ -342,14 +351,6 @@ export function useFeed(options = {}) {
     offsetRef.current += pageSize
     fetchPage(offsetRef.current, true)
   }, [loadingMore, hasMore, pageSize, fetchPage])
-
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    offsetRef.current = 0
-    await loadSocialGraph()
-    fetchPage(0, false)
-  }, [loadSocialGraph, fetchPage])
 
   const addPost = useCallback((post) => {
     setPosts((prev) => {
