@@ -20,7 +20,7 @@ export function useNotifications() {
 
   const offsetRef    = useRef(0)
   const channelRef   = useRef(null)
-  const mountIdRef   = useRef(0)   // increments each mount so channel names never collide
+  const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   // ── Fetch a page ─────────────────────────────────────────
   const fetchNotifications = useCallback(async (reset = false) => {
@@ -78,9 +78,8 @@ export function useNotifications() {
   useEffect(() => {
     if (!user) return
 
-    mountIdRef.current += 1
     const channel = supabase
-      .channel(`notifications-${user.id}-${mountIdRef.current}`)
+      .channel(`notifications-${user.id}-${channelSuffix.current}`)
       .on(
         'postgres_changes',
         {

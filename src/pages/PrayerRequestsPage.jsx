@@ -18,7 +18,7 @@ export default function PrayerRequestsPage() {
 
   document.title = `${t('prayer.title')} | Parish App`
 
-  const mountIdRef = useRef(0)
+  const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   const [intentions, setIntentions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -68,9 +68,8 @@ export default function PrayerRequestsPage() {
   }, [fetchIntentions])
 
   useEffect(() => {
-    mountIdRef.current += 1
     const channel = supabase
-      .channel(`prayer-requests-realtime-${mountIdRef.current}`)
+      .channel(`prayer-requests-realtime-${channelSuffix.current}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'prayer_requests' },
