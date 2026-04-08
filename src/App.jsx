@@ -83,12 +83,24 @@ function OfflineDetector() {
   return null
 }
 
+// ── Suspended user banner ─────────────────────────────────
+function SuspendedBanner() {
+  const { profile } = useAuth()
+  if (!profile?.suspended_at) return null
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9998] bg-amber-500 text-white text-sm font-medium text-center px-4 py-2.5 shadow-md">
+      Your account is currently under review. Some features are temporarily limited.
+    </div>
+  )
+}
+
 // ── Routes (needs Router context) ─────────────────────────
 function AppInner() {
   return (
     <>
       <OfflineDetector />
       <LastActiveUpdater />
+      <SuspendedBanner />
       <InstallPrompt />
       <Navigation />
       <Suspense fallback={<LoadingSpinner fullPage />}>

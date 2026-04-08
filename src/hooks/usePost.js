@@ -17,7 +17,7 @@ const COMMENT_SELECT = `
  * @param {object} initialPost  — normalised post object from useFeed
  */
 export function usePost(postId, initialPost) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [post, setPost] = useState(initialPost)
   const [comments, setComments] = useState([])
@@ -104,6 +104,7 @@ export function usePost(postId, initialPost) {
   // ── toggleLike ─────────────────────────────────────────────
   const toggleLike = useCallback(async () => {
     if (!user) return
+    if (profile?.suspended_at) return
 
     const wasLiked = post.is_liked_by_me
     const newCount = wasLiked ? post.like_count - 1 : post.like_count + 1
@@ -167,6 +168,7 @@ export function usePost(postId, initialPost) {
   const addComment = useCallback(
     async (content) => {
       if (!user) return { error: 'Not authenticated' }
+      if (profile?.suspended_at) return { error: 'Your account is under review. Contact us if you have questions.' }
       const trimmed = content?.trim()
       if (!trimmed) return { error: 'Comment cannot be empty' }
 
