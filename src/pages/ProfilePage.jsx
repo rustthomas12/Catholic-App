@@ -59,29 +59,35 @@ export default function ProfilePage() {
     setLoading(true)
 
     async function load() {
-      const { data: p, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', targetId)
-        .single()
+      try {
+        const { data: p, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetId)
+          .single()
 
-      if (error || !p) { setNotFound(true); setLoading(false); return }
+        if (error || !p) { setNotFound(true); return }
 
-      setProfile(p)
-      document.title = `${p.full_name || 'Profile'} | Parish App`
+        setProfile(p)
+        document.title = `${p.full_name || 'Profile'} | Parish App`
 
-      // Load parish and post count in parallel
-      const [parRes, countRes] = await Promise.all([
-        p.parish_id
-          ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', p.parish_id).single()
-          : Promise.resolve({ data: null }),
-        supabase.from('posts').select('id', { count: 'exact', head: true })
-          .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false),
-      ])
+        // Load parish and post count in parallel
+        const [parRes, countRes] = await Promise.all([
+          p.parish_id
+            ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', p.parish_id).single()
+            : Promise.resolve({ data: null }),
+          supabase.from('posts').select('id', { count: 'exact', head: true })
+            .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false),
+        ])
 
-      setParish(parRes.data || null)
-      setPostCount(countRes.count || 0)
-      setLoading(false)
+        setParish(parRes.data || null)
+        setPostCount(countRes.count || 0)
+      } catch (err) {
+        console.error('[ProfilePage] load error:', err)
+        setNotFound(true)
+      } finally {
+        setLoading(false)
+      }
     }
 
     load()

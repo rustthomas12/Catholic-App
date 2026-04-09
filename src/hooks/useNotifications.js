@@ -29,35 +29,46 @@ export function useNotifications() {
     if (reset) setLoading(true)
     else       setLoadingMore(true)
 
-    const { data, error } = await supabase
-      .from('notifications')
-      .select(NOTIFICATION_SELECT)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1)
-
-    if (error) {
-      console.error('Failed to fetch notifications:', error.message)
+    const timeoutId = setTimeout(() => {
+      console.warn('[useNotifications] fetch timeout after 8s')
       setLoading(false)
       setLoadingMore(false)
-      return
-    }
+    }, 8000)
 
-    const rows = data ?? []
-    if (reset) {
-      setNotifications(rows)
-      // Derive unread count from fetched data — no separate query needed
-      setUnreadCount(rows.filter(n => !n.is_read).length)
-      offsetRef.current = rows.length
-    } else {
-      setNotifications(prev => [...prev, ...rows])
-      setUnreadCount(prev => prev + rows.filter(n => !n.is_read).length)
-      offsetRef.current = offsetRef.current + rows.length
-    }
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select(NOTIFICATION_SELECT)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1)
 
-    setHasMore(rows.length === PAGE_SIZE)
-    setLoading(false)
-    setLoadingMore(false)
+      clearTimeout(timeoutId)
+
+      if (error) {
+        console.error('Failed to fetch notifications:', error.message)
+        return
+      }
+
+      const rows = data ?? []
+      if (reset) {
+        setNotifications(rows)
+        setUnreadCount(rows.filter(n => !n.is_read).length)
+        offsetRef.current = rows.length
+      } else {
+        setNotifications(prev => [...prev, ...rows])
+        setUnreadCount(prev => prev + rows.filter(n => !n.is_read).length)
+        offsetRef.current = offsetRef.current + rows.length
+      }
+
+      setHasMore(rows.length === PAGE_SIZE)
+    } catch (err) {
+      clearTimeout(timeoutId)
+      console.error('[useNotifications] fetch error:', err)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
   }, [user])
 
   // ── Initial load ─────────────────────────────────────────

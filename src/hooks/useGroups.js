@@ -16,27 +16,50 @@ function _invalidateMemberships() {
 
 async function _fetchMemberships(userId) {
   if (_membershipsPromise) return _membershipsPromise
-  _membershipsPromise = supabase
-    .from('group_members')
-    .select(`
-      group_id, role,
-      groups(
-        id, name, category, avatar_url, description,
-        is_private, parish_id, member_count,
-        parishes(name, city)
-      )
-    `)
-    .eq('user_id', userId)
-    .then(({ data }) => {
-      const result = (data ?? []).filter(d => d.groups).map(d => ({ group: d.groups, role: d.role }))
-      _membershipsCache = { userId, data: result, ts: Date.now() }
+
+  _membershipsPromise = Promise.race([
+    supabase
+      .from('group_members')
+      .select(`
+        group_id, role,
+        groups(
+          id, name, category, avatar_url, description,
+          is_private, parish_id, member_count,
+          parishes(name, city)
+        )
+      `)
+      .eq('user_id', userId)
+      .then(({ data, error, status }) => {
+        console.log('[_fetchMemberships] response:', {
+          status,
+          error: error?.message,
+          dataLength: data?.length,
+          firstRow: data?.[0],
+        })
+        if (error) {
+          console.error('[_fetchMemberships] error:', error)
+          _membershipsPromise = null
+          return []
+        }
+        const result = (data ?? []).filter(d => d.groups).map(d => ({ group: d.groups, role: d.role }))
+        console.log('[_fetchMemberships] result after filter:', result.length)
+        _membershipsCache = { userId, data: result, ts: Date.now() }
+        _membershipsPromise = null
+        return result
+      })
+      .catch(err => {
+        console.error('[_fetchMemberships] catch:', err)
+        _membershipsPromise = null
+        return []
+      }),
+
+    new Promise(resolve => setTimeout(() => {
+      console.warn('[_fetchMemberships] TIMEOUT after 8s')
       _membershipsPromise = null
-      return result
-    })
-    .catch(() => {
-      _membershipsPromise = null
-      return []
-    })
+      resolve([])
+    }, 8000)),
+  ])
+
   return _membershipsPromise
 }
 
@@ -61,6 +84,7 @@ export function useGroupMemberships() {
     console.log('[useGroupMemberships] effect fired:', { userId, authLoading })
     if (!userId) {
       console.log('[useGroupMemberships] no userId, setting loading false')
+      setMemberships([])
       setLoading(false)
       return
     }
@@ -71,10 +95,10 @@ export function useGroupMemberships() {
       setLoading(false)
       return
     }
-    _fetchMemberships(userId).then(result => {
-      setMemberships(result)
-      setLoading(false)
-    })
+    _fetchMemberships(userId)
+      .then(result => { setMemberships(result) })
+      .catch(() => { setMemberships([]) })
+      .finally(() => { setLoading(false) })
   }, [userId])
 
   const memberGroupIds = useMemo(
@@ -195,10 +219,11 @@ export function useSuggestedGroups() {
       }
 
       setSuggested(combined)
-      setLoading(false)
     }
 
     load()
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [user?.id, profile?.parish_id, profile?.vocation_state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { suggested, loading }
