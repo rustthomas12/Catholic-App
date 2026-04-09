@@ -42,10 +42,12 @@ async function _fetchMemberships(userId) {
 
 // ── useGroupMemberships ────────────────────────────────────
 export function useGroupMemberships() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const userId = user?.id ?? null
   const [memberships, setMemberships] = useState([])
   const [loading, setLoading] = useState(true)
+
+  console.log('[useGroupMemberships] render:', { userId, authLoading, hasCachedData: !!_membershipsCache })
 
   const refresh = useCallback(async () => {
     if (!userId) { setLoading(false); return }
@@ -56,7 +58,12 @@ export function useGroupMemberships() {
   }, [userId])
 
   useEffect(() => {
-    if (!userId) { setLoading(false); return }
+    console.log('[useGroupMemberships] effect fired:', { userId, authLoading })
+    if (!userId) {
+      console.log('[useGroupMemberships] no userId, setting loading false')
+      setLoading(false)
+      return
+    }
     const cached = _membershipsCache
     const isFresh = cached && cached.userId === userId && Date.now() - cached.ts < MEMBERSHIPS_TTL
     if (isFresh) {
@@ -126,11 +133,14 @@ export function useGroupSearch(query = '', categoryFilter = null) {
 
 // ── useSuggestedGroups ─────────────────────────────────────
 export function useSuggestedGroups() {
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const [suggested, setSuggested] = useState([])
   const [loading, setLoading] = useState(true)
 
+  console.log('[useSuggestedGroups] render:', { userId: user?.id, authLoading, loading })
+
   useEffect(() => {
+    console.log('[useSuggestedGroups] effect fired:', { userId: user?.id, authLoading })
     if (!user) { setLoading(false); return }
 
     async function load() {

@@ -45,6 +45,8 @@ export function AuthProvider({ children }) {
   const storedUser    = getStoredUser()
   const storedProfile = getStoredProfile(storedUser?.id)
 
+  console.log('[useAuth] AuthProvider render:', { hasStoredUser: !!storedUser, storedUserId: storedUser?.id })
+
   const [user,    setUser]    = useState(storedUser)
   const [profile, setProfile] = useState(storedProfile)
 
@@ -251,6 +253,8 @@ export function AuthProvider({ children }) {
     const p = await fetchProfile(user.id)
     if (p) setProfile(p)
   }
+
+  console.log('[useAuth] value snapshot:', { hasUser: !!user, userId: user?.id, loading, hasProfile: !!profile })
 
   const value = {
     user,
