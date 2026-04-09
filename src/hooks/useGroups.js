@@ -17,6 +17,14 @@ function _invalidateMemberships() {
 async function _fetchMemberships(userId) {
   if (_membershipsPromise) return _membershipsPromise
 
+  console.log('[_fetchMemberships] calling getSession to check auth lock...')
+  const { data: { session: _dbgSession } } = await supabase.auth.getSession()
+  console.log('[_fetchMemberships] getSession resolved:', {
+    hasSession: !!_dbgSession,
+    expiresAt: _dbgSession?.expires_at,
+    secondsLeft: _dbgSession?.expires_at ? (_dbgSession.expires_at * 1000 - Date.now()) / 1000 : null,
+  })
+
   _membershipsPromise = Promise.race([
     supabase
       .from('group_members')
