@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth } from '../lib/supabase'
 import i18n from '../utils/i18n'
 
 const AuthContext = createContext(null)
@@ -94,7 +94,7 @@ export function AuthProvider({ children }) {
     // getSession() may make a network call to refresh an expired token.
     // For returning users this is fine — they already see their content
     // (loading=false). For new users this resolves quickly (no token to refresh).
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabaseAuth.auth.getSession().then(async ({ data: { session } }) => {
       clearTimeout(timeoutId)
       if (cancelled) return
 
@@ -127,7 +127,7 @@ export function AuthProvider({ children }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabaseAuth.auth.onAuthStateChange(
       async (event, session) => {
         if (cancelled) return
 
@@ -165,7 +165,7 @@ export function AuthProvider({ children }) {
 
   async function signIn(email, password) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password })
       if (error) {
         if (error.message.includes('Invalid login credentials')) return { error: t('auth:login.error_invalid') }
         if (error.message.includes('network') || error.message.includes('fetch')) return { error: t('auth:login.error_network') }
@@ -185,7 +185,7 @@ export function AuthProvider({ children }) {
 
   async function signUp(email, password, { fullName, parishId, vocationState }) {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseAuth.auth.signUp({
         email,
         password,
         options: { data: { full_name: fullName } },
@@ -225,7 +225,7 @@ export function AuthProvider({ children }) {
     userIdRef.current = null
     setUser(null)
     setProfile(null)
-    await supabase.auth.signOut()
+    await supabaseAuth.auth.signOut()
   }
 
   async function updateProfile(updates) {
