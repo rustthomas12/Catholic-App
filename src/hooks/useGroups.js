@@ -17,14 +17,6 @@ function _invalidateMemberships() {
 async function _fetchMemberships(userId) {
   if (_membershipsPromise) return _membershipsPromise
 
-  console.log('[_fetchMemberships] calling getSession to check auth lock...')
-  const { data: { session: _dbgSession } } = await supabase.auth.getSession()
-  console.log('[_fetchMemberships] getSession resolved:', {
-    hasSession: !!_dbgSession,
-    expiresAt: _dbgSession?.expires_at,
-    secondsLeft: _dbgSession?.expires_at ? (_dbgSession.expires_at * 1000 - Date.now()) / 1000 : null,
-  })
-
   _membershipsPromise = Promise.race([
     supabase
       .from('group_members')
@@ -37,32 +29,24 @@ async function _fetchMemberships(userId) {
         )
       `)
       .eq('user_id', userId)
-      .then(({ data, error, status }) => {
-        console.log('[_fetchMemberships] response:', {
-          status,
-          error: error?.message,
-          dataLength: data?.length,
-          firstRow: data?.[0],
-        })
+      .then(({ data, error }) => {
         if (error) {
-          console.error('[_fetchMemberships] error:', error)
+          console.error('[_fetchMemberships] error:', error.message)
           _membershipsPromise = null
           return []
         }
         const result = (data ?? []).filter(d => d.groups).map(d => ({ group: d.groups, role: d.role }))
-        console.log('[_fetchMemberships] result after filter:', result.length)
         _membershipsCache = { userId, data: result, ts: Date.now() }
         _membershipsPromise = null
         return result
       })
       .catch(err => {
-        console.error('[_fetchMemberships] catch:', err)
+        console.error('[_fetchMemberships] error:', err)
         _membershipsPromise = null
         return []
       }),
 
     new Promise(resolve => setTimeout(() => {
-      console.warn('[_fetchMemberships] TIMEOUT after 8s')
       _membershipsPromise = null
       resolve([])
     }, 8000)),
@@ -73,12 +57,10 @@ async function _fetchMemberships(userId) {
 
 // ── useGroupMemberships ────────────────────────────────────
 export function useGroupMemberships() {
-  const { user, loading: authLoading } = useAuth()
+  const { user } = useAuth()
   const userId = user?.id ?? null
   const [memberships, setMemberships] = useState([])
   const [loading, setLoading] = useState(true)
-
-  console.log('[useGroupMemberships] render:', { userId, authLoading, hasCachedData: !!_membershipsCache })
 
   const refresh = useCallback(async () => {
     if (!userId) { setLoading(false); return }
@@ -89,9 +71,7 @@ export function useGroupMemberships() {
   }, [userId])
 
   useEffect(() => {
-    console.log('[useGroupMemberships] effect fired:', { userId, authLoading })
     if (!userId) {
-      console.log('[useGroupMemberships] no userId, setting loading false')
       setMemberships([])
       setLoading(false)
       return
@@ -165,14 +145,11 @@ export function useGroupSearch(query = '', categoryFilter = null) {
 
 // ── useSuggestedGroups ─────────────────────────────────────
 export function useSuggestedGroups() {
-  const { user, profile, loading: authLoading } = useAuth()
+  const { user, profile } = useAuth()
   const [suggested, setSuggested] = useState([])
   const [loading, setLoading] = useState(true)
 
-  console.log('[useSuggestedGroups] render:', { userId: user?.id, authLoading, loading })
-
   useEffect(() => {
-    console.log('[useSuggestedGroups] effect fired:', { userId: user?.id, authLoading })
     if (!user) { setLoading(false); return }
 
     async function load() {
