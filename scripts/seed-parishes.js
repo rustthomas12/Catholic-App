@@ -1,21 +1,25 @@
 // ============================================================
-// COMMUNIO — Real MA Parish Seed Script
-// Source: MassGIS Places of Worship dataset (Nov 2023 - Dec 2024)
-// Compiled from: Archdiocese of Boston, Diocese of Fall River,
-//                Diocese of Springfield, Diocese of Worcester
-// 619 real parishes with GPS-accurate coordinates
+// COMMUNIO — Real MA Parish Seed Script (Clean)
+// Source: MassGIS Places of Worship (Nov 2023 - Dec 2024)
+// Strictly filtered: Roman Catholic only (ORG + SOURCE match)
+// 559 verified Roman Catholic parishes across 4 MA dioceses
+// Archdiocese of Boston: 292
+// Diocese of Worcester: 95
+// Diocese of Fall River: 90
+// Diocese of Springfield: 82
 // ============================================================
 
 import { createClient } from '@supabase/supabase-js'
-import { readFileSync } from 'fs'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
   console.error('❌ Missing VITE_SUPABASE_URL in environment')
+  process.exit(1)
+}
+if (!supabaseKey || supabaseKey.includes('placeholder')) {
+  console.error('❌ Missing SUPABASE_SERVICE_ROLE_KEY in environment')
   process.exit(1)
 }
 
@@ -25,7 +29,7 @@ const parishes = [
   { name: 'Holy Name of the Sacred Heart of Jesus', address: '121 Mount Pleasant Street', city: 'New Bedford', state: 'MA', zip: '02740', phone: '508-992-3184', website: 'http://www.facebook.com/HolyNameoftheSacredHeartNB/', diocese: 'Diocese of Fall River', latitude: 41.651837, longitude: -70.937137 },
   { name: 'Immaculate Conception Chapel', address: '2580 Main Street', city: 'East Brewster', state: 'MA', zip: '02631', phone: '508-385-3252', website: 'http://www.ourladyofthecape.org/', diocese: 'Diocese of Fall River', latitude: 41.766281, longitude: -70.060683 },
   { name: 'Holy Family', address: '370 Middleboro Avenue', city: 'East Taunton', state: 'MA', zip: '02718', phone: '508-824-5707', website: 'http://www.hfparish.net/', diocese: 'Diocese of Fall River', latitude: 41.88223, longitude: -71.033843 },
-  { name: 'Sacred Heart', address: '58 Church Street', city: 'North Attleborough', state: 'MA', zip: '02761', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.982849, longitude: -71.334711 },
+  { name: 'Sacred Heart', address: '58 Church Street', city: 'North Attleborough', state: 'MA', zip: '02761', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.982849, longitude: -71.334711 },
   { name: 'St. Margaret', address: '141 Main Street', city: 'Bourne', state: 'MA', zip: '02532', phone: '508-759-7777', website: 'http://www.stmargaretbbay.org/', diocese: 'Diocese of Fall River', latitude: 41.746133, longitude: -70.61185 },
   { name: 'Our Lady of Victory', address: '230 South Main Street', city: 'Centerville', state: 'MA', zip: '02632', phone: '508-775-5744', website: 'http://www.olvparish.org/', diocese: 'Diocese of Fall River', latitude: 41.647647, longitude: -70.344025 },
   { name: 'St. Anthony', address: '26 Hammond Street', city: 'Mattapoisett', state: 'MA', zip: '02739', phone: '508-758-3719', website: 'http://anthonyandrita.com/st-anthonys-information/', diocese: 'Diocese of Fall River', latitude: 41.661411, longitude: -70.813319 },
@@ -71,12 +75,12 @@ const parishes = [
   { name: 'Our Lady of the Hills', address: '173 Main Street', city: 'Haydenville', state: 'MA', zip: '01039', phone: '413-268-7212', website: 'https://www.olothhaydenville.org/', diocese: 'Diocese of Springfield', latitude: 42.373112, longitude: -72.697667 },
   { name: 'St. Elizabeth of Hungary Parish', address: '70 Marshall Street', city: 'North Adams', state: 'MA', zip: '01247', phone: '413-663-5316', website: 'https://www.stelizabethofhungaryparish.org/', diocese: 'Diocese of Springfield', latitude: 42.701143, longitude: -73.113093 },
   { name: 'Sacred Heart Parish', address: '1065 Springfield Street', city: 'Feeding Hills', state: 'MA', zip: '01030', phone: '413-786-8200', website: 'https://sacredheartfeedinghills.org/', diocese: 'Diocese of Springfield', latitude: 42.06854, longitude: -72.664547 },
-  { name: 'St. John of God', address: '996 Brayton Avenue', city: 'Somerset', state: 'MA', zip: '02726', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.73703, longitude: -71.160704 },
+  { name: 'St. John of God', address: '996 Brayton Avenue', city: 'Somerset', state: 'MA', zip: '02726', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.73703, longitude: -71.160704 },
   { name: 'Holy Cross', address: '225 Purchase Street', city: 'South Easton', state: 'MA', zip: '02375', phone: '508-238-2235', website: 'http://www.holycrosseaston.org/', diocese: 'Diocese of Fall River', latitude: 42.025537, longitude: -71.083871 },
   { name: 'Our Lady of Guadalupe at St. James Church', address: '233 County Street', city: 'New Bedford', state: 'MA', zip: '02740', phone: '508-992-9408', website: 'http://www.guadalupenewbedford.com/', diocese: 'Diocese of Fall River', latitude: 41.623019, longitude: -70.925332 },
   { name: 'St. Mary', address: '783 Dartmouth Street', city: 'South Dartmouth', state: 'MA', zip: '02748', phone: '508-992-7505', website: 'http://www.stmarysdartmouth.org/', diocese: 'Diocese of Fall River', latitude: 41.593123, longitude: -70.943953 },
   { name: 'Our Lady of Mount Carmel', address: '984 Taunton Avenue', city: 'Seekonk', state: 'MA', zip: '02771', phone: '508-336-5549', website: 'http://www.olmcseekonk.org/', diocese: 'Diocese of Fall River', latitude: 41.83246, longitude: -71.303774 },
-  { name: 'St. George', address: '12 Highland Avenue', city: 'Westport', state: 'MA', zip: '02790', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.641245, longitude: -71.049095 },
+  { name: 'St. George', address: '12 Highland Avenue', city: 'Westport', state: 'MA', zip: '02790', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.641245, longitude: -71.049095 },
   { name: 'Annunciation of the Lord', address: '31 First Street', city: 'Taunton', state: 'MA', zip: '02780', phone: '508-823-2521', website: 'http://www.annunciationtaunton.com/', diocese: 'Diocese of Fall River', latitude: 41.888517, longitude: -71.091681 },
   { name: 'Sacred Heart Chapel', address: '32 Summer Street', city: 'Yarmouth Port', state: 'MA', zip: '02675', phone: '508-775-0818', website: 'https://sfxhyannis.org/mass-1', diocese: 'Diocese of Fall River', latitude: 41.701824, longitude: -70.246815 },
   { name: 'Our Lady of Grace', address: '28 Tarbell Street', city: 'Pepperell', state: 'MA', zip: '01463', phone: '978-433-5737', website: 'https://www.stjs.page/', diocese: 'Archdiocese of Boston', latitude: 42.667339, longitude: -71.569803 },
@@ -90,7 +94,7 @@ const parishes = [
   { name: 'St. Ann', address: '134 Cochituate Road', city: 'Wayland', state: 'MA', zip: '01778', phone: '508-650-3545', website: 'https://www.goodshepherdwayland.org/', diocese: 'Archdiocese of Boston', latitude: 42.351159, longitude: -71.356862 },
   { name: 'Holy Trinity Parish', address: '333 Elm Street', city: 'Westfield', state: 'MA', zip: '01085', phone: '413-568-1506', website: 'http://www.holytrinitywestfield.com', diocese: 'Diocese of Springfield', latitude: 42.126985, longitude: -72.746392 },
   { name: 'Our Lady of the Assumption', address: '40 Canal Street', city: 'Marshfield', state: 'MA', zip: '02050', phone: '781-834-6252', website: 'https://www.olamarshfield.org/', diocese: 'Archdiocese of Boston', latitude: 42.075921, longitude: -70.662989 },
-  { name: 'Corpus Christi', address: '35 Essex Street', city: 'Lawrence', state: 'MA', zip: '01840', phone: '', website: '', diocese: 'Archdiocese of Boston', latitude: 42.70798, longitude: -71.153932 },
+  { name: 'Corpus Christi', address: '35 Essex Street', city: 'Lawrence', state: 'MA', zip: '01840', phone: null, website: null, diocese: 'Archdiocese of Boston', latitude: 42.70798, longitude: -71.153932 },
   { name: 'St. Joseph', address: '1335 North Main Street', city: 'Fall River', state: 'MA', zip: '02720', phone: '508-673-1123', website: 'http://www.stjosephschurchfr.com/', diocese: 'Diocese of Fall River', latitude: 41.718839, longitude: -71.14768 },
   { name: 'St. Gabriel the Archangel', address: '106 Illinois Street', city: 'New Bedford', state: 'MA', zip: '02745', phone: '508-995-3593', website: 'https://stgabrielnb.org/', diocese: 'Diocese of Fall River', latitude: 41.682609, longitude: -70.931019 },
   { name: 'Our Lady of the Lake Parish', address: '228 Sheep Pasture Road', city: 'Southwick', state: 'MA', zip: '01077', phone: '413-569-0161', website: 'http://www.ollsouthwick.org', diocese: 'Diocese of Springfield', latitude: 42.049171, longitude: -72.765804 },
@@ -100,10 +104,10 @@ const parishes = [
   { name: 'Holy Family Parish', address: '31 Sugarloaf Street', city: 'South Deerfield', state: 'MA', zip: '01373', phone: '413-665-3254', website: 'http://www.holyfamilysd.org', diocese: 'Diocese of Springfield', latitude: 42.474728, longitude: -72.603841 },
   { name: 'St. Thomas Chapel', address: '440 Grand Avenue', city: 'Falmouth', state: 'MA', zip: '02540', phone: '508-548-0108', website: 'https://falmouthcatholic.org/', diocese: 'Diocese of Fall River', latitude: 41.545018, longitude: -70.60284 },
   { name: 'St. Lawrence, Martyr', address: '565 County Street', city: 'New Bedford', state: 'MA', zip: '02740', phone: '508-992-4251', website: 'https://whalingcitycatholics.org/st-lawrence-martyr-church/', diocese: 'Diocese of Fall River', latitude: 41.639141, longitude: -70.931643 },
-  { name: 'Our Lady of the Holy Rosary Chapel', address: '80 Bay Street', city: 'Taunton', state: 'MA', zip: '02780', phone: '', website: 'https://holyrosarytaunton.org/', diocese: 'Diocese of Fall River', latitude: 41.914498, longitude: -71.093727 },
+  { name: 'Our Lady of the Holy Rosary Chapel', address: '80 Bay Street', city: 'Taunton', state: 'MA', zip: '02780', phone: null, website: 'https://holyrosarytaunton.org/', diocese: 'Diocese of Fall River', latitude: 41.914498, longitude: -71.093727 },
   { name: 'Our Lady of the Cross Parish', address: 'Holy Cross Avenue', city: 'Holyoke', state: 'MA', zip: '01040', phone: '413-532-5661', website: 'http://www.ourladyofthecross.com', diocese: 'Diocese of Springfield', latitude: 42.210507, longitude: -72.618412 },
   { name: 'St. Agnes Parish', address: '489 Main Street', city: 'Dalton', state: 'MA', zip: '01226', phone: '413-684-0125', website: 'https://saintagnescc.com/index.html', diocese: 'Diocese of Springfield', latitude: 42.473639, longitude: -73.168324 },
-  { name: 'Christ the King Parish', address: '41 Warsaw Avenue', city: 'Ludlow', state: 'MA', zip: '01056', phone: '413-583-2630', website: '', diocese: 'Diocese of Springfield', latitude: 42.164101, longitude: -72.48184 },
+  { name: 'Christ the King Parish', address: '41 Warsaw Avenue', city: 'Ludlow', state: 'MA', zip: '01056', phone: '413-583-2630', website: null, diocese: 'Diocese of Springfield', latitude: 42.164101, longitude: -72.48184 },
   { name: 'Immaculate Conception Parish', address: '25 Parker Street', city: 'Indian Orchard', state: 'MA', zip: '01151', phone: '413-543-3627', website: 'http://www.indian-orchard-immaculate-conception.org', diocese: 'Diocese of Springfield', latitude: 42.155069, longitude: -72.487055 },
   { name: 'Holy Redeemer', address: '57 Highland Avenue', city: 'Chatham', state: 'MA', zip: '02633', phone: '508-945-0677', website: 'http://www.holyredeemerchatham.org/', diocese: 'Diocese of Fall River', latitude: 41.685411, longitude: -69.957651 },
   { name: 'St. Mark', address: '105 Stanley Street', city: 'Attleboro Falls', state: 'MA', zip: '02763', phone: '508-695-6161', website: 'http://www.stmarks-attleborofalls.org/', diocese: 'Diocese of Fall River', latitude: 41.973452, longitude: -71.305979 },
@@ -177,7 +181,7 @@ const parishes = [
   { name: 'Our Lady of Czestochowa', address: '84 K Street', city: 'Turners Falls', state: 'MA', zip: '01376', phone: '413-863-4748', website: 'https://chroniclesofczestochowa.wordpress.com/', diocese: 'Diocese of Springfield', latitude: 42.603606, longitude: -72.560441 },
   { name: 'St. Mark Parish', address: '400 West Street', city: 'Pittsfield', state: 'MA', zip: '01201', phone: '413-447-7510', website: 'https://saintmarkspittsfield.org/', diocese: 'Diocese of Springfield', latitude: 42.451102, longitude: -73.266637 },
   { name: 'St. Mary Parish', address: '57 South Street', city: 'Ware', state: 'MA', zip: '01082', phone: '413-967-4963', website: 'https://www.warecatholic.org/', diocese: 'Diocese of Springfield', latitude: 42.256348, longitude: -72.241055 },
-  { name: 'Our Lady of the Immaculate Conception', address: '136 Earle Street', city: 'New Bedford', state: 'MA', zip: '02746', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.664751, longitude: -70.92522 },
+  { name: 'Our Lady of the Immaculate Conception', address: '136 Earle Street', city: 'New Bedford', state: 'MA', zip: '02746', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.664751, longitude: -70.92522 },
   { name: 'Our Lady Queen of Martyrs', address: '5 North Street', city: 'Seekonk', state: 'MA', zip: '02771', phone: '508-399-8440', website: 'https://www.olqmseekonk.org/', diocese: 'Diocese of Fall River', latitude: 41.896585, longitude: -71.322274 },
   { name: 'St. Thomas More', address: '386 Luther Avenue', city: 'Somerset', state: 'MA', zip: '02726', phone: '508-673-7831', website: 'https://olopsomerset.org/st-thomas-more-parish/', diocese: 'Diocese of Fall River', latitude: 41.74394, longitude: -71.148081 },
   { name: 'St. Mary of the Assumption Parish', address: '159 Church Street', city: 'Cheshire', state: 'MA', zip: '01225', phone: '413-743-2110', website: 'https://acparishes.org/st-mary-of-the-assumption-1', diocese: 'Diocese of Springfield', latitude: 42.56272, longitude: -73.159891 },
@@ -188,7 +192,7 @@ const parishes = [
   { name: 'Most Holy Redeemer Parish', address: '120 Russell Street', city: 'Hadley', state: 'MA', zip: '01035', phone: '413-584-1326', website: 'http://www.mhrhadley.org', diocese: 'Diocese of Springfield', latitude: 42.342697, longitude: -72.593379 },
   { name: 'St. Michael', address: '189 Essex Street', city: 'Fall River', state: 'MA', zip: '02720', phone: '508-672-6713', website: 'http://www.smpfr.org/', diocese: 'Diocese of Fall River', latitude: 41.723428, longitude: -71.147381 },
   { name: 'St. Ann Parish', address: '134 Main Street', city: 'Lenox', state: 'MA', zip: '01240', phone: '413-637-0157', website: 'https://www.avptriparish.org/st-ann-parish', diocese: 'Diocese of Springfield', latitude: 42.361042, longitude: -73.282463 },
-  { name: 'Our Lady of Fatima', address: '4256 Acushnet Avenue', city: 'New Bedford', state: 'MA', zip: '02745', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.733728, longitude: -70.943511 },
+  { name: 'Our Lady of Fatima', address: '4256 Acushnet Avenue', city: 'New Bedford', state: 'MA', zip: '02745', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.733728, longitude: -70.943511 },
   { name: 'Santo Christo', address: '185 Canal Street', city: 'Fall River', state: 'MA', zip: '02721', phone: '508-676-1184', website: 'http://www.santochristo.com/', diocese: 'Diocese of Fall River', latitude: 41.69938, longitude: -71.162912 },
   { name: 'Cathedral of St. Mary of the Assumption', address: '327 Second Street', city: 'Fall River', state: 'MA', zip: '02721', phone: '508-673-2833', website: 'https://www.facebook.com/cathedralfallriver/', diocese: 'Diocese of Fall River', latitude: 41.698416, longitude: -71.15739 },
   { name: 'St. Charles Parish', address: '89 Briggs Avenue', city: 'Pittsfield', state: 'MA', zip: '01201', phone: '413-442-7470', website: 'http://www.stcharlespittsfield.org', diocese: 'Diocese of Springfield', latitude: 42.4661, longitude: -73.250508 },
@@ -203,19 +207,19 @@ const parishes = [
   { name: 'Holy Trinity', address: '246 Main Street', city: 'West Harwich', state: 'MA', zip: '02671', phone: '508-432-4000', website: 'http://www.holytrinitycapecod.org/', diocese: 'Diocese of Fall River', latitude: 41.669866, longitude: -70.100432 },
   { name: 'Christ the King', address: '54 Lyman Street', city: 'Brockton', state: 'MA', zip: '02302', phone: '508-586-4715', website: 'https://www.brocktoncatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.081886, longitude: -71.005533 },
   { name: 'St. André Bessette Parish', address: '11 Sparhawk Street', city: 'Amesbury', state: 'MA', zip: '01913', phone: '978-388-0330', website: 'https://www.standreb.org/', diocese: 'Archdiocese of Boston', latitude: 42.854735, longitude: -70.933977 },
-  { name: 'St. Peter Parish', address: '213 Main Street', city: 'Great Barrington', state: 'MA', zip: '01230', phone: '', website: '', diocese: 'Diocese of Springfield', latitude: 42.196564, longitude: -73.360383 },
+  { name: 'St. Peter Parish', address: '213 Main Street', city: 'Great Barrington', state: 'MA', zip: '01230', phone: null, website: null, diocese: 'Diocese of Springfield', latitude: 42.196564, longitude: -73.360383 },
   { name: 'St. Michael Parish', address: '128 Maple Street', city: 'East Longmeadow', state: 'MA', zip: '01028', phone: '413-525-4253', website: 'http://www.stmichaelsel.org', diocese: 'Diocese of Springfield', latitude: 42.061368, longitude: -72.520395 },
   { name: 'St. Andrew the Apostle', address: '19 Kilmer Avenue', city: 'Taunton', state: 'MA', zip: '02780', phone: '508-824-5577', website: 'http://www.standrewtaunton.org/', diocese: 'Diocese of Fall River', latitude: 41.900129, longitude: -71.10722 },
   { name: 'St. Elizabeth Seton', address: '481 Quaker Road', city: 'North Falmouth', state: 'MA', zip: '02556', phone: '508-548-0108', website: 'https://falmouthcatholic.org/elizabeth', diocese: 'Diocese of Fall River', latitude: 41.631376, longitude: -70.63246 },
   { name: 'St. Anthony Chapel', address: '35 Gault Road', city: 'West Wareham', state: 'MA', zip: '02576', phone: '508-295-2411', website: 'https://stpatrickswareham.org/', diocese: 'Diocese of Fall River', latitude: 41.789445, longitude: -70.757621 },
-  { name: 'Blessed Sacrament Parish', address: '40 Waverly St', city: 'Springfield', state: 'MA', zip: '01107', phone: '', website: '', diocese: 'Diocese of Springfield', latitude: 42.118762, longitude: -72.606338 },
+  { name: 'Blessed Sacrament Parish', address: '40 Waverly St', city: 'Springfield', state: 'MA', zip: '01107', phone: null, website: null, diocese: 'Diocese of Springfield', latitude: 42.118762, longitude: -72.606338 },
   { name: 'Madonna Queen of the Universe Shrine', address: '142 Orient Avenue', city: 'Boston', state: 'MA', zip: '02128', phone: '617-569-8792', website: 'https://madonnaqueen.com/', diocese: 'Archdiocese of Boston', latitude: 42.390084, longitude: -71.005571 },
   { name: 'Immaculate Conception', address: '144 East Merrimack Street', city: 'Lowell', state: 'MA', zip: '01852', phone: '978-458-1474', website: 'http://www.iclowell.org/', diocese: 'Archdiocese of Boston', latitude: 42.645318, longitude: -71.302916 },
   { name: 'Immaculate Conception', address: '9 Washington Court', city: 'Marlborough', state: 'MA', zip: '01752', phone: '508-485-0016', website: 'http://www.icmarlboro.com/', diocese: 'Archdiocese of Boston', latitude: 42.347153, longitude: -71.551242 },
   { name: 'St. Michael’s Cathedral Parish', address: '254 State Street', city: 'Springfield', state: 'MA', zip: '01103', phone: '413-781-3656', website: 'http://stmichaelscathedralspfld.org', diocese: 'Diocese of Springfield', latitude: 42.104373, longitude: -72.584625 },
   { name: 'Immaculate Conception', address: '133 Beach Street', city: 'Revere', state: 'MA', zip: '02151', phone: '617-933-9230', website: 'https://www.icrevere.org/', diocese: 'Archdiocese of Boston', latitude: 42.40733, longitude: -71.009726 },
   { name: 'Immaculate Conception', address: '720 Commercial Street', city: 'Weymouth', state: 'MA', zip: '02189', phone: '781-337-0380', website: 'https://www.catholicweymouth.org/', diocese: 'Archdiocese of Boston', latitude: 42.217363, longitude: -70.92863 },
-  { name: 'Our Lady of Grace', address: '60 Meetinghouse Road', city: 'South Chatham', state: 'MA', zip: '02659', phone: '', website: '', diocese: 'Diocese of Fall River', latitude: 41.684881, longitude: -70.019443 },
+  { name: 'Our Lady of Grace', address: '60 Meetinghouse Road', city: 'South Chatham', state: 'MA', zip: '02659', phone: null, website: null, diocese: 'Diocese of Fall River', latitude: 41.684881, longitude: -70.019443 },
   { name: 'St. Pius X', address: '98 Station Avenue', city: 'South Yarmouth', state: 'MA', zip: '02664', phone: '508-398-2248', website: 'http://www.stpiusxsy.com/', diocese: 'Diocese of Fall River', latitude: 41.672821, longitude: -70.189043 },
   { name: 'Saint Margaret of Antioch', address: '431 Lincoln Avenue', city: 'Saugus', state: 'MA', zip: '01906', phone: '781-233-2497', website: 'https://www.sauguscatholics.org/', diocese: 'Archdiocese of Boston', latitude: 42.449166, longitude: -71.00757 },
   { name: 'Saint Monica', address: '212 Lawrence Street', city: 'Methuen', state: 'MA', zip: '01844', phone: '978-683-1193', website: 'https://www.methuencatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.727193, longitude: -71.184006 },
@@ -240,7 +244,7 @@ const parishes = [
   { name: 'Saint Bonaventure', address: '801 State Road', city: 'Plymouth', state: 'MA', zip: '02360', phone: '508-224-3636', website: 'http://www.stbonaventureplymouth.org/', diocese: 'Archdiocese of Boston', latitude: 41.91135, longitude: -70.552503 },
   { name: 'Saint John the Baptist', address: '17 Chestnut Street', city: 'Peabody', state: 'MA', zip: '01960', phone: '978-531-0002', website: 'https://www.stjohnspeabody.org/', diocese: 'Archdiocese of Boston', latitude: 42.525957, longitude: -70.92947 },
   { name: 'Saint Linus', address: '119 Hartford Street', city: 'Natick', state: 'MA', zip: '01760', phone: '508-653-1093', website: 'https://www.natickcatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.292463, longitude: -71.389285 },
-  { name: 'Saint Gregory the Great', address: '774 Boylston Street', city: 'Chestnut Hill', state: 'MA', zip: '02467', phone: '', website: '', diocese: 'Archdiocese of Boston', latitude: 42.325979, longitude: -71.145286 },
+  { name: 'Saint Gregory the Great', address: '774 Boylston Street', city: 'Chestnut Hill', state: 'MA', zip: '02467', phone: null, website: null, diocese: 'Archdiocese of Boston', latitude: 42.325979, longitude: -71.145286 },
   { name: 'Saint Mary - Saint Catherine of Siena', address: '55 Warren Street', city: 'Boston', state: 'MA', zip: '02129', phone: '617-242-4664', website: 'https://stmarystcatherine.org/', diocese: 'Archdiocese of Boston', latitude: 42.374015, longitude: -71.061526 },
   { name: 'Saint Mary of the Hills', address: '29 St Marys Road', city: 'Milton', state: 'MA', zip: '02186', phone: '617-696-6688', website: 'https://www.visitationmilton.org/', diocese: 'Archdiocese of Boston', latitude: 42.261595, longitude: -71.090213 },
   { name: 'Saint John Paul II Shrine of Divine Mercy', address: '28 St. Peter Street', city: 'Salem', state: 'MA', zip: '01970', phone: '978-744-1278', website: 'https://www.jpiidivinemercyshrine.org/', diocese: 'Archdiocese of Boston', latitude: 42.523397, longitude: -70.89298 },
@@ -255,7 +259,7 @@ const parishes = [
   { name: 'Saint Denis Parish', address: '157 Washington Street', city: 'Westwood', state: 'MA', zip: '02090', phone: '781-326-1071', website: 'http://www.stdeniswestwood.com/', diocese: 'Archdiocese of Boston', latitude: 42.223623, longitude: -71.187661 },
   { name: 'Sacred Heart', address: '311 River Street', city: 'Waltham', state: 'MA', zip: '02453', phone: '781-899-0469', website: 'https://www.sacredheart311.com/', diocese: 'Archdiocese of Boston', latitude: 42.373917, longitude: -71.227796 },
   { name: 'Sacred Heart', address: '571 Boston Street', city: 'Lynn', state: 'MA', zip: '01950', phone: '781-598-4907', website: 'https://www.lynncatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.46443, longitude: -70.973947 },
-  { name: 'Saint Angela Merici', address: '1540 Blue Hill Avenue', city: 'Boston', state: 'MA', zip: '02126', phone: '', website: '', diocese: 'Archdiocese of Boston', latitude: 42.271398, longitude: -71.093114 },
+  { name: 'Saint Angela Merici', address: '1540 Blue Hill Avenue', city: 'Boston', state: 'MA', zip: '02126', phone: null, website: null, diocese: 'Archdiocese of Boston', latitude: 42.271398, longitude: -71.093114 },
   { name: 'Our Lady Star of the Sea', address: '85 Atlantic Avenue', city: 'Marblehead', state: 'MA', zip: '01945', phone: '781-631-0086', website: 'https://www.sosmarblehead.org/', diocese: 'Archdiocese of Boston', latitude: 42.497216, longitude: -70.858559 },
   { name: 'Saint Elizabeth', address: '350 Reedsdale Road', city: 'Milton', state: 'MA', zip: '02186', phone: '617-696-6688', website: 'https://www.visitationmilton.org/', diocese: 'Archdiocese of Boston', latitude: 42.249119, longitude: -71.069625 },
   { name: 'Saint Edward the Confessor', address: '133 Spring Street', city: 'Medfield', state: 'MA', zip: '02052', phone: '508-359-2633', website: 'https://www.stedward-ma.org/', diocese: 'Archdiocese of Boston', latitude: 42.176791, longitude: -71.301836 },
@@ -267,7 +271,7 @@ const parishes = [
   { name: 'Saint Anthony Shrine', address: '100 Arch Street', city: 'Boston', state: 'MA', zip: '02110', phone: '617-542-6440', website: 'https://stanthonyshrine.org/', diocese: 'Archdiocese of Boston', latitude: 42.35468, longitude: -71.058589 },
   { name: 'Saint Ann', address: '140 Lynn Street', city: 'Peabody', state: 'MA', zip: '01960', phone: '978-531-1480', website: 'https://www.catholic-church.org/~st-ann-peabody/public_html/main/website.html', diocese: 'Archdiocese of Boston', latitude: 42.507825, longitude: -70.950198 },
   { name: 'Saint Basil', address: '122 Park Avenue', city: 'Bridgewater', state: 'MA', zip: '02324', phone: '508-697-9528', website: 'https://www.stthomasaquinas.com/', diocese: 'Archdiocese of Boston', latitude: 41.9869, longitude: -70.968806 },
-  { name: 'Saint Ann', address: '399 Medford Street', city: 'Somerville', state: 'MA', zip: '02145', phone: '', website: '', diocese: 'Archdiocese of Boston', latitude: 42.390888, longitude: -71.098436 },
+  { name: 'Saint Ann', address: '399 Medford Street', city: 'Somerville', state: 'MA', zip: '02145', phone: null, website: null, diocese: 'Archdiocese of Boston', latitude: 42.390888, longitude: -71.098436 },
   { name: 'Saint Anthony of Padua', address: '46 Oakes Street', city: 'Everett', state: 'MA', zip: '02149', phone: '617-387-0310', website: 'https://saintanthonyeverett.org/', diocese: 'Archdiocese of Boston', latitude: 42.405529, longitude: -71.059314 },
   { name: 'Our Lady of Hope', address: '1 Pineswamp Road', city: 'Ipswich', state: 'MA', zip: '01938', phone: '978-356-3944', website: 'https://www.ourladysaintpaul.org/', diocese: 'Archdiocese of Boston', latitude: 42.683717, longitude: -70.85161 },
   { name: 'St. Jerome Parish', address: '169 Hampden Street', city: 'Holyoke', state: 'MA', zip: '01040', phone: '413-532-6381', website: 'http://stjeromeholyoke.org/', diocese: 'Diocese of Springfield', latitude: 42.209635, longitude: -72.608211 },
@@ -408,7 +412,7 @@ const parishes = [
   { name: 'Ascension Parish', address: '160 Concord Road', city: 'Sudbury', state: 'MA', zip: '01776', phone: '978-443-2647', website: 'https://www.theascensionparish.com/', diocese: 'Archdiocese of Boston', latitude: 42.373793, longitude: -71.41582 },
   { name: 'Sacred Heart', address: '1321 Centre Street', city: 'Newton', state: 'MA', zip: '02459', phone: '617-969-2248', website: 'https://www.sholnewton.org/', diocese: 'Archdiocese of Boston', latitude: 42.328972, longitude: -71.196081 },
   { name: 'Saint Athanasius', address: '300 Haverhill Street', city: 'Reading', state: 'MA', zip: '01867', phone: '781-944-0490', website: 'https://readingcatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.539099, longitude: -71.088852 },
-  { name: 'Saint Ambrose', address: '240 Adams Street', city: 'Boston', state: 'MA', zip: '02122', phone: '', website: '', diocese: 'Archdiocese of Boston', latitude: 42.300901, longitude: -71.058802 },
+  { name: 'Saint Ambrose', address: '240 Adams Street', city: 'Boston', state: 'MA', zip: '02122', phone: null, website: null, diocese: 'Archdiocese of Boston', latitude: 42.300901, longitude: -71.058802 },
   { name: 'Saint Cecilia', address: '18 Belvidere Street', city: 'Boston', state: 'MA', zip: '02115', phone: '617-536-4548', website: 'https://stceciliaboston.org/', diocese: 'Archdiocese of Boston', latitude: 42.346531, longitude: -71.086391 },
   { name: 'Saint Cecilia', address: '54 Esty Street', city: 'Ashland', state: 'MA', zip: '01721', phone: '508-881-1107', website: 'https://www.saintceciliaparish.org/', diocese: 'Archdiocese of Boston', latitude: 42.25674, longitude: -71.46378 },
   { name: 'Our Lady of the Assumption', address: '404 Sumner Street', city: 'Boston', state: 'MA', zip: '02128', phone: '617-567-1223', website: 'https://www.olaeastboston.com/', diocese: 'Archdiocese of Boston', latitude: 42.366564, longitude: -71.033732 },
@@ -422,7 +426,7 @@ const parishes = [
   { name: 'Saint Peter', address: '311 Bowdoin Street', city: 'Boston', state: 'MA', zip: '02122', phone: '617-265-1132', website: 'http://dorchestercatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.307748, longitude: -71.06466 },
   { name: 'Saint Thomas Aquinas', address: '97 South Street', city: 'Jamaica Plain', state: 'MA', zip: '02130', phone: '617-524-0240', website: 'https://www.catholicjproxbury.com/', diocese: 'Archdiocese of Boston', latitude: 42.306551, longitude: -71.115703 },
   { name: 'Saint Thomas Aquinas', address: '248 Nahant Road', city: 'Nahant', state: 'MA', zip: '01908', phone: '781-581-0023', website: 'https://www.stjohnstthomas.com/', diocese: 'Archdiocese of Boston', latitude: 42.426671, longitude: -70.921228 },
-  { name: 'St. Francis of Assisi', address: '101 Main Street', city: 'Athol', state: 'MA', zip: '01331', phone: '', website: '', diocese: 'Diocese of Worcester', latitude: 42.592997, longitude: -72.237128 },
+  { name: 'St. Francis of Assisi', address: '101 Main Street', city: 'Athol', state: 'MA', zip: '01331', phone: null, website: null, diocese: 'Diocese of Worcester', latitude: 42.592997, longitude: -72.237128 },
   { name: 'St. Boniface Parish', address: '817 Massachusetts Avenue', city: 'Lunenburg', state: 'MA', zip: '01462', phone: '978-582-4008', website: 'http://stboniface-lunenburg.org/', diocese: 'Diocese of Worcester', latitude: 42.59725, longitude: -71.73216 },
   { name: 'St. John the Guardian of Our Lady Parish', address: '80 Union Street', city: 'Clinton', state: 'MA', zip: '01510', phone: '978-368-0366', website: 'http://stjohnsclinton.org/', diocese: 'Diocese of Worcester', latitude: 42.41671, longitude: -71.686215 },
   { name: 'St. Joseph - St. Pius X', address: '759 Main Street', city: 'Leicester', state: 'MA', zip: '01524', phone: '508-859-8083', website: 'http://www.stjoseph-stpiusx.com/', diocese: 'Diocese of Worcester', latitude: 42.244864, longitude: -71.894034 },
@@ -536,64 +540,14 @@ const parishes = [
   { name: 'Saint Tarcisius', address: '562 Waverly Street', city: 'Framingham', state: 'MA', zip: '01702', phone: '508-875-8623', website: 'http://www.paroquiasaotarcisio.org/', diocese: 'Archdiocese of Boston', latitude: 42.274644, longitude: -71.422217 },
   { name: 'Transfiguration', address: '126 Middlesex Avenue', city: 'Wilmington', state: 'MA', zip: '01887', phone: '978-658-6040', website: 'https://www.parishofthetransfiguration.org/', diocese: 'Archdiocese of Boston', latitude: 42.55522, longitude: -71.169335 },
   { name: 'Annunciation Parish at Our Lady of the Holy Rosary Church', address: '135 Nichols Street', city: 'Gardner', state: 'MA', zip: '01440', phone: '978-632-0253', website: 'http://annunciationgardner.org/', diocese: 'Diocese of Worcester', latitude: 42.573589, longitude: -71.998699 },
-  { name: 'Christ Church Cathedral', address: '35 Chestnut Street', city: 'Springfield', state: 'MA', zip: '01103', phone: '413-736-2742', website: 'http://www.cccspfld.org/', diocese: 'Diocese of Springfield', latitude: 42.103378, longitude: -72.585684 },
-  { name: 'All Saints Berkshires Episcopal Church', address: '59 Summer Street', city: 'North Adams', state: 'MA', zip: '01247', phone: '413-664-9656', website: 'https://www.allsaintsberkshires.com/', diocese: 'Diocese of Springfield', latitude: 42.698186, longitude: -73.111389 },
-  { name: 'St. Francis Episcopal Church', address: '70 Highland Street', city: 'Holden', state: 'MA', zip: '01520', phone: '508-829-3344', website: 'http://www.stfrancisholden.org/', diocese: 'Diocese of Springfield', latitude: 42.352083, longitude: -71.858838 },
-  { name: 'St. Johns Episcopal Church', address: '469 Main Street', city: 'Ashfield', state: 'MA', zip: '01330', phone: '413-628-4402', website: 'https://www.stjohnsashfield.org/', diocese: 'Diocese of Springfield', latitude: 42.525797, longitude: -72.789773 },
-  { name: 'St. Stephens Episcopal Church', address: '3 John Street', city: 'Westborough', state: 'MA', zip: '01581', phone: '508-366-4134', website: 'http://www.ststeph.com/', diocese: 'Diocese of Springfield', latitude: 42.266194, longitude: -71.618992 },
-  { name: 'St. John\'s Episcopal Church', address: '48 Elm Street', city: 'Northampton', state: 'MA', zip: '01060', phone: '413-584-1757', website: 'http://www.stjohnsnorthampton.org/', diocese: 'Diocese of Springfield', latitude: 42.318873, longitude: -72.636952 },
-  { name: 'The Episcopal Church of the Atonement', address: '36 Court Street', city: 'Westfield', state: 'MA', zip: '01085', phone: '413-562-5461', website: 'https://atonementwestfield.org/', diocese: 'Diocese of Springfield', latitude: 42.119671, longitude: -72.751646 },
   { name: 'Our Lady Immaculate', address: '192 School Street', city: 'Athol', state: 'MA', zip: '01331', phone: '978-249-2738', website: 'https://nqcatholic.com/', diocese: 'Diocese of Worcester', latitude: 42.593694, longitude: -72.224882 },
   { name: 'Immaculate Heart of Mary', address: '52 Spruce Street', city: 'Winchendon', state: 'MA', zip: '01475', phone: '978-297-0280', website: 'http://heartofmary.net/', diocese: 'Diocese of Worcester', latitude: 42.685323, longitude: -72.048583 },
   { name: 'St. Joan of Arc', address: '570 Lincoln Street', city: 'Worcester', state: 'MA', zip: '01605', phone: '508-852-3232', website: 'http://mystjoanofarc.org/', diocese: 'Diocese of Worcester', latitude: 42.296277, longitude: -71.770911 },
   { name: 'St. Joseph Parish', address: '296 Main Street', city: 'North Brookfield', state: 'MA', zip: '01535', phone: '508-867-6469', website: 'http://stjosephsnbma.org/', diocese: 'Diocese of Worcester', latitude: 42.273019, longitude: -72.08412 },
   { name: 'St. Paul the Apostle', address: '1082 Main Street', city: 'Warren', state: 'MA', zip: '01083', phone: '413-436-8034', website: 'http://warrenmass.org/', diocese: 'Diocese of Worcester', latitude: 42.213591, longitude: -72.197227 },
-  { name: 'Grace Episcopal Church', address: '270 Main Street', city: 'Oxford', state: 'MA', zip: '01540', phone: '508-987-1004', website: 'https://gracechurchoxford.org/', diocese: 'Diocese of Springfield', latitude: 42.114379, longitude: -71.864574 },
-  { name: 'Church of the Reconciliation', address: '21 N Main Street', city: 'Webster', state: 'MA', zip: '01570', phone: '508-943-8714', website: 'https://churchofthereconciliation.org/', diocese: 'Diocese of Springfield', latitude: 42.055048, longitude: -71.878727 },
-  { name: 'St. Philips Episcopal Church', address: '128 Main Street', city: 'Easthampton', state: 'MA', zip: '01027', phone: '413-527-0862', website: 'http://stphilipseasthampton.org/', diocese: 'Diocese of Springfield', latitude: 42.269158, longitude: -72.672864 },
-  { name: 'Offices of the Episcopal Diocese of Western Massachusetts', address: '37 Chestnut Street', city: 'Springfield', state: 'MA', zip: '01103', phone: '413-737-4786', website: 'https://www.diocesewma.org', diocese: 'Diocese of Springfield', latitude: 42.103491, longitude: -72.586128 },
-  { name: 'St. Davids Episcopal Church', address: '699 Springfield Street', city: 'Feeding Hills', state: 'MA', zip: '01030', phone: '413-786-6133', website: 'http://www.stdavidsagawam.org/', diocese: 'Diocese of Springfield', latitude: 42.077594, longitude: -72.652401 },
-  { name: 'Christ Church', address: '133 N Main Street', city: 'North Brookfield', state: 'MA', zip: '01535', phone: '508-867-2789', website: 'http://www.christmemorialnbm.com/', diocese: 'Diocese of Springfield', latitude: 42.267339, longitude: -72.085307 },
-  { name: 'Trinity Episcopal Church', address: '17 Congress Street', city: 'Milford', state: 'MA', zip: '01757', phone: '508-473-8464', website: 'http://trinitychurchmilford.org', diocese: 'Diocese of Springfield', latitude: 42.1404, longitude: -71.522159 },
-  { name: 'Grace Episcopal Church', address: '14 Boltwood Avenue', city: 'Amherst', state: 'MA', zip: '01002', phone: '413-256-6754', website: 'http://www.gracechurchamherst.org/', diocese: 'Diocese of Springfield', latitude: 42.374989, longitude: -72.518597 },
-  { name: 'The Episcopal Church of Saints James and Andrew', address: '8 Church Street', city: 'Greenfield', state: 'MA', zip: '01301', phone: '413-773-3925', website: 'http://www.saintsjamesandandrew.org/', diocese: 'Diocese of Springfield', latitude: 42.590069, longitude: -72.598605 },
-  { name: 'St. Pauls Episcopal Church', address: '79 Cross Street', city: 'Gardner', state: 'MA', zip: '01440', phone: '978-632-0925', website: 'http://www.stpaulsgardner.com/', diocese: 'Diocese of Springfield', latitude: 42.576407, longitude: -71.986836 },
-  { name: 'All Saints\' Episcopal Church', address: '7 Woodbridge Street', city: 'South Hadley', state: 'MA', zip: '01075', phone: '413-532-8917', website: 'http://allsaintsallwelcome.org', diocese: 'Diocese of Springfield', latitude: 42.259354, longitude: -72.573849 },
   { name: 'St. Mary\'s Parish', address: '640 Main Street', city: 'Shrewsbury', state: 'MA', zip: '01545', phone: '508-845-6341', website: 'http://stmarysparish.org/', diocese: 'Diocese of Worcester', latitude: 42.296102, longitude: -71.71018 },
-  { name: 'Church of the Nativity', address: '45 Howard Street', city: 'Northborough', state: 'MA', zip: '01532', phone: '508-393-3146', website: 'http://churchofthenativity.org/', diocese: 'Diocese of Springfield', latitude: 42.325386, longitude: -71.648528 },
-  { name: 'St. Johns Church', address: '35 Park Street', city: 'Williamstown', state: 'MA', zip: '01267', phone: '413-458-8144', website: 'https://stjohnswilliamstown.org/', diocese: 'Diocese of Springfield', latitude: 42.713664, longitude: -73.206054 },
-  { name: 'St. Johns Episcopal Church', address: '15 Park Avenue', city: 'Athol', state: 'MA', zip: '01331', phone: '978-249-9553', website: 'https://www.stjohnsathol.com/', diocese: 'Diocese of Springfield', latitude: 42.593397, longitude: -72.221796 },
-  { name: 'Christ Trinity Church', address: '180 S Main Street', city: 'Sheffield', state: 'MA', zip: '01257', phone: '413-229-8811', website: 'http://www.christtrinitysheffield.org', diocese: 'Diocese of Springfield', latitude: 42.111693, longitude: -73.351647 },
-  { name: 'St. John\'s Church', address: '49 Central Street', city: 'Millville', state: 'MA', zip: '01529', phone: '508-883-4480', website: 'https://www.facebook.com/St-Johns-Episcopal-Church-Millville-MA-123233761023223/', diocese: 'Diocese of Springfield', latitude: 42.024289, longitude: -71.582407 },
-  { name: 'St. Helena\'s Chapel', address: '245 New Lenox Road', city: 'Lenox', state: 'MA', zip: '01240', phone: '413-637-1483', website: 'https://www.facebook.com/StHelenasChapel/', diocese: 'Diocese of Springfield', latitude: 42.395512, longitude: -73.247318 },
-  { name: 'Church of St. Thomas', address: '35 School Street', city: 'Auburn', state: 'MA', zip: '01501', phone: '508-832-2598', website: 'https://www.saintthomasauburn.com/', diocese: 'Diocese of Springfield', latitude: 42.191765, longitude: -71.831248 },
-  { name: 'Grace in the Berkshires - An Episcopal Community', address: '67 State Road', city: 'Great Barrington', state: 'MA', zip: '01230', phone: '413-644-0022', website: 'http://graceberkshires.org', diocese: 'Diocese of Springfield', latitude: 42.202422, longitude: -73.354281 },
-  { name: 'Holy Spirit Episcopal Church', address: '3 Pleasant Street', city: 'Sutton', state: 'MA', zip: '01590', phone: '508-865-3103', website: 'https://www.holyspiritepiscopal.org/', diocese: 'Diocese of Springfield', latitude: 42.174712, longitude: -71.719618 },
-  { name: 'Holy Trinity Episcopal Church', address: '27 Streiber Drive', city: 'Chicopee', state: 'MA', zip: '01020', phone: '', website: '', diocese: 'Diocese of Springfield', latitude: 42.194604, longitude: -72.577146 },
-  { name: 'Trinity Church', address: '88 Walker Street', city: 'Lenox', state: 'MA', zip: '01240', phone: '413-637-0073', website: 'http://www.trinitylenox.org/', diocese: 'Diocese of Springfield', latitude: 42.35467, longitude: -73.28164 },
-  { name: 'Christ Episcopal Church', address: '1089 Stafford Street', city: 'Rochdale', state: 'MA', zip: '01542', phone: '', website: '', diocese: 'Diocese of Springfield', latitude: 42.193658, longitude: -71.906201 },
-  { name: 'All Saints Episcopal Church', address: '10 Irving Street', city: 'Worcester', state: 'MA', zip: '01609', phone: '508-752-3766', website: 'http://www.allsaintsw.org', diocese: 'Diocese of Springfield', latitude: 42.263439, longitude: -71.806495 },
-  { name: 'St. Marks Episcopal Church', address: '1 Porter Road', city: 'East Longmeadow', state: 'MA', zip: '01028', phone: '413-525-6341', website: 'http://www.stmarksma.org', diocese: 'Diocese of Springfield', latitude: 42.07192, longitude: -72.500633 },
-  { name: 'St. Andrew\'s Episcopal Church', address: '335 Longmeadow Street', city: 'Longmeadow', state: 'MA', zip: '01106', phone: '413-567-5901', website: 'http://www.st-andrews-longmeadow.org/', diocese: 'Diocese of Springfield', latitude: 42.061623, longitude: -72.578447 },
-  { name: 'Trinity Episcopal Church', address: '17 Park Street', city: 'Ware', state: 'MA', zip: '01082', phone: '413-967-6100', website: 'https://trinityware.org/', diocese: 'Diocese of Springfield', latitude: 42.260267, longitude: -72.237263 },
-  { name: 'St. Matthews Church', address: '695 Southbridge Street', city: 'Worcester', state: 'MA', zip: '01610', phone: '508-755-4433', website: 'https://www.stmatthewsworcester.org/', diocese: 'Diocese of Springfield', latitude: 42.24343, longitude: -71.811419 },
-  { name: 'Grace Lutheran Church', address: '1552 Westfield Street', city: 'West Springfield', state: 'MA', zip: '01089', phone: '413-734-9268', website: 'https://gracelutheranonline.com/', diocese: 'Diocese of Springfield', latitude: 42.107044, longitude: -72.651148 },
-  { name: 'Christ the King-Epiphany Church', address: '758 Main Street', city: 'Wilbraham', state: 'MA', zip: '01095', phone: '413-596-3045', website: 'http://www.ctkepiphany.org', diocese: 'Diocese of Springfield', latitude: 42.104084, longitude: -72.435204 },
-  { name: 'Christ Episcopal Church', address: '569 Main Street', city: 'Fitchburg', state: 'MA', zip: '01420', phone: '978-342-0007', website: 'https://www.christchurchfitchburg.org/', diocese: 'Diocese of Springfield', latitude: 42.583763, longitude: -71.800654 },
-  { name: 'St. Michaels on the Heights', address: '340 Burncoat Street', city: 'Worcester', state: 'MA', zip: '01606', phone: '508-853-9400', website: 'http://www.stmichaelsontheheights.org/', diocese: 'Diocese of Springfield', latitude: 42.309611, longitude: -71.789536 },
-  { name: 'St. Pauls Episcopal Church', address: '29 Main Street', city: 'Stockbridge', state: 'MA', zip: '01262', phone: '413-298-4913', website: 'http://www.stpaulsstockbridge.org/', diocese: 'Diocese of Springfield', latitude: 42.282648, longitude: -73.311726 },
-  { name: 'St. Lukes Episcopal Church', address: '20 S Main Street', city: 'Lanesborough', state: 'MA', zip: '01237', phone: '413-623-8788', website: 'https://www.stlukeslanesboro.org/', diocese: 'Diocese of Springfield', latitude: 42.516555, longitude: -73.228256 },
-  { name: 'Trinity Episcopal Church', address: '33 Linwood Avenue', city: 'Whitinsville', state: 'MA', zip: '01588', phone: '508-234-5303', website: 'https://www.trinitywhitinsville.com/', diocese: 'Diocese of Springfield', latitude: 42.110493, longitude: -71.662608 },
-  { name: 'Trinity Episcopal Church', address: '440 Main Street', city: 'Shrewsbury', state: 'MA', zip: '01545', phone: '508-842-6040', website: 'https://www.trinityshrewsbury.org/', diocese: 'Diocese of Springfield', latitude: 42.293949, longitude: -71.72488 },
-  { name: 'St. Marks Episcopal Church', address: '0 Freeland Street', city: 'Worcester', state: 'MA', zip: '01603', phone: '', website: '', diocese: 'Diocese of Springfield', latitude: 42.247811, longitude: -71.825384 },
   { name: 'All Saints Parish', address: '17 North Street', city: 'Ware', state: 'MA', zip: '01082', phone: '413-967-4963', website: 'http://www.allsaintsware.org', diocese: 'Diocese of Springfield', latitude: 42.261256, longitude: -72.240857 },
-  { name: 'Holy Trinity Episcopal Church', address: '446 Hamilton Street', city: 'Southbridge', state: 'MA', zip: '01550', phone: '508-765-9559', website: 'https://www.holytrinitysouthbridge.org/', diocese: 'Diocese of Springfield', latitude: 42.08217, longitude: -72.041035 },
-  { name: 'Church of the Good Shepherd', address: '209 Union Street', city: 'Clinton', state: 'MA', zip: '01510', phone: '508-365-5169', website: 'https://www.cgsclinton.org/', diocese: 'Diocese of Springfield', latitude: 42.415456, longitude: -71.683148 },
-  { name: 'St. Pauls Episcopal Church', address: '485 Appleton Street', city: 'Holyoke', state: 'MA', zip: '01040', phone: '413-532-5060', website: 'http://www.stpaulsholyoke.org', diocese: 'Diocese of Springfield', latitude: 42.209395, longitude: -72.617007 },
   { name: 'Holy Cross Parish', address: '221 Plumtree Road', city: 'Springfield', state: 'MA', zip: '01118', phone: '413-783-4111', website: 'http://www.holycrossparish.org', diocese: 'Diocese of Springfield', latitude: 42.095199, longitude: -72.539355 },
-  { name: 'St. Marks Episcopal Church', address: '60 West Street', city: 'Leominster', state: 'MA', zip: '01453', phone: '978-537-3560', website: 'http://www.stmarksleominster.org/index.shtml', diocese: 'Diocese of Springfield', latitude: 42.527176, longitude: -71.763641 },
-  { name: 'St. Lukes Episcopal Church', address: '921 Pleasant Street', city: 'Worcester', state: 'MA', zip: '01602', phone: '508-756-1990', website: 'https://www.facebook.com/StLukesWorcester/', diocese: 'Diocese of Springfield', latitude: 42.27767, longitude: -71.838315 },
-  { name: 'St. Peter\'s Episcopal Church', address: '45 Buckingham Street', city: 'Springfield', state: 'MA', zip: '01109', phone: '413-736-8567', website: 'http://www.stpetersma.com/', diocese: 'Diocese of Springfield', latitude: 42.112088, longitude: -72.567109 },
   { name: 'St. Joseph Parish', address: '34 Monroe Avenue', city: 'Shelburne Falls', state: 'MA', zip: '01370', phone: '413-625-6405', website: 'https://www.stjosephparishma.com/', diocese: 'Diocese of Springfield', latitude: 42.599163, longitude: -72.742241 },
   { name: 'St. Anthony of Padua', address: '48 Sixteenth Street', city: 'Fall River', state: 'MA', zip: '02723', phone: '508-673-2402', website: 'https://www.facebook.com/StAntPadFR/', diocese: 'Diocese of Fall River', latitude: 41.699219, longitude: -71.142306 },
   { name: 'Chapel of Our Savior', address: '475 Westgate Drive', city: 'Brockton', state: 'MA', zip: '02301', phone: '508-583-8357', website: 'https://chapelofoursaviorbrockton.org/', diocese: 'Archdiocese of Boston', latitude: 42.093344, longitude: -71.055654 },
@@ -608,7 +562,6 @@ const parishes = [
   { name: 'St. James Church & Hall', address: '150 Federal Street', city: 'Salem', state: 'MA', zip: '01970', phone: '978-745-9060', website: 'https://www.mqoa.org/', diocese: 'Archdiocese of Boston', latitude: 42.520543, longitude: -70.905151 },
   { name: 'St. Zepherin', address: '99 Main Street', city: 'Wayland', state: 'MA', zip: '01778', phone: '508-650-3545', website: 'https://www.goodshepherdwayland.org/', diocese: 'Archdiocese of Boston', latitude: 42.320071, longitude: -71.363975 },
   { name: 'St. Oscar Romero', address: '700 Washington Street', city: 'Canton', state: 'MA', zip: '02021', phone: '781-828-0090', website: 'https://www.cantoncatholic.org/', diocese: 'Archdiocese of Boston', latitude: 42.156357, longitude: -71.146453 },
-  { name: 'Southwick Community Episcopal Church', address: '488 College Highway', city: 'Southwick', state: 'MA', zip: '01077', phone: '413-569-9650', website: 'http://www.southwickchurch.com/', diocese: 'Diocese of Springfield', latitude: 42.055137, longitude: -72.769209 },
   { name: 'St. Rita', address: '121 Front Street', city: 'Marion', state: 'MA', zip: '02738', phone: '508-758-3719', website: 'http://anthonyandrita.com/st-ritas-information/', diocese: 'Diocese of Fall River', latitude: 41.701535, longitude: -70.761929 },
   { name: 'Blessed Sacrament Parish', address: '221 Federal Street', city: 'Greenfield', state: 'MA', zip: '01301', phone: '413-773-3311', website: 'https://blessedtrinitygreenfield.org/', diocese: 'Diocese of Springfield', latitude: 42.596884, longitude: -72.596265 },
   { name: 'Most Holy Redeemer', address: '65 London Street', city: 'East Boston', state: 'MA', zip: '02128', phone: '617-567-3227', website: 'https://mhreboston.business.site/', diocese: 'Archdiocese of Boston', latitude: 42.371165, longitude: -71.04048 },
@@ -623,63 +576,50 @@ const parishes = [
   { name: 'Our Lady of Fall River Catholic Community', address: '1598 South Main Street', city: 'Fall River', state: 'MA', zip: '02724', phone: '508-673-2833', website: 'https://olfallriver.com/', diocese: 'Diocese of Fall River', latitude: 41.685386, longitude: -71.173274 },
   { name: 'Saint Ann', address: '103 N. Main Street', city: 'West Bridgewater', state: 'MA', zip: '02379', phone: '508-586-4880', website: 'http://mobilesawb.com/', diocese: 'Archdiocese of Boston', latitude: 42.022483, longitude: -71.008982 },
   { name: 'Saint Joseph', address: '173 Albion Street', city: 'Wakefield', state: 'MA', zip: '01880', phone: '781-245-5770', website: 'https://www.stjosephwakefield.org/', diocese: 'Archdiocese of Boston', latitude: 42.501612, longitude: -71.07608 },
-  { name: 'Gideon\'s Garden', address: '119 Park Street North', city: 'Great Barrington', state: 'MA', zip: '01230', phone: '', website: 'https://gideonsgarden.org/', diocese: 'Diocese of Springfield', latitude: 42.233231, longitude: -73.347266 },
-  { name: 'Lawrence House Service Corps', address: '5 Woodbridge Street', city: 'South Hadley', state: 'MA', zip: '01075', phone: '413-532-8917', website: 'https://www.facebook.com/LawrenceHouseSC/', diocese: 'Diocese of Springfield', latitude: 42.259381, longitude: -72.574122 },
-  { name: 'Church Without Walls', address: 'Court Street Park', city: 'Springfield', state: 'MA', zip: '01103', phone: '', website: 'https://www.cwwspringfield.org/', diocese: 'Diocese of Springfield', latitude: 42.100932, longitude: -72.589206 },
-  { name: 'Ascentria Care Alliance', address: '425 Union Street', city: 'West Springfield', state: 'MA', zip: '01089', phone: '413-562-6015', website: 'https://www.ascentria.org/', diocese: 'Diocese of Springfield', latitude: 42.101293, longitude: -72.614173 },
-  { name: 'Reconciliation House', address: '5 North Main Street', city: 'Webster', state: 'MA', zip: '01570', phone: '508-943-8714', website: 'https://reconciliationhouseinc.weebly.com/', diocese: 'Diocese of Springfield', latitude: 42.05491, longitude: -71.879054 },
   { name: 'St. Elizabeth Ann Seton Parish Annunciation Chapel', address: '85 Beacon Street', city: 'Florence', state: 'MA', zip: '01062', phone: '413-584-7310', website: 'https://www.saintelizabethannseton.net/', diocese: 'Diocese of Springfield', latitude: 42.332546, longitude: -72.668151 },
   { name: 'St. Joseph Parish', address: '189 Oxford Street', city: 'Auburn', state: 'MA', zip: '01501', phone: '508-832-2074', website: 'https://stjosephsauburn.com', diocese: 'Diocese of Worcester', latitude: 42.214071, longitude: -71.845625 },
   { name: 'St. Denis Parish - Douglas', address: '27 Manchaug Street', city: 'Douglas', state: 'MA', zip: '01516', phone: '508-476-2002 ext. 3', website: 'https://saintdenischurch.com', diocese: 'Diocese of Worcester', latitude: 42.076661, longitude: -71.719463 },
   { name: 'St. Mary\'s Church', address: '114 Princeton Street', city: 'Jefferson', state: 'MA', zip: '01522', phone: '508-829-4508', website: 'https://www.stmarysjeff.com/', diocese: 'Diocese of Worcester', latitude: 42.363715, longitude: -71.880578 },
-  { name: 'St. Stephens Episcopal Church', address: '67 East Street', city: 'Pittsfield', state: 'MA', zip: '01201', phone: '413-448-8276', website: 'http://www.ststephenspittsfield.org', diocese: 'Diocese of Springfield', latitude: 42.448838, longitude: -73.252357 },
   { name: 'St. Bernadette Parish', address: '266 Main Street', city: 'Northborough', state: 'MA', zip: '01532', phone: '508-393-2838', website: 'https://stb-parish.org', diocese: 'Diocese of Worcester', latitude: 42.32715, longitude: -71.621627 },
   { name: 'St. Rose of Lima', address: '244 West Main St', city: 'Northborough', state: 'MA', zip: '01532', phone: '508-393-2413', website: 'https://www.saintroseoflima.com/', diocese: 'Diocese of Worcester', latitude: 42.310254, longitude: -71.656151 },
   { name: 'St. Martin Mission Church', address: '247 State Road', city: 'Otter River', state: 'MA', zip: '01436', phone: '978-939-5588', website: 'https://saintmartinchurch.org/index.html', diocese: 'Diocese of Worcester', latitude: 42.597884, longitude: -72.052516 },
   { name: 'Mary Queen of the Rosary Parish', address: '7 Church Street', city: 'Spencer', state: 'MA', zip: '01562', phone: '508-885-3111', website: 'https://www.maryqueenoftherosary.org', diocese: 'Diocese of Worcester', latitude: 42.240317, longitude: -71.99229 },
-  { name: 'St. Mark of Ephesus Cathedral', address: '340 Clapboardtree Street', city: 'Westwood', state: 'MA', zip: '02090', phone: '781-326-2380', website: 'http://www.stmarkofephesus.org/', diocese: 'Archdiocese of Boston', latitude: 42.213849, longitude: -71.213391 },
-  { name: 'St. John the Confessor', address: '244 High Street', city: 'Ipswich', state: 'MA', zip: '01938-1251', phone: '978-223-7615', website: 'http://www.stjconfessor.org/', diocese: 'Archdiocese of Boston', latitude: 42.695382, longitude: -70.866136 },
   { name: 'St. Stanislaus Bishop & Martyr Basilica', address: '570 Front Street', city: 'Chicopee', state: 'MA', zip: '01013', phone: '413-594-6669', website: 'http://www.ststansbasilica.org', diocese: 'Diocese of Springfield', latitude: 42.147735, longitude: -72.595145 },
-  { name: 'St. Philaret Orthodox Church', address: '450 Memorial Drive', city: 'Chicopee', state: 'MA', zip: '01020', phone: '413-244-0543', website: 'http://www.saintphilaret.org/', diocese: 'Archdiocese of Boston', latitude: 42.170852, longitude: -72.578109 },
 ]
 
-// Mark these parishes as B2B subscribers for demo purposes
-const B2B_PARISHES = [
-  'Saint Patrick Parish',
-  'Saint Peter Parish',
-  'Saint Paul Parish',
-  'Immaculate Conception',
-  'Saint Mary Parish',
-  'Saint Joseph Parish',
-  'Our Lady of the Assumption',
-  'Sacred Heart',
+// These parishes get is_official = true for demo purposes
+// Includes one from each diocese plus extras for demo variety
+const B2B_DEMO_NAMES = [
+  'Saint Patrick', 'Saint Peter', 'Saint Mary', 'Saint Paul',
+  'Immaculate Conception', 'Sacred Heart', 'Saint Joseph',
+  'Our Lady of the Assumption', 'Saint John',
 ]
 
 async function seed() {
-  console.log(`Seeding ${parishes.length} real MA Catholic parishes...`)
+  console.log(`\n🕊️  Communio Parish Seeder`)
+  console.log(`   Seeding ${parishes.length} verified Roman Catholic parishes...\n`)
   let inserted = 0, skipped = 0, errors = 0
 
   for (const parish of parishes) {
-    // Check if already exists
     const { data: existing } = await supabase
       .from('parishes')
       .select('id')
       .eq('name', parish.name)
       .eq('city', parish.city)
-      .single()
+      .maybeSingle()
 
     if (existing) {
       skipped++
       continue
     }
 
-    const isB2B = B2B_PARISHES.some(b => parish.name.includes(b))
+    const isB2B = B2B_DEMO_NAMES.some(n => parish.name.includes(n))
 
     const { error } = await supabase.from('parishes').insert({
       name: parish.name,
-      address: parish.address,
+      address: parish.address || null,
       city: parish.city,
-      state: parish.state,
+      state: 'MA',
       zip: parish.zip || null,
       phone: parish.phone || null,
       website: parish.website || null,
@@ -690,18 +630,24 @@ async function seed() {
     })
 
     if (error) {
-      console.error(`❌ Error inserting ${parish.name}: ${error.message}`)
+      console.error(`  ❌ ${parish.name}, ${parish.city}: ${error.message}`)
       errors++
     } else {
-      console.log(`✓ ${parish.name}, ${parish.city}`)
+      console.log(`  ✓ ${parish.name}, ${parish.city}`)
       inserted++
     }
   }
 
-  console.log(`\n✅ Done!`)
-  console.log(`   Inserted: ${inserted}`)
-  console.log(`   Skipped (already existed): ${skipped}`)
-  console.log(`   Errors: ${errors}`)
+  console.log(`\n✅ Complete!`)
+  console.log(`   Inserted:  ${inserted} parishes`)
+  console.log(`   Skipped:   ${skipped} (already in database)`)
+  console.log(`   Errors:    ${errors}`)
+  if (errors > 0) {
+    console.log(`\n⚠️  Some parishes failed. Check column names match your schema.`)
+  }
 }
 
-seed().catch(console.error)
+seed().catch(err => {
+  console.error('Fatal error:', err)
+  process.exit(1)
+})
