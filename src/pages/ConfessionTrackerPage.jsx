@@ -17,7 +17,7 @@ export default function ConfessionTrackerPage() {
 
   const { t } = useTranslation('premium')
   const navigate = useNavigate()
-  const { user, isPremium } = useAuth()
+  const { user } = useAuth()
 
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,14 +29,9 @@ export default function ConfessionTrackerPage() {
     return saved === 'null' ? null : saved ? parseInt(saved, 10) : 30
   })
 
-  // Redirect non-premium users
-  useEffect(() => {
-    if (!isPremium) navigate('/premium', { replace: true })
-  }, [isPremium, navigate])
-
   // Load confession history
   useEffect(() => {
-    if (!user?.id || !isPremium) return
+    if (!user?.id) return
     setLoading(true)
     supabase
       .from('confession_tracker')
@@ -96,8 +91,6 @@ export default function ConfessionTrackerPage() {
     setReminderDays(val)
     localStorage.setItem(REMINDER_KEY, String(val))
   }
-
-  if (!isPremium) return null
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">

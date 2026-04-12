@@ -6,13 +6,14 @@ import {
   MapPinIcon,
   PhoneIcon,
   GlobeAltIcon,
-  UserGroupIcon,
-  CalendarDaysIcon,
-  CheckBadgeIcon as CheckBadgeOutline,
+  EnvelopeIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useParish } from '../hooks/useParish.js'
+import { supabase } from '../lib/supabase'
+import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
 import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleton'
 import ParishEvents from '../components/parish/ParishEvents'
@@ -31,6 +32,7 @@ export default function ParishPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const [activeTab, setActiveTab] = useState('feed')
+  const [showContact, setShowContact] = useState(false)
 
   const {
     parish,
@@ -129,6 +131,14 @@ export default function ParishPage() {
                 Your parish
               </span>
             )}
+
+            <button
+              onClick={() => setShowContact(true)}
+              className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <EnvelopeIcon className="w-4 h-4" />
+              Contact
+            </button>
           </div>
         </div>
       </div>
@@ -152,6 +162,15 @@ export default function ParishPage() {
         </div>
       </div>
 
+      {/* ── Contact modal ── */}
+      {showContact && (
+        <ContactModal
+          parishId={id}
+          parishName={parish.name}
+          onClose={() => setShowContact(false)}
+        />
+      )}
+
       {/* ── Tab content ── */}
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
         {activeTab === 'feed' && (
@@ -166,6 +185,74 @@ export default function ParishPage() {
         {activeTab === 'events' && <ParishEvents parishId={id} />}
         {activeTab === 'groups' && <ParishGroups parishId={id} />}
         {activeTab === 'about' && <ParishAbout parish={parish} />}
+      </div>
+    </div>
+  )
+}
+
+// ── Contact Parish Modal ────────────────────────────────────
+function ContactModal({ parishId, parishName, onClose }) {
+  const { user, profile } = useAuth()
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+
+  async function handleSend() {
+    if (!body.trim() || !user) return
+    setSending(true)
+    const { error } = await supabase.from('parish_messages').insert({
+      parish_id: parishId,
+      sender_id: user.id,
+      subject: subject.trim() || null,
+      body: body.trim(),
+    })
+    if (error) {
+      toast.error('Could not send message. Please try again.')
+    } else {
+      toast.success('Message sent to parish.')
+      onClose()
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-navy">Contact {parishName}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">
+          Your message will be sent to the parish admin inbox.
+          {profile?.full_name && ` Sent as ${profile.full_name}.`}
+        </p>
+        <input
+          value={subject}
+          onChange={e => setSubject(e.target.value)}
+          placeholder="Subject (optional)"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:border-navy"
+        />
+        <textarea
+          value={body}
+          onChange={e => setBody(e.target.value)}
+          placeholder="Your message…"
+          rows={5}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
+        />
+        <div className="flex gap-2 justify-end mt-4">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={sending || !body.trim()}
+            className="px-5 py-2 bg-navy text-white text-sm font-bold rounded-xl hover:bg-navy/90 disabled:opacity-50 transition-colors"
+          >
+            {sending ? 'Sending…' : 'Send Message'}
+          </button>
+        </div>
       </div>
     </div>
   )

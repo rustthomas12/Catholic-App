@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import {
   UserCircleIcon,
   ClipboardDocumentCheckIcon,
-  LockClosedIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -25,7 +24,7 @@ export default function FaithPage() {
   document.title = 'Faith | Parish App'
 
   const { t } = useTranslation('faith')
-  const { user, isPremium } = useAuth()
+  const { user } = useAuth()
 
   const { readings, loading, error, liturgicalInfo, feastInfo, todayFormatted } = useReadings()
   const { saint, loading: saintLoading } = useTodaySaint()
@@ -64,9 +63,9 @@ export default function FaithPage() {
       })
   }, [])
 
-  // Fetch last confession (premium only, cached per user)
+  // Fetch last confession (cached per user)
   useEffect(() => {
-    if (!user || !isPremium) return
+    if (!user) return
 
     if (_confessionCache?.userId === user.id) {
       setLastConfession(_confessionCache.data)
@@ -86,7 +85,7 @@ export default function FaithPage() {
         setLastConfession(data)
         setConfessionLoading(false)
       })
-  }, [user?.id, isPremium])
+  }, [user?.id])
 
   const handleFavoriteToggle = () => {
     if (!saint) return
@@ -127,7 +126,6 @@ export default function FaithPage() {
           <SaintCard
             saint={saint}
             variant="day"
-            isPremium={isPremium}
             isFavorite={isFavorite(saint?.id)}
             onFavoriteToggle={handleFavoriteToggle}
             loading={saintLoading}
@@ -176,52 +174,31 @@ export default function FaithPage() {
 
         {/* ── Confession Tracker CTA ── */}
         <div className="mt-10">
-          {isPremium ? (
-            <div className="bg-white rounded-2xl border-l-4 border-gold border-t border-b border-r border-gray-100 shadow-sm p-4">
-              <div className="flex items-start gap-3">
-                <ClipboardDocumentCheckIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-navy text-sm">Confession Tracker</p>
-                  {confessionLoading ? (
-                    <div className="h-3 w-36 bg-gray-200 rounded animate-pulse mt-1" />
-                  ) : daysSince === null ? (
-                    <p className="text-xs text-gray-400 mt-0.5">{t('confession_first')}</p>
-                  ) : daysSince === 0 ? (
-                    <p className="text-xs text-gold font-semibold mt-0.5">You went to Confession today 🙏</p>
-                  ) : (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {t('confession_last', { days: daysSince })}
-                    </p>
-                  )}
-                  <Link
-                    to="/premium/confession-tracker"
-                    className="inline-block mt-2 text-xs font-semibold text-navy hover:underline"
-                  >
-                    {t('confession_go')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gold/30 shadow-sm p-5">
-              <div className="flex items-start gap-3 mb-3">
-                <LockClosedIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-navy text-sm">{t('confession_tracker_cta')}</p>
-                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                    {t('confession_tracker_body')}
+          <div className="bg-white rounded-2xl border-l-4 border-gold border-t border-b border-r border-gray-100 shadow-sm p-4">
+            <div className="flex items-start gap-3">
+              <ClipboardDocumentCheckIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-navy text-sm">Confession Tracker</p>
+                {confessionLoading ? (
+                  <div className="h-3 w-36 bg-gray-200 rounded animate-pulse mt-1" />
+                ) : daysSince === null ? (
+                  <p className="text-xs text-gray-400 mt-0.5">{t('confession_first')}</p>
+                ) : daysSince === 0 ? (
+                  <p className="text-xs text-gold font-semibold mt-0.5">You went to Confession today 🙏</p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {t('confession_last', { days: daysSince })}
                   </p>
-                </div>
+                )}
+                <Link
+                  to="/premium/confession-tracker"
+                  className="inline-block mt-2 text-xs font-semibold text-navy hover:underline"
+                >
+                  {t('confession_go')}
+                </Link>
               </div>
-              <p className="text-xs text-gray-400 mb-2">Available with Premium</p>
-              <Link
-                to="/premium"
-                className="text-sm font-semibold text-gold hover:underline"
-              >
-                {t('confession_tracker_premium_link')}
-              </Link>
             </div>
-          )}
+          </div>
         </div>
 
       </div>

@@ -1,8 +1,8 @@
-import { memo } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
-  BellIcon, Cog6ToothIcon,
+  BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -14,6 +14,7 @@ import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
 import { getLiturgicalSeason } from '../../utils/liturgical'
 import Avatar from './Avatar'
+import { supabase } from '../../lib/supabase'
 
 const PUBLIC_PATHS = [
   '/login', '/signup', '/onboarding',
@@ -118,9 +119,21 @@ const mobileTabs = [
 function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated, profile, signOut } = useAuth()
+  const { isAuthenticated, profile, user, signOut } = useAuth()
   const { unreadCount } = useNotifications()
   const season = getLiturgicalSeason()
+  const [adminParishId, setAdminParishId] = useState(null)
+
+  useEffect(() => {
+    if (!user) { setAdminParishId(null); return }
+    supabase
+      .from('parish_admins')
+      .select('parish_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setAdminParishId(data?.parish_id ?? null))
+      .catch(() => {})
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isPublic = PUBLIC_PATHS.some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')
@@ -254,6 +267,17 @@ function Navigation() {
             <Cog6ToothIcon className="w-5 h-5" />
             <span className="text-sm font-medium">Settings</span>
           </Link>
+
+          {/* Parish Admin link — only for parish admins */}
+          {adminParishId && (
+            <Link to={`/parish-admin/${adminParishId}`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                location.pathname.startsWith('/parish-admin') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              }`}>
+              <BuildingLibraryIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">Parish Admin</span>
+            </Link>
+          )}
         </div>
 
         {/* User info + sign out at bottom */}

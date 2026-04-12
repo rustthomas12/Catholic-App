@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import 'leaflet.markercluster'
 
-// Default center: geographic center of contiguous US
-const DEFAULT_CENTER = [39.8283, -98.5795]
-const DEFAULT_ZOOM = 4
+// Default center: geographic center of Massachusetts
+const DEFAULT_CENTER = [42.2, -71.5]
+const DEFAULT_ZOOM = 8
 
 // Custom cross marker icon (navy/gold)
 function makeIcon(active) {
@@ -25,17 +28,53 @@ function makeIcon(active) {
   })
 }
 
-// Inner component: syncs markers imperatively on the Leaflet map instance
-function MarkerLayer({ parishes, selectedId, onSelect }) {
+// Inner component: manages a MarkerClusterGroup imperatively
+function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
   const map = useMap()
+  const clusterRef = useRef(null)
   const markersRef = useRef(new Map()) // id → L.Marker
 
+  // Create cluster group once on mount
   useEffect(() => {
-    // Remove stale markers
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 60,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      iconCreateFunction(cluster) {
+        const count = cluster.getChildCount()
+        return L.divIcon({
+          html: `<div style="
+            background:#1B2A4A;border:2.5px solid white;border-radius:50%;
+            width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+            color:white;font-size:12px;font-weight:700;
+          ">${count}</div>`,
+          className: '',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })
+      },
+    })
+    map.addLayer(clusterGroup)
+    clusterRef.current = clusterGroup
+
+    return () => {
+      map.removeLayer(clusterGroup)
+      clusterRef.current = null
+      markersRef.current.clear()
+    }
+  }, [map])
+
+  // Sync markers when parishes list changes
+  useEffect(() => {
+    const cluster = clusterRef.current
+    if (!cluster) return
+
     const newIds = new Set(parishes.map(p => p.id))
+
+    // Remove stale markers
     markersRef.current.forEach((marker, id) => {
       if (!newIds.has(id)) {
-        marker.remove()
+        cluster.removeLayer(marker)
         markersRef.current.delete(id)
       }
     })
@@ -43,21 +82,15 @@ function MarkerLayer({ parishes, selectedId, onSelect }) {
     // Add new markers
     parishes.forEach(parish => {
       if (!parish.latitude || !parish.longitude) return
+      if (markersRef.current.has(parish.id)) return
+
       const isActive = parish.id === selectedId
-
-      if (markersRef.current.has(parish.id)) {
-        // Update icon if active state changed
-        markersRef.current.get(parish.id).setIcon(makeIcon(isActive))
-        return
-      }
-
       const marker = L.marker([parish.latitude, parish.longitude], {
         icon: makeIcon(isActive),
         zIndexOffset: isActive ? 1000 : 0,
-      })
-        .addTo(map)
-        .on('click', () => onSelect?.(parish))
+      }).on('click', () => onSelect?.(parish))
 
+      cluster.addLayer(marker)
       markersRef.current.set(parish.id, marker)
     })
 
@@ -71,7 +104,7 @@ function MarkerLayer({ parishes, selectedId, onSelect }) {
     }
   }, [parishes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update icon highlights when selection changes
+  // Update icon highlights when selection changes (no re-render needed)
   useEffect(() => {
     markersRef.current.forEach((marker, id) => {
       const isActive = id === selectedId
@@ -79,14 +112,6 @@ function MarkerLayer({ parishes, selectedId, onSelect }) {
       marker.setZIndexOffset(isActive ? 1000 : 0)
     })
   }, [selectedId])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      markersRef.current.forEach(m => m.remove())
-      markersRef.current.clear()
-    }
-  }, [])
 
   return null
 }
@@ -110,7 +135,7 @@ export default function ParishMap({ parishes = [], selectedId, onSelect, userLoc
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
       />
-      <MarkerLayer
+      <ClusteredMarkerLayer
         parishes={parishes}
         selectedId={selectedId}
         onSelect={onSelect}

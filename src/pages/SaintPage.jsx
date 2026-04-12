@@ -3,14 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ChevronLeftIcon,
   ShareIcon,
-  LockClosedIcon,
-  BuildingLibraryIcon,
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid'
 import { StarIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
-import { useAuth } from '../hooks/useAuth.jsx'
 import { useSaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -44,8 +41,6 @@ export default function SaintPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t } = useTranslation('faith')
-  const { isPremium } = useAuth()
-
   const { saint, loading, error } = useSaint(id)
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()
 
@@ -171,18 +166,16 @@ export default function SaintPage() {
             >
               <ShareIcon className="w-5 h-5" />
             </button>
-            {isPremium && (
-              <button
-                onClick={handleFavoriteToggle}
-                className="p-2"
-                aria-label={favorited ? t('saint_favorite_remove') : t('saint_favorite_add')}
-              >
-                {favorited
-                  ? <StarSolid className="w-5 h-5 text-gold" />
-                  : <StarIcon className="w-5 h-5 text-gray-300 hover:text-gold transition-colors" />
-                }
-              </button>
-            )}
+            <button
+              onClick={handleFavoriteToggle}
+              className="p-2"
+              aria-label={favorited ? t('saint_favorite_remove') : t('saint_favorite_add')}
+            >
+              {favorited
+                ? <StarSolid className="w-5 h-5 text-gold" />
+                : <StarIcon className="w-5 h-5 text-gray-300 hover:text-gold transition-colors" />
+              }
+            </button>
           </div>
         </div>
 
@@ -244,42 +237,14 @@ export default function SaintPage() {
             {t('saints_biography')}
           </p>
 
-          {isPremium ? (
-            saint.biography ? (
-              <div className="space-y-4">
-                {saint.biography.split('\n\n').filter(Boolean).map((para, i) => (
-                  <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
-            )
-          ) : (
-            <div className="relative">
-              {/* Blurred preview */}
-              <p
-                className="text-sm text-gray-700 leading-relaxed select-none"
-                style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}
-              >
-                {saint.biography
-                  ? saint.biography.slice(0, 200)
-                  : 'The life of this saint reveals a remarkable journey of faith and devotion to God. Through prayer, sacrifice, and service, they became a model of holiness for the entire Church.'}
-              </p>
-
-              {/* Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-lg gap-2 py-4">
-                <LockClosedIcon className="w-6 h-6 text-gold" />
-                <p className="text-sm font-semibold text-navy text-center px-6">
-                  Read the full story with Premium
-                </p>
-                <Link
-                  to="/premium"
-                  className="bg-gold text-navy text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gold/90 transition-colors"
-                >
-                  Upgrade to Premium
-                </Link>
-              </div>
+          {saint.biography ? (
+            <div className="space-y-4">
+              {saint.biography.split('\n\n').filter(Boolean).map((para, i) => (
+                <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
+              ))}
             </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
           )}
         </div>
 
