@@ -37,13 +37,16 @@ export function useParishSearch() {
       setLoading(true)
       setError(null)
 
+      // Strip punctuation so "St Stanislaus" matches "St. Stanislaus"
+      const normalized = trimmed.replace(/['.,-]/g, '').replace(/\s+/g, ' ')
+
       const { data, error: err } = await supabase
         .from('parishes')
         .select(PARISH_SELECT)
         .or(
-          `name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,zip.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%`
+          `name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,zip.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`
         )
-        .limit(30)
+        .limit(50)
 
       if (err) {
         setError(err.message)
@@ -119,7 +122,7 @@ export function useNearbyParishes(userLocation) {
     supabase
       .from('parishes')
       .select(PARISH_SELECT)
-      .limit(200)
+      .limit(1000)
       .then(({ data, error: err }) => {
         if (cancelled) return
         if (err) {
