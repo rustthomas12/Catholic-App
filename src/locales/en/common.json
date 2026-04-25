@@ -1,13 +1,15 @@
 {
   "app": {
-    "name": "Parish App",
-    "tagline": "The digital parish hall"
+    "name": "Communio",
+    "tagline": "The Catholic parish and community platform"
   },
   "nav": {
     "home": "Home",
     "groups": "Groups",
     "faith": "Faith",
     "directory": "Directory",
+    "organizations": "Organizations",
+    "messages": "Messages",
     "profile": "Profile",
     "notifications": "Notifications",
     "settings": "Settings"
@@ -41,6 +43,37 @@
     "hours_ago": "{{count}} hours ago",
     "days_ago": "{{count}} days ago",
     "weeks_ago": "{{count}} weeks ago"
+  },
+  "organizations": {
+    "title": "Organizations",
+    "search_placeholder": "Search by name, category, or city…",
+    "your_orgs": "Your organizations",
+    "discover": "Discover Catholic organizations",
+    "discover_body": "Search for ministries, apostolates, and Catholic organizations to join.",
+    "join": "Join",
+    "member": "Member",
+    "admin": "Admin",
+    "no_results": "No organizations found",
+    "no_results_hint": "Try a different name or category",
+    "create": "New organization",
+    "official": "Official"
+  },
+  "messages": {
+    "title": "Messages",
+    "new_message": "New message",
+    "no_messages": "No messages yet",
+    "no_messages_hint": "Start a conversation with another member.",
+    "message_placeholder": "Message…",
+    "search_placeholder": "Search by name…",
+    "premium_title": "Unlock direct messages",
+    "premium_body": "Send private messages to any Communio member. Available to supporters of the mission.",
+    "you": "You"
+  },
+  "chat": {
+    "members_only": "Members only",
+    "members_only_hint": "Join this group to participate in chat.",
+    "no_messages": "No messages yet. Say hello!",
+    "input_placeholder": "Send a message…"
   },
   "notifications": {
     "title": "Notifications",

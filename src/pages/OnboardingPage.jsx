@@ -10,7 +10,7 @@ import { getLiturgicalSeason, formatLiturgicalDate } from '../utils/liturgical'
 import { format } from 'date-fns'
 
 export default function OnboardingPage() {
-  document.title = 'Welcome | Parish App'
+  document.title = 'Welcome | Communio'
   const { t } = useTranslation('auth')
   const { profile, updateProfile } = useAuth()
   const navigate = useNavigate()

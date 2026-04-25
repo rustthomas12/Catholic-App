@@ -70,7 +70,7 @@ export default function AdminPage() {
   const [banModalOpen, setBanModalOpen] = useState(false);
 
   useEffect(() => {
-    document.title = 'Platform Admin | Parish App';
+    document.title = 'Platform Admin | Communio';
   }, []);
 
   useEffect(() => {

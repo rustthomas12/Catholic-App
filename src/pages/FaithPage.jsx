@@ -21,7 +21,7 @@ let _confessionCache = null   // { data, userId }
 const INTENTIONS_TTL = 5 * 60 * 1000  // 5 minutes
 
 export default function FaithPage() {
-  document.title = 'Faith | Parish App'
+  document.title = 'Faith | Communio'
 
   const { t } = useTranslation('faith')
   const { user } = useAuth()

@@ -11,7 +11,7 @@ function Section({ title, children }) {
 }
 
 export default function TermsPage() {
-  document.title = 'Terms of Service | Parish App'
+  document.title = 'Terms of Service | Communio'
   const navigate = useNavigate()
 
   return (
@@ -27,11 +27,11 @@ export default function TermsPage() {
           <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="1. Acceptance of Terms">
-            <p>By creating an account, you agree to these Terms of Service. If you do not agree, please do not use Parish App.</p>
+            <p>By creating an account, you agree to these Terms of Service. If you do not agree, please do not use Communio.</p>
           </Section>
 
           <Section title="2. Description of Service">
-            <p>Parish App is a social platform for Catholic communities. We connect Catholics with their parish, groups, and daily faith life. Our mission is to be the digital parish hall — a warm, safe, faith-filled space between Sundays.</p>
+            <p>Communio is a social platform for Catholic communities. We connect Catholics with their parish, groups, and daily faith life. Our mission is to be the digital parish hall — a warm, safe, faith-filled space between Sundays.</p>
           </Section>
 
           <Section title="3. Your Account">
@@ -39,7 +39,7 @@ export default function TermsPage() {
           </Section>
 
           <Section title="4. Acceptable Use">
-            <p>By using Parish App, you agree NOT to:</p>
+            <p>By using Communio, you agree NOT to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Post content that contradicts defined Catholic teaching</li>
               <li>Engage in personal attacks or harassment of any kind</li>
@@ -64,20 +64,20 @@ export default function TermsPage() {
           </Section>
 
           <Section title="8. Disclaimers">
-            <p>Parish App is provided "as is" without warranties of any kind. We are not responsible for user-generated content. Parish App is not a replacement for pastoral guidance, the sacraments, or your relationship with your parish priest.</p>
+            <p>Communio is provided "as is" without warranties of any kind. We are not responsible for user-generated content. Communio is not a replacement for pastoral guidance, the sacraments, or your relationship with your parish priest.</p>
           </Section>
 
           <Section title="9. Limitation of Liability">
-            <p>To the maximum extent permitted by law, Parish App and its founders shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability for any claim shall not exceed the amount you paid us in the past 12 months.</p>
+            <p>To the maximum extent permitted by law, Communio and its founders shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability for any claim shall not exceed the amount you paid us in the past 12 months.</p>
           </Section>
 
           <Section title="10. Changes to Terms">
-            <p>We will notify users of material changes to these terms by email and in-app notification. Continued use of Parish App after changes constitutes acceptance of the updated terms.</p>
+            <p>We will notify users of material changes to these terms by email and in-app notification. Continued use of Communio after changes constitutes acceptance of the updated terms.</p>
           </Section>
 
           <Section title="11. Contact">
             <p>Questions about these terms? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
-            <p className="mt-1 text-gray-400">Parish App · Massachusetts</p>
+            <p className="mt-1 text-gray-400">Communio · Massachusetts</p>
           </Section>
         </div>
       </div>

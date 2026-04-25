@@ -49,7 +49,7 @@ export default function ParishAdminPage() {
   const [adminRole, setAdminRole] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  document.title = 'Parish Admin | Parish App'
+  document.title = 'Parish Admin | Communio'
 
   useEffect(() => {
     if (!user) return

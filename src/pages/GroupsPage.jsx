@@ -48,7 +48,7 @@ export default function GroupsPage() {
   const { groups, loading: searchLoading } = useGroupSearch(searchQuery, activeCategory)
   const { joinGroup, leaveGroup, requestToJoin, hasRequested } = useGroupJoin()
 
-  document.title = `${t('title')} | Parish App`
+  document.title = `${t('title')} | Communio`
 
   const isSearching = searchQuery.trim().length > 0 || activeCategory !== null
 

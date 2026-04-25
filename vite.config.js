@@ -21,9 +21,9 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: 'Parish App',
-        short_name: 'Parish',
-        description: 'The digital parish hall',
+        name: 'Communio',
+        short_name: 'Communio',
+        description: 'The Catholic parish and community platform',
         theme_color: '#1B2A4A',
         background_color: '#FAF7F2',
         display: 'standalone',

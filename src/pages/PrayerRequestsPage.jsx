@@ -16,7 +16,7 @@ export default function PrayerRequestsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  document.title = `${t('prayer.title')} | Parish App`
+  document.title = `${t('prayer.title')} | Communio`
 
   const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
 

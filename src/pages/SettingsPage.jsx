@@ -32,7 +32,7 @@ function SectionHeader({ title }) {
 }
 
 export default function SettingsPage() {
-  document.title = 'Settings | Parish App'
+  document.title = 'Settings | Communio'
   const { user, profile, signOut, updateProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()

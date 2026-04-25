@@ -63,7 +63,7 @@ export default function ParishPage() {
     )
   }
 
-  document.title = `${parish.name} | Parish App`
+  document.title = `${parish.name} | Communio`
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">

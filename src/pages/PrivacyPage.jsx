@@ -11,7 +11,7 @@ function Section({ title, children }) {
 }
 
 export default function PrivacyPage() {
-  document.title = 'Privacy Policy | Parish App'
+  document.title = 'Privacy Policy | Communio'
   const navigate = useNavigate()
 
   return (
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="1. Who We Are">
-            <p>Parish App is built by Thomas Rust in Massachusetts. We are a solo-founded Catholic social network. Our mission is to serve the Catholic community — not to profit from your data.</p>
+            <p>Communio is built by Thomas Rust in Massachusetts. We are a solo-founded Catholic social network. Our mission is to serve the Catholic community — not to profit from your data.</p>
           </Section>
 
           <Section title="2. Information We Collect">
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
 
           <Section title="4. How We Use Your Information">
             <ul className="list-disc pl-5 space-y-1">
-              <li>To provide and improve the Parish App service</li>
+              <li>To provide and improve the Communio service</li>
               <li>To send you notifications you have opted into</li>
               <li>To show you relevant parish and group content</li>
               <li>To send transactional emails (welcome, password reset)</li>
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="9. Children">
-            <p>Parish App is not intended for children under 13. We do not knowingly collect data from children. If you believe a child under 13 has created an account, contact us and we will delete it.</p>
+            <p>Communio is not intended for children under 13. We do not knowingly collect data from children. If you believe a child under 13 has created an account, contact us and we will delete it.</p>
           </Section>
 
           <Section title="10. Changes">
@@ -99,7 +99,7 @@ export default function PrivacyPage() {
 
           <Section title="11. Contact">
             <p>Questions about your privacy? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
-            <p className="text-gray-400 mt-1">Parish App · Massachusetts</p>
+            <p className="text-gray-400 mt-1">Communio · Massachusetts</p>
           </Section>
         </div>
       </div>

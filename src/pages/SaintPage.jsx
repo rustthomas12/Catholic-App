@@ -47,8 +47,8 @@ export default function SaintPage() {
   const [relatedSaints, setRelatedSaints] = useState([])
 
   // Set document title when saint loads
-  if (saint) document.title = `${saint.name} | Parish App`
-  else document.title = 'Saint | Parish App'
+  if (saint) document.title = `${saint.name} | Communio`
+  else document.title = 'Saint | Communio'
 
   // Fetch related saints in same month
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function SaintPage() {
 
   const handleShare = async () => {
     const url = window.location.href
-    const text = saint ? `Learn about ${saint.name} on Parish App` : 'Parish App'
+    const text = saint ? `Learn about ${saint.name} on Communio` : 'Communio'
     if (navigator.share) {
       try {
         await navigator.share({ title: saint?.name ?? 'Saint', text, url })

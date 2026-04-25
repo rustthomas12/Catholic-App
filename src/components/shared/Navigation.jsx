@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
   BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
+  BuildingOffice2Icon, ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
   UserGroupIcon as UserGroupIconSolid,
   MapIcon as MapIconSolid,
   BellIcon as BellIconSolid,
+  ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 } from '@heroicons/react/24/solid'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
@@ -123,15 +125,37 @@ function Navigation() {
   const { unreadCount } = useNotifications()
   const season = getLiturgicalSeason()
   const [adminParishId, setAdminParishId] = useState(null)
+  const [adminOrgId, setAdminOrgId] = useState(null)
+  const [unreadDMs, setUnreadDMs] = useState(0)
 
   useEffect(() => {
-    if (!user) { setAdminParishId(null); return }
+    if (!user) { setAdminParishId(null); setAdminOrgId(null); setUnreadDMs(0); return }
+
     supabase
       .from('parish_admins')
       .select('parish_id')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => setAdminParishId(data?.parish_id ?? null))
+      .catch(() => {})
+
+    supabase
+      .from('organization_members')
+      .select('org_id')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .limit(1)
+      .then(({ data }) => setAdminOrgId(data?.[0]?.org_id ?? null))
+      .catch(() => {})
+
+    // Unread premium DMs
+    supabase
+      .from('direct_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('recipient_id', user.id)
+      .eq('is_read', false)
+      .eq('is_premium_dm', true)
+      .then(({ count }) => setUnreadDMs(count ?? 0))
       .catch(() => {})
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -208,7 +232,7 @@ function Navigation() {
               <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
             </svg>
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">Parish</span>
+          <span className="text-white font-bold text-lg tracking-tight">Communio</span>
         </Link>
 
         {/* Main navigation */}
@@ -268,6 +292,34 @@ function Navigation() {
             <span className="text-sm font-medium">Settings</span>
           </Link>
 
+          {/* Organizations */}
+          <Link to="/organizations"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+              location.pathname.startsWith('/organizations') || location.pathname.startsWith('/organization/') || location.pathname.startsWith('/org-admin/')
+                ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+            }`}>
+            <BuildingOffice2Icon className="w-5 h-5" />
+            <span className="text-sm font-medium">Organizations</span>
+          </Link>
+
+          {/* Messages */}
+          <Link to="/messages"
+            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+              location.pathname === '/messages' ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+            }`}>
+            <div className="relative w-5">
+              {location.pathname === '/messages'
+                ? <ChatBubbleLeftRightIconSolid className="w-5 h-5" />
+                : <ChatBubbleLeftRightIcon className="w-5 h-5" />}
+              {unreadDMs > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                  {unreadDMs > 9 ? '9+' : unreadDMs}
+                </span>
+              )}
+            </div>
+            <span className="text-sm font-medium">Messages</span>
+          </Link>
+
           {/* Parish Admin link — only for parish admins */}
           {adminParishId && (
             <Link to={`/parish-admin/${adminParishId}`}
@@ -276,6 +328,17 @@ function Navigation() {
               }`}>
               <BuildingLibraryIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Parish Admin</span>
+            </Link>
+          )}
+
+          {/* Org Admin link — only for org admins */}
+          {adminOrgId && (
+            <Link to={`/org-admin/${adminOrgId}`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                location.pathname.startsWith('/org-admin') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              }`}>
+              <BuildingOffice2Icon className="w-5 h-5" />
+              <span className="text-sm font-medium">Org Admin</span>
             </Link>
           )}
         </div>

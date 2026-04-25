@@ -233,7 +233,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     const url = `${window.location.origin}/post/${post.id}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Parish App', url })
+        await navigator.share({ title: 'Communio', url })
       } catch (_) { /* user cancelled */ }
     } else {
       try {

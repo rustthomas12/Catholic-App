@@ -1,4 +1,4 @@
-# Parish App — The Digital Parish Hall
+# Communio — The Digital Parish Hall
 
 A national Catholic social network connecting Catholics
 to their parish community, groups, and daily faith life.

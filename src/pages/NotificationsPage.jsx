@@ -66,7 +66,7 @@ function getDestination(notification) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationsPage() {
-  document.title = 'Notifications | Parish App'
+  document.title = 'Notifications | Communio'
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()

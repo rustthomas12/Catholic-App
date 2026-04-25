@@ -18,7 +18,7 @@ let _homeParishCache = null  // { parishId, data }
 let _homeGroupsCache = null  // { userId, data }
 
 export default function HomePage() {
-  document.title = 'Home | Parish App'
+  document.title = 'Home | Communio'
   const { profile } = useAuth()
   const navigate = useNavigate()
 
@@ -106,7 +106,7 @@ export default function HomePage() {
               className="absolute top-3 right-3 text-white/50 hover:text-white p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
               <XMarkIcon className="w-5 h-5" />
             </button>
-            <p className="text-gold text-sm font-semibold mb-1">Welcome to Parish App</p>
+            <p className="text-gold text-sm font-semibold mb-1">Welcome to Communio</p>
             <p className="text-white font-bold text-lg mb-3">Welcome, {firstName}! Your parish community is waiting.</p>
             <div className="flex gap-2 flex-wrap">
               <Link to="/directory"

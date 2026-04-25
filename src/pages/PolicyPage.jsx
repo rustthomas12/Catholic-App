@@ -11,7 +11,7 @@ function Section({ title, children }) {
 }
 
 export default function PolicyPage() {
-  document.title = 'Content Policy | Parish App'
+  document.title = 'Content Policy | Communio'
   const navigate = useNavigate()
 
   return (
@@ -27,7 +27,7 @@ export default function PolicyPage() {
           <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="Our Mission">
-            <p>Parish App exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>
+            <p>Communio exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>
           </Section>
 
           <Section title="The Standard We Hold Ourselves To">

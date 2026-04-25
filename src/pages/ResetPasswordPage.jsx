@@ -14,7 +14,7 @@ function passwordStrength(pw) {
 }
 
 export default function ResetPasswordPage() {
-  document.title = 'Reset Password | Parish App'
+  document.title = 'Reset Password | Communio'
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
 

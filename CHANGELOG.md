@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Parish App are documented here.
+All notable changes to Communio are documented here.
 
 ## [Phase 2] — 2026-04-04
 

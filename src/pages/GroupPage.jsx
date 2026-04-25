@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftIcon,
@@ -13,6 +13,7 @@ import {
   CalendarDaysIcon,
   ClockIcon,
   MapPinIcon,
+  PaperAirplaneIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { toast } from '../components/shared/Toast'
@@ -27,6 +28,7 @@ import Modal from '../components/shared/Modal'
 
 const TABS = [
   { id: 'feed',    label: 'tab_feed' },
+  { id: 'chat',    label: 'Chat' },
   { id: 'events',  label: 'tab_events' },
   { id: 'members', label: 'tab_members' },
   { id: 'about',   label: 'tab_about' },
@@ -117,7 +119,7 @@ export default function GroupPage() {
     )
   }
 
-  document.title = `${group.name} | Parish App`
+  document.title = `${group.name} | Communio`
 
   const memberCount = group.member_count ?? group.group_members?.[0]?.count ?? 0
   const memberLabel = memberCount === 1
@@ -217,7 +219,7 @@ export default function GroupPage() {
                   : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
-              {t(tab.label)}
+              {tab.id === 'chat' ? tab.label : t(tab.label)}
               {tab.id === 'members' && isAdmin && myPending.length > 0 && (
                 <span className="absolute top-2 right-3 w-2 h-2 bg-red-500 rounded-full" />
               )}
@@ -235,6 +237,10 @@ export default function GroupPage() {
             emptyMessage={t('empty')}
             emptySubtext="Be the first to post in this group."
           />
+        )}
+
+        {activeTab === 'chat' && (
+          <GroupChat groupId={id} userId={user?.id} isMember={isMember} />
         )}
 
         {activeTab === 'events' && <GroupEvents groupId={id} t={t} />}
@@ -310,6 +316,142 @@ export default function GroupPage() {
           </button>
         </div>
       </Modal>
+    </div>
+  )
+}
+
+// ── GroupChat ──────────────────────────────────────────────
+function GroupChat({ groupId, userId, isMember }) {
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
+  const bottomRef = useRef(null)
+
+  // Load messages
+  useEffect(() => {
+    if (!groupId) return
+    setLoading(true)
+    supabase
+      .from('group_chat_messages')
+      .select('id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)')
+      .eq('group_id', groupId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true })
+      .limit(100)
+      .then(({ data }) => {
+        setMessages(data ?? [])
+        setLoading(false)
+      })
+
+    // Realtime
+    const channel = supabase
+      .channel(`group_chat_${groupId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'group_chat_messages',
+        filter: `group_id=eq.${groupId}`,
+      }, async (payload) => {
+        // Fetch full message with profile
+        const { data } = await supabase
+          .from('group_chat_messages')
+          .select('id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)')
+          .eq('id', payload.new.id)
+          .single()
+        if (data && !data.is_deleted) setMessages(prev => [...prev, data])
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [groupId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages.length])
+
+  const send = useCallback(async (e) => {
+    e.preventDefault()
+    if (!draft.trim() || !userId || !isMember || sending) return
+    setSending(true)
+    const content = draft.trim()
+    setDraft('')
+    await supabase.from('group_chat_messages').insert({ group_id: groupId, user_id: userId, content })
+    setSending(false)
+  }, [draft, userId, isMember, sending, groupId])
+
+  if (!isMember) {
+    return (
+      <div className="px-4 pt-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+          <PaperAirplaneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+          <p className="text-navy font-semibold text-sm mb-1">Members only</p>
+          <p className="text-gray-400 text-xs">Join this group to participate in chat.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}>
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {loading && (
+          <div className="space-y-2">
+            {[1,2,3].map(i => <div key={i} className="h-10 rounded-2xl bg-gray-100 animate-pulse" />)}
+          </div>
+        )}
+        {!loading && messages.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm">No messages yet. Say hello!</p>
+          </div>
+        )}
+        {messages.map((msg) => {
+          const isMe = msg.user_id === userId
+          const name = msg.profiles?.full_name || 'Member'
+          return (
+            <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+              {!isMe && (
+                <div className="w-7 h-7 rounded-full bg-navy/10 flex items-center justify-center text-xs font-bold text-navy flex-shrink-0">
+                  {name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                {!isMe && <p className="text-[10px] text-gray-400 mb-0.5 ml-1">{name}</p>}
+                <div className={`px-3.5 py-2.5 rounded-2xl text-sm ${
+                  isMe ? 'bg-navy text-white rounded-br-sm' : 'bg-white text-navy border border-gray-100 rounded-bl-sm'
+                }`}>
+                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                </div>
+                <p className={`text-[10px] text-gray-400 mt-0.5 ${isMe ? 'mr-1' : 'ml-1'}`}>
+                  {format(new Date(msg.created_at), 'h:mm a')}
+                </p>
+              </div>
+            </div>
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <form onSubmit={send} className="bg-white border-t border-gray-100 px-3 py-3 flex items-end gap-2 flex-shrink-0">
+        <textarea
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e) } }}
+          placeholder="Send a message…"
+          rows={1}
+          className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-28 overflow-y-auto"
+          style={{ minHeight: '40px' }}
+        />
+        <button
+          type="submit"
+          disabled={!draft.trim() || sending}
+          className="w-9 h-9 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
+        >
+          <PaperAirplaneIcon className="w-4 h-4" />
+        </button>
+      </form>
     </div>
   )
 }

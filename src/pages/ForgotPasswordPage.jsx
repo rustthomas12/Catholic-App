@@ -7,7 +7,7 @@ import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
 export default function ForgotPasswordPage() {
-  document.title = 'Forgot Password | Parish App'
+  document.title = 'Forgot Password | Communio'
   const { t } = useTranslation('auth')
 
   const [email, setEmail] = useState('')

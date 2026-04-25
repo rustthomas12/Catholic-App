@@ -35,7 +35,7 @@ export default function GroupSettingsPage() {
 
   if (loading) return <GroupPageSkeleton />
 
-  document.title = `${t('settings')} | Parish App`
+  document.title = `${t('settings')} | Communio`
 
   async function handleSave() {
     setSaving(true)

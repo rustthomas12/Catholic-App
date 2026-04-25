@@ -11,7 +11,7 @@ const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
 export default function DirectoryPage() {
-  document.title = 'Parish Directory | Parish App'
+  document.title = 'Parish Directory | Communio'
 
   const { user, profile } = useAuth()
   const { results, loading: searchLoading, search, clear } = useParishSearch()

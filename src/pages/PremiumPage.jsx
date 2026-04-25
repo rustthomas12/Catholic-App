@@ -24,7 +24,7 @@ const PERKS = [
 ]
 
 export default function SupportPage() {
-  document.title = 'Support the Mission | Parish App'
+  document.title = 'Support the Mission | Communio'
 
   function handleDonate(amount) {
     // Placeholder: open Stripe/Ko-fi/Donorbox link
@@ -42,7 +42,7 @@ export default function SupportPage() {
           </div>
           <h1 className="text-2xl font-bold text-navy mb-2">Support the Mission</h1>
           <p className="text-gray-500 text-sm leading-relaxed max-w-md mx-auto">
-            Parish App is a free, ad-free Catholic community built to help you grow in faith.
+            Communio is a free, ad-free Catholic community built to help you grow in faith.
             Your generosity makes it possible.
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function SupportPage() {
         </div>
 
         <p className="text-center text-xs text-gray-300 mt-6">
-          Parish App is not a registered 501(c)(3). Gifts are not tax-deductible.
+          Communio is not a registered 501(c)(3). Gifts are not tax-deductible.
         </p>
       </div>
     </div>

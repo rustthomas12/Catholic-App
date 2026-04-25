@@ -23,7 +23,7 @@ const MONTHS = [
 ]
 
 export default function SaintsPage() {
-  document.title = 'Saints | Parish App'
+  document.title = 'Saints | Communio'
 
   const { t } = useTranslation('faith')
   const navigate = useNavigate()

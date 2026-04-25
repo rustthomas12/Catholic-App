@@ -41,7 +41,7 @@ export default function CreateGroupPage() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
 
-  document.title = `${t('create')} | Parish App`
+  document.title = `${t('create')} | Communio`
 
   function handleAvatarChange(e) {
     const file = e.target.files[0]

@@ -90,7 +90,7 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled, pr
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationSettingsPage() {
-  document.title = 'Notification Settings | Parish App'
+  document.title = 'Notification Settings | Communio'
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()

@@ -18,7 +18,7 @@ const VOCATIONS = [
 ]
 
 export default function EditProfilePage() {
-  document.title = 'Edit Profile | Parish App'
+  document.title = 'Edit Profile | Communio'
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
   const fileRef = useRef(null)
