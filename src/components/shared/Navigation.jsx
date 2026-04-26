@@ -76,7 +76,7 @@ const desktopTabs = [
   },
 ]
 
-// ── Mobile bottom tabs (5: Home, Groups, Faith, Bell, Profile) ──
+// ── Mobile bottom tabs (5: Home, Groups, Faith, Messages, Profile) ──
 const mobileTabs = [
   {
     label: 'Home',
@@ -101,12 +101,12 @@ const mobileTabs = [
     isFaith: true,
   },
   {
-    label: 'Alerts',
-    Icon: BellIcon,
-    IconSolid: BellIconSolid,
-    active: (p) => p === '/notifications',
-    to: '/notifications',
-    isBell: true,
+    label: 'Messages',
+    Icon: ChatBubbleLeftRightIcon,
+    IconSolid: ChatBubbleLeftRightIconSolid,
+    active: (p) => p === '/messages',
+    to: '/messages',
+    isDM: true,
   },
   {
     label: 'Profile',
@@ -176,7 +176,7 @@ function Navigation() {
         <div className="flex items-center justify-around h-16">
           {mobileTabs.map((tab) => {
             const active = tab.active(location.pathname)
-            const { Icon, IconSolid, label, to, isFaith, isProfile, isBell } = tab
+            const { Icon, IconSolid, label, to, isFaith, isProfile, isDM } = tab
 
             return (
               <Link
@@ -207,10 +207,10 @@ function Navigation() {
                     />
                   )}
 
-                  {/* Bell badge */}
-                  {isBell && unreadCount > 0 && (
+                  {/* DM badge */}
+                  {isDM && unreadDMs > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {unreadDMs > 9 ? '9+' : unreadDMs}
                     </span>
                   )}
                 </div>

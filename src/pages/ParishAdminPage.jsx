@@ -13,6 +13,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   XCircleIcon,
+  EnvelopeIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
@@ -26,6 +27,7 @@ const TABS = [
   { id: 'events',        label: 'Events',        Icon: CalendarDaysIcon },
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
+  { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
   { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
 ]
 
@@ -88,6 +90,7 @@ export default function ParishAdminPage() {
     events:        EventsTab,
     masstimes:     MassTimesTab,
     parishioners:  ParishionersTab,
+    messages:      MessagesTab,
     settings:      SettingsTab,
   }[activeTab]
 
@@ -233,13 +236,28 @@ function AnnouncementsTab({ parishId }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('scheduled_posts')
-      .select('id, content, scheduled_for, published, created_at')
-      .eq('parish_id', parishId)
-      .order('scheduled_for', { ascending: false })
-      .limit(20)
-    setPosts(data ?? [])
+    // Load published announcements from posts table
+    const [publishedRes, scheduledRes] = await Promise.all([
+      supabase
+        .from('posts')
+        .select('id, content, created_at, is_announcement')
+        .eq('parish_id', parishId)
+        .eq('is_announcement', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('scheduled_posts')
+        .select('id, content, scheduled_for, published, created_at')
+        .eq('parish_id', parishId)
+        .eq('published', false)
+        .order('scheduled_for', { ascending: false })
+        .limit(20),
+    ])
+    // Merge: published posts first, then pending scheduled
+    const published = (publishedRes.data ?? []).map(p => ({ ...p, published: true, scheduled_for: p.created_at }))
+    const scheduled = (scheduledRes.data ?? [])
+    setPosts([...published, ...scheduled])
     setLoading(false)
   }, [parishId])
 
@@ -248,28 +266,35 @@ function AnnouncementsTab({ parishId }) {
   async function handlePublish() {
     if (!draft.trim() || !user) return
     setSaving(true)
-    const payload = {
-      parish_id: parishId,
-      author_id: user.id,
-      content: draft.trim(),
-      published: !scheduleFor,
-      scheduled_for: scheduleFor || new Date().toISOString(),
-    }
-    const { error } = await supabase.from('scheduled_posts').insert(payload)
-    if (error) {
-      toast.error('Could not save announcement.')
+
+    if (scheduleFor) {
+      // Future-dated post: goes into scheduled_posts
+      const { error } = await supabase.from('scheduled_posts').insert({
+        parish_id: parishId,
+        author_id: user.id,
+        content: draft.trim(),
+        published: false,
+        scheduled_for: scheduleFor,
+      })
+      if (error) { toast.error('Could not schedule announcement.') }
+      else { toast.success('Announcement scheduled.'); setDraft(''); setScheduleFor(''); setComposing(false); load() }
     } else {
-      toast.success(scheduleFor ? 'Announcement scheduled.' : 'Announcement published.')
-      setDraft('')
-      setScheduleFor('')
-      setComposing(false)
-      load()
+      // Publish now: insert directly into posts table
+      const { error } = await supabase.from('posts').insert({
+        parish_id: parishId,
+        author_id: user.id,
+        content: draft.trim(),
+        is_announcement: true,
+      })
+      if (error) { toast.error('Could not publish announcement.') }
+      else { toast.success('Announcement published.'); setDraft(''); setScheduleFor(''); setComposing(false); load() }
     }
     setSaving(false)
   }
 
-  async function handleDelete(id) {
-    const { error } = await supabase.from('scheduled_posts').delete().eq('id', id)
+  async function handleDelete(id, isPublished) {
+    const table = isPublished ? 'posts' : 'scheduled_posts'
+    const { error } = await supabase.from(table).delete().eq('id', id)
     if (error) { toast.error('Could not delete.'); return }
     setPosts(prev => prev.filter(p => p.id !== id))
   }
@@ -336,7 +361,7 @@ function AnnouncementsTab({ parishId }) {
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm text-navy flex-1">{post.content}</p>
                 <button
-                  onClick={() => handleDelete(post.id)}
+                  onClick={() => handleDelete(post.id, post.published)}
                   className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0"
                 >
                   <TrashIcon className="w-4 h-4" />
@@ -540,8 +565,22 @@ function MassTimesTab({ parishId, parish, setParish }) {
   function parseExisting() {
     if (!parish?.mass_times) return defaultRows
     const mt = parish.mass_times
+    // Object format: { Sunday: '8:00 AM, 10:00 AM', ... }
     if (typeof mt === 'object' && !Array.isArray(mt)) {
       return Object.entries(mt).map(([day, time]) => ({ day, time: String(time) }))
+    }
+    // Array format: ['Sunday 8:00 AM', 'Saturday 5:00 PM', ...]
+    if (Array.isArray(mt)) {
+      return mt.map(item => {
+        const str = String(item)
+        const spaceIdx = str.indexOf(' ')
+        if (spaceIdx === -1) return { day: str, time: '' }
+        return { day: str.slice(0, spaceIdx), time: str.slice(spaceIdx + 1) }
+      })
+    }
+    // Plain string: show as single row
+    if (typeof mt === 'string') {
+      return [{ day: 'All Masses', time: mt }]
     }
     return defaultRows
   }
@@ -715,6 +754,106 @@ function ParishionersTab({ parishId }) {
                 <span className="text-xs bg-navy/10 text-navy font-semibold px-2 py-0.5 rounded-full">Clergy</span>
               )}
               <span className="text-xs text-gray-400 flex-shrink-0">{format(parseISO(p.created_at), 'MMM yyyy')}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Messages Tab ────────────────────────────────────────────
+function MessagesTab({ parishId }) {
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('parish_messages')
+      .select(`
+        id, subject, body, is_read, created_at,
+        sender:profiles!sender_id(id, full_name, avatar_url)
+      `)
+      .eq('parish_id', parishId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    setMessages(data ?? [])
+    setLoading(false)
+  }, [parishId])
+
+  useEffect(() => { load() }, [load])
+
+  async function markRead(id) {
+    await supabase.from('parish_messages').update({ is_read: true }).eq('id', id)
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, is_read: true } : m))
+  }
+
+  async function markAllRead() {
+    const unread = messages.filter(m => !m.is_read).map(m => m.id)
+    if (unread.length === 0) return
+    await supabase.from('parish_messages').update({ is_read: true }).in('id', unread)
+    setMessages(prev => prev.map(m => ({ ...m, is_read: true })))
+  }
+
+  const unreadCount = messages.filter(m => !m.is_read).length
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-navy">
+          Messages {unreadCount > 0 && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-semibold">{unreadCount} unread</span>}
+        </h2>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllRead}
+            className="text-sm text-navy font-semibold hover:underline"
+          >
+            Mark all as read
+          </button>
+        )}
+      </div>
+
+      {loading ? <LoadingSpinner /> : messages.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+          <p className="text-gray-400 text-sm">No messages yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {messages.map(msg => (
+            <div
+              key={msg.id}
+              className={`bg-white rounded-2xl border shadow-sm p-4 ${!msg.is_read ? 'border-navy/30 border-l-4 border-l-navy' : 'border-gray-100'}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-navy/10 flex items-center justify-center text-xs font-bold text-navy flex-shrink-0">
+                  {msg.sender?.full_name?.[0] ?? '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className={`text-sm font-semibold text-navy ${!msg.is_read ? 'font-bold' : ''}`}>
+                      {msg.sender?.full_name ?? 'Unknown'}
+                    </p>
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      {format(parseISO(msg.created_at), 'MMM d, h:mm a')}
+                    </span>
+                  </div>
+                  {msg.subject && (
+                    <p className="text-xs font-semibold text-gray-500 mb-1">{msg.subject}</p>
+                  )}
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{msg.body}</p>
+                </div>
+              </div>
+              {!msg.is_read && (
+                <div className="flex justify-end mt-2">
+                  <button
+                    onClick={() => markRead(msg.id)}
+                    className="text-xs text-navy font-semibold hover:underline"
+                  >
+                    Mark as read
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

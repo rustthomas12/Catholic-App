@@ -20,6 +20,7 @@ export default function Feed({
   filter = 'all',
   parishId = null,
   groupId = null,
+  orgId = null,
   userId = null,
   showCreatePost = true,
   emptyMessage,
@@ -29,7 +30,7 @@ export default function Feed({
   const { t } = useTranslation('feed')
   const navigate = useNavigate()
 
-  const feed = useFeed({ filter, parishId, groupId, userId, pageSize: 20 })
+  const feed = useFeed({ filter, parishId, groupId, orgId, userId, pageSize: 20 })
 
   const sentinelRef = useRef(null)
   const [newPostPending, setNewPostPending] = useState(false)
@@ -129,7 +130,7 @@ export default function Feed({
       )}
 
       {/* Compose bar */}
-      {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} />}
+      {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} orgId={orgId} />}
 
       {/* Empty state */}
       {feed.posts.length === 0 && (

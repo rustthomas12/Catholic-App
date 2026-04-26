@@ -10,8 +10,8 @@ const GRAPH_TTL  = 10 * 60 * 1000  // 10 min
 const _feedCache  = new Map() // cacheKey → { posts, hasMore, ts }
 const _graphCache = new Map() // userId   → { parishIds, groupIds, ts }
 
-function getFeedKey(userId, filter, parishId, groupId) {
-  return `${userId}-${filter}-${parishId}-${groupId}`
+function getFeedKey(userId, filter, parishId, groupId, orgId) {
+  return `${userId}-${filter}-${parishId}-${groupId}-${orgId}`
 }
 
 // ── localStorage helpers ───────────────────────────────────
@@ -95,6 +95,7 @@ export function useFeed(options = {}) {
     filter   = 'all',
     parishId = null,
     groupId  = null,
+    orgId    = null,
     userId   = null,
     pageSize = DEFAULT_PAGE_SIZE,
   } = options
@@ -107,7 +108,7 @@ export function useFeed(options = {}) {
   // immediately so the UI never shows a loading skeleton.
   const _initFromStorage = () => {
     if (!userId_stable) return { posts: [], hasMore: true, loading: true }
-    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
 
     // Module cache (same-session navigation)
     const mc = _feedCache.get(cacheKey)
@@ -199,6 +200,7 @@ export function useFeed(options = {}) {
       .range(offset, offset + pageSize - 1)
 
     if (userId)   return q.eq('author_id', userId)
+    if (orgId)    return q.eq('org_id',    orgId)
     if (groupId)  return q.eq('group_id',  groupId)
     if (parishId) return q.eq('parish_id', parishId)
 
@@ -233,7 +235,7 @@ export function useFeed(options = {}) {
         return q.or(parts.join(','))
       }
     }
-  }, [filter, parishId, groupId, userId, pageSize])
+  }, [filter, parishId, groupId, orgId, userId, pageSize])
 
   // ── Fetch a page ──────────────────────────────────────────
   const fetchPage = useCallback(async (offset, append = false, background = false) => {
@@ -255,7 +257,7 @@ export function useFeed(options = {}) {
     const newHasMore = normalised.length === pageSize
 
     if (!append) {
-      const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+      const cacheKey = getFeedKey(user.id, filter, parishId, groupId, orgId)
       _feedCache.set(cacheKey, { posts: normalised, hasMore: newHasMore, ts: Date.now() })
       _setStoredFeed(cacheKey, normalised, newHasMore)
     }
@@ -267,7 +269,7 @@ export function useFeed(options = {}) {
     else         setTotalCount((c) => c + normalised.length)
     setLoading(false)
     setLoadingMore(false)
-  }, [user, buildQuery, pageSize, filter, parishId, groupId])
+  }, [user, buildQuery, pageSize, filter, parishId, groupId, orgId])
 
   // ── refresh — defined here so visibilitychange useEffect can depend on it ──
   const refresh = useCallback(async () => {
@@ -290,7 +292,7 @@ export function useFeed(options = {}) {
       return
     }
 
-    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+    const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
 
     // Module cache hit — serve instantly, revalidate in background
     const mc = _feedCache.get(cacheKey)
@@ -319,7 +321,7 @@ export function useFeed(options = {}) {
     setLoading(true)
     offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
-  }, [userId_stable, filter, parishId, groupId, userId, loadSocialGraph, fetchPage])
+  }, [userId_stable, filter, parishId, groupId, orgId, userId, loadSocialGraph, fetchPage])
 
   // ── Foreground refresh (iOS / PWA background→foreground) ──
   // When the app is backgrounded on iOS, module-level Maps may be GC'd and the
@@ -331,7 +333,7 @@ export function useFeed(options = {}) {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return
-      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
       const mc = _feedCache.get(cacheKey)
       const isStale = !mc || (Date.now() - mc.ts > FEED_TTL)
       if (isStale) {
@@ -341,7 +343,7 @@ export function useFeed(options = {}) {
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [userId_stable, filter, parishId, groupId, refresh])
+  }, [userId_stable, filter, parishId, groupId, orgId, refresh])
 
   // ── Public API ────────────────────────────────────────────
 
@@ -357,14 +359,14 @@ export function useFeed(options = {}) {
       if (prev.some((p) => p.id === post.id)) return prev
       const next = [post, ...prev]
       if (user) {
-        const cacheKey = getFeedKey(user.id, filter, parishId, groupId)
+        const cacheKey = getFeedKey(user.id, filter, parishId, groupId, orgId)
         _feedCache.delete(cacheKey)
         _clearStoredFeed(cacheKey)
       }
       return next
     })
     setTotalCount((c) => c + 1)
-  }, [user, filter, parishId, groupId])
+  }, [user, filter, parishId, groupId, orgId])
 
   const updatePost = useCallback((id, updates) => {
     setPosts((prev) => prev.map((p) => p.id === id ? { ...p, ...updates } : p))
@@ -374,11 +376,11 @@ export function useFeed(options = {}) {
     setPosts((prev) => prev.filter((p) => p.id !== id))
     setTotalCount((c) => Math.max(0, c - 1))
     if (userId_stable) {
-      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId)
+      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
       _feedCache.delete(cacheKey)
       _clearStoredFeed(cacheKey)
     }
-  }, [userId_stable, filter, parishId, groupId])
+  }, [userId_stable, filter, parishId, groupId, orgId])
 
   return {
     posts,

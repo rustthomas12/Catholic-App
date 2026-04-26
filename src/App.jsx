@@ -42,6 +42,7 @@ const AdminPage                = lazy(() => import('./pages/AdminPage'))
 const ParishAdminPage          = lazy(() => import('./pages/ParishAdminPage'))
 const OrganizationsPage        = lazy(() => import('./pages/OrganizationsPage'))
 const OrganizationPage         = lazy(() => import('./pages/OrganizationPage'))
+const CreateOrganizationPage   = lazy(() => import('./pages/CreateOrganizationPage'))
 const OrgAdminPage             = lazy(() => import('./pages/OrgAdminPage'))
 const JoinPage                 = lazy(() => import('./pages/JoinPage'))
 const MessagesPage             = lazy(() => import('./pages/MessagesPage'))
@@ -148,6 +149,7 @@ function AppInner() {
           <Route path="/admin"                     element={<ProtectedRoute><RouteErrorBoundary><AdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/parish-admin/:parishId"    element={<ProtectedRoute><RouteErrorBoundary><ParishAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/organizations"             element={<ProtectedRoute><RouteErrorBoundary><OrganizationsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/organizations/new"         element={<ProtectedRoute><RouteErrorBoundary><CreateOrganizationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/organization/:id"          element={<ProtectedRoute><RouteErrorBoundary><OrganizationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/org-admin/:orgId"          element={<ProtectedRoute><RouteErrorBoundary><OrgAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/messages"                  element={<ProtectedRoute><RouteErrorBoundary><MessagesPage /></RouteErrorBoundary></ProtectedRoute>} />

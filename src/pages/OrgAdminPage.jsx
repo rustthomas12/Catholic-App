@@ -337,13 +337,15 @@ function SettingsTab({ org, setOrg, orgId }) {
   const [email, setEmail] = useState(org.email || '')
   const [city, setCity] = useState(org.city || '')
   const [state, setState] = useState(org.state || '')
+  const [logoUrl, setLogoUrl] = useState(org.logo_url || '')
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
     const updates = { name: name.trim(), description: description.trim() || null, category: category.trim() || null,
-      website: website.trim() || null, email: email.trim() || null, city: city.trim() || null, state: state.trim() || null }
+      website: website.trim() || null, email: email.trim() || null, city: city.trim() || null, state: state.trim() || null,
+      logo_url: logoUrl.trim() || null }
     const { error } = await supabase.from('organizations').update(updates).eq('id', orgId)
     if (error) toast.error('Failed to save changes.')
     else { setOrg(prev => ({ ...prev, ...updates })); toast.success('Changes saved.') }
@@ -401,6 +403,21 @@ function SettingsTab({ org, setOrg, orgId }) {
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Email</label>
           <input value={email} onChange={e => setEmail(e.target.value)} type="email"
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy" />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-500 mb-1 block">Logo URL</label>
+          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} type="url"
+            placeholder="https://example.org/logo.png"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy" />
+          {logoUrl.trim() && (
+            <img
+              src={logoUrl.trim()}
+              alt="Logo preview"
+              className="mt-2 w-16 h-16 rounded-xl object-contain border border-gray-200 bg-gray-50"
+              onError={e => { e.currentTarget.style.display = 'none' }}
+            />
+          )}
         </div>
 
         <button onClick={handleSave} disabled={saving || !name.trim()}

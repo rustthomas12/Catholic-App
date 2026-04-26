@@ -47,7 +47,7 @@ function DestinationSheet({ isOpen, onClose, options, selected, onSelect }) {
 }
 
 // ── Compose modal ──────────────────────────────────────────
-function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestination }) {
+function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestination, orgId = null }) {
   const { t } = useTranslation('feed')
   const { user, profile } = useAuth()
 
@@ -126,6 +126,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
         author_id: user.id,
         parish_id: parishId,
         group_id: groupId,
+        org_id: orgId ?? null,
         content: trimmed,
         image_url: imageUrl,
         is_prayer_request: isPrayerRequest,
@@ -291,7 +292,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
 }
 
 // ── Compose trigger bar (shown at top of feed) ─────────────
-export default function CreatePost({ onPost, groupId: contextGroupId = null, parishId: contextParishId = null }) {
+export default function CreatePost({ onPost, groupId: contextGroupId = null, parishId: contextParishId = null, orgId: contextOrgId = null }) {
   const { t } = useTranslation('feed')
   const { user, profile } = useAuth()
   const [modalOpen, setModalOpen] = useState(false)
@@ -419,6 +420,7 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
         onPost={handlePost}
         destinations={destinations}
         defaultDestination={defaultDestination}
+        orgId={contextOrgId}
       />
     </>
   )
