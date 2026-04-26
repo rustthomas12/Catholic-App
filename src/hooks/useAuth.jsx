@@ -261,6 +261,8 @@ export function AuthProvider({ children }) {
     isPatron: !!profile?.is_patron,
     isAdmin: !!profile?.is_admin,
     isVerifiedClergy: !!profile?.is_verified_clergy,
+    subscriptionStatus: profile?.subscription_status ?? null,
+    subscriptionInterval: profile?.subscription_interval ?? null,
     signIn,
     signUp,
     signOut,

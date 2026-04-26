@@ -101,11 +101,11 @@ export default function SettingsPage() {
           <div className="border-t border-gray-100" />
           <SectionHeader title="Subscription" />
           <SettingsRow icon={CreditCardIcon} label="Current plan" value={planLabel} />
-          {!profile?.is_premium && (
-            <>
-              <div className="border-t border-gray-50" />
-              <SettingsRow icon={null} label="Upgrade to Premium" to="/premium" />
-            </>
+          <div className="border-t border-gray-50" />
+          {profile?.is_premium ? (
+            <SettingsRow icon={null} label="Manage subscription →" to="/premium" />
+          ) : (
+            <SettingsRow icon={null} label="Upgrade to Premium →" to="/premium" />
           )}
 
           {/* Privacy */}

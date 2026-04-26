@@ -7,6 +7,7 @@ import { format, differenceInDays, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
+import PremiumPrompt from '../components/shared/PremiumPrompt'
 
 const REMINDER_KEY = 'confession_reminder_days'
 const REMINDER_OPTIONS = [7, 14, 30, 45, 90, null]
@@ -17,7 +18,18 @@ export default function ConfessionTrackerPage() {
 
   const { t } = useTranslation('premium')
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isPremium } = useAuth()
+
+  if (!isPremium) {
+    return (
+      <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
+        <PremiumPrompt
+          title="Confession Tracker"
+          body="Track your confessions and set reminders. Available to Premium members."
+        />
+      </div>
+    )
+  }
 
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)

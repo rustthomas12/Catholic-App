@@ -1,8 +1,7 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" },
+    { "source": "/api/create-portal-session", "destination": "/api/create-portal-session.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

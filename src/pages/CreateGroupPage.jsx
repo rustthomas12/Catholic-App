@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
+import PremiumPrompt from '../components/shared/PremiumPrompt'
 
 const CATEGORIES = [
   { value: 'parish',       label: 'category_parish' },
@@ -28,10 +29,21 @@ const STEPS = [
 export default function CreateGroupPage() {
   const { t } = useTranslation('groups')
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user, profile, isPremium } = useAuth()
 
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
+  const [groupCount, setGroupCount] = useState(null)
+
+  useEffect(() => {
+    if (!user?.id || isPremium) return
+    supabase
+      .from('group_members')
+      .select('group_id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .then(({ count }) => setGroupCount(count ?? 0))
+  }, [user?.id, isPremium])
 
   // Form state
   const [name, setName] = useState('')
@@ -42,6 +54,17 @@ export default function CreateGroupPage() {
   const [avatarPreview, setAvatarPreview] = useState(null)
 
   document.title = `${t('create')} | Communio`
+
+  if (!isPremium && groupCount !== null && groupCount >= 3) {
+    return (
+      <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
+        <PremiumPrompt
+          title="Unlimited Groups"
+          body="Free members can create up to 3 groups. Upgrade to Premium to create more."
+        />
+      </div>
+    )
+  }
 
   function handleAvatarChange(e) {
     const file = e.target.files[0]
