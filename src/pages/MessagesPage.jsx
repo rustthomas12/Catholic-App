@@ -11,8 +11,6 @@ import PremiumPrompt from '../components/shared/PremiumPrompt'
 import Avatar from '../components/shared/Avatar'
 import { format, isToday, isYesterday } from 'date-fns'
 
-document.title = 'Messages | Communio'
-
 // ── helpers ────────────────────────────────────────────────
 function formatTime(ts) {
   const d = new Date(ts)
@@ -275,6 +273,7 @@ function ConversationView({ userId, partner, onBack }) {
 
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
+  document.title = 'Messages | Communio'
   const { user, profile } = useAuth()
   const isPremium = !!profile?.is_premium
   const { convos, loading, reload } = useConversations(isPremium ? user?.id : null)

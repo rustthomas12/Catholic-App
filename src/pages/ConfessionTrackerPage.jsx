@@ -43,7 +43,7 @@ export default function ConfessionTrackerPage() {
         if (!error && data) setHistory(data)
         setLoading(false)
       })
-  }, [user, isPremium])
+  }, [user])
 
   const lastConfession = history[0] ?? null
   const daysSince = lastConfession
@@ -232,7 +232,7 @@ export default function ConfessionTrackerPage() {
               <p className="text-xs text-gray-500 mt-0.5">{t('examination_subtitle')}</p>
             </div>
             <Link
-              to="/examination"
+              to="/premium/examination"
               className="text-xs font-bold text-gold bg-white border border-gold/30 px-3 py-2 rounded-xl hover:bg-gold/5 transition-colors flex-shrink-0 ml-3"
             >
               Open →

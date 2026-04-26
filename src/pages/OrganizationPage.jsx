@@ -306,6 +306,7 @@ function OrgContactModal({ org, onClose }) {
       recipient_id: org.created_by,
       content: subject.trim() ? `[${subject.trim()}]\n\n${body.trim()}` : body.trim(),
       org_id: org.id,
+      is_premium_dm: true,
     })
     if (error) {
       toast.error('Could not send message. Please try again.')

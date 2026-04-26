@@ -6,7 +6,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useReadings, useTLMReadings } from '../hooks/useReadings'
+import { useReadings } from '../hooks/useReadings'
 import { useTodaySaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
 import { getDaysAgo, formatConfessionDate, formatRelativeTime } from '../utils/dates'
@@ -26,19 +26,7 @@ export default function FaithPage() {
   const { t } = useTranslation('faith')
   const { user } = useAuth()
 
-  const [rite, setRite] = useState(() => localStorage.getItem('communio-readings-preference') || 'no')
-
-  function toggleRite(next) {
-    setRite(next)
-    localStorage.setItem('communio-readings-preference', next)
-  }
-
   const { readings, loading, error, liturgicalInfo, feastInfo, todayFormatted } = useReadings()
-  const { readings: tlmReadings, loading: tlmLoading, error: tlmError } = useTLMReadings(rite === 'tlm')
-
-  const displayReadings = rite === 'tlm' ? tlmReadings : readings
-  const displayLoading = rite === 'tlm' ? tlmLoading : loading
-  const displayError = rite === 'tlm' ? tlmError : error
 
   const { saint, loading: saintLoading } = useTodaySaint()
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()
@@ -124,26 +112,11 @@ export default function FaithPage() {
         <div className="h-px bg-gray-200 mt-3 mb-6" />
 
         {/* ── Readings ── */}
-        {/* Rite toggle */}
-        <div className="flex items-center justify-end mb-3 gap-1">
-          <button
-            onClick={() => toggleRite('no')}
-            className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors ${rite === 'no' ? 'bg-navy text-white' : 'text-gray-400 hover:text-navy'}`}
-          >
-            Novus Ordo
-          </button>
-          <button
-            onClick={() => toggleRite('tlm')}
-            className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors ${rite === 'tlm' ? 'bg-navy text-white' : 'text-gray-400 hover:text-navy'}`}
-          >
-            Traditional
-          </button>
-        </div>
         <ReadingsCard
           variant="full"
-          readings={displayReadings}
-          loading={displayLoading}
-          error={displayError}
+          readings={readings}
+          loading={loading}
+          error={error}
           liturgicalInfo={liturgicalInfo}
           feastInfo={feastInfo}
           todayFormatted={todayFormatted}
