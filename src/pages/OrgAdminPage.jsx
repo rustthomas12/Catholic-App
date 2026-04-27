@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BuildingOffice2Icon,
   ArrowLeftIcon,
@@ -8,7 +8,10 @@ import {
   PencilSquareIcon,
   TrashIcon,
   ClipboardDocumentIcon,
+  CreditCardIcon,
 } from '@heroicons/react/24/outline'
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
+import { format, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -27,19 +30,49 @@ async function checkOrgAccess(orgId, userId) {
 // ── Tabs ───────────────────────────────────────────────────
 const TABS = [
   { id: 'overview', label: 'Overview' },
-  { id: 'members', label: 'Members' },
-  { id: 'invites', label: 'Invites' },
+  { id: 'members',  label: 'Members' },
+  { id: 'invites',  label: 'Invites' },
   { id: 'settings', label: 'Settings' },
+  { id: 'billing',  label: 'Billing', icon: CreditCardIcon },
 ]
+
+// ── Subscription gate prompt ───────────────────────────────
+function SubscriptionPrompt({ onBilling }) {
+  return (
+    <div className="text-center py-16 px-6">
+      <BuildingOffice2Icon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-navy mb-2">
+        Activate your organization dashboard
+      </h3>
+      <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+        Start your free 90-day trial to access member management,
+        invite links, and more.
+      </p>
+      <button
+        onClick={onBilling}
+        className="bg-navy text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-navy/90 transition-colors"
+      >
+        Start Free Trial →
+      </button>
+    </div>
+  )
+}
 
 export default function OrgAdminPage() {
   const { orgId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('overview')
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get('tab')
+    return TABS.find(t => t.id === tab) ? tab : 'overview'
+  })
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [subscription, setSubscription] = useState(null)
+  const [subLoading, setSubLoading] = useState(true)
 
   useEffect(() => {
     if (!user || !orgId) return
@@ -54,6 +87,21 @@ export default function OrgAdminPage() {
       setLoading(false)
     })
   }, [orgId, user?.id])
+
+  useEffect(() => {
+    if (!orgId) return
+    supabase
+      .from('org_subscriptions')
+      .select('*')
+      .eq('org_id', orgId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setSubscription(data)
+        setSubLoading(false)
+      })
+  }, [orgId])
+
+  const hasActiveSubscription = ['trialing', 'active'].includes(subscription?.status)
 
   if (loading) {
     return (
@@ -78,6 +126,8 @@ export default function OrgAdminPage() {
     )
   }
 
+  const goToBilling = () => setActiveTab('billing')
+
   return (
     <div className="min-h-screen bg-cream md:pl-60">
 
@@ -100,6 +150,11 @@ export default function OrgAdminPage() {
               <p className="text-white/60 text-xs font-semibold uppercase tracking-wide">Admin</p>
               <h1 className="text-white font-bold text-lg leading-tight">{org.name}</h1>
             </div>
+            {hasActiveSubscription && (
+              <span className="ml-auto text-[10px] font-bold bg-gold/20 text-gold px-2 py-1 rounded-full">
+                {subscription.status === 'trialing' ? 'Trial' : 'Active'}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -111,7 +166,7 @@ export default function OrgAdminPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-shrink-0 px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              className={`flex-shrink-0 px-5 py-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
                 activeTab === tab.id ? 'border-navy text-navy' : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -123,10 +178,35 @@ export default function OrgAdminPage() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 pt-4 pb-24 md:pb-8">
-        {activeTab === 'overview'  && <OverviewTab org={org} orgId={orgId} />}
-        {activeTab === 'members'   && <MembersTab orgId={orgId} />}
-        {activeTab === 'invites'   && <InvitesTab orgId={orgId} userId={user.id} />}
-        {activeTab === 'settings'  && <SettingsTab org={org} setOrg={setOrg} orgId={orgId} />}
+        {activeTab === 'overview' && (
+          !subLoading && !hasActiveSubscription
+            ? <SubscriptionPrompt onBilling={goToBilling} />
+            : <OverviewTab org={org} orgId={orgId} />
+        )}
+        {activeTab === 'members' && (
+          !subLoading && !hasActiveSubscription
+            ? <SubscriptionPrompt onBilling={goToBilling} />
+            : <MembersTab orgId={orgId} />
+        )}
+        {activeTab === 'invites' && (
+          !subLoading && !hasActiveSubscription
+            ? <SubscriptionPrompt onBilling={goToBilling} />
+            : <InvitesTab orgId={orgId} userId={user.id} hasActiveSubscription={hasActiveSubscription} />
+        )}
+        {activeTab === 'settings' && (
+          !subLoading && !hasActiveSubscription
+            ? <SubscriptionPrompt onBilling={goToBilling} />
+            : <SettingsTab org={org} setOrg={setOrg} orgId={orgId} />
+        )}
+        {activeTab === 'billing' && (
+          <BillingTab
+            org={org}
+            orgId={orgId}
+            user={user}
+            subscription={subscription}
+            setSubscription={setSubscription}
+          />
+        )}
       </div>
     </div>
   )
@@ -247,7 +327,7 @@ function MembersTab({ orgId }) {
 }
 
 // ── InvitesTab ─────────────────────────────────────────────
-function InvitesTab({ orgId, userId }) {
+function InvitesTab({ orgId, userId, hasActiveSubscription }) {
   const [invites, setInvites] = useState([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -263,6 +343,7 @@ function InvitesTab({ orgId, userId }) {
   useEffect(load, [orgId])
 
   const createInvite = async () => {
+    if (!hasActiveSubscription) return
     setCreating(true)
     const code = Math.random().toString(36).slice(2, 10).toUpperCase()
     const { error } = await supabase.from('organization_invites')
@@ -285,14 +366,23 @@ function InvitesTab({ orgId, userId }) {
 
   return (
     <div className="space-y-4">
-      <button
-        onClick={createInvite}
-        disabled={creating}
-        className="w-full flex items-center justify-center gap-2 bg-navy text-white text-sm font-semibold py-3 rounded-xl hover:bg-navy/90 transition-colors disabled:opacity-60"
-      >
-        <LinkIcon className="w-4 h-4" />
-        {creating ? 'Creating…' : 'Create invite link'}
-      </button>
+      {/* Gate new invite creation — existing invites still visible */}
+      {hasActiveSubscription ? (
+        <button
+          onClick={createInvite}
+          disabled={creating}
+          className="w-full flex items-center justify-center gap-2 bg-navy text-white text-sm font-semibold py-3 rounded-xl hover:bg-navy/90 transition-colors disabled:opacity-60"
+        >
+          <LinkIcon className="w-4 h-4" />
+          {creating ? 'Creating…' : 'Create invite link'}
+        </button>
+      ) : (
+        <div className="bg-navy/5 rounded-2xl p-4 text-center">
+          <p className="text-gray-500 text-sm">
+            Invite link generation requires an active subscription.
+          </p>
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-2">{[1,2].map(i => <div key={i} className="bg-white h-16 rounded-2xl animate-pulse border border-gray-100" />)}</div>
@@ -425,6 +515,246 @@ function SettingsTab({ org, setOrg, orgId }) {
           {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ── BillingTab ─────────────────────────────────────────────
+const TIERS = [
+  { key: 'small', label: 'Small',  price: '$99',  period: '/mo', desc: 'Under 100 members' },
+  { key: 'mid',   label: 'Mid',    price: '$149', period: '/mo', desc: '100–500 members' },
+  { key: 'large', label: 'Large',  price: '$249', period: '/mo', desc: '500+ members' },
+]
+
+const TIER_LABELS = { small: 'Small — $99/month', mid: 'Mid — $149/month', large: 'Large — $249/month' }
+
+const STATUS_BADGE = {
+  trialing: 'bg-blue-100 text-blue-700',
+  active:   'bg-green-100 text-green-700',
+  past_due: 'bg-amber-100 text-amber-700',
+  canceled: 'bg-red-100 text-red-700',
+  unpaid:   'bg-red-100 text-red-700',
+}
+
+function humanizeEvent(eventType) {
+  const map = {
+    'checkout.session.completed:org_base':       'Subscription started',
+    'customer.subscription.updated:org_base':    'Subscription updated',
+    'customer.subscription.deleted:org_base':    'Subscription canceled',
+    'invoice.payment_failed:org_base':           'Payment failed',
+  }
+  return map[eventType] ?? eventType
+}
+
+function BillingTab({ org, orgId, user, subscription, setSubscription }) {
+  const [selectedTier, setSelectedTier] = useState('small')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [billingEvents, setBillingEvents] = useState([])
+  const [inviteSummary, setInviteSummary] = useState(null)
+
+  const hasSubscription = !!subscription
+  const isActive = ['trialing', 'active'].includes(subscription?.status)
+
+  useEffect(() => {
+    if (!subscription?.stripe_customer_id) return
+
+    // Load billing history
+    supabase
+      .from('billing_events')
+      .select('id, event_type, status, created_at')
+      .eq('stripe_customer_id', subscription.stripe_customer_id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data }) => setBillingEvents(data ?? []))
+
+    // Load invite summary
+    supabase
+      .from('organization_invites')
+      .select('id, use_count')
+      .eq('org_id', orgId)
+      .then(({ data }) => {
+        const rows = data ?? []
+        setInviteSummary({
+          count: rows.length,
+          totalUses: rows.reduce((sum, r) => sum + (r.use_count || 0), 0),
+        })
+      })
+  }, [subscription?.stripe_customer_id, orgId])
+
+  async function handleStartTrial() {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/create-org-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId,
+          orgName: org.name,
+          tier: selectedTier,
+          adminUserId: user.id,
+          adminEmail: user.email,
+        }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else toast.error('Something went wrong. Please try again.')
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
+
+  async function handleManage() {
+    if (!subscription?.stripe_customer_id) return
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else toast.error('Something went wrong. Please try again.')
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── No subscription: tier selection ── */}
+      {!hasSubscription && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="text-center mb-5">
+            <p className="font-bold text-navy text-base mb-1">Start your free 90-day trial</p>
+            <p className="text-gray-500 text-sm">No credit card required until day 90.</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {TIERS.map((tier) => (
+              <button
+                key={tier.key}
+                onClick={() => setSelectedTier(tier.key)}
+                className={`p-3 rounded-xl border-2 text-left transition-colors ${
+                  selectedTier === tier.key
+                    ? 'border-navy bg-navy/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <p className="font-bold text-navy text-sm">{tier.label}</p>
+                <p className="text-lg font-bold text-navy">{tier.price}<span className="text-xs text-gray-400 font-normal">{tier.period}</span></p>
+                <p className="text-xs text-gray-500 mt-0.5">{tier.desc}</p>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-xs text-gray-400 text-center mb-4">
+            All plans include: member management, invite links, org feed, events, and admin dashboard.
+          </p>
+
+          <button
+            onClick={handleStartTrial}
+            disabled={checkoutLoading}
+            className="w-full bg-gold text-navy font-bold py-3 rounded-xl text-sm hover:bg-gold/90 disabled:opacity-60 transition-colors"
+          >
+            {checkoutLoading ? 'Redirecting…' : 'Start Free Trial →'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Active subscription: status card ── */}
+      {hasSubscription && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="font-bold text-navy text-sm mb-0.5">Subscription</p>
+              <p className="text-xs text-gray-500">{TIER_LABELS[subscription.tier] ?? subscription.tier}</p>
+            </div>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${STATUS_BADGE[subscription.status] ?? 'bg-gray-100 text-gray-500'}`}>
+              {subscription.status === 'trialing' ? 'Trial' : subscription.status}
+            </span>
+          </div>
+
+          {subscription.status === 'trialing' && subscription.trial_ends_at && (
+            <p className="text-xs text-gray-500 mb-3">
+              Trial ends {format(parseISO(subscription.trial_ends_at), 'MMMM d, yyyy')}
+            </p>
+          )}
+          {subscription.status === 'active' && subscription.current_period_end && (
+            <p className="text-xs text-gray-500 mb-3">
+              Next billing date: {format(parseISO(subscription.current_period_end), 'MMMM d, yyyy')}
+            </p>
+          )}
+          {subscription.status === 'past_due' && (
+            <p className="text-xs text-amber-600 font-medium mb-3">
+              Payment failed — please update your payment method below.
+            </p>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={handleManage}
+              disabled={portalLoading}
+              className="w-full border border-gray-200 text-navy text-sm font-semibold py-2.5 rounded-xl hover:border-navy transition-colors disabled:opacity-60"
+            >
+              {portalLoading ? 'Opening…' : 'Manage subscription →'}
+            </button>
+            <p className="text-xs text-gray-400 text-center">
+              To change your plan, click "Manage subscription" and select a different plan in the Stripe portal.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invite summary (active only) ── */}
+      {isActive && inviteSummary !== null && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <p className="font-semibold text-navy text-sm mb-3">Invite Links</p>
+          <div className="flex gap-6">
+            <div>
+              <p className="text-2xl font-bold text-navy">{inviteSummary.count}</p>
+              <p className="text-xs text-gray-400">Active codes</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-navy">{inviteSummary.totalUses}</p>
+              <p className="text-xs text-gray-400">Total joins</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {/* parent will need to navigate to invites tab */}}
+            className="mt-3 text-xs font-bold text-navy hover:underline"
+          >
+            Go to Invites tab →
+          </button>
+        </div>
+      )}
+
+      {/* ── Billing history ── */}
+      {billingEvents.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <p className="font-semibold text-navy text-sm mb-3">Billing History</p>
+          <div className="space-y-2">
+            {billingEvents.map((ev) => (
+              <div key={ev.id} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <div>
+                  <p className="text-sm text-navy">{humanizeEvent(ev.event_type)}</p>
+                  <p className="text-xs text-gray-400">{format(parseISO(ev.created_at), 'MMM d, yyyy')}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_BADGE[ev.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                  {ev.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

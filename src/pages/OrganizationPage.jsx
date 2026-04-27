@@ -26,6 +26,7 @@ function useOrganization(orgId) {
   const [isMember, setIsMember] = useState(false)
   const [myRole, setMyRole] = useState(null)
   const [joinLoading, setJoinLoading] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
 
   useEffect(() => {
     if (!orgId) return
@@ -41,13 +42,15 @@ function useOrganization(orgId) {
       supabase.from('organizations').select('*').eq('id', orgId).single(),
       supabase.from('organization_members').select('user_id', { count: 'exact', head: true }).eq('org_id', orgId),
       memberCheck,
-    ]).then(([orgRes, countRes, memberRes]) => {
+      supabase.from('org_subscriptions').select('status').eq('org_id', orgId).maybeSingle(),
+    ]).then(([orgRes, countRes, memberRes, subRes]) => {
       if (cancelled) return
       if (orgRes.error) setError(orgRes.error.message)
       else setOrg(orgRes.data)
       setMemberCount(countRes.count ?? 0)
       setIsMember(!!memberRes.data)
       setMyRole(memberRes.data?.role ?? null)
+      setIsSubscribed(['trialing', 'active'].includes(subRes.data?.status))
       setLoading(false)
     })
 
@@ -71,7 +74,7 @@ function useOrganization(orgId) {
     setJoinLoading(false)
   }, [user?.id, orgId, isMember, joinLoading])
 
-  return { org, loading, error, memberCount, isMember, myRole, joinLoading, join }
+  return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed }
 }
 
 const TABS = [
@@ -84,7 +87,7 @@ export default function OrganizationPage() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('feed')
   const [showContact, setShowContact] = useState(false)
-  const { org, loading, error, memberCount, isMember, myRole, joinLoading, join } = useOrganization(id)
+  const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed } = useOrganization(id)
 
   useEffect(() => {
     if (org) document.title = `${org.name} | Communio`
@@ -138,6 +141,11 @@ export default function OrganizationPage() {
                   <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Page" />
                 )}
               </div>
+              {isSubscribed && (
+                <span className="inline-flex items-center gap-1 text-xs bg-gold/20 text-gold border border-gold/30 rounded-full px-2 py-0.5 font-semibold mt-1">
+                  ✓ Communio Member
+                </span>
+              )}
               {org.category && (
                 <span className="inline-block text-[10px] font-semibold text-white/60 bg-white/10 px-2 py-0.5 rounded-full mt-0.5 capitalize">
                   {org.category}

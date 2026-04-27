@@ -203,6 +203,9 @@ export default function CreateOrganizationPage() {
             {saving && <LoadingSpinner size="sm" color="navy" />}
             {saving ? 'Creating…' : 'Create Organization'}
           </button>
+          <p className="text-xs text-gray-400 text-center mt-3">
+            Organization dashboards include a free 90-day trial. No credit card required to get started.
+          </p>
         </form>
       </div>
     </div>

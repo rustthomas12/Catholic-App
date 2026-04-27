@@ -81,6 +81,42 @@ serve(async (req) => {
             status,
           })
 
+        } else if (billingType === 'org_base') {
+          // ── Organization subscription ──
+          const orgId = session.metadata?.org_id
+          const adminUserId = session.metadata?.admin_user_id
+          const tier = session.metadata?.tier || 'small'
+          const subscriptionId = session.subscription as string
+
+          if (!orgId) break
+
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const status = subscription.status
+          const trialEnd = subscription.trial_end
+            ? new Date(subscription.trial_end * 1000).toISOString()
+            : null
+          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+          await supabase.from('org_subscriptions').upsert({
+            org_id: orgId,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            tier,
+            status,
+            trial_ends_at: trialEnd,
+            current_period_end: periodEnd,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'org_id' })
+
+          await supabase.from('billing_events').insert({
+            user_id: adminUserId ?? null,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:org_base`,
+            status,
+            interval: 'month',
+          })
+
         } else if (billingType === 'individual_donation') {
           // ── Individual donation (new model) ──
           const donationType = session.metadata?.donation_type  // 'recurring' | 'one_time'
@@ -147,6 +183,26 @@ serve(async (req) => {
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
             event_type: `${event.type}:parish_base`,
+            status,
+          })
+
+        } else if (billingType === 'org_base') {
+          // ── Organization subscription ──
+          const tier = subscription.metadata?.tier || 'small'
+          const isActive = status === 'active' || status === 'trialing'
+          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+          await supabase.from('org_subscriptions').update({
+            status,
+            tier,
+            current_period_end: isActive ? periodEnd : null,
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_customer_id', customerId)
+
+          await supabase.from('billing_events').insert({
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:org_base`,
             status,
           })
 
@@ -221,6 +277,20 @@ serve(async (req) => {
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
             event_type: `${event.type}:parish_base`,
+            status: 'canceled',
+          })
+
+        } else if (billingType === 'org_base') {
+          // ── Organization subscription canceled ──
+          await supabase.from('org_subscriptions').update({
+            status: 'canceled',
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_customer_id', customerId)
+
+          await supabase.from('billing_events').insert({
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:org_base`,
             status: 'canceled',
           })
 

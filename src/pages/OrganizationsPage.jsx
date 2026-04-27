@@ -72,7 +72,7 @@ function useMyOrgs(userId) {
 }
 
 // ── OrgCard ────────────────────────────────────────────────
-function OrgCard({ org }) {
+function OrgCard({ org, isSubscribed = false }) {
   return (
     <Link
       to={`/organization/${org.id}`}
@@ -86,6 +86,11 @@ function OrgCard({ org }) {
           <p className="font-bold text-navy text-sm leading-snug">{org.name}</p>
           {org.is_official && (
             <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title="Official" />
+          )}
+          {isSubscribed && (
+            <span className="inline-flex items-center text-[10px] font-semibold bg-gold/10 text-gold border border-gold/20 px-1.5 py-0.5 rounded-full">
+              ✓ Member
+            </span>
           )}
         </div>
         {org.category && (
@@ -119,11 +124,30 @@ export default function OrganizationsPage() {
   const [query, setQuery] = useState('')
   const { results, loading: searchLoading, search, clear } = useOrgSearch()
   const { orgs: myOrgs, loading: myOrgsLoading } = useMyOrgs(user?.id)
+  const [subscribedOrgIds, setSubscribedOrgIds] = useState(new Set())
 
   useEffect(() => {
     if (query.trim().length >= 2) search(query)
     else clear()
   }, [query, search, clear])
+
+  // Fetch subscription status for visible orgs
+  useEffect(() => {
+    const orgsToCheck = [
+      ...(myOrgs.map(o => o.id)),
+      ...(results.map(o => o.id)),
+    ]
+    const unique = [...new Set(orgsToCheck)]
+    if (!unique.length) return
+    supabase
+      .from('org_subscriptions')
+      .select('org_id, status')
+      .in('org_id', unique)
+      .in('status', ['trialing', 'active'])
+      .then(({ data }) => {
+        setSubscribedOrgIds(new Set((data ?? []).map(s => s.org_id)))
+      })
+  }, [myOrgs, results])
 
   const isSearching = query.trim().length >= 2
 
@@ -175,7 +199,7 @@ export default function OrganizationsPage() {
               </h2>
               <div className="space-y-2">
                 {myOrgs.map((org) => (
-                  <OrgCard key={org.id} org={org} />
+                  <OrgCard key={org.id} org={org} isSubscribed={subscribedOrgIds.has(org.id)} />
                 ))}
               </div>
             </section>
@@ -205,7 +229,7 @@ export default function OrganizationsPage() {
               ) : (
                 <div className="space-y-2">
                   {results.map((org) => (
-                    <OrgCard key={org.id} org={org} />
+                    <OrgCard key={org.id} org={org} isSubscribed={subscribedOrgIds.has(org.id)} />
                   ))}
                 </div>
               )}
