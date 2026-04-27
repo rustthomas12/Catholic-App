@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 import { format, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -25,14 +26,25 @@ function CheckItem({ text }) {
 export default function PremiumPage() {
   document.title = 'Go Premium | Communio'
 
-  const { user, profile, isPremium, subscriptionStatus, subscriptionInterval } = useAuth()
+  const { user, profile, isPremium, subscriptionStatus, subscriptionInterval, refreshProfile } = useAuth()
+  const [searchParams] = useSearchParams()
+
   const [interval, setInterval] = useState('year')
   const [loading, setLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [sponsorCode, setSponsorCode] = useState('')
+  const [codeLoading, setCodeLoading] = useState(false)
+  const [codeError, setCodeError] = useState(null)
+  const [codeSuccess, setCodeSuccess] = useState(null)
 
   const monthlyPriceId = import.meta.env.VITE_STRIPE_PRICE_MONTHLY
   const yearlyPriceId  = import.meta.env.VITE_STRIPE_PRICE_YEARLY
+
+  // Pre-fill code from QR scan: /premium?code=STPAT4
+  useEffect(() => {
+    const codeFromUrl = searchParams.get('code')
+    if (codeFromUrl) setSponsorCode(codeFromUrl.toUpperCase())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubscribe() {
     if (!user) return
@@ -73,16 +85,47 @@ export default function PremiumPage() {
     }
   }
 
-  function handleSponsorCode(e) {
+  async function handleClaimCode(e) {
     e.preventDefault()
-    alert('Parish sponsorship codes are coming soon. Check with your pastor.')
+    if (!sponsorCode || sponsorCode.length !== 6) {
+      setCodeError('Please enter a 6-character code.')
+      return
+    }
+    setCodeLoading(true)
+    setCodeError(null)
+    setCodeSuccess(null)
+    try {
+      const res = await fetch('/api/claim-sponsorship-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: sponsorCode.toUpperCase(), userId: user.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setCodeError(data.error || 'Something went wrong.')
+      } else {
+        setCodeSuccess(`Premium activated by ${data.parishName}!`)
+        await refreshProfile()
+      }
+    } catch {
+      setCodeError('Network error. Please try again.')
+    } finally {
+      setCodeLoading(false)
+    }
   }
 
   const isPastDue = subscriptionStatus === 'past_due'
+  const isParishSponsored = profile?.premium_source === 'parish_sponsored'
   const renewsAt = profile?.premium_expires_at
     ? format(parseISO(profile.premium_expires_at), 'MMMM d, yyyy')
     : null
-  const planLabel = subscriptionInterval === 'year' ? 'Yearly plan' : subscriptionInterval === 'month' ? 'Monthly plan' : null
+  const planLabel = subscriptionInterval === 'year'
+    ? 'Yearly plan'
+    : subscriptionInterval === 'month'
+      ? 'Monthly plan'
+      : isParishSponsored
+        ? 'Parish-sponsored'
+        : null
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -126,19 +169,19 @@ export default function PremiumPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 text-center">
             <CheckCircleIcon className="w-12 h-12 text-gold mx-auto mb-2" />
             <p className="font-bold text-navy text-lg">You're a Premium member</p>
-            {planLabel && (
-              <p className="text-sm text-gray-500 mt-1">{planLabel}</p>
-            )}
-            {renewsAt && (
+            {planLabel && <p className="text-sm text-gray-500 mt-1">{planLabel}</p>}
+            {renewsAt && !isParishSponsored && (
               <p className="text-xs text-gray-400 mt-0.5">Renews {renewsAt}</p>
             )}
-            <button
-              onClick={handleManage}
-              disabled={portalLoading}
-              className="mt-4 text-sm font-bold text-navy border border-gray-200 px-5 py-2.5 rounded-xl hover:border-navy transition-colors disabled:opacity-60"
-            >
-              {portalLoading ? 'Opening…' : 'Manage subscription →'}
-            </button>
+            {!isParishSponsored && (
+              <button
+                onClick={handleManage}
+                disabled={portalLoading}
+                className="mt-4 text-sm font-bold text-navy border border-gray-200 px-5 py-2.5 rounded-xl hover:border-navy transition-colors disabled:opacity-60"
+              >
+                {portalLoading ? 'Opening…' : 'Manage subscription →'}
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -167,7 +210,6 @@ export default function PremiumPage() {
 
             {/* Pricing cards */}
             <div className="space-y-3 mb-6">
-              {/* Monthly card */}
               <div
                 onClick={() => setInterval('month')}
                 className={`bg-white rounded-2xl border-2 shadow-sm p-5 cursor-pointer transition-colors ${
@@ -184,12 +226,9 @@ export default function PremiumPage() {
                     <p className="text-xs text-gray-400">/ month</p>
                   </div>
                 </div>
-                {interval === 'month' && (
-                  <div className="mt-3 w-full h-0.5 bg-gold rounded-full" />
-                )}
+                {interval === 'month' && <div className="mt-3 w-full h-0.5 bg-gold rounded-full" />}
               </div>
 
-              {/* Yearly card */}
               <div
                 onClick={() => setInterval('year')}
                 className={`bg-white rounded-2xl border-2 shadow-sm p-5 cursor-pointer transition-colors relative ${
@@ -209,9 +248,7 @@ export default function PremiumPage() {
                     <p className="text-xs text-gray-400">/ year</p>
                   </div>
                 </div>
-                {interval === 'year' && (
-                  <div className="mt-3 w-full h-0.5 bg-gold rounded-full" />
-                )}
+                {interval === 'year' && <div className="mt-3 w-full h-0.5 bg-gold rounded-full" />}
               </div>
             </div>
 
@@ -236,37 +273,50 @@ export default function PremiumPage() {
 
         {/* Feature list */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
-          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-4">
-            What's included
-          </p>
+          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-4">What's included</p>
           <ul className="space-y-3">
             {FEATURES.map(f => <CheckItem key={f} text={f} />)}
           </ul>
         </div>
 
-        {/* Parish sponsorship code */}
-        <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="font-semibold text-navy text-sm mb-1">Parish-sponsored? Enter your code.</p>
-          <p className="text-xs text-gray-500 mb-3">
-            Some parishes sponsor Premium for their members. Enter your 6-character code below.
-          </p>
-          <form onSubmit={handleSponsorCode} className="flex gap-2">
-            <input
-              value={sponsorCode}
-              onChange={e => setSponsorCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-              placeholder="e.g. STPAT4"
-              maxLength={6}
-              className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-navy tracking-widest"
-            />
-            <button
-              type="submit"
-              disabled={sponsorCode.length !== 6}
-              className="px-4 py-2 bg-navy text-white text-sm font-bold rounded-xl hover:bg-navy/90 disabled:opacity-40 transition-colors"
-            >
-              Apply
-            </button>
-          </form>
-        </div>
+        {/* Parish sponsorship code — hidden if already parish-sponsored */}
+        {!isParishSponsored && (
+          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p className="font-semibold text-navy text-sm mb-1">Parish-sponsored? Enter your code.</p>
+            <p className="text-xs text-gray-500 mb-3">
+              Some parishes sponsor Premium for their members. Enter your 6-character code below.
+            </p>
+            {codeSuccess ? (
+              <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5">
+                <CheckCircleIcon className="w-4 h-4 flex-shrink-0" />
+                <p className="text-sm font-semibold">{codeSuccess}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleClaimCode} className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={sponsorCode}
+                    onChange={e => {
+                      setSponsorCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+                      setCodeError(null)
+                    }}
+                    placeholder="e.g. STPAT4"
+                    maxLength={6}
+                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-navy tracking-widest"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sponsorCode.length !== 6 || codeLoading}
+                    className="px-4 py-2 bg-navy text-white text-sm font-bold rounded-xl hover:bg-navy/90 disabled:opacity-40 transition-colors"
+                  >
+                    {codeLoading ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {codeError && <p className="text-xs text-red-500">{codeError}</p>}
+              </form>
+            )}
+          </div>
+        )}
 
         {/* Scripture */}
         <div className="text-center mt-8">

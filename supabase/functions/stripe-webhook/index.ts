@@ -41,101 +41,198 @@ serve(async (req) => {
 
   try {
     switch (event.type) {
+
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.mode !== 'subscription') break
 
+        const billingType = session.metadata?.billing_type
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string
-        const userId = session.metadata?.user_id
 
-        if (!userId) {
-          console.error('No user_id in session metadata')
-          break
+        if (billingType === 'parish_base') {
+          // ── Parish Base subscription ──
+          const parishId = session.metadata?.parish_id
+          const adminUserId = session.metadata?.admin_user_id
+          if (!parishId) break
+
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const status = subscription.status
+          const trialEnd = subscription.trial_end
+            ? new Date(subscription.trial_end * 1000).toISOString()
+            : null
+          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+          await supabase.from('parish_subscriptions').upsert({
+            parish_id: parishId,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            status,
+            trial_ends_at: trialEnd,
+            current_period_end: periodEnd,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'parish_id' })
+
+          await supabase.from('billing_events').insert({
+            user_id: adminUserId ?? null,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:parish_base`,
+            status,
+          })
+        } else {
+          // ── Individual subscription ──
+          const userId = session.metadata?.user_id
+          if (!userId) {
+            console.error('No user_id in session metadata')
+            break
+          }
+
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const interval = subscription.items.data[0]?.plan.interval
+          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+          await supabase.from('profiles').update({
+            stripe_customer_id: customerId,
+            is_premium: true,
+            premium_expires_at: periodEnd,
+            subscription_status: 'active',
+            subscription_interval: interval,
+            premium_source: 'individual',
+          }).eq('id', userId)
+
+          await supabase.from('billing_events').insert({
+            user_id: userId,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: event.type,
+            status: 'active',
+            interval,
+          })
         }
-
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-        const interval = subscription.items.data[0]?.plan.interval
-        const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
-
-        await supabase.from('profiles').update({
-          stripe_customer_id: customerId,
-          is_premium: true,
-          premium_expires_at: periodEnd,
-          subscription_status: 'active',
-          subscription_interval: interval,
-        }).eq('id', userId)
-
-        await supabase.from('billing_events').insert({
-          user_id: userId,
-          stripe_customer_id: customerId,
-          stripe_event_id: event.id,
-          event_type: event.type,
-          status: 'active',
-          interval,
-        })
         break
       }
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
+        const billingType = subscription.metadata?.billing_type
         const customerId = subscription.customer as string
         const status = subscription.status
-        const interval = subscription.items.data[0]?.plan.interval
         const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
-        const isPremium = status === 'active' || status === 'trialing'
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
+        if (billingType === 'parish_base') {
+          await supabase.from('parish_subscriptions').update({
+            status,
+            current_period_end: periodEnd,
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_customer_id', customerId)
 
-        if (!profile) break
+          await supabase.from('billing_events').insert({
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:parish_base`,
+            status,
+          })
+        } else {
+          // Individual subscription
+          const interval = subscription.items.data[0]?.plan.interval
+          const isPremium = status === 'active' || status === 'trialing'
 
-        await supabase.from('profiles').update({
-          is_premium: isPremium,
-          premium_expires_at: isPremium ? periodEnd : null,
-          subscription_status: status,
-          subscription_interval: interval,
-        }).eq('id', profile.id)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('stripe_customer_id', customerId)
+            .single()
 
-        await supabase.from('billing_events').insert({
-          user_id: profile.id,
-          stripe_customer_id: customerId,
-          stripe_event_id: event.id,
-          event_type: event.type,
-          status,
-          interval,
-        })
+          if (!profile) break
+
+          await supabase.from('profiles').update({
+            is_premium: isPremium,
+            premium_expires_at: isPremium ? periodEnd : null,
+            subscription_status: status,
+            subscription_interval: interval,
+          }).eq('id', profile.id)
+
+          await supabase.from('billing_events').insert({
+            user_id: profile.id,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: event.type,
+            status,
+            interval,
+          })
+        }
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
+        const billingType = subscription.metadata?.billing_type
         const customerId = subscription.customer as string
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
+        if (billingType === 'parish_base') {
+          // Get parish_id before updating status
+          const { data: parishSub } = await supabase
+            .from('parish_subscriptions')
+            .select('parish_id')
+            .eq('stripe_customer_id', customerId)
+            .single()
 
-        if (!profile) break
+          await supabase.from('parish_subscriptions').update({
+            status: 'canceled',
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_customer_id', customerId)
 
-        await supabase.from('profiles').update({
-          is_premium: false,
-          premium_expires_at: null,
-          subscription_status: 'canceled',
-        }).eq('id', profile.id)
+          if (parishSub?.parish_id) {
+            // Deactivate all sponsorship codes
+            await supabase.from('parish_sponsorship_codes')
+              .update({ is_active: false, rotated_at: new Date().toISOString() })
+              .eq('parish_id', parishSub.parish_id)
+              .eq('is_active', true)
 
-        await supabase.from('billing_events').insert({
-          user_id: profile.id,
-          stripe_customer_id: customerId,
-          stripe_event_id: event.id,
-          event_type: event.type,
-          status: 'canceled',
-        })
+            // Deactivate all sponsored activations
+            await supabase.from('sponsored_activations')
+              .update({ is_active: false, deactivated_at: new Date().toISOString() })
+              .eq('parish_id', parishSub.parish_id)
+              .eq('is_active', true)
+
+            // Revoke premium from sponsored users
+            await supabase.from('profiles')
+              .update({ is_premium: false, premium_source: 'none', sponsored_by_parish_id: null })
+              .eq('sponsored_by_parish_id', parishSub.parish_id)
+              .eq('premium_source', 'parish_sponsored')
+          }
+
+          await supabase.from('billing_events').insert({
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:parish_base`,
+            status: 'canceled',
+          })
+        } else {
+          // Individual subscription
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('stripe_customer_id', customerId)
+            .single()
+
+          if (!profile) break
+
+          await supabase.from('profiles').update({
+            is_premium: false,
+            premium_expires_at: null,
+            subscription_status: 'canceled',
+          }).eq('id', profile.id)
+
+          await supabase.from('billing_events').insert({
+            user_id: profile.id,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: event.type,
+            status: 'canceled',
+          })
+        }
         break
       }
 
@@ -143,25 +240,47 @@ serve(async (req) => {
         const invoice = event.data.object as Stripe.Invoice
         const customerId = invoice.customer as string
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
+        // Try parish first
+        const { data: parishSub } = await supabase
+          .from('parish_subscriptions')
+          .select('parish_id')
           .eq('stripe_customer_id', customerId)
           .single()
 
-        if (!profile) break
+        if (parishSub) {
+          await supabase.from('parish_subscriptions').update({
+            status: 'past_due',
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_customer_id', customerId)
 
-        await supabase.from('profiles').update({
-          subscription_status: 'past_due',
-        }).eq('id', profile.id)
+          await supabase.from('billing_events').insert({
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: `${event.type}:parish_base`,
+            status: 'past_due',
+          })
+        } else {
+          // Individual
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('stripe_customer_id', customerId)
+            .single()
 
-        await supabase.from('billing_events').insert({
-          user_id: profile.id,
-          stripe_customer_id: customerId,
-          stripe_event_id: event.id,
-          event_type: event.type,
-          status: 'past_due',
-        })
+          if (!profile) break
+
+          await supabase.from('profiles').update({
+            subscription_status: 'past_due',
+          }).eq('id', profile.id)
+
+          await supabase.from('billing_events').insert({
+            user_id: profile.id,
+            stripe_customer_id: customerId,
+            stripe_event_id: event.id,
+            event_type: event.type,
+            status: 'past_due',
+          })
+        }
         break
       }
     }

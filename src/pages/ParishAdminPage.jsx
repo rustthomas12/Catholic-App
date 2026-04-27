@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   ChartBarIcon,
   MegaphoneIcon,
@@ -14,12 +14,17 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   EnvelopeIcon,
+  CreditCardIcon,
+  ClipboardDocumentIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
+import { QRCodeSVG } from 'qrcode.react'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import { generateSponsorshipCode } from '../utils/sponsorshipCode'
 
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
@@ -29,6 +34,7 @@ const TABS = [
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
   { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
   { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
+  { id: 'billing',       label: 'Billing',       Icon: CreditCardIcon },
 ]
 
 // ── Access guard ────────────────────────────────────────────
@@ -44,19 +50,21 @@ async function checkAccess(parishId, userId) {
 
 export default function ParishAdminPage() {
   const { parishId } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard')
   const [parish, setParish] = useState(null)
   const [adminRole, setAdminRole] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [subscription, setSubscription] = useState(null)
+  const [subLoading, setSubLoading] = useState(true)
 
   document.title = 'Parish Admin | Communio'
 
   useEffect(() => {
     if (!user) return
     async function init() {
-      // App-level admins bypass parish_admins check
       if (!isAdmin) {
         const access = await checkAccess(parishId, user.id)
         if (!access) { navigate('/', { replace: true }); return }
@@ -76,6 +84,19 @@ export default function ParishAdminPage() {
     init()
   }, [parishId, user, isAdmin, navigate])
 
+  useEffect(() => {
+    supabase
+      .from('parish_subscriptions')
+      .select('status, trial_ends_at, current_period_end, stripe_customer_id')
+      .eq('parish_id', parishId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setSubscription(data)
+        setSubLoading(false)
+      })
+      .catch(() => setSubLoading(false))
+  }, [parishId])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center">
@@ -83,6 +104,8 @@ export default function ParishAdminPage() {
       </div>
     )
   }
+
+  const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
 
   const ActivePanel = {
     dashboard:     DashboardTab,
@@ -92,6 +115,7 @@ export default function ParishAdminPage() {
     parishioners:  ParishionersTab,
     messages:      MessagesTab,
     settings:      SettingsTab,
+    billing:       BillingTab,
   }[activeTab]
 
   return (
@@ -133,7 +157,31 @@ export default function ParishAdminPage() {
 
       {/* ── Content ── */}
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
-        <ActivePanel parishId={parishId} parish={parish} setParish={setParish} adminRole={adminRole} />
+        {activeTab !== 'billing' && !subLoading && !hasActiveSub ? (
+          <div className="text-center py-16 px-4">
+            <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+            <h3 className="font-bold text-navy text-lg mb-2">Activate your parish dashboard</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              Start your free 90-day trial to access announcements, events, mass times, and more.
+            </p>
+            <button
+              onClick={() => setActiveTab('billing')}
+              className="bg-gold text-navy font-bold px-6 py-3 rounded-xl hover:bg-gold/90 transition-colors"
+            >
+              Start Free Trial →
+            </button>
+          </div>
+        ) : (
+          <ActivePanel
+            parishId={parishId}
+            parish={parish}
+            setParish={setParish}
+            adminRole={adminRole}
+            subscription={subscription}
+            setSubscription={setSubscription}
+            setActiveTab={setActiveTab}
+          />
+        )}
       </div>
     </div>
   )
@@ -856,6 +904,373 @@ function MessagesTab({ parishId }) {
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Billing Tab ─────────────────────────────────────────────
+function BillingTab({ parishId, parish, subscription, setSubscription }) {
+  const { user } = useAuth()
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [code, setCode] = useState(null)
+  const [codeLoading, setCodeLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+  const [rotateConfirm, setRotateConfirm] = useState(false)
+  const [rotating, setRotating] = useState(false)
+  const [activationStats, setActivationStats] = useState({ total: 0, billable: 0 })
+  const [billingEvents, setBillingEvents] = useState([])
+
+  const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
+
+  useEffect(() => {
+    if (!hasActiveSub) { setCodeLoading(false); return }
+
+    async function loadCode() {
+      const { data } = await supabase
+        .from('parish_sponsorship_codes')
+        .select('*')
+        .eq('parish_id', parishId)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (data) {
+        setCode(data)
+      } else {
+        // Auto-generate first code
+        const newCode = generateSponsorshipCode(parish?.name || '')
+        const { data: inserted } = await supabase
+          .from('parish_sponsorship_codes')
+          .insert({ parish_id: parishId, code: newCode, created_by: user?.id, is_active: true })
+          .select()
+          .single()
+        if (inserted) setCode(inserted)
+      }
+      setCodeLoading(false)
+    }
+
+    loadCode()
+  }, [parishId, hasActiveSub, parish?.name, user?.id])
+
+  useEffect(() => {
+    if (!hasActiveSub) return
+    // Activation counts
+    supabase
+      .from('sponsored_activations')
+      .select('is_billable', { count: 'exact' })
+      .eq('parish_id', parishId)
+      .eq('is_active', true)
+      .then(({ data, count }) => {
+        const billable = (data ?? []).filter(r => r.is_billable).length
+        setActivationStats({ total: count ?? 0, billable })
+      })
+
+    // Billing events
+    if (subscription?.stripe_customer_id) {
+      supabase
+        .from('billing_events')
+        .select('event_type, status, created_at')
+        .eq('stripe_customer_id', subscription.stripe_customer_id)
+        .order('created_at', { ascending: false })
+        .limit(10)
+        .then(({ data }) => setBillingEvents(data ?? []))
+    }
+  }, [parishId, hasActiveSub, subscription?.stripe_customer_id])
+
+  async function handleStartTrial() {
+    if (!user) return
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/create-parish-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parishId,
+          parishName: parish?.name,
+          adminUserId: user.id,
+          adminEmail: user.email,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not start trial. Please try again.')
+      setCheckoutLoading(false)
+    }
+  }
+
+  async function handleManage() {
+    if (!subscription?.stripe_customer_id) return
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (err) {
+      console.error(err)
+      toast.error('Something went wrong.')
+      setPortalLoading(false)
+    }
+  }
+
+  function handleCopy() {
+    if (!code?.code) return
+    navigator.clipboard.writeText(code.code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  function downloadQR() {
+    const svg = document.getElementById('parish-qr-code')
+    if (!svg) return
+    const svgData = new XMLSerializer().serializeToString(svg)
+    const canvas = document.createElement('canvas')
+    canvas.width = 200; canvas.height = 200
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    img.onload = () => {
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, 200, 200)
+      ctx.drawImage(img, 0, 0)
+      const link = document.createElement('a')
+      link.download = `Communio-${code?.code}-QR.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    }
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData)
+  }
+
+  async function handleRotate() {
+    setRotating(true)
+    try {
+      // Deactivate old code
+      if (code) {
+        await supabase
+          .from('parish_sponsorship_codes')
+          .update({ is_active: false, rotated_at: new Date().toISOString() })
+          .eq('id', code.id)
+      }
+      // Generate new code
+      const newCode = generateSponsorshipCode(parish?.name || '')
+      const { data: inserted } = await supabase
+        .from('parish_sponsorship_codes')
+        .insert({ parish_id: parishId, code: newCode, created_by: user?.id, is_active: true })
+        .select()
+        .single()
+      if (inserted) setCode(inserted)
+      setRotateConfirm(false)
+      toast.success('New code generated.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not rotate code.')
+    }
+    setRotating(false)
+  }
+
+  function statusBadge(status) {
+    const map = {
+      trialing: { label: 'Trial', cls: 'bg-blue-100 text-blue-700' },
+      active:   { label: 'Active', cls: 'bg-green-100 text-green-700' },
+      past_due: { label: 'Past Due', cls: 'bg-amber-100 text-amber-700' },
+      canceled: { label: 'Canceled', cls: 'bg-red-100 text-red-600' },
+    }
+    const s = map[status] || { label: status, cls: 'bg-gray-100 text-gray-600' }
+    return <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${s.cls}`}>{s.label}</span>
+  }
+
+  function humanizeEvent(type) {
+    if (type.includes('checkout.session.completed')) return 'Subscription started'
+    if (type.includes('subscription.updated')) return 'Subscription updated'
+    if (type.includes('subscription.deleted')) return 'Subscription canceled'
+    if (type.includes('payment_failed')) return 'Payment failed'
+    return type
+  }
+
+  const appUrl = import.meta.env.VITE_APP_URL || 'https://communio.app'
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-bold text-navy">Billing</h2>
+
+      {/* ── Subscription status ── */}
+      {!subscription ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Base Plan</p>
+          <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
+          <p className="text-sm text-gray-500 mb-5">$75/month after trial. No credit card required until day 90.</p>
+          <ul className="space-y-2 mb-6">
+            {['Announcements & events', 'Mass times editor', 'Parishioner directory', 'Messages inbox', 'Sponsorship codes for your parishioners'].map(f => (
+              <li key={f} className="flex items-center gap-2 text-sm text-navy">
+                <CheckCircleIcon className="w-4 h-4 text-gold flex-shrink-0" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={handleStartTrial}
+            disabled={checkoutLoading}
+            className="w-full bg-gold text-navy font-bold py-3.5 rounded-xl hover:bg-gold/90 disabled:opacity-60 transition-colors"
+          >
+            {checkoutLoading ? 'Redirecting…' : 'Start Free Trial →'}
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-bold text-navy">Parish Base Plan</p>
+            {statusBadge(subscription.status)}
+          </div>
+          {subscription.status === 'trialing' && subscription.trial_ends_at && (
+            <p className="text-sm text-gray-500">
+              Trial ends {format(parseISO(subscription.trial_ends_at), 'MMMM d, yyyy')}
+            </p>
+          )}
+          {subscription.status === 'active' && subscription.current_period_end && (
+            <p className="text-sm text-gray-500">
+              Next billing date: {format(parseISO(subscription.current_period_end), 'MMMM d, yyyy')}
+            </p>
+          )}
+          {subscription.stripe_customer_id && (
+            <button
+              onClick={handleManage}
+              disabled={portalLoading}
+              className="mt-3 text-sm font-semibold text-navy hover:underline disabled:opacity-60"
+            >
+              {portalLoading ? 'Opening…' : 'Manage subscription →'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Sponsorship code ── */}
+      {hasActiveSub && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <p className="font-bold text-navy mb-1">Parish Sponsorship Code</p>
+          <p className="text-xs text-gray-500 mb-4">
+            Give your parishioners free premium access. They enter this code at {appUrl}/premium.
+          </p>
+
+          {codeLoading ? (
+            <LoadingSpinner />
+          ) : code ? (
+            <>
+              {/* Code display */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 bg-navy/5 rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-navy font-mono tracking-[0.3em]">{code.code}</p>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-navy hover:border-navy transition-colors"
+                >
+                  <ClipboardDocumentIcon className="w-4 h-4" />
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs text-gray-400 mb-5">
+                <span>Created {format(parseISO(code.created_at), 'MMM d, yyyy')}</span>
+                <span>·</span>
+                <span>{activationStats.total} active ({activationStats.billable} billable)</span>
+              </div>
+
+              {/* QR Code */}
+              <div className="flex flex-col items-center gap-3 border border-gray-100 rounded-2xl p-4 mb-4">
+                <QRCodeSVG
+                  id="parish-qr-code"
+                  value={`${appUrl}/premium?code=${code.code}`}
+                  size={160}
+                  level="M"
+                  includeMargin={true}
+                />
+                <p className="text-xs text-gray-400 text-center">
+                  Scan to open the app with your code pre-filled
+                </p>
+                <button
+                  onClick={downloadQR}
+                  className="text-sm font-semibold text-navy hover:underline"
+                >
+                  Download QR for bulletin →
+                </button>
+              </div>
+
+              {/* Rotate */}
+              {!rotateConfirm ? (
+                <button
+                  onClick={() => setRotateConfirm(true)}
+                  className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-navy transition-colors"
+                >
+                  <ArrowPathIcon className="w-4 h-4" />
+                  Rotate code
+                </button>
+              ) : (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <p className="text-xs text-amber-800 font-semibold mb-2">
+                    Are you sure? The old code will stop working for new activations.
+                    Existing parishioners keep their premium access.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleRotate}
+                      disabled={rotating}
+                      className="text-xs font-bold bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 disabled:opacity-60 transition-colors"
+                    >
+                      {rotating ? 'Rotating…' : 'Yes, rotate'}
+                    </button>
+                    <button
+                      onClick={() => setRotateConfirm(false)}
+                      className="text-xs font-semibold text-gray-500 px-3 py-1.5"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-gray-400">Could not load code. Please refresh.</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Billing history ── */}
+      {billingEvents.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-50">
+            <p className="font-bold text-navy text-sm">Billing History</p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {billingEvents.map((ev, i) => (
+              <div key={i} className="px-4 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-navy">{humanizeEvent(ev.event_type)}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {format(parseISO(ev.created_at), 'MMM d, yyyy · h:mm a')}
+                  </p>
+                </div>
+                {ev.status && (
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    ev.status === 'active' || ev.status === 'trialing'
+                      ? 'bg-green-100 text-green-700'
+                      : ev.status === 'past_due'
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {ev.status}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

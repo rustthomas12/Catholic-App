@@ -77,6 +77,20 @@ export function AuthProvider({ children }) {
       return null
     }
     setStoredProfile(userId, data)
+
+    // Fire-and-forget: track return visit for parish-sponsored users (once per session)
+    if (
+      data?.premium_source === 'parish_sponsored' &&
+      !sessionStorage.getItem('communio-return-tracked')
+    ) {
+      sessionStorage.setItem('communio-return-tracked', 'true')
+      fetch('/api/track-return', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      }).catch(() => {})
+    }
+
     return data
   }, [])
 
