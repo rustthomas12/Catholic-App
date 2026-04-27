@@ -7,7 +7,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
-import PremiumPrompt from '../components/shared/PremiumPrompt'
 import Avatar from '../components/shared/Avatar'
 import { format, isToday, isYesterday } from 'date-fns'
 
@@ -274,29 +273,10 @@ function ConversationView({ userId, partner, onBack }) {
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
   document.title = 'Messages | Communio'
-  const { user, profile } = useAuth()
-  const isPremium = !!profile?.is_premium
-  const { convos, loading, reload } = useConversations(isPremium ? user?.id : null)
+  const { user } = useAuth()
+  const { convos, loading, reload } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
-
-  if (!isPremium) {
-    return (
-      <div className="min-h-screen bg-cream md:pl-60">
-        <div className="max-w-3xl mx-auto pb-24 md:pb-8">
-          <div className="bg-navy px-4 pt-6 pb-5 md:pt-8">
-            <h1 className="text-white font-bold text-xl">Messages</h1>
-          </div>
-          <div className="px-4 pt-6">
-            <PremiumPrompt
-              title="Unlock direct messages"
-              body="Send private messages to any Communio member. Available to supporters of the mission."
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // Two-panel layout on desktop; single panel on mobile
   return (

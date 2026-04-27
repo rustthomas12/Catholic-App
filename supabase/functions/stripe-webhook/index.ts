@@ -44,18 +44,18 @@ serve(async (req) => {
 
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        if (session.mode !== 'subscription') break
+        if (session.mode !== 'subscription' && session.mode !== 'payment') break
 
         const billingType = session.metadata?.billing_type
         const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
 
         if (billingType === 'parish_base') {
-          // ── Parish Base subscription ──
+          // ── Parish Base subscription (unchanged) ──
           const parishId = session.metadata?.parish_id
           const adminUserId = session.metadata?.admin_user_id
           if (!parishId) break
 
+          const subscriptionId = session.subscription as string
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           const status = subscription.status
           const trialEnd = subscription.trial_end
@@ -80,34 +80,49 @@ serve(async (req) => {
             event_type: `${event.type}:parish_base`,
             status,
           })
-        } else {
-          // ── Individual subscription ──
+
+        } else if (billingType === 'individual_donation') {
+          // ── Individual donation (new model) ──
+          const donationType = session.metadata?.donation_type  // 'recurring' | 'one_time'
+          const tier = session.metadata?.tier                   // 'supporter' | 'member' | 'patron'
           const userId = session.metadata?.user_id
+
           if (!userId) {
             console.error('No user_id in session metadata')
             break
           }
 
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-          const interval = subscription.items.data[0]?.plan.interval
-          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+          if (donationType === 'one_time') {
+            await supabase.from('profiles').update({
+              donation_tier: 'benefactor',
+              donation_tier_since: new Date().toISOString(),
+              stripe_customer_id: customerId,
+            }).eq('id', userId)
 
-          await supabase.from('profiles').update({
-            stripe_customer_id: customerId,
-            is_premium: true,
-            premium_expires_at: periodEnd,
-            subscription_status: 'active',
-            subscription_interval: interval,
-            premium_source: 'individual',
-          }).eq('id', userId)
+          } else {
+            // Recurring subscription
+            const subscriptionId = session.subscription as string
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+            const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+            await supabase.from('profiles').update({
+              donation_tier: tier,
+              donation_tier_since: new Date().toISOString(),
+              stripe_customer_id: customerId,
+              subscription_status: 'active',
+              subscription_interval: 'month',
+              premium_expires_at: periodEnd,
+              // NOTE: is_premium is NOT set here — reserved for parish sponsorship only
+            }).eq('id', userId)
+          }
 
           await supabase.from('billing_events').insert({
             user_id: userId,
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
-            event_type: event.type,
+            event_type: `${event.type}:individual_donation`,
             status: 'active',
-            interval,
+            interval: donationType === 'recurring' ? 'month' : 'one_time',
           })
         }
         break
@@ -121,6 +136,7 @@ serve(async (req) => {
         const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
 
         if (billingType === 'parish_base') {
+          // ── Parish (unchanged) ──
           await supabase.from('parish_subscriptions').update({
             status,
             current_period_end: periodEnd,
@@ -133,9 +149,10 @@ serve(async (req) => {
             event_type: `${event.type}:parish_base`,
             status,
           })
-        } else {
-          // Individual subscription
-          const interval = subscription.items.data[0]?.plan.interval
+
+        } else if (billingType === 'individual_donation') {
+          // ── Individual donation ──
+          const tier = subscription.metadata?.tier
           const isPremium = status === 'active' || status === 'trialing'
 
           const { data: profile } = await supabase
@@ -147,19 +164,19 @@ serve(async (req) => {
           if (!profile) break
 
           await supabase.from('profiles').update({
-            is_premium: isPremium,
-            premium_expires_at: isPremium ? periodEnd : null,
+            donation_tier: isPremium ? (tier ?? null) : null,
             subscription_status: status,
-            subscription_interval: interval,
+            premium_expires_at: isPremium ? periodEnd : null,
+            // NOTE: is_premium is not touched here
           }).eq('id', profile.id)
 
           await supabase.from('billing_events').insert({
             user_id: profile.id,
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
-            event_type: event.type,
+            event_type: `${event.type}:individual_donation`,
             status,
-            interval,
+            interval: 'month',
           })
         }
         break
@@ -171,7 +188,7 @@ serve(async (req) => {
         const customerId = subscription.customer as string
 
         if (billingType === 'parish_base') {
-          // Get parish_id before updating status
+          // ── Parish (unchanged) ──
           const { data: parishSub } = await supabase
             .from('parish_subscriptions')
             .select('parish_id')
@@ -184,19 +201,16 @@ serve(async (req) => {
           }).eq('stripe_customer_id', customerId)
 
           if (parishSub?.parish_id) {
-            // Deactivate all sponsorship codes
             await supabase.from('parish_sponsorship_codes')
               .update({ is_active: false, rotated_at: new Date().toISOString() })
               .eq('parish_id', parishSub.parish_id)
               .eq('is_active', true)
 
-            // Deactivate all sponsored activations
             await supabase.from('sponsored_activations')
               .update({ is_active: false, deactivated_at: new Date().toISOString() })
               .eq('parish_id', parishSub.parish_id)
               .eq('is_active', true)
 
-            // Revoke premium from sponsored users
             await supabase.from('profiles')
               .update({ is_premium: false, premium_source: 'none', sponsored_by_parish_id: null })
               .eq('sponsored_by_parish_id', parishSub.parish_id)
@@ -209,27 +223,29 @@ serve(async (req) => {
             event_type: `${event.type}:parish_base`,
             status: 'canceled',
           })
-        } else {
-          // Individual subscription
+
+        } else if (billingType === 'individual_donation') {
+          // ── Individual donation — clear tier, leave is_premium alone ──
           const { data: profile } = await supabase
             .from('profiles')
-            .select('id')
+            .select('id, premium_source')
             .eq('stripe_customer_id', customerId)
             .single()
 
           if (!profile) break
 
           await supabase.from('profiles').update({
-            is_premium: false,
-            premium_expires_at: null,
+            donation_tier: null,
             subscription_status: 'canceled',
+            premium_expires_at: null,
+            // is_premium is NOT touched — only parish sponsorship logic sets it
           }).eq('id', profile.id)
 
           await supabase.from('billing_events').insert({
             user_id: profile.id,
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
-            event_type: event.type,
+            event_type: `${event.type}:individual_donation`,
             status: 'canceled',
           })
         }
@@ -260,7 +276,7 @@ serve(async (req) => {
             status: 'past_due',
           })
         } else {
-          // Individual
+          // Individual donor
           const { data: profile } = await supabase
             .from('profiles')
             .select('id')
@@ -277,7 +293,7 @@ serve(async (req) => {
             user_id: profile.id,
             stripe_customer_id: customerId,
             stripe_event_id: event.id,
-            event_type: event.type,
+            event_type: `${event.type}:individual_donation`,
             status: 'past_due',
           })
         }

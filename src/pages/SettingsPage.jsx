@@ -33,7 +33,7 @@ function SectionHeader({ title }) {
 
 export default function SettingsPage() {
   document.title = 'Settings | Communio'
-  const { user, profile, signOut, updateProfile } = useAuth()
+  const { user, profile, signOut, updateProfile, donationTier, isSupportedByParish } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
 
@@ -64,7 +64,12 @@ export default function SettingsPage() {
     navigate('/login', { replace: true })
   }
 
-  const planLabel = profile?.is_patron ? 'Patron' : profile?.is_premium ? 'Premium' : 'Free'
+  const tierLabels = { supporter: 'Supporter', member: 'Member', patron: 'Patron', benefactor: 'Benefactor' }
+  const planLabel = donationTier
+    ? tierLabels[donationTier] ?? 'Donor'
+    : isSupportedByParish
+      ? 'Parish-sponsored'
+      : 'Free'
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -97,15 +102,15 @@ export default function SettingsPage() {
             value={unreadCount > 0 ? `${unreadCount} unread` : undefined}
           />
 
-          {/* Subscription */}
+          {/* Support */}
           <div className="border-t border-gray-100" />
-          <SectionHeader title="Subscription" />
-          <SettingsRow icon={CreditCardIcon} label="Current plan" value={planLabel} />
+          <SectionHeader title="Support" />
+          <SettingsRow icon={CreditCardIcon} label="Current status" value={planLabel} />
           <div className="border-t border-gray-50" />
-          {profile?.is_premium ? (
-            <SettingsRow icon={null} label="Manage subscription →" to="/premium" />
+          {donationTier ? (
+            <SettingsRow icon={null} label="Manage giving →" to="/premium" />
           ) : (
-            <SettingsRow icon={null} label="Upgrade to Premium →" to="/premium" />
+            <SettingsRow icon={null} label="Support the Mission →" to="/premium" />
           )}
 
           {/* Privacy */}

@@ -1,12 +1,17 @@
 import { getLiturgicalSeason } from '../../utils/liturgical'
 
 const variants = {
-  clergy: { bg: 'bg-gold', text: 'text-navy', label: 'Verified' },
-  premium: { bg: 'bg-navy', text: 'text-white', label: 'Premium' },
-  patron: { bg: 'bg-gold', text: 'text-navy', label: 'Patron' },
-  official: { bg: 'bg-navy', text: 'text-white', label: 'Official' },
-  category: { bg: 'bg-gray-100', text: 'text-gray-700', label: '' },
-  season: { bg: '', text: '', label: '' },
+  clergy:     { bg: 'bg-gold',      text: 'text-navy',  label: 'Verified' },
+  // Donation tiers
+  patron:     { bg: 'bg-navy',      text: 'text-white', label: 'Patron 🙏' },
+  member:     { bg: 'bg-gold',      text: 'text-navy',  label: 'Member ⭐' },
+  supporter:  { bg: 'bg-gray-400',  text: 'text-white', label: 'Supporter' },
+  benefactor: { bg: 'bg-amber-600', text: 'text-white', label: 'Benefactor ✝' },
+  // Legacy / other
+  premium:    { bg: 'bg-navy',      text: 'text-white', label: 'Member' },
+  official:   { bg: 'bg-navy',      text: 'text-white', label: 'Official' },
+  category:   { bg: 'bg-gray-100',  text: 'text-gray-700', label: '' },
+  season:     { bg: '',             text: '',           label: '' },
 }
 
 const sizes = {
@@ -41,19 +46,19 @@ export default function Badge({ variant = 'category', label, size = 'sm' }) {
           <path d="M5 0v4H1v2h4v8h2V6h4V4H6V0z" />
         </svg>
       )}
-      {variant === 'patron' && (
+      {(variant === 'patron' || variant === 'member' || variant === 'premium') && (
         <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 fill-current flex-shrink-0">
           <path d="M5 0l1.2 3.6H10L7 5.8l1.2 3.6L5 7.2 1.8 9.4 3 5.8.9 3.6H3.8z" />
+        </svg>
+      )}
+      {variant === 'benefactor' && (
+        <svg viewBox="0 0 10 14" className="w-2.5 h-3 fill-current flex-shrink-0">
+          <path d="M5 0v4H1v2h4v8h2V6h4V4H6V0z" />
         </svg>
       )}
       {variant === 'official' && (
         <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 fill-current flex-shrink-0">
           <path d="M1 5l3 3 5-5-1-1-4 4-2-2z" />
-        </svg>
-      )}
-      {variant === 'premium' && (
-        <svg viewBox="0 0 10 12" className="w-2.5 h-3 fill-current flex-shrink-0">
-          <path d="M5 0L0 4v8h10V4z" />
         </svg>
       )}
       {displayLabel}
