@@ -8,15 +8,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// Disable Vercel's default body parsing so we can verify the Stripe signature
-export const config = { api: { bodyParser: false } }
-
 async function getRawBody(req) {
-  const chunks = []
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+  // Try req.rawBody first (some Vercel runtimes expose this)
+  if (req.rawBody) {
+    return typeof req.rawBody === 'string'
+      ? Buffer.from(req.rawBody)
+      : req.rawBody
   }
-  return Buffer.concat(chunks)
+  // Fall back to reading the stream
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    req.on('data', chunk =>
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    )
+    req.on('end', () => resolve(Buffer.concat(chunks)))
+    req.on('error', reject)
+  })
 }
 
 export default async function handler(req, res) {
@@ -35,16 +42,17 @@ export default async function handler(req, res) {
   }
 
   const rawBody = await getRawBody(req)
+  console.log('Raw body length:', rawBody.length, '| Secret prefix:', process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 10))
 
   let event
   try {
     event = stripe.webhooks.constructEvent(
-      rawBody,
+      rawBody.toString('utf8'),
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     )
   } catch (err) {
-    console.error('Webhook signature error:', err.message)
+    console.error('Webhook signature error:', err.message, '| Body length:', rawBody.length)
     return res.status(400).json({ error: err.message })
   }
 
