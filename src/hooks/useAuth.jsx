@@ -237,6 +237,16 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function updatePassword(newPassword) {
+    try {
+      const { error } = await supabaseAuth.auth.updateUser({ password: newPassword })
+      if (error) return { error: error.message }
+      return { error: null }
+    } catch {
+      return { error: t('auth:login.error_network') }
+    }
+  }
+
   async function resetPassword(email) {
     try {
       const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
@@ -316,6 +326,7 @@ export function AuthProvider({ children }) {
     signOut,
     resetPassword,
     resendVerification,
+    updatePassword,
     updateProfile,
     refreshProfile,
   }

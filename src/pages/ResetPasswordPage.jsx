@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LockClosedIcon, EyeIcon, EyeSlashIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from '../utils/i18n'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth.jsx'
 import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
@@ -16,6 +16,7 @@ function passwordStrength(pw) {
 export default function ResetPasswordPage() {
   document.title = 'Reset Password | Communio'
   const { t } = useTranslation('auth')
+  const { updatePassword } = useAuth()
   const navigate = useNavigate()
 
   const [password, setPassword] = useState('')
@@ -45,7 +46,7 @@ export default function ResetPasswordPage() {
     if (password.length < 8) { setError(t('signup.error_password_weak')); return }
     setError('')
     setLoading(true)
-    const { error } = await supabase.auth.updateUser({ password })
+    const { error } = await updatePassword(password)
     setLoading(false)
     if (error) {
       if (error.message.includes('expired') || error.message.includes('invalid')) {
