@@ -1,25 +1,21 @@
-import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth.jsx'
 import { useState } from 'react'
 
 export default function CheckEmailPage() {
   document.title = 'Check your email | Communio'
 
   const { state } = useLocation()
-  const navigate  = useNavigate()
-  const email     = state?.email || 'your email'
+  const { resendVerification } = useAuth()
+  const email = state?.email || 'your email'
 
   const [resent,    setResent]    = useState(false)
   const [resending, setResending] = useState(false)
 
   async function handleResend() {
     setResending(true)
-    await supabase.auth.resend({
-      type: 'signup',
-      email: state?.email,
-      options: { emailRedirectTo: window.location.origin + '/onboarding' },
-    })
+    await resendVerification(state?.email)
     setResending(false)
     setResent(true)
     setTimeout(() => setResent(false), 5000)

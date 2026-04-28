@@ -237,6 +237,30 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function resetPassword(email) {
+    try {
+      const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      })
+      return { error: error ? t('common:status.error') : null }
+    } catch {
+      return { error: t('auth:login.error_network') }
+    }
+  }
+
+  async function resendVerification(email) {
+    try {
+      const { error } = await supabaseAuth.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: window.location.origin + '/onboarding' },
+      })
+      return { error: error ? t('common:status.error') : null }
+    } catch {
+      return { error: t('auth:login.error_network') }
+    }
+  }
+
   async function signOut() {
     clearStoredProfile(userIdRef.current)
     userIdRef.current = null
@@ -290,6 +314,8 @@ export function AuthProvider({ children }) {
     signIn,
     signUp,
     signOut,
+    resetPassword,
+    resendVerification,
     updateProfile,
     refreshProfile,
   }

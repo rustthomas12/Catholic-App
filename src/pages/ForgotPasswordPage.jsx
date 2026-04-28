@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EnvelopeIcon, LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from '../utils/i18n'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth.jsx'
 import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
 export default function ForgotPasswordPage() {
   document.title = 'Forgot Password | Communio'
   const { t } = useTranslation('auth')
+  const { resetPassword } = useAuth()
 
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,11 +21,7 @@ export default function ForgotPasswordPage() {
     if (!email) return
     setError('')
     setLoading(true)
-    try {
-      await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/reset-password`,
-      })
-    } catch {}
+    await resetPassword(email)
     // Always show success — never reveal if email is registered
     setLoading(false)
     setSubmitted(true)
