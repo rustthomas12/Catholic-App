@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing userId' })
   }
 
-  const appUrl = process.env.VITE_APP_URL || 'https://communio.app'
+  const appUrl = process.env.VITE_APP_URL || 'https://getcommunio.app'
 
   try {
     let session

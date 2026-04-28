@@ -35,8 +35,8 @@ export default async function handler(req, res) {
           billing_type: 'parish_base',
         },
       },
-      success_url: `${process.env.VITE_APP_URL || 'https://communio.app'}/parish-admin/${parishId}?tab=billing&subscribed=true`,
-      cancel_url: `${process.env.VITE_APP_URL || 'https://communio.app'}/parish-admin/${parishId}?tab=billing`,
+      success_url: `${process.env.VITE_APP_URL || 'https://getcommunio.app'}/parish-admin/${parishId}?tab=billing&subscribed=true`,
+      cancel_url: `${process.env.VITE_APP_URL || 'https://getcommunio.app'}/parish-admin/${parishId}?tab=billing`,
     })
 
     res.status(200).json({ url: session.url })

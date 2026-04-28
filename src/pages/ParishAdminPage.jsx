@@ -1095,7 +1095,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     return type
   }
 
-  const appUrl = import.meta.env.VITE_APP_URL || 'https://communio.app'
+  const appUrl = import.meta.env.VITE_APP_URL || 'https://getcommunio.app'
 
   return (
     <div className="space-y-6">
