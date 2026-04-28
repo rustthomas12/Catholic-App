@@ -1,11 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" },
-    { "source": "/api/create-portal-session", "destination": "/api/create-portal-session.js" },
-    { "source": "/api/create-parish-checkout-session", "destination": "/api/create-parish-checkout-session.js" },
-    { "source": "/api/claim-sponsorship-code", "destination": "/api/claim-sponsorship-code.js" },
-    { "source": "/api/track-return", "destination": "/api/track-return.js" },
-    { "source": "/api/create-org-checkout-session", "destination": "/api/create-org-checkout-session.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
