@@ -10,6 +10,7 @@ import ProtectedRoute from './components/shared/ProtectedRoute'
 import Navigation from './components/shared/Navigation'
 import { Toaster, toast } from './components/shared/Toast'
 import InstallPrompt from './components/shared/InstallPrompt'
+import PushPrompt from './components/shared/PushPrompt'
 import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
 
@@ -113,6 +114,7 @@ function AppInner() {
       <LastActiveUpdater />
       <SuspendedBanner />
       <InstallPrompt />
+      <PushPrompt />
       <Navigation />
       <Suspense fallback={<div className="min-h-screen bg-cream" />}>
         <Routes>

@@ -43,6 +43,9 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        // sw-push.js handles push events and notification clicks.
+        // Loaded via importScripts so it runs after Workbox is set up.
+        importScripts: ['/sw-push.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {

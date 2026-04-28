@@ -11,11 +11,15 @@ import {
   EnvelopeIcon,
   ClipboardDocumentCheckIcon,
   LockClosedIcon,
+  BellIcon,
+  BellSlashIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
+import { usePushNotifications } from '../hooks/usePushNotifications'
 import Modal from '../components/shared/Modal'
+import LoadingSpinner from '../components/shared/LoadingSpinner'
 
 // ── Toggle switch ─────────────────────────────────────────
 function Toggle({ value, onChange, disabled = false }) {
@@ -88,13 +92,90 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled, pr
   )
 }
 
+// ── Push notifications section ────────────────────────────
+function PushSection({ userId }) {
+  const {
+    isSupported,
+    permission,
+    isSubscribed,
+    isLoading,
+    error,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications(userId)
+
+  return (
+    <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+      <div className="bg-navy px-4 py-3">
+        <h2 className="text-white font-bold text-sm">Push Notifications</h2>
+      </div>
+      <div className="px-4 py-4">
+        <p className="text-xs text-gray-500 mb-4">
+          Get notified even when the app isn't open.
+        </p>
+
+        {!isSupported && (
+          <p className="text-sm text-gray-500">
+            Push notifications aren't supported in this browser.
+          </p>
+        )}
+
+        {isSupported && permission === 'denied' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-amber-800 font-medium mb-0.5">Notifications blocked</p>
+            <p className="text-xs text-amber-700">
+              Enable notifications in your browser or device settings, then return here.
+            </p>
+          </div>
+        )}
+
+        {isSupported && permission !== 'denied' && !isSubscribed && (
+          <button
+            onClick={subscribe}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-navy text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-navy/90 disabled:opacity-60 transition-colors"
+          >
+            {isLoading
+              ? <LoadingSpinner size="sm" color="white" />
+              : <BellIcon className="w-4 h-4" />}
+            {isLoading ? 'Enabling…' : 'Enable push notifications'}
+          </button>
+        )}
+
+        {isSupported && isSubscribed && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium text-navy">
+              <BellIcon className="w-4 h-4 text-gold" />
+              Push notifications enabled
+            </div>
+            <button
+              onClick={unsubscribe}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-500 transition-colors disabled:opacity-60"
+            >
+              {isLoading
+                ? <LoadingSpinner size="sm" color="navy" />
+                : <BellSlashIcon className="w-3.5 h-3.5" />}
+              Turn off
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <p className="text-xs text-red-500 mt-2">{error}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationSettingsPage() {
   document.title = 'Notification Settings | Communio'
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const { isPremium } = useAuth()
+  const { user, isPremium } = useAuth()
   const { preferences, loading, updatePreference, turnOffAll } = useNotificationPreferences()
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
@@ -178,6 +259,11 @@ export default function NotificationSettingsPage() {
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
           {t('notifications.settings_description')}
         </p>
+      </div>
+
+      {/* ── Push notifications ── */}
+      <div className="max-w-2xl mx-auto">
+        <PushSection userId={user?.id} />
       </div>
 
       {/* ── Toggle list ── */}
