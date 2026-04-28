@@ -12,12 +12,11 @@ const supabase = createClient(
 export const config = { api: { bodyParser: false } }
 
 async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = []
-    req.on('data', chunk => chunks.push(chunk))
-    req.on('end', () => resolve(Buffer.concat(chunks)))
-    req.on('error', reject)
-  })
+  const chunks = []
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+  }
+  return Buffer.concat(chunks)
 }
 
 export default async function handler(req, res) {
@@ -26,6 +25,15 @@ export default async function handler(req, res) {
   }
 
   const sig = req.headers['stripe-signature']
+  if (!sig) {
+    return res.status(400).json({ error: 'Missing stripe-signature header' })
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('STRIPE_WEBHOOK_SECRET is not set')
+    return res.status(500).json({ error: 'Webhook secret not configured' })
+  }
+
   const rawBody = await getRawBody(req)
 
   let event
@@ -37,7 +45,7 @@ export default async function handler(req, res) {
     )
   } catch (err) {
     console.error('Webhook signature error:', err.message)
-    return res.status(400).json({ error: `Webhook error: ${err.message}` })
+    return res.status(400).json({ error: err.message })
   }
 
   try {
