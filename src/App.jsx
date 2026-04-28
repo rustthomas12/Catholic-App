@@ -38,6 +38,7 @@ const SaintPage                = lazy(() => import('./pages/SaintPage'))
 const NotificationsPage        = lazy(() => import('./pages/NotificationsPage'))
 const SettingsPage             = lazy(() => import('./pages/SettingsPage'))
 const NotificationSettingsPage = lazy(() => import('./pages/NotificationSettingsPage'))
+const CheckEmailPage           = lazy(() => import('./pages/CheckEmailPage'))
 const ForgotPasswordPage       = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage        = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage                = lazy(() => import('./pages/AdminPage'))
@@ -122,6 +123,7 @@ function AppInner() {
           <Route path="/login"           element={<LoginPage />} />
           <Route path="/signup"          element={<SignupPage />} />
           <Route path="/onboarding"      element={<OnboardingPage />} />
+          <Route path="/check-email"      element={<CheckEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />
           <Route path="/terms"           element={<TermsPage />} />

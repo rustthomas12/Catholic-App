@@ -15,12 +15,13 @@ function urlBase64ToUint8Array(base64String) {
 
 async function saveSubscription(subscriptionJSON, userId) {
   const { endpoint, keys } = subscriptionJSON
-  await supabase
+  const { error } = await supabase
     .from('push_subscriptions')
     .upsert(
       { user_id: userId, endpoint, p256dh: keys.p256dh, auth: keys.auth },
       { onConflict: 'endpoint' }
     )
+  if (error) throw new Error(`Failed to save push subscription: ${error.message}`)
 }
 
 async function deleteSubscription(endpoint, userId) {

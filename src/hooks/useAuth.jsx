@@ -202,7 +202,10 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabaseAuth.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: window.location.origin + '/onboarding',
+        },
       })
       if (error) {
         if (error.message.includes('already registered') || error.message.includes('already been registered'))

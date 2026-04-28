@@ -13,15 +13,14 @@ export default function InstallPrompt() {
     // Don't show if already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches) return
     if (window.navigator.standalone === true) return
-    if (localStorage.getItem(DISMISSED_KEY)) return
+    if (sessionStorage.getItem(DISMISSED_KEY)) return
 
     // iOS Safari — no beforeinstallprompt, show manual instructions
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream
     const safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     if (ios && safari) {
       setIsIOS(true)
-      // Show after a short delay so the page settles
-      setTimeout(() => setShow(true), 3000)
+      setShow(true)
       return
     }
 
@@ -29,14 +28,14 @@ export default function InstallPrompt() {
     const handler = (e) => {
       e.preventDefault()
       setDeferredPrompt(e)
-      setTimeout(() => setShow(true), 3000)
+      setShow(true)
     }
     window.addEventListener('beforeinstallprompt', handler)
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   function dismiss() {
-    localStorage.setItem(DISMISSED_KEY, '1')
+    sessionStorage.setItem(DISMISSED_KEY, '1')
     setShow(false)
   }
 
@@ -45,7 +44,7 @@ export default function InstallPrompt() {
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
-      localStorage.setItem(DISMISSED_KEY, '1')
+      sessionStorage.setItem(DISMISSED_KEY, '1')
     }
     setShow(false)
     setDeferredPrompt(null)

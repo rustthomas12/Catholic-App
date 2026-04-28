@@ -118,7 +118,7 @@ export default function SignupPage() {
     if (error) {
       setSubmitError(error)
     } else {
-      navigate('/onboarding', { replace: true })
+      navigate('/check-email', { replace: true, state: { email } })
     }
   }
 
