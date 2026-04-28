@@ -228,7 +228,7 @@ export function useFeed(options = {}) {
       default: {
         const pIds = followedParishIds.current
         const gIds = joinedGroupIds.current
-        if (pIds.length === 0 && gIds.length === 0) return q
+        if (pIds.length === 0 && gIds.length === 0) return null
         const parts = []
         if (pIds.length > 0) parts.push(`parish_id.in.(${pIds.join(',')})`)
         if (gIds.length > 0) parts.push(`group_id.in.(${gIds.join(',')})`)

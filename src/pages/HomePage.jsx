@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useFollowedParishes } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
@@ -32,6 +32,9 @@ export default function HomePage() {
       ? _homeGroupsCache.data
       : []
   )
+  const [groupsLoaded, setGroupsLoaded] = useState(() =>
+    !!(profile?.id && _homeGroupsCache?.userId === profile.id)
+  )
   const [dismissed, setDismissed] = useState(() =>
     localStorage.getItem(WELCOME_DISMISSED_KEY) === '1'
   )
@@ -39,6 +42,7 @@ export default function HomePage() {
 
   const { parishes: followedParishes } = useFollowedParishes()
   const hasParish = !!parish || followedParishes.length > 0
+  const hasAnyMembership = hasParish || groups.length > 0
 
   const { readings: homeReadings, loading: readingsLoading, error: readingsError,
           liturgicalInfo, feastInfo, todayFormatted } = useReadings()
@@ -82,6 +86,7 @@ export default function HomePage() {
           const result = (data ?? []).map(d => d.groups).filter(Boolean)
           _homeGroupsCache = { userId: profileId, data: result }
           setGroups(result)
+          setGroupsLoaded(true)
         })
     }
   }, [parishId, profileId])
@@ -183,32 +188,90 @@ export default function HomePage() {
         )}
 
         {/* Feed section */}
-        <div className="border-t-4 border-gray-100">
-          <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
-          <Feed
-            filter={activeFilter}
-            showCreatePost
-            emptyMessage="Your feed is quiet"
-            emptySubtext="Follow your parish to see posts here"
-            emptyAction={{ label: 'Find my parish', onClick: () => navigate('/directory') }}
-          />
-        </div>
+        {groupsLoaded && !hasAnyMembership ? (
+          <div className="border-t-4 border-gray-100 px-4 py-10 flex flex-col items-center text-center gap-4">
+            <div className="flex gap-3 mb-1">
+              <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
+                <BuildingLibraryIcon className="w-6 h-6 text-navy/40" />
+              </div>
+              <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
+                <UserGroupIcon className="w-6 h-6 text-navy/40" />
+              </div>
+            </div>
+            <div>
+              <p className="font-bold text-navy text-base mb-1">Your feed is waiting</p>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Join a parish or group to see posts, announcements, and connect with your community.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              <Link to="/directory"
+                className="w-full bg-navy text-white text-sm font-semibold px-4 py-3 rounded-xl text-center">
+                Find my parish
+              </Link>
+              <Link to="/groups"
+                className="w-full bg-white border border-gray-200 text-navy text-sm font-semibold px-4 py-3 rounded-xl text-center">
+                Browse groups
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="border-t-4 border-gray-100">
+            <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
+            <Feed
+              filter={activeFilter}
+              showCreatePost
+              emptyMessage="Nothing posted yet"
+              emptySubtext="Be the first to post in your parish or group"
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Desktop: two-column layout ── */}
       <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-6 pt-6 pb-12">
         {/* Left: feed */}
         <div className="flex-1 min-w-0">
-          <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
-          <div className="mt-2">
-            <Feed
-              filter={activeFilter}
-              showCreatePost
-              emptyMessage="Your feed is quiet"
-              emptySubtext="Follow your parish to see posts here"
-              emptyAction={{ label: 'Find my parish', onClick: () => navigate('/directory') }}
-            />
-          </div>
+          {groupsLoaded && !hasAnyMembership ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 flex flex-col items-center text-center gap-4">
+              <div className="flex gap-3 mb-1">
+                <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
+                  <BuildingLibraryIcon className="w-6 h-6 text-navy/40" />
+                </div>
+                <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
+                  <UserGroupIcon className="w-6 h-6 text-navy/40" />
+                </div>
+              </div>
+              <div>
+                <p className="font-bold text-navy text-lg mb-1">Your feed is waiting</p>
+                <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
+                  Join a parish or group to see posts, announcements, and connect with your community.
+                </p>
+              </div>
+              <div className="flex gap-3 mt-1">
+                <Link to="/directory"
+                  className="bg-navy text-white text-sm font-semibold px-5 py-2.5 rounded-xl">
+                  Find my parish
+                </Link>
+                <Link to="/groups"
+                  className="bg-white border border-gray-200 text-navy text-sm font-semibold px-5 py-2.5 rounded-xl">
+                  Browse groups
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
+              <div className="mt-2">
+                <Feed
+                  filter={activeFilter}
+                  showCreatePost
+                  emptyMessage="Nothing posted yet"
+                  emptySubtext="Be the first to post in your parish or group"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right: sidebar cards */}
