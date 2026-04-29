@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarDaysIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../lib/supabase'
 import { format, isPast, isSameDay } from 'date-fns'
+import EventRsvpButtons from '../shared/EventRsvpButtons'
 
 export default function ParishEvents({ parishId }) {
   const [events, setEvents] = useState([])
@@ -133,6 +134,7 @@ function EventCard({ event }) {
           {event.description && (
             <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{event.description}</p>
           )}
+          {!past && <EventRsvpButtons eventId={event.id} />}
         </div>
       </div>
     </div>

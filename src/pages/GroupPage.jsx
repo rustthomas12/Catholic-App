@@ -25,6 +25,7 @@ import { GroupAvatar } from '../components/groups/GroupCard'
 import { GroupPageSkeleton } from '../components/shared/skeletons'
 import Feed from '../components/feed/Feed'
 import Modal from '../components/shared/Modal'
+import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 
 const TABS = [
   { id: 'feed',    label: 'tab_feed' },
@@ -554,6 +555,7 @@ function GroupEventCard({ event }) {
           {event.description && (
             <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{event.description}</p>
           )}
+          {!past && <EventRsvpButtons eventId={event.id} />}
         </div>
       </div>
     </div>

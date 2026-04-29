@@ -25,6 +25,7 @@ import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { generateSponsorshipCode } from '../utils/sponsorshipCode'
+import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
@@ -347,6 +348,23 @@ function AnnouncementsTab({ parishId }) {
     setPosts(prev => prev.filter(p => p.id !== id))
   }
 
+  async function handleSendNow(scheduledPost) {
+    const { error: insertError } = await supabase.from('posts').insert({
+      parish_id:       parishId,
+      author_id:       scheduledPost.author_id || user.id,
+      content:         scheduledPost.content,
+      image_url:       scheduledPost.image_url || null,
+      is_announcement: true,
+    })
+    if (insertError) { toast.error('Could not send announcement.'); return }
+    await supabase
+      .from('scheduled_posts')
+      .update({ published: true, published_at: new Date().toISOString() })
+      .eq('id', scheduledPost.id)
+    toast.success('Announcement sent to parish feed.')
+    load()
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -415,16 +433,24 @@ function AnnouncementsTab({ parishId }) {
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {post.published ? (
                   <span className="flex items-center gap-1 text-xs text-green-600 font-semibold">
                     <CheckCircleIcon className="w-3.5 h-3.5" /> Published
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-xs text-orange-500 font-semibold">
-                    <ClockIcon className="w-3.5 h-3.5" />
-                    Scheduled {post.scheduled_for ? format(parseISO(post.scheduled_for), 'MMM d, h:mm a') : ''}
-                  </span>
+                  <>
+                    <span className="flex items-center gap-1 text-xs text-orange-500 font-semibold">
+                      <ClockIcon className="w-3.5 h-3.5" />
+                      Scheduled {post.scheduled_for ? format(parseISO(post.scheduled_for), 'MMM d, h:mm a') : ''}
+                    </span>
+                    <button
+                      onClick={() => handleSendNow(post)}
+                      className="text-xs font-semibold text-navy border border-navy rounded-lg px-2.5 py-1 hover:bg-navy hover:text-white transition-colors"
+                    >
+                      Send now
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -436,6 +462,49 @@ function AnnouncementsTab({ parishId }) {
 }
 
 // ── Events Tab ──────────────────────────────────────────────
+function AttendeeList({ eventId }) {
+  const [attendees, setAttendees] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from('event_rsvps')
+      .select('response, profiles(id, full_name)')
+      .eq('event_id', eventId)
+      .then(({ data }) => { setAttendees(data || []); setLoading(false) })
+  }, [eventId])
+
+  const going    = attendees.filter(a => a.response === 'yes')
+  const maybe    = attendees.filter(a => a.response === 'maybe')
+  const notGoing = attendees.filter(a => a.response === 'no')
+
+  if (loading) return <p className="text-xs text-gray-400 mt-2">Loading RSVPs…</p>
+  if (attendees.length === 0) return <p className="text-xs text-gray-400 mt-2">No RSVPs yet.</p>
+
+  return (
+    <div className="mt-3 border-t border-gray-100 pt-3 space-y-2">
+      {going.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-green-600 mb-1">Going ({going.length})</p>
+          {going.map(a => <p key={a.profiles.id} className="text-xs text-gray-700 pl-2">{a.profiles.full_name}</p>)}
+        </div>
+      )}
+      {maybe.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-yellow-600 mb-1">Maybe ({maybe.length})</p>
+          {maybe.map(a => <p key={a.profiles.id} className="text-xs text-gray-700 pl-2">{a.profiles.full_name}</p>)}
+        </div>
+      )}
+      {notGoing.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-400 mb-1">Can't go ({notGoing.length})</p>
+          {notGoing.map(a => <p key={a.profiles.id} className="text-xs text-gray-400 pl-2">{a.profiles.full_name}</p>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function EventsTab({ parishId }) {
   const { user } = useAuth()
   const [events, setEvents] = useState([])
@@ -443,6 +512,7 @@ function EventsTab({ parishId }) {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', start_time: '', end_time: '', location: '' })
   const [saving, setSaving] = useState(false)
+  const [openRsvpId, setOpenRsvpId] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -577,9 +647,6 @@ function EventsTab({ parishId }) {
                     </p>
                   )}
                   {ev.location && <p className="text-xs text-gray-400 mt-0.5">📍 {ev.location}</p>}
-                  {ev.rsvp_count > 0 && (
-                    <p className="text-xs text-navy font-medium mt-1">✓ {ev.rsvp_count} attending</p>
-                  )}
                 </div>
                 <button
                   onClick={() => handleDelete(ev.id)}
@@ -588,6 +655,14 @@ function EventsTab({ parishId }) {
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
+              <EventRsvpButtons eventId={ev.id} showCount={true} />
+              <button
+                onClick={() => setOpenRsvpId(openRsvpId === ev.id ? null : ev.id)}
+                className="mt-2 text-xs text-gray-400 hover:text-navy transition-colors"
+              >
+                {openRsvpId === ev.id ? 'Hide RSVPs' : `See RSVPs${ev.rsvp_count > 0 ? ` (${ev.rsvp_count})` : ''}`}
+              </button>
+              {openRsvpId === ev.id && <AttendeeList eventId={ev.id} />}
             </div>
           ))}
         </div>
