@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react'
-import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
 import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache } from '../hooks/useParish.js'
@@ -10,6 +10,19 @@ const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
+const US_STATES = [
+  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+  ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','D.C.'],['FL','Florida'],
+  ['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],
+  ['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],
+  ['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
+  ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],
+  ['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],
+  ['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],
+  ['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
+  ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming'],
+]
+
 export default function DirectoryPage() {
   document.title = 'Parish Directory | Communio'
 
@@ -18,6 +31,7 @@ export default function DirectoryPage() {
   const { parishes: followedParishes, loading: followedLoading } = useFollowedParishes()
 
   const [query, setQuery] = useState('')
+  const [stateFilter, setStateFilter] = useState('')
   const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
   const [selectedParish, setSelectedParish] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -37,14 +51,16 @@ export default function DirectoryPage() {
     setFollowStates((prev) => ({ ...states, ...prev }))
   }, [followedParishes])
 
-  // Search when query changes
+  // Search when query or state filter changes
   useEffect(() => {
-    if (query.trim().length >= 2) {
-      search(query, userLocation)
+    const hasQuery = query.trim().length >= 2
+    const hasState = !!stateFilter
+    if (hasQuery || hasState) {
+      search(query, userLocation, stateFilter)
     } else {
       clear()
     }
-  }, [query, userLocation, search, clear])
+  }, [query, stateFilter, userLocation, search, clear])
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -113,11 +129,12 @@ export default function DirectoryPage() {
 
   const clearQuery = () => {
     setQuery('')
+    setStateFilter('')
     clear()
   }
 
   // Determine which parishes to show
-  const isSearching = query.trim().length >= 2
+  const isSearching = query.trim().length >= 2 || !!stateFilter
   const displayParishes = isSearching
     ? results
     : userLocation
@@ -155,6 +172,21 @@ export default function DirectoryPage() {
                 <XMarkIcon className="w-4 h-4" />
               </button>
             )}
+          </div>
+
+          {/* State filter */}
+          <div className="relative mt-2">
+            <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <select
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              className="w-full bg-white/90 pl-9 pr-8 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
+            >
+              <option value="">All states</option>
+              {US_STATES.map(([code, name]) => (
+                <option key={code} value={code}>{name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Action row */}
@@ -275,7 +307,7 @@ export default function DirectoryPage() {
             <section>
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                 {isSearching
-                  ? `Search results${results.length ? ` (${results.length})` : ''}`
+                  ? `${stateFilter && !query ? US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter : 'Search results'}${results.length ? ` (${results.length})` : ''}`
                   : 'Near you'}
               </h2>
 

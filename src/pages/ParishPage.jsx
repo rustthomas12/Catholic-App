@@ -261,9 +261,32 @@ function ContactModal({ parishId, parishName, onClose }) {
 // ── About tab ──────────────────────────────────────────────
 function ParishAbout({ parish }) {
   const hasContact = parish.address || parish.phone || parish.website || parish.email
+  const isIrsBmf   = parish.data_source === 'irs_bmf'
 
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">
+
+      {/* IRS BMF data quality note */}
+      {isIrsBmf && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+          <span className="text-amber-500 text-lg leading-none flex-shrink-0 mt-0.5">ℹ</span>
+          <div>
+            <p className="text-amber-800 text-sm font-semibold leading-snug">
+              Limited information available
+            </p>
+            <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+              This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.{' '}
+              {parish.website ? null : 'Know the details? '}
+            </p>
+            {!parish.website && !parish.phone && (
+              <p className="text-amber-700 text-xs mt-0.5">
+                Help us improve — <a href="mailto:hello@communio.app" className="underline font-semibold">send a correction</a>.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {hasContact && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-navy px-4 py-3">

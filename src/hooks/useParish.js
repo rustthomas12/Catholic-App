@@ -15,7 +15,7 @@ function haversineMiles(lat1, lon1, lat2, lon2) {
 }
 
 const PARISH_SELECT =
-  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, created_at'
+  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at'
 
 // ── useParishSearch ────────────────────────────────────────
 export function useParishSearch() {
@@ -24,11 +24,16 @@ export function useParishSearch() {
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
-  const search = useCallback((query, userLocation = null) => {
+  // search(query, userLocation?, stateFilter?)
+  // stateFilter: two-letter state code e.g. 'CA', or null/'' for all states
+  const search = useCallback((query, userLocation = null, stateFilter = null) => {
     clearTimeout(debounceRef.current)
 
     const trimmed = (query ?? '').trim()
-    if (trimmed.length < 2) {
+    const state   = stateFilter ? stateFilter.trim().toUpperCase() : null
+
+    // Allow empty query when a state filter is selected
+    if (trimmed.length < 2 && !state) {
       setResults([])
       return
     }
@@ -40,13 +45,22 @@ export function useParishSearch() {
       // Strip punctuation so "St Stanislaus" matches "St. Stanislaus"
       const normalized = trimmed.replace(/['.,-]/g, '').replace(/\s+/g, ' ')
 
-      const { data, error: err } = await supabase
+      let query = supabase
         .from('parishes')
         .select(PARISH_SELECT)
-        .or(
+        .limit(50)
+
+      if (state) {
+        query = query.eq('state', state)
+      }
+
+      if (trimmed.length >= 2) {
+        query = query.or(
           `name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,zip.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`
         )
-        .limit(50)
+      }
+
+      const { data, error: err } = await query
 
       if (err) {
         setError(err.message)
@@ -87,15 +101,20 @@ export function useParishSearch() {
   return { results, loading, error, search, clear }
 }
 
-// ── useNearbyParishes — module-level cache ─────────────────
-// Cache nearby results per location (rounded to ~1 km grid)
+// ── useNearbyParishes — bounding box + Haversine ──────────
+// Fetches only parishes within a lat/lng bounding box (~50 mi radius),
+// then sorts by exact Haversine distance. Safe at 15,000+ parish scale.
 let _nearbyCache = null  // { parishes, lat, lng }
 
 function locationKey(lat, lng) {
   return `${Math.round(lat * 100) / 100},${Math.round(lng * 100) / 100}`
 }
 
-export function useNearbyParishes(userLocation) {
+// Degrees of latitude per mile (constant); degrees of longitude per mile varies by latitude
+function miToDegLat(miles) { return miles / 69.0 }
+function miToDegLng(miles, lat) { return miles / (69.0 * Math.cos((lat * Math.PI) / 180)) }
+
+export function useNearbyParishes(userLocation, radiusMiles = 50) {
   const cachedForLocation =
     _nearbyCache &&
     userLocation &&
@@ -119,10 +138,19 @@ export function useNearbyParishes(userLocation) {
     setLoading(true)
     setError(null)
 
+    const { lat, lng } = userLocation
+    const latDelta = miToDegLat(radiusMiles)
+    const lngDelta = miToDegLng(radiusMiles, lat)
+
+    // Bounding box pre-filter — hits indexed latitude/longitude columns
     supabase
       .from('parishes')
       .select(PARISH_SELECT)
-      .limit(1000)
+      .gte('latitude',  lat - latDelta)
+      .lte('latitude',  lat + latDelta)
+      .gte('longitude', lng - lngDelta)
+      .lte('longitude', lng + lngDelta)
+      .limit(500)
       .then(({ data, error: err }) => {
         if (cancelled) return
         if (err) {
@@ -131,16 +159,12 @@ export function useNearbyParishes(userLocation) {
           return
         }
 
-        const { lat, lng } = userLocation
         const nearby = (data ?? [])
           .map((p) => ({
             ...p,
-            distance:
-              p.latitude && p.longitude
-                ? haversineMiles(lat, lng, p.latitude, p.longitude)
-                : null,
+            distance: haversineMiles(lat, lng, p.latitude, p.longitude),
           }))
-          .filter((p) => p.distance !== null && p.distance < 50)
+          .filter((p) => p.distance < radiusMiles)
           .sort((a, b) => a.distance - b.distance)
           .slice(0, 25)
 
@@ -150,7 +174,7 @@ export function useNearbyParishes(userLocation) {
       })
 
     return () => { cancelled = true }
-  }, [userLocation?.lat, userLocation?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userLocation?.lat, userLocation?.lng, radiusMiles]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { parishes, loading, error }
 }
