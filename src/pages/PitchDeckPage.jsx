@@ -178,7 +178,7 @@ function SlideWhyNow() {
     {
       n: '2',
       title: 'The post-COVID parish crisis',
-      body: 'Mass attendance dropped 30–50% during COVID and has not fully recovered. Parishes are urgently looking for tools to re-engage lapsed parishioners. The timing is pastoral, not just commercial.',
+      body: 'Mass attendance dropped 30–50% during COVID and has not fully recovered. Parishes are urgently looking for tools to re-engage lapsed parishioners.',
     },
     {
       n: '3',
@@ -242,9 +242,9 @@ function SlideMarket() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { label: 'TAM', amount: '$2.3B', desc: '17,500 US parishes at blended $109/mo', color: 'from-amber-500/20 to-amber-500/5' },
-            { label: 'SAM', amount: '$228M', desc: 'Est. 15% digitally ready parishes (Year 5 horizon)', color: 'from-blue-500/20 to-blue-500/5' },
-            { label: 'SOM', amount: '$174K', desc: 'Year 3 target: 175 parishes — 1% of US market', color: 'from-emerald-500/20 to-emerald-500/5' },
+            { label: 'TAM', amount: 'US $22.9M, Global $288M', desc: '17,500 US parishes at blended $109/mo', color: 'from-amber-500/20 to-amber-500/5' },
+            { label: 'SAM', amount: '$3.4M', desc: 'Est. 15% digitally ready parishes (Year 5 horizon)', color: 'from-blue-500/20 to-blue-500/5' },
+            { label: 'SOM', amount: '$229K', desc: 'Year 3 target: 175 parishes — 1% of US market', color: 'from-emerald-500/20 to-emerald-500/5' },
           ].map((item, i) => (
             <div key={i} className={`rounded-2xl bg-gradient-to-br ${item.color} border border-white/10 p-8`}>
               <div className="text-xs font-black tracking-widest text-white/50 uppercase mb-2">{item.label}</div>
@@ -387,7 +387,7 @@ function SlideGTM() {
   const phases = [
     {
       phase: 'Phase 1',
-      title: 'Local Beachhead',
+      title: 'Local',
       time: 'Months 1–12',
       goal: '10–20 paying parishes in MA',
       items: [
@@ -547,7 +547,7 @@ function SlideFounder() {
           <div className="flex flex-col gap-6">
             <blockquote className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-8">
               <p className="text-amber-100/90 text-lg leading-relaxed italic">
-                "I built this because I felt the isolation myself. I looked for something like this and it didn't exist. So I built it."
+                “Right now, people leave Mass and disappear into their phones. Communio flips that, so that the same device actually brings them back into parish life during the week."
               </p>
             </blockquote>
             <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
@@ -577,8 +577,8 @@ function SlideFounder() {
 function SlideFinancials() {
   const years = [
     { year: 'Year 1', arr: '$0', label: 'Building traction', parishes: '—', color: 'text-white/40' },
-    { year: 'Year 2', arr: '$74K', label: 'Moderate scenario', parishes: '74 parishes · 8% churn', color: 'text-blue-400' },
-    { year: 'Year 3', arr: '$174K', label: 'Moderate scenario', parishes: '149 parishes · 1 diocese partner', color: 'text-amber-400' },
+    { year: 'Year 2', arr: '$89K', label: 'Moderate scenario', parishes: '74 parishes · 8% churn', color: 'text-blue-400' },
+    { year: 'Year 3', arr: '$179K', label: 'Moderate scenario', parishes: '149 parishes · 1 diocese partner', color: 'text-amber-400' },
   ]
   return (
     <SlideWrapper id={11}>
@@ -637,7 +637,7 @@ function SlideFinancials() {
 function SlideAsk() {
   const items = [
     { icon: '⏱', title: 'Founder time', body: 'Reduce insurance hours. 20+ hours/week on Communio full-time.' },
-    { icon: '🤝', title: 'Parish onboarding', body: 'Part-time community manager — the adoption toolkit is the product.' },
+    { icon: '🤝', title: 'Parish onboarding', body: 'Part-time community manager.' },
     { icon: '🎨', title: 'UX design pass', body: 'Professional design on the app before national launch.' },
     { icon: '🗺', title: 'National parish data', body: 'Expand from 559 MA parishes to all 17,500 US parishes.' },
     { icon: '✝️', title: 'First Lent campaign', body: 'The single highest-leverage adoption window in the Church year.' },
@@ -678,7 +678,7 @@ function SlideVision() {
   const stages = [
     { icon: '🌱', period: 'Year 1–2', label: 'Massachusetts', body: '50–175 parishes. Proof of model. First diocese relationship. Lent campaign proves adoption playbook.' },
     { icon: '🇺🇸', period: 'Year 3–5', label: 'National', body: '500–1,750 parishes across all 196 US dioceses. Spanish language. Organization network. $1M+ ARR.' },
-    { icon: '✝️', period: 'Year 5–7', label: 'The Church', body: 'International expansion. Diocese dashboard product. 50,000+ active parishes worldwide.' },
+    { icon: '✝️', period: 'Year 5–7', label: 'The Church', body: 'International expansion. Diocese dashboard product. 200,000+ active parishes worldwide.' },
     { icon: '⛪', period: 'Year 10', label: 'Infrastructure', body: 'Communio is infrastructure for the Church — like the bulletin, but alive. 1B+ Catholics with a digital home.' },
   ]
   return (
