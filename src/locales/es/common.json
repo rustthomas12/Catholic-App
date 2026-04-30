@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "Communio",
+    "tagline": "La plataforma parroquial y comunitaria católica"
+  },
+  "nav": {
+    "home": "Inicio",
+    "groups": "Grupos",
+    "faith": "Fe",
+    "directory": "Directorio",
+    "organizations": "Organizaciones",
+    "messages": "Mensajes",
+    "profile": "Perfil",
+    "notifications": "Notificaciones",
+    "settings": "Ajustes"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "submit": "Enviar",
+    "back": "Regresar",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "loading": "Cargando...",
+    "retry": "Intentar de nuevo",
+    "share": "Compartir",
+    "report": "Reportar"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal. Por favor intenta de nuevo.",
+    "offline": "Sin conexión. Los cambios se sincronizarán cuando vuelvas a conectarte.",
+    "empty": "Nada aquí todavía.",
+    "updated": "App actualizada. Toca para recargar."
+  },
+  "time": {
+    "just_now": "Ahora mismo",
+    "minutes_ago": "Hace {{count}} minutos",
+    "hours_ago": "Hace {{count}} horas",
+    "days_ago": "Hace {{count}} días",
+    "weeks_ago": "Hace {{count}} semanas"
+  },
+  "organizations": {
+    "title": "Organizaciones",
+    "search_placeholder": "Buscar por nombre, categoría o ciudad…",
+    "your_orgs": "Tus organizaciones",
+    "discover": "Descubrir organizaciones católicas",
+    "discover_body": "Busca ministerios, apostolados y organizaciones católicas para unirte.",
+    "join": "Unirse",
+    "member": "Miembro",
+    "admin": "Administrador",
+    "no_results": "No se encontraron organizaciones",
+    "no_results_hint": "Prueba con un nombre o categoría diferente",
+    "create": "Nueva organización",
+    "official": "Oficial"
+  },
+  "messages": {
+    "title": "Mensajes",
+    "new_message": "Nuevo mensaje",
+    "no_messages": "Sin mensajes aún",
+    "no_messages_hint": "Inicia una conversación con otro miembro.",
+    "message_placeholder": "Mensaje…",
+    "search_placeholder": "Buscar por nombre…",
+    "premium_title": "Desbloquear mensajes directos",
+    "premium_body": "Envía mensajes privados a cualquier miembro de Communio. Disponible para quienes apoyan la misión.",
+    "you": "Tú"
+  },
+  "chat": {
+    "members_only": "Solo miembros",
+    "members_only_hint": "Únete a este grupo para participar en el chat.",
+    "no_messages": "Sin mensajes aún. ¡Di hola!",
+    "input_placeholder": "Enviar un mensaje…"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "mark_all_read": "Marcar todo como leído",
+    "unread_count": "{{count}} sin leer",
+    "empty_title": "Sin notificaciones aún",
+    "empty_body": "Cuando alguien le dé me gusta a tu publicación o responda a tu oración, lo verás aquí.",
+    "all_caught_up": "Estás al día",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "this_week": "Esta semana",
+    "earlier": "Antes",
+    "settings_title": "Ajustes de notificaciones",
+    "settings_description": "Controla qué notificaciones recibes. Puedes desactivar cualquier tipo en cualquier momento.",
+    "turn_off_all": "Desactivar todas las notificaciones",
+    "turn_off_all_confirm": "¿Desactivar todas las notificaciones?",
+    "saved": "Guardado",
+    "type_likes": "Me gusta",
+    "type_likes_desc": "Cuando alguien le da me gusta a tu publicación",
+    "type_comments": "Comentarios",
+    "type_comments_desc": "Cuando alguien comenta en tu publicación",
+    "type_groups": "Actividad de grupos",
+    "type_groups_desc": "Solicitudes de ingreso y aprobaciones",
+    "type_parish": "Publicaciones parroquiales",
+    "type_parish_desc": "Cuando tu parroquia publica un anuncio",
+    "type_prayer": "Respuestas de oración",
+    "type_prayer_desc": "Cuando alguien ora por tu intención",
+    "type_events": "Recordatorios de eventos",
+    "type_events_desc": "Recordatorios para próximos eventos",
+    "type_messages": "Mensajes directos",
+    "type_messages_desc": "Cuando alguien te envía un mensaje",
+    "type_confession": "Recordatorios de confesión",
+    "type_confession_desc": "Recordatorios gentiles para el registro de confesiones",
+    "type_confession_premium": "Disponible con Premium"
+  }
+}

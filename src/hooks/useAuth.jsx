@@ -78,6 +78,17 @@ export function AuthProvider({ children }) {
     }
     setStoredProfile(userId, data)
 
+    // Sync language preference from profile to local state
+    if (data?.language && (data.language === 'en' || data.language === 'es')) {
+      try {
+        const stored = localStorage.getItem('communio-language')
+        if (stored !== data.language) {
+          i18n.changeLanguage(data.language)
+          localStorage.setItem('communio-language', data.language)
+        }
+      } catch {}
+    }
+
     // Fire-and-forget: track return visit for parish-sponsored users (once per session)
     if (
       data?.premium_source === 'parish_sponsored' &&

@@ -23,10 +23,10 @@ const INTENTIONS_TTL = 5 * 60 * 1000  // 5 minutes
 export default function FaithPage() {
   document.title = 'Faith | Communio'
 
-  const { t } = useTranslation('faith')
+  const { t, i18n } = useTranslation('faith')
   const { user } = useAuth()
 
-  const { readings, loading, error, liturgicalInfo, feastInfo, todayFormatted } = useReadings()
+  const { readings, loading, error, liturgicalInfo, feastInfo, todayFormatted } = useReadings(i18n.language)
 
   const { saint, loading: saintLoading } = useTodaySaint()
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()

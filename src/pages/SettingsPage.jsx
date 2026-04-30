@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase'
 import Modal from '../components/shared/Modal'
 import Button from '../components/shared/Button'
 import { toast } from '../components/shared/Toast'
+import LanguageSwitcher from '../components/shared/LanguageSwitcher'
 import pkgJson from '../../package.json'
 
 function SettingsRow({ icon: Icon, label, value, to, onClick, danger = false }) {
@@ -78,6 +79,14 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="px-4 py-5 border-b border-gray-100 bg-white">
           <h1 className="text-xl font-bold text-navy">Settings</h1>
+        </div>
+
+        {/* Language / Idioma — always bilingual label so Spanish speakers can find it */}
+        <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm px-4 py-4">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+            Language / Idioma
+          </p>
+          <LanguageSwitcher variant="full" />
         </div>
 
         <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm">

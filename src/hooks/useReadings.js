@@ -198,11 +198,10 @@ function parseReadingsHtml(html) {
 }
 
 // ── Module-level cache ─────────────────────────────────────
-// Shared across all useReadings() calls in the same session so
-// HomePage and FaithPage don't each trigger a separate network request.
-let _cache = null          // resolved readings object
-let _promise = null        // in-flight fetch promise
-let _error = false
+// Keyed per language so switching language doesn't serve stale data.
+const _caches   = { en: null, es: null }
+const _promises = { en: null, es: null }
+const _errors   = { en: false, es: false }
 
 function getFromLocalStorage(cacheKey) {
   try {
@@ -210,22 +209,20 @@ function getFromLocalStorage(cacheKey) {
     if (!cached) return null
     const parsed = JSON.parse(cached)
     const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
-    // v:2 ensures old cached entries missing copyright strip are ignored
     if (cachedDate === new Date().toDateString() && parsed.v === 3) return parsed
-  } catch {
-    // ignore
-  }
+  } catch {}
   return null
 }
 
-function fetchReadingsOnce(dateStr) {
-  if (_promise) return _promise
-  _error = false  // reset so a fresh attempt can succeed
+function fetchReadingsOnce(dateStr, lang = 'en') {
+  if (_promises[lang]) return _promises[lang]
+  _errors[lang] = false
 
   const controller = new AbortController()
   const fetchTimeout = setTimeout(() => controller.abort(), 5000)
+  const endpoint = lang === 'es' ? `/api/readings-es?date=${dateStr}` : `/api/readings?date=${dateStr}`
 
-  _promise = fetch(`/api/readings?date=${dateStr}`, { signal: controller.signal })
+  _promises[lang] = fetch(endpoint, { signal: controller.signal })
     .then(res => {
       if (!res.ok) throw new Error('Proxy error')
       return res.json()
@@ -233,44 +230,44 @@ function fetchReadingsOnce(dateStr) {
     .then(data => {
       clearTimeout(fetchTimeout)
       if (!data.success || !data.html) {
-        _promise = null // allow retry
-        _error = true
+        _promises[lang] = null
+        _errors[lang] = true
         return null
       }
       const parsed = parseReadingsHtml(data.html)
       if (!parsed) {
-        _promise = null // allow retry
-        _error = true
+        _promises[lang] = null
+        _errors[lang] = true
         return null
       }
       const withMeta = { ...parsed, date: dateStr, fetchedAt: new Date().toISOString(), v: 3 }
-      try { localStorage.setItem(`readings_${dateStr}`, JSON.stringify(withMeta)) } catch { /* quota */ }
-      _cache = withMeta
+      try { localStorage.setItem(`readings_${lang}_${dateStr}`, JSON.stringify(withMeta)) } catch {}
+      _caches[lang] = withMeta
       return withMeta
     })
     .catch(() => {
       clearTimeout(fetchTimeout)
-      _promise = null // allow retry on next render
-      _error = true
+      _promises[lang] = null
+      _errors[lang] = true
       return null
     })
 
-  return _promise
+  return _promises[lang]
 }
 
 // ── useReadings ────────────────────────────────────────────
-export function useReadings() {
+export function useReadings(language = 'en') {
+  const lang = language === 'es' ? 'es' : 'en'
   const dateStr = getTodayReadingsDate()
-  const cacheKey = `readings_${dateStr}`
+  const cacheKey = `readings_${lang}_${dateStr}`
 
-  // Synchronous initializer: hit localStorage before first render
   const [state, setState] = useState(() => {
     const ls = getFromLocalStorage(cacheKey)
-    if (ls) { _cache = ls }
+    if (ls) { _caches[lang] = ls }
     return {
-      readings: _cache,
-      loading: !_cache && !_error,
-      error: _error,
+      readings: _caches[lang],
+      loading: !_caches[lang] && !_errors[lang],
+      error: _errors[lang],
     }
   })
 
@@ -279,16 +276,14 @@ export function useReadings() {
   const todayFormatted = format(new Date(), 'EEEE, MMMM d')
 
   useEffect(() => {
-    // Already have data — nothing to do
-    if (_cache) {
-      setState({ readings: _cache, loading: false, error: false })
+    if (_caches[lang]) {
+      setState({ readings: _caches[lang], loading: false, error: false })
       return
     }
-    // On error, allow retry (fetchReadingsOnce resets _error and _promise was cleared)
-    fetchReadingsOnce(dateStr).then(result => {
-      setState({ readings: result, loading: false, error: _error })
+    fetchReadingsOnce(dateStr, lang).then(result => {
+      setState({ readings: result, loading: false, error: _errors[lang] })
     })
-  }, [dateStr])
+  }, [dateStr, lang])
 
   return {
     readings: state.readings,

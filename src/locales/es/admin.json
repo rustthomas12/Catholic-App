@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "title": "Administración",
+    "dashboard": "Tablero",
+    "users": "Usuarios",
+    "parishes": "Parroquias",
+    "reports": "Reportes",
+    "flags": "Contenido reportado",
+    "settings": "Ajustes de la app",
+    "stats_users": "Total de usuarios",
+    "stats_parishes": "Parroquias",
+    "stats_posts": "Publicaciones hoy",
+    "stats_active": "Activos esta semana",
+    "flag_review": "Revisar",
+    "flag_dismiss": "Descartar",
+    "flag_remove": "Eliminar contenido",
+    "flag_ban": "Suspender usuario",
+    "ban_confirm": "¿Suspender a {{name}}? Esto les impedirá iniciar sesión.",
+    "content_removed": "Contenido eliminado",
+    "user_banned": "Usuario suspendido"
+  }
+}

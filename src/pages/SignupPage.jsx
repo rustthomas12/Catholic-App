@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import LanguageSwitcher from '../components/shared/LanguageSwitcher'
 
 const VOCATIONS = [
   { value: 'single', emoji: '🙏', key: 'vocation_single' },
@@ -129,6 +130,9 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher variant="compact" />
+      </div>
       {/* Logo */}
       <div className="flex flex-col items-center mb-6">
         <div className="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center mb-3 shadow-md">

@@ -16,6 +16,7 @@ import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
 import { getLiturgicalSeason } from '../../utils/liturgical'
 import Avatar from './Avatar'
+import LanguageSwitcher from './LanguageSwitcher'
 import { supabase } from '../../lib/supabase'
 
 const PUBLIC_PATHS = [
@@ -354,6 +355,9 @@ function Navigation() {
                 <p className="text-gray-400 text-xs truncate">Parish member</p>
               )}
             </div>
+          </div>
+          <div className="px-1 py-1 mb-1">
+            <LanguageSwitcher variant="compact" />
           </div>
           <button onClick={handleSignOut}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-sm">

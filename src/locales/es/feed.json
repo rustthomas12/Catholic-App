@@ -1,0 +1,81 @@
+{
+  "feed": {
+    "title": "Inicio",
+    "all": "Todo",
+    "my_parish": "Mi parroquia",
+    "my_groups": "Mis grupos",
+    "prayer_requests": "Oración",
+    "events": "Eventos",
+    "caught_up": "Estás al día",
+    "caught_up_sub": "Vuelve más tarde para nuevas publicaciones",
+    "empty_title": "Tu feed está tranquilo",
+    "empty_body": "Sigue a tu parroquia para ver publicaciones aquí",
+    "find_parish": "Encontrar mi parroquia",
+    "load_more": "Cargar más",
+    "new_post_available": "↑ Nueva publicación"
+  },
+  "post": {
+    "placeholder": "Comparte un pensamiento, reflexión o pregunta a tu comunidad...",
+    "parish_label": "Mi parroquia",
+    "group_label": "Grupo",
+    "prayer_toggle": "Petición de oración",
+    "char_limit": "{{count}} / 500",
+    "image_add": "Agregar foto",
+    "image_remove": "Quitar foto",
+    "submit": "Publicar",
+    "posting": "Publicando...",
+    "success": "Tu publicación fue compartida",
+    "deleted": "Publicación eliminada",
+    "removed": "[Esta publicación fue eliminada]",
+    "edit": "Editar publicación",
+    "edit_coming_soon": "La edición de publicaciones estará disponible pronto",
+    "delete": "Eliminar publicación",
+    "delete_confirm": "¿Eliminar esta publicación? Esta acción no se puede deshacer.",
+    "confirm_delete": "¿Eliminar esta publicación?",
+    "confirm_delete_body": "Esta acción no se puede deshacer.",
+    "uploading": "Subiendo imagen...",
+    "destination_label": "Publicando en",
+    "destination_public": "Público",
+    "report": "Reportar publicación"
+  },
+  "like": {
+    "like": "Me gusta",
+    "liked": "Me gustó",
+    "count_one": "{{count}} me gusta",
+    "count_other": "{{count}} me gusta"
+  },
+  "comment": {
+    "placeholder": "Escribe un comentario...",
+    "submit": "Enviar",
+    "view_all": "Ver los {{count}} comentarios",
+    "count_one": "{{count}} comentario",
+    "count_other": "{{count}} comentarios",
+    "removed": "[Comentario eliminado]",
+    "delete": "Eliminar comentario"
+  },
+  "prayer": {
+    "title": "Peticiones de oración",
+    "subtitle": "Ora por tus hermanos y hermanas",
+    "placeholder": "Comparte una intención de oración...",
+    "anonymous_toggle": "Publicar de forma anónima",
+    "submit": "Compartir intención",
+    "pray": "Oraré por esto",
+    "praying": "Orando por ti",
+    "anonymous": "Anónimo",
+    "count_one": "{{count}} oración",
+    "count_other": "{{count}} oraciones",
+    "empty": "Sin intenciones aún. Sé el primero en compartir.",
+    "success": "Tu intención fue compartida"
+  },
+  "report": {
+    "title": "Reportar esta publicación",
+    "spam": "Spam",
+    "hateful": "Contenido de odio",
+    "misinformation": "Desinformación",
+    "violates_values": "Viola los valores católicos",
+    "other": "Otro",
+    "notes_placeholder": "Opcional: añade más detalles...",
+    "submit": "Enviar reporte",
+    "success": "Gracias. Nuestro equipo revisará esto."
+  }
+}

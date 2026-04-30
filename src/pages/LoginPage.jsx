@@ -6,6 +6,7 @@ import { useTranslation } from '../utils/i18n'
 import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import LanguageSwitcher from '../components/shared/LanguageSwitcher'
 
 export default function LoginPage() {
   const { t } = useTranslation('auth')
@@ -45,6 +46,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
+      {/* Language switcher — top right, accessible before login */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher variant="compact" />
+      </div>
       {/* Logo */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mb-4 shadow-md">

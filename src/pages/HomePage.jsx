@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useFollowedParishes } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
@@ -19,6 +20,7 @@ let _homeGroupsCache = null  // { userId, data }
 
 export default function HomePage() {
   document.title = 'Home | Communio'
+  const { i18n } = useTranslation()
   const { profile } = useAuth()
   const navigate = useNavigate()
 
@@ -45,7 +47,7 @@ export default function HomePage() {
   const hasAnyMembership = hasParish || groups.length > 0
 
   const { readings: homeReadings, loading: readingsLoading, error: readingsError,
-          liturgicalInfo, feastInfo, todayFormatted } = useReadings()
+          liturgicalInfo, feastInfo, todayFormatted } = useReadings(i18n.language)
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
   const isNewUser = profile?.created_at &&
     differenceInDays(new Date(), new Date(profile.created_at)) <= 7
