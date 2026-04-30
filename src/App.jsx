@@ -54,6 +54,10 @@ const PrivacyPage              = lazy(() => import('./pages/PrivacyPage'))
 const PolicyPage               = lazy(() => import('./pages/PolicyPage'))
 const NotFoundPage             = lazy(() => import('./pages/NotFoundPage'))
 const PitchDeckPage            = lazy(() => import('./pages/PitchDeckPage'))
+const RosaryTrackerPage        = lazy(() => import('./pages/RosaryTrackerPage'))
+const PrayerJournalPage        = lazy(() => import('./pages/PrayerJournalPage'))
+const LiturgyOfHoursPage       = lazy(() => import('./pages/LiturgyOfHoursPage'))
+const FormationPage            = lazy(() => import('./pages/FormationPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -140,15 +144,19 @@ function AppInner() {
           <Route path="/group/:id/settings"        element={<ProtectedRoute><RouteErrorBoundary><GroupSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/directory"                 element={<ProtectedRoute><RouteErrorBoundary><DirectoryPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/parish/:id"                element={<ProtectedRoute><RouteErrorBoundary><ParishPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/faith"                     element={<ProtectedRoute><RouteErrorBoundary><FaithPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/faith/prayer"              element={<ProtectedRoute><RouteErrorBoundary><PrayerRequestsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith"                         element={<ProtectedRoute><RouteErrorBoundary><FaithPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/prayer"                  element={<ProtectedRoute><RouteErrorBoundary><PrayerRequestsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/journal"                 element={<ProtectedRoute><RouteErrorBoundary><PrayerJournalPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/rosary"                  element={<ProtectedRoute><RouteErrorBoundary><RosaryTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/hours"                   element={<ProtectedRoute><RouteErrorBoundary><LiturgyOfHoursPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/formation/:program"      element={<ProtectedRoute><RouteErrorBoundary><FormationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile"                   element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile/:id"               element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings"                  element={<ProtectedRoute><RouteErrorBoundary><SettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/profile"          element={<ProtectedRoute><RouteErrorBoundary><EditProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/notifications"    element={<ProtectedRoute><RouteErrorBoundary><NotificationSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/notifications"             element={<ProtectedRoute><RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/premium"                   element={<ProtectedRoute><RouteErrorBoundary><PremiumPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/premium"                   element={<RouteErrorBoundary><PremiumPage /></RouteErrorBoundary>} />
           <Route path="/premium/success"           element={<ProtectedRoute><RouteErrorBoundary><PremiumSuccessPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />

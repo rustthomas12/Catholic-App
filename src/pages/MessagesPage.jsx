@@ -29,9 +29,8 @@ function useConversations(userId) {
     // Get latest message per partner
     const { data } = await supabase
       .from('direct_messages')
-      .select('id, sender_id, recipient_id, content, is_read, created_at, is_premium_dm, profiles!direct_messages_sender_id_fkey(id, full_name, avatar_url)')
+      .select('id, sender_id, recipient_id, content, is_read, created_at, profiles!direct_messages_sender_id_fkey(id, full_name, avatar_url)')
       .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
-      .is('is_premium_dm', true)
       .order('created_at', { ascending: false })
       .limit(200)
 
@@ -83,7 +82,6 @@ function useMessages(userId, partnerId) {
       .or(
         `and(sender_id.eq.${userId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${userId})`
       )
-      .eq('is_premium_dm', true)
       .order('created_at', { ascending: true })
       .limit(100)
       .then(({ data }) => {
@@ -96,7 +94,6 @@ function useMessages(userId, partnerId) {
       .update({ is_read: true })
       .eq('sender_id', partnerId)
       .eq('recipient_id', userId)
-      .eq('is_premium_dm', true)
       .eq('is_read', false)
       .then(() => {})
 
@@ -127,7 +124,6 @@ function useMessages(userId, partnerId) {
       sender_id: userId,
       recipient_id: partnerId,
       content: content.trim(),
-      is_premium_dm: true,
     }).select().single()
     if (!error && data) setMessages(prev => [...prev, data])
   }, [userId, partnerId])
@@ -273,7 +269,7 @@ function ConversationView({ userId, partner, onBack }) {
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
   useEffect(() => { document.title = 'Messages | Communio' }, [])
-  const { user, isPremium } = useAuth()
+  const { user } = useAuth()
   const { convos, loading, reload } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
@@ -288,37 +284,22 @@ export default function MessagesPage() {
           {/* Header */}
           <div className="bg-navy px-4 py-4 flex items-center justify-between">
             <h1 className="text-white font-bold text-lg">Messages</h1>
-            {isPremium && (
-              <button
-                onClick={() => setShowNewConvo(true)}
-                className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              >
-                <PencilSquareIcon className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={() => setShowNewConvo(true)}
+              className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+            >
+              <PencilSquareIcon className="w-4 h-4" />
+            </button>
           </div>
 
           {/* List */}
           <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-            {!isPremium && (
-              <div className="p-5 text-center border-b border-gray-100">
-                <PaperAirplaneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                <p className="text-navy font-semibold text-sm mb-1">Private messaging</p>
-                <p className="text-gray-400 text-xs mb-3">Upgrade to send direct messages to other members.</p>
-                <a
-                  href="/premium"
-                  className="inline-block text-sm font-bold text-white bg-gold px-4 py-2 rounded-xl hover:bg-gold/90 transition-colors"
-                >
-                  Upgrade
-                </a>
-              </div>
-            )}
             {loading && (
               <div className="space-y-0">
                 {[1,2,3].map(i => <div key={i} className="h-16 bg-white animate-pulse border-b border-gray-50" />)}
               </div>
             )}
-            {!loading && convos.length === 0 && isPremium && (
+            {!loading && convos.length === 0 && (
               <div className="p-6 text-center">
                 <p className="text-navy font-semibold text-sm mb-1">No messages yet</p>
                 <p className="text-gray-400 text-xs">Start a conversation with another member.</p>

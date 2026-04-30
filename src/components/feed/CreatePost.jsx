@@ -50,6 +50,7 @@ function DestinationSheet({ isOpen, onClose, options, selected, onSelect }) {
 function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestination, orgId = null }) {
   const { t } = useTranslation('feed')
   const { user, profile } = useAuth()
+  const isSuspended = !!profile?.suspended_at
 
   const [content, setContent] = useState('')
   const [image, setImage] = useState(null)        // File
@@ -115,6 +116,10 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
   async function handlePost() {
     const trimmed = content.trim()
     if (!trimmed) return
+    if (isSuspended) {
+      toast.error('Your account is under review. You cannot post at this time.')
+      return
+    }
     setPosting(true)
 
     let imageUrl = null
@@ -198,7 +203,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
             <span className="text-base font-semibold text-navy">New Post</span>
             <button
               onClick={handlePost}
-              disabled={!content.trim() || posting || overLimit}
+              disabled={!content.trim() || posting || overLimit || isSuspended}
               className="bg-gold text-navy text-sm font-bold px-4 py-1.5 rounded-full min-h-[36px] disabled:opacity-40 flex items-center gap-1.5"
             >
               {posting && <LoadingSpinner size="sm" color="navy" />}

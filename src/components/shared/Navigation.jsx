@@ -149,13 +149,12 @@ function Navigation() {
       .then(({ data }) => setAdminOrgId(data?.[0]?.org_id ?? null))
       .catch(() => {})
 
-    // Unread premium DMs
+    // Unread DMs
     supabase
       .from('direct_messages')
       .select('id', { count: 'exact', head: true })
       .eq('recipient_id', user.id)
       .eq('is_read', false)
-      .eq('is_premium_dm', true)
       .then(({ count }) => setUnreadDMs(count ?? 0))
       .catch(() => {})
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
