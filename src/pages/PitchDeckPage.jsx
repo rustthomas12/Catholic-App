@@ -71,7 +71,7 @@ function SlideCover() {
           Thomas Rust · Founder &amp; Builder
         </p>
         <p className="text-white/30 text-sm mt-2 tracking-wide">
-          communio.app
+          getcommunio.app
         </p>
       </div>
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30">
@@ -89,8 +89,8 @@ function SlideProblem() {
       <div className="max-w-5xl mx-auto w-full">
         <Tag color="blue">01 · Problem</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-          Most Catholics feel alone<br />
-          <span className="text-amber-400">the moment they leave Mass.</span>
+          The Church has no digital infrastructure for<br />
+          <span className="text-amber-400">daily parish life.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-10" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
