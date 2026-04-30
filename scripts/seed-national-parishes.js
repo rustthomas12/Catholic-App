@@ -105,21 +105,26 @@ async function main() {
     data_quality: (p.latitude && p.longitude) ? 2 : 1,
   }))
 
-  // ── Batch upsert ──────────────────────────────────────────
+  // Split: rows with EIN (upsert on conflict) vs without EIN (plain insert)
+  const withEIN    = rows.filter(r => r.irs_ein)
+  const withoutEIN = rows.filter(r => !r.irs_ein)
+  console.log(`   With EIN (upsert):    ${withEIN.length.toLocaleString()}`)
+  console.log(`   Without EIN (insert): ${withoutEIN.length.toLocaleString()}`)
+
   const totalBatches = Math.ceil(rows.length / BATCH_SIZE)
-  let inserted = 0, updated = 0, errors = 0
+  let inserted = 0, errors = 0
+  let batchNum = 0
 
-  console.log(`   Starting upsert — ${totalBatches} batches of ${BATCH_SIZE}...`)
-
-  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch    = rows.slice(i, i + BATCH_SIZE)
-    const batchNum = Math.floor(i / BATCH_SIZE) + 1
+  // ── Upsert rows that have an EIN ──────────────────────────
+  for (let i = 0; i < withEIN.length; i += BATCH_SIZE) {
+    const batch = withEIN.slice(i, i + BATCH_SIZE)
+    batchNum++
 
     const { error } = await supabase
       .from('parishes')
       .upsert(batch, {
-        onConflict:        'irs_ein',
-        ignoreDuplicates:  false,   // update existing records on conflict
+        onConflict:       'irs_ein',
+        ignoreDuplicates: false,
       })
 
     if (error) {
@@ -129,9 +134,30 @@ async function main() {
       inserted += batch.length
     }
 
-    // Progress every 10 batches
-    if (batchNum % 10 === 0 || batchNum === totalBatches) {
-      const pct = Math.round(batchNum / totalBatches * 100)
+    if (batchNum % 10 === 0 || i + BATCH_SIZE >= withEIN.length) {
+      const pct = Math.round(inserted / rows.length * 100)
+      console.log(`  Batch ${batchNum}/${totalBatches} (${pct}%) — ${inserted.toLocaleString()} processed, ${errors} errors`)
+    }
+  }
+
+  // ── Plain insert rows without EIN ─────────────────────────
+  for (let i = 0; i < withoutEIN.length; i += BATCH_SIZE) {
+    const batch = withoutEIN.slice(i, i + BATCH_SIZE)
+    batchNum++
+
+    const { error } = await supabase
+      .from('parishes')
+      .insert(batch)
+
+    if (error) {
+      console.error(`  ❌ Batch ${batchNum}/${totalBatches} (no-EIN): ${error.message}`)
+      errors += batch.length
+    } else {
+      inserted += batch.length
+    }
+
+    if (batchNum % 10 === 0 || i + BATCH_SIZE >= withoutEIN.length) {
+      const pct = Math.round(inserted / rows.length * 100)
       console.log(`  Batch ${batchNum}/${totalBatches} (${pct}%) — ${inserted.toLocaleString()} processed, ${errors} errors`)
     }
   }

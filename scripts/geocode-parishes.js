@@ -1,85 +1,87 @@
 // ============================================================
 // COMMUNIO — Phase 13: Geocode Catholic Parishes
-// Service: US Census Bureau Geocoder (free, no API key, batch endpoint)
-// https://geocoding.geo.census.gov/geocoder/locations/addressbatch
+// Service: US Census Bureau Geocoder (free, no API key)
+// https://geocoding.geo.census.gov/geocoder/locations/address
+//
+// Uses the single-address endpoint with 10 concurrent requests.
+// The batch endpoint is unreliable; single-address is stable.
 //
 // Usage: node scripts/geocode-parishes.js
 // Prerequisites: scripts/data/catholic-parishes-filtered.json
 //
 // Features:
-//   - Sends batches of 1,000 addresses to the Census batch geocoder
-//   - Saves progress after every batch (safe to interrupt and resume)
-//   - 2-second delay between batches to be respectful
+//   - 10 concurrent requests (well within Census rate limits)
+//   - Saves progress every 100 geocoded (safe to interrupt and resume)
 //   - ~80–90% match rate expected
 //
 // Output: scripts/data/catholic-parishes-geocoded.json
-// Runtime: ~30–45 minutes for 14,000 parishes
+// Runtime: ~15–25 minutes for 13,000 parishes
 // ============================================================
 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { FormData, File } from 'formdata-node'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const CENSUS_URL  = 'https://geocoding.geo.census.gov/geocoder/locations/addressbatch'
-const BATCH_SIZE  = 1000   // Census accepts up to 10,000 but 1,000 is reliable
-const DELAY_MS    = 2000   // 2 seconds between batches
+const CENSUS_URL   = 'https://geocoding.geo.census.gov/geocoder/locations/address'
+const CONCURRENCY  = 10   // parallel requests at a time
+const SAVE_EVERY   = 200  // save progress every N geocoded
+const DELAY_MS     = 50   // ms between launching each request in a batch
 
-async function geocodeBatch(parishes) {
-  // Build CSV in Census geocoder format: ID, Street, City, State, ZIP
-  const csvLines = parishes.map(p =>
-    `${p._idx},"${(p.address || '').replace(/"/g, "'")}","${p.city || ''}","${p.state || ''}","${p.zip || ''}"`
-  )
-  const csvContent = csvLines.join('\n')
+async function geocodeOne(parish) {
+  const params = new URLSearchParams({
+    street:    parish.address || '',
+    city:      parish.city    || '',
+    state:     parish.state   || '',
+    zip:       parish.zip     || '',
+    benchmark: 'Public_AR_Current',
+    format:    'json',
+  })
 
-  const form = new FormData()
-  form.set('addressFile', new File([csvContent], 'addresses.csv', { type: 'text/csv' }))
-  form.set('benchmark', 'Public_AR_Current')
-
-  let response
   try {
-    response = await fetch(CENSUS_URL, {
-      method: 'POST',
-      body:   form,
-      signal: AbortSignal.timeout(120000),  // 2-minute timeout per batch
+    const res = await fetch(`${CENSUS_URL}?${params}`, {
+      signal: AbortSignal.timeout(15000),
     })
-  } catch (err) {
-    throw new Error(`Network error: ${err.message}`)
+    if (!res.ok) return null
+
+    const json = await res.json()
+    const match = json?.result?.addressMatches?.[0]
+    if (!match) return null
+
+    const { x: lng, y: lat } = match.coordinates
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null
+    return { latitude: lat, longitude: lng }
+  } catch {
+    return null
   }
-
-  if (!response.ok) {
-    throw new Error(`Census geocoder HTTP ${response.status}`)
-  }
-
-  const text = await response.text()
-
-  // Parse response CSV
-  // Format: ID, Input Address, Match, MatchType, OutputAddress, Coordinates, TigerLineID, Side
-  const results = {}
-  for (const line of text.split('\n')) {
-    if (!line.trim()) continue
-    const parts = line.split(',')
-    if (parts.length < 6) continue
-
-    const id     = parts[0]?.trim()
-    const match  = parts[2]?.trim()   // 'Match' | 'No_Match' | 'Tie'
-    const coords = parts[5]?.trim()   // "lng,lat"
-
-    if (match === 'Match' && coords && coords.includes(',')) {
-      const [lng, lat] = coords.split(',').map(Number)
-      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-        results[id] = { latitude: lat, longitude: lng }
-      }
-    }
-  }
-
-  return results
 }
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function runConcurrent(items, fn, concurrency, onProgress) {
+  const results = new Array(items.length).fill(null)
+  let idx = 0
+  let done = 0
+
+  async function worker() {
+    while (idx < items.length) {
+      const i = idx++
+      results[i] = await fn(items[i])
+      done++
+      if (onProgress) onProgress(done, items.length)
+    }
+  }
+
+  const workers = []
+  for (let i = 0; i < Math.min(concurrency, items.length); i++) {
+    await sleep(DELAY_MS * i)  // stagger launches slightly
+    workers.push(worker())
+  }
+  await Promise.all(workers)
+  return results
 }
 
 async function main() {
@@ -96,15 +98,14 @@ async function main() {
   const parishes = JSON.parse(fs.readFileSync(inputPath, 'utf8'))
   console.log(`\nParishes to geocode: ${parishes.length.toLocaleString()}`)
 
-  // Load progress (allows safe resume after interruption)
+  // Load previous progress
   let progress = {}
   if (fs.existsSync(progressPath)) {
     progress = JSON.parse(fs.readFileSync(progressPath, 'utf8'))
-    const alreadyDone = Object.keys(progress).length
-    console.log(`Resuming — ${alreadyDone.toLocaleString()} already geocoded from previous run`)
+    console.log(`Resuming — ${Object.keys(progress).length.toLocaleString()} already geocoded`)
   }
 
-  // Assign internal index and apply previously geocoded coords
+  // Assign index, apply known coords, collect remaining
   const toGeocode = []
   parishes.forEach((p, i) => {
     p._idx = i
@@ -117,50 +118,48 @@ async function main() {
   })
 
   console.log(`Remaining to geocode: ${toGeocode.length.toLocaleString()}`)
-  const totalBatches = Math.ceil(toGeocode.length / BATCH_SIZE)
-  let batchMatched = 0, batchFailed = 0
+  console.log(`Running ${CONCURRENCY} concurrent requests...\n`)
 
-  for (let i = 0; i < toGeocode.length; i += BATCH_SIZE) {
-    const batch     = toGeocode.slice(i, i + BATCH_SIZE)
-    const batchNum  = Math.floor(i / BATCH_SIZE) + 1
+  let matched = 0
+  let processed = 0
+  const startTime = Date.now()
 
-    process.stdout.write(`Batch ${batchNum}/${totalBatches} (${batch.length} addresses)... `)
+  // Print progress every 100
+  function logProgress(done, total) {
+    processed = done
+    if (done % 100 === 0 || done === total) {
+      const pct      = Math.round(done / total * 100)
+      const elapsed  = Math.round((Date.now() - startTime) / 1000)
+      const rate     = done / (elapsed || 1)
+      const remaining = Math.round((total - done) / rate)
+      process.stdout.write(
+        `\r  ${done.toLocaleString()}/${total.toLocaleString()} (${pct}%) — ${matched} matched — ~${remaining}s remaining  `
+      )
 
-    try {
-      const results = await geocodeBatch(batch)
-      const matched = Object.keys(results).length
-
-      // Apply geocoded coords to parishes and progress
-      for (const p of batch) {
-        const r = results[p._idx]
-        if (r) {
-          p.latitude  = r.latitude
-          p.longitude = r.longitude
-          progress[p._idx] = r
-        }
+      // Save progress periodically
+      if (done % SAVE_EVERY === 0) {
+        fs.writeFileSync(progressPath, JSON.stringify(progress))
       }
-
-      batchMatched += matched
-      batchFailed  += (batch.length - matched)
-      process.stdout.write(`${matched}/${batch.length} matched\n`)
-
-      // Save progress after every batch
-      fs.writeFileSync(progressPath, JSON.stringify(progress))
-
-    } catch (err) {
-      process.stdout.write(`ERROR: ${err.message}\n`)
-      console.log('  Saving progress and waiting 15 seconds before next batch...')
-      fs.writeFileSync(progressPath, JSON.stringify(progress))
-      await sleep(15000)
-      continue
-    }
-
-    if (i + BATCH_SIZE < toGeocode.length) {
-      await sleep(DELAY_MS)
     }
   }
 
-  // Apply remaining progress to the full parish list
+  const results = await runConcurrent(toGeocode, async (p) => {
+    const r = await geocodeOne(p)
+    if (r) {
+      p.latitude  = r.latitude
+      p.longitude = r.longitude
+      progress[p._idx] = r
+      matched++
+    }
+    return r
+  }, CONCURRENCY, logProgress)
+
+  process.stdout.write('\n')
+
+  // Save final progress
+  fs.writeFileSync(progressPath, JSON.stringify(progress))
+
+  // Apply remaining progress to full parish list
   parishes.forEach(p => {
     if (progress[p._idx] && !p.latitude) {
       p.latitude  = progress[p._idx].latitude

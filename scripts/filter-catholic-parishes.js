@@ -34,33 +34,28 @@ const CATHOLIC_NTEE = new Set(['X21'])
 
 // ── Name patterns indicating a Catholic parish ────────────
 // Order: more specific first. Any match = likely Catholic parish.
+// Name pattern fallback — ONLY for orgs that lack the X21 NTEE code.
+// Intentionally conservative: "Saint/St [name]" is shared by many non-Catholic
+// denominations, so we require the word "Catholic" to appear OR use only
+// patterns that are uniquely Catholic (Marian titles, sacramental names).
 const CATHOLIC_PATTERNS = [
-  /\bour\s+lady\s+of\b/i,
-  /\bimmaculate\s+conception\b/i,
-  /\bimmaculate\s+heart\b/i,
-  /\bsacred\s+heart\b/i,
-  /\bcorpus\s+christi\b/i,
-  /\bholy\s+cross\b/i,
-  /\bholy\s+family\b/i,
-  /\bholy\s+name\b/i,
-  /\bholy\s+rosary\b/i,
-  /\bholy\s+redeemer\b/i,
-  /\bholy\s+trinity\b/i,
-  /\bholy\s+spirit\b/i,
-  /\bassumption\s+of\b/i,
-  /\bannunciation\s+(church|parish|of)\b/i,
-  /\bnativity\s+(of|church|parish)\b/i,
-  /\bblessed\s+sacrament\b/i,
-  /\bblessed\s+virgin\b/i,
-  /\bpresentation\s+of\b/i,
-  /\btransfiguration\b/i,
-  /\bsaint\s+[a-z]/i,          // Saint Patrick, Saint Mary, etc.
-  /\bst\.?\s+[a-z]/i,           // St. Joseph, St Mary, etc.
   /\bcatholic\s+church\b/i,
   /\bcatholic\s+parish\b/i,
   /\broman\s+catholic\b/i,
-  /\bro\.?\s*cath\.?\b/i,       // "Ro Cath" IRS abbreviation
-  /\bparish\s+of\s+/i,
+  /\bro\.?\s*cath\.?\b/i,         // "Ro Cath" IRS abbreviation
+  /\bour\s+lady\s+of\b/i,         // Marian — uniquely Catholic
+  /\bimmaculate\s+conception\b/i,
+  /\bimmaculate\s+heart\b/i,
+  /\bblessed\s+sacrament\b/i,
+  /\bblessed\s+virgin\b/i,
+  /\bcorpus\s+christi\b/i,
+  /\bsacred\s+heart\b/i,
+  /\bassumption\s+of\b/i,
+  /\bannunciation\s+(church|parish|of)\b/i,
+  /\bnativity\s+(of|church|parish)\b/i,
+  /\bpresentation\s+of\b/i,
+  /\bholy\s+rosary\b/i,
+  /\bholy\s+redeemer\b/i,
 ]
 
 // ── Name patterns indicating NON-parish organizations ─────
@@ -119,6 +114,77 @@ const EXCLUSION_PATTERNS = [
   /\barchdiocese\b/i,
   /\bcatholic\s+conference\b/i,
   /\bcatholic\s+league\b/i,
+  /\bnewman\b/i,            // Newman Centers (campus ministry, not a parish)
+  /\bcampus\s+ministry\b/i,
+  /\bchaplainc/i,           // chaplaincies
+  /\bmilitary\b/i,
+  /\bprison\b/i,
+  /\bjail\b/i,
+  /\bcorrectional\b/i,
+  /\bretreat\b/i,
+  /\bspirituality\s+center\b/i,
+  /\brenewal\s+center\b/i,
+  /\bcatholic\s+worker\b/i,
+  /\bapostolate\b/i,        // lay apostolates
+  /\bguild\b/i,
+  /\bcircle\b/i,
+  /\bclub\b/i,
+  /\bassociation\b/i,
+  /\balliance\b/i,
+  /\bministry\b/i,
+  /\boutreach\b/i,
+  /\bmission\s+house\b/i,
+  /\bhouse\s+of\b/i,        // "House of Prayer" etc.
+  /\bservice\s+center\b/i,
+  /\bcommunity\s+center\b/i,
+  /\bcare\s+center\b/i,
+  /\bcatholic\s+center\b/i,
+  /\bbishop\b/i,
+  // Non-Catholic denominations miscoded X21 in IRS data (common with Spanish-language churches)
+  /\bpentecostal\b/i,
+  /\bbaptist\b/i,
+  /\bevangelical\b/i,
+  /\bevangelico\b/i,
+  /\bpresbyteri/i,
+  /\bmethodist\b/i,
+  /\bapostolico\b/i,    // Apostolic = Pentecostal in Spanish-language context
+  /\bministerio\b/i,    // "Ministerio" = non-parish ministry org
+  /\bseventh.day\b/i,
+  /\badventist\b/i,
+  /\blatter.day\b/i,
+  /\blds\b/i,
+  /\bchurch\s+of\s+christ\b/i,
+  /\bchurch\s+of\s+god\b/i,
+  /\bassembli/i,        // Assemblies of God
+  /\bfullness\b/i,
+  /\bfellowship\b/i,    // common in evangelical church names
+  /\btabernacle\b/i,    // common in Pentecostal names
+]
+
+// Name patterns that indicate a parish-type entity (used to validate X21 orgs)
+// For X21 orgs: must look like a physical church, not a lay/ministry org
+// Intentionally excludes generic Saint/St prefix — too many non-parish
+// Catholic organizations (lay associations, campus ministries, etc.) use those
+const PARISH_NAME_PATTERNS = [
+  /\bchurch\b/i,
+  /\bparish\b/i,
+  /\bchapel\b/i,
+  /\bcathedral\b/i,
+  /\bbasilica\b/i,
+  /\bparroquia\b/i,    // Spanish: parish
+  /\biglesia\s+cat[oó]lica\b/i,  // Spanish: Catholic church
+  /\bcatolica\b/i,
+  /\bour\s+lady\b/i,
+  /\bimmaculate\b/i,
+  /\bblessed\s+sacrament\b/i,
+  /\bblessed\s+virgin\b/i,
+  /\bcorpus\s+christi\b/i,
+  /\bsacred\s+heart\b/i,
+  /\bassumption\b/i,
+  /\bannunciation\b/i,
+  /\bnativity\b/i,
+  /\bholy\s+rosary\b/i,
+  /\bholy\s+redeemer\b/i,
 ]
 
 function isCatholicParish(record) {
@@ -133,17 +199,19 @@ function isCatholicParish(record) {
   // Must have name and street address (PO Box only = not a physical parish)
   if (!name || !street) return false
 
-  // Skip PO Box-only addresses — these are almost never the parish's physical location
-  // (We keep them if they have additional street info, but pure PO Box entries skip)
+  // Skip PO Box-only addresses
   if (/^p\.?\s*o\.?\s*box\s+\d+$/i.test(street)) return false
 
   // Apply exclusion patterns first
   if (EXCLUSION_PATTERNS.some(p => p.test(name))) return false
 
-  // X21 NTEE code = Roman Catholic — most reliable signal
-  if (CATHOLIC_NTEE.has(ntee)) return true
+  // X21 NTEE code = Roman Catholic, BUT X21 covers all Catholic orgs (dioceses,
+  // lay groups, ministries, etc.) — require the name to also look like a parish.
+  if (CATHOLIC_NTEE.has(ntee)) {
+    return PARISH_NAME_PATTERNS.some(p => p.test(name))
+  }
 
-  // Fall back to name pattern matching
+  // Fallback: no X21 code — require explicit Catholic name signals
   return CATHOLIC_PATTERNS.some(p => p.test(name))
 }
 
