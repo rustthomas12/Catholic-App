@@ -21,7 +21,7 @@ import { supabase } from '../../lib/supabase'
 const PUBLIC_PATHS = [
   '/login', '/signup', '/onboarding',
   '/forgot-password', '/reset-password',
-  '/terms', '/privacy', '/policy',
+  '/terms', '/privacy', '/policy', '/pitch',
 ]
 
 function CrossIcon({ solid = false, className = '' }) {

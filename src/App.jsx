@@ -53,6 +53,7 @@ const TermsPage                = lazy(() => import('./pages/TermsPage'))
 const PrivacyPage              = lazy(() => import('./pages/PrivacyPage'))
 const PolicyPage               = lazy(() => import('./pages/PolicyPage'))
 const NotFoundPage             = lazy(() => import('./pages/NotFoundPage'))
+const PitchDeckPage            = lazy(() => import('./pages/PitchDeckPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -129,6 +130,7 @@ function AppInner() {
           <Route path="/terms"           element={<TermsPage />} />
           <Route path="/privacy"         element={<PrivacyPage />} />
           <Route path="/policy"          element={<PolicyPage />} />
+          <Route path="/pitch"           element={<PitchDeckPage />} />
 
           {/* Protected */}
           <Route path="/"                          element={<ProtectedRoute><RouteErrorBoundary><HomePage /></RouteErrorBoundary></ProtectedRoute>} />
