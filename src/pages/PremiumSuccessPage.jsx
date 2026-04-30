@@ -33,7 +33,7 @@ export default function PremiumSuccessPage() {
   const copyKey = type === 'one_time' ? 'one_time' : (tier ?? 'supporter')
   const copy = TIER_COPY[copyKey] ?? TIER_COPY.supporter
 
-  document.title = `${copy.headline} | Communio`
+  useEffect(() => { document.title = `${copy.headline} | Communio` }, [copy.headline])
 
   useEffect(() => {
     // Refresh so badge appears immediately without page reload

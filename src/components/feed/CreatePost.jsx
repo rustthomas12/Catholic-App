@@ -82,9 +82,21 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
     el.style.height = `${el.scrollHeight}px`
   }, [content])
 
+  // Revoke image preview URL to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+    }
+  }, [imagePreview])
+
   function handleImageSelect(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowed.includes(file.type)) {
+      toast.error('Please choose a JPEG, PNG, WebP, or GIF image.')
+      return
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image must be smaller than 5 MB.')
       return
@@ -251,6 +263,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
                 className={`relative w-11 h-6 rounded-full transition-colors ${isPrayerRequest ? 'bg-navy' : 'bg-gray-300'}`}
                 role="switch"
                 aria-checked={isPrayerRequest}
+                aria-label={t('post.prayer_toggle')}
               >
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isPrayerRequest ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>

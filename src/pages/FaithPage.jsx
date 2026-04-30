@@ -17,11 +17,12 @@ import Avatar from '../components/shared/Avatar'
 
 // Module-level caches — shared across mounts/navigations
 let _intentionsCache = null   // { data, fetchedAt }
-let _confessionCache = null   // { data, userId }
-const INTENTIONS_TTL = 5 * 60 * 1000  // 5 minutes
+let _confessionCache = null   // { data, userId, fetchedAt }
+const INTENTIONS_TTL  = 5 * 60 * 1000  // 5 minutes
+const CONFESSION_TTL  = 5 * 60 * 1000  // 5 minutes
 
 export default function FaithPage() {
-  document.title = 'Faith | Communio'
+  useEffect(() => { document.title = 'Faith | Communio' }, [])
 
   const { t, i18n } = useTranslation('faith')
   const { user } = useAuth()
@@ -35,8 +36,11 @@ export default function FaithPage() {
 
   const [intentions, setIntentions] = useState(() => cachedIntentions ? _intentionsCache.data : [])
   const [intentionsLoading, setIntentionsLoading] = useState(() => !cachedIntentions)
+  const cachedConfession = _confessionCache?.userId === user?.id &&
+    (Date.now() - (_confessionCache?.fetchedAt ?? 0)) < CONFESSION_TTL
+
   const [lastConfession, setLastConfession] = useState(() =>
-    _confessionCache?.userId === user?.id ? _confessionCache.data : null
+    cachedConfession ? _confessionCache.data : null
   )
   const [confessionLoading, setConfessionLoading] = useState(false)
 
@@ -56,10 +60,12 @@ export default function FaithPage() {
       `)
       .order('created_at', { ascending: false })
       .limit(5)
-      .then(({ data }) => {
-        const result = data ?? []
-        _intentionsCache = { data: result, fetchedAt: Date.now() }
-        setIntentions(result)
+      .then(({ data, error: err }) => {
+        if (!err) {
+          const result = data ?? []
+          _intentionsCache = { data: result, fetchedAt: Date.now() }
+          setIntentions(result)
+        }
         setIntentionsLoading(false)
       })
   }, [])
@@ -68,7 +74,8 @@ export default function FaithPage() {
   useEffect(() => {
     if (!user) return
 
-    if (_confessionCache?.userId === user.id) {
+    if (_confessionCache?.userId === user.id &&
+        (Date.now() - (_confessionCache?.fetchedAt ?? 0)) < CONFESSION_TTL) {
       setLastConfession(_confessionCache.data)
       return
     }
@@ -81,9 +88,11 @@ export default function FaithPage() {
       .order('confessed_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
-        _confessionCache = { data, userId: user.id }
-        setLastConfession(data)
+      .then(({ data, error: err }) => {
+        if (!err) {
+          _confessionCache = { data, userId: user.id, fetchedAt: Date.now() }
+          setLastConfession(data)
+        }
         setConfessionLoading(false)
       })
   }, [user?.id])
@@ -127,7 +136,7 @@ export default function FaithPage() {
           <SaintCard
             saint={saint}
             variant="day"
-            isFavorite={isFavorite(saint?.id)}
+            isFavorite={saint ? isFavorite(saint.id) : false}
             onFavoriteToggle={handleFavoriteToggle}
             loading={saintLoading}
           />
@@ -185,7 +194,7 @@ export default function FaithPage() {
                 ) : daysSince === null ? (
                   <p className="text-xs text-gray-400 mt-0.5">{t('confession_first')}</p>
                 ) : daysSince === 0 ? (
-                  <p className="text-xs text-gold font-semibold mt-0.5">You went to Confession today 🙏</p>
+                  <p className="text-xs text-gold font-semibold mt-0.5">{t('confession_today')}</p>
                 ) : (
                   <p className="text-xs text-gray-500 mt-0.5">
                     {t('confession_last', { days: daysSince })}

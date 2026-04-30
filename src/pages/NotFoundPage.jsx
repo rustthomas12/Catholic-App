@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function NotFoundPage() {
-  document.title = '404 — Page Not Found | Communio'
+  useEffect(() => { document.title = '404 — Page Not Found | Communio' }, [])
   const navigate = useNavigate()
 
   return (

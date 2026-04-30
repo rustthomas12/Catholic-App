@@ -59,7 +59,7 @@ const WHAT_YOU_GET = [
 const ONE_TIME_PRESETS = [10, 25, 50]
 
 export default function PremiumPage() {
-  document.title = 'Support the Mission | Communio'
+  useEffect(() => { document.title = 'Support the Mission | Communio' }, [])
 
   const { user, profile, donationTier, isDonor, isSupportedByParish, subscriptionStatus, refreshProfile } = useAuth()
   const [searchParams] = useSearchParams()

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 
@@ -11,7 +12,7 @@ function Section({ title, children }) {
 }
 
 export default function PrivacyPage() {
-  document.title = 'Privacy Policy | Communio'
+  useEffect(() => { document.title = 'Privacy Policy | Communio' }, [])
   const navigate = useNavigate()
 
   return (

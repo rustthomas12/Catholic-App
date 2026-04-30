@@ -18,7 +18,7 @@ const VOCATIONS = [
 ]
 
 export default function EditProfilePage() {
-  document.title = 'Edit Profile | Communio'
+  useEffect(() => { document.title = 'Edit Profile | Communio' }, [])
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
   const fileRef = useRef(null)
@@ -40,6 +40,13 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false)
   const [showDiscardModal, setShowDiscardModal] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+
+  // Revoke preview object URL to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+    }
+  }, [avatarPreview])
 
   // Init from profile
   useEffect(() => {
@@ -93,6 +100,11 @@ export default function EditProfilePage() {
   function handleAvatarChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    const allowed = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      toast.error('Please choose a JPEG, PNG, or WebP image')
+      return
+    }
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image must be smaller than 2 MB')
       return
@@ -103,6 +115,10 @@ export default function EditProfilePage() {
 
   async function handleSave() {
     if (!hasChanges) return
+    if (!fullName.trim()) {
+      toast.error('Name is required.')
+      return
+    }
     setSaving(true)
     try {
       let finalAvatarUrl = avatarUrl
@@ -125,6 +141,7 @@ export default function EditProfilePage() {
         toast.error(error)
       } else {
         toast.success('Profile saved')
+        setAvatarPreview(null)
         navigate(`/profile/${user.id}`, { replace: true })
       }
     } finally {

@@ -66,7 +66,7 @@ function getDestination(notification) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationsPage() {
-  document.title = 'Notifications | Communio'
+  useEffect(() => { document.title = 'Notifications | Communio' }, [])
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()
@@ -88,12 +88,12 @@ export default function NotificationsPage() {
     const el = sentinelRef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) loadMore() },
+      ([entry]) => { if (entry.isIntersecting && !loadingMore && hasMore) loadMore() },
       { rootMargin: '200px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [loadMore])
+  }, [loadMore, loadingMore, hasMore])
 
   // ── Handlers ─────────────────────────────────────────
   const handleTap = useCallback((notification) => {

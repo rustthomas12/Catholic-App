@@ -200,7 +200,7 @@ function ConversationView({ userId, partner, onBack }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' })
   }, [messages.length])
 
   async function handleSend(e) {
@@ -272,8 +272,8 @@ function ConversationView({ userId, partner, onBack }) {
 
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
-  document.title = 'Messages | Communio'
-  const { user } = useAuth()
+  useEffect(() => { document.title = 'Messages | Communio' }, [])
+  const { user, isPremium } = useAuth()
   const { convos, loading, reload } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
@@ -288,22 +288,37 @@ export default function MessagesPage() {
           {/* Header */}
           <div className="bg-navy px-4 py-4 flex items-center justify-between">
             <h1 className="text-white font-bold text-lg">Messages</h1>
-            <button
-              onClick={() => setShowNewConvo(true)}
-              className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            >
-              <PencilSquareIcon className="w-4 h-4" />
-            </button>
+            {isPremium && (
+              <button
+                onClick={() => setShowNewConvo(true)}
+                className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* List */}
           <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+            {!isPremium && (
+              <div className="p-5 text-center border-b border-gray-100">
+                <PaperAirplaneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                <p className="text-navy font-semibold text-sm mb-1">Private messaging</p>
+                <p className="text-gray-400 text-xs mb-3">Upgrade to send direct messages to other members.</p>
+                <a
+                  href="/premium"
+                  className="inline-block text-sm font-bold text-white bg-gold px-4 py-2 rounded-xl hover:bg-gold/90 transition-colors"
+                >
+                  Upgrade
+                </a>
+              </div>
+            )}
             {loading && (
               <div className="space-y-0">
                 {[1,2,3].map(i => <div key={i} className="h-16 bg-white animate-pulse border-b border-gray-50" />)}
               </div>
             )}
-            {!loading && convos.length === 0 && (
+            {!loading && convos.length === 0 && isPremium && (
               <div className="p-6 text-center">
                 <p className="text-navy font-semibold text-sm mb-1">No messages yet</p>
                 <p className="text-gray-400 text-xs">Start a conversation with another member.</p>
@@ -335,11 +350,11 @@ export default function MessagesPage() {
                       {partner.full_name || 'Communio Member'}
                     </p>
                     <p className="text-[10px] text-gray-400 flex-shrink-0 ml-2">
-                      {formatTime(lastMessage.created_at)}
+                      {lastMessage?.created_at ? formatTime(lastMessage.created_at) : ''}
                     </p>
                   </div>
                   <p className={`text-xs truncate ${unread ? 'text-navy font-medium' : 'text-gray-400'}`}>
-                    {lastMessage.sender_id === user.id ? 'You: ' : ''}{lastMessage.content}
+                    {lastMessage?.sender_id === user.id ? 'You: ' : ''}{lastMessage?.content ?? ''}
                   </p>
                 </div>
               </button>

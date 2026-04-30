@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
@@ -11,7 +12,7 @@ function Section({ title, children }) {
 }
 
 export default function PolicyPage() {
-  document.title = 'Content Policy | Communio'
+  useEffect(() => { document.title = 'Content Policy | Communio' }, [])
   const navigate = useNavigate()
 
   return (

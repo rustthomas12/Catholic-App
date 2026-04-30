@@ -10,8 +10,6 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 
-document.title = 'Organizations | Communio'
-
 // ── useOrgSearch ───────────────────────────────────────────
 function useOrgSearch() {
   const [results, setResults] = useState([])
@@ -120,6 +118,7 @@ function OrgCard({ org, isSubscribed = false }) {
 
 // ── OrganizationsPage ──────────────────────────────────────
 export default function OrganizationsPage() {
+  useEffect(() => { document.title = 'Organizations | Communio' }, [])
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const { results, loading: searchLoading, search, clear } = useOrgSearch()

@@ -67,19 +67,18 @@ export default function GroupPage() {
     if (group.is_private) {
       await requestToJoin(id, group.name)
     } else {
-      await joinGroup(id, () => {
-        refreshMemberships()
-        refreshGroup()
-      })
+      const result = await joinGroup(id)
+      if (!result?.error) {
+        await Promise.all([refreshMemberships(), refreshGroup()])
+      }
     }
   }
 
   async function handleLeave() {
-    await leaveGroup(id, adminGroupIds, () => {
-      refreshMemberships()
-      refreshGroup()
-      setLeaveOpen(false)
-    })
+    const result = await leaveGroup(id, adminGroupIds)
+    if (!result?.error) {
+      await Promise.all([refreshMemberships(), refreshGroup()])
+    }
     setLeaveOpen(false)
   }
 
@@ -120,9 +119,10 @@ export default function GroupPage() {
     )
   }
 
-  document.title = `${group.name} | Communio`
+  useEffect(() => { document.title = `${group.name} | Communio` }, [group.name])
 
-  const memberCount = group.member_count ?? group.group_members?.[0]?.count ?? 0
+  const rawMemberCount = group.member_count ?? group.group_members?.[0]?.count ?? 0
+  const memberCount = typeof rawMemberCount === 'string' ? parseInt(rawMemberCount, 10) || 0 : rawMemberCount
   const memberLabel = memberCount === 1
     ? t('member_count_one', { count: 1 })
     : t('member_count_other', { count: memberCount })
@@ -323,11 +323,24 @@ export default function GroupPage() {
 
 // ── GroupChat ──────────────────────────────────────────────
 function GroupChat({ groupId, userId, isMember }) {
+  const { t } = useTranslation('groups')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const bottomRef = useRef(null)
+
+  const deleteMessage = useCallback(async (msgId) => {
+    setDeletingId(msgId)
+    const { error } = await supabase
+      .from('group_chat_messages')
+      .update({ is_deleted: true })
+      .eq('id', msgId)
+      .eq('user_id', userId)
+    if (!error) setMessages(prev => prev.filter(m => m.id !== msgId))
+    setDeletingId(null)
+  }, [userId])
 
   // Load messages
   useEffect(() => {
@@ -354,7 +367,6 @@ function GroupChat({ groupId, userId, isMember }) {
         table: 'group_chat_messages',
         filter: `group_id=eq.${groupId}`,
       }, async (payload) => {
-        // Fetch full message with profile
         const { data } = await supabase
           .from('group_chat_messages')
           .select('id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)')
@@ -362,13 +374,23 @@ function GroupChat({ groupId, userId, isMember }) {
           .single()
         if (data && !data.is_deleted) setMessages(prev => [...prev, data])
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'group_chat_messages',
+        filter: `group_id=eq.${groupId}`,
+      }, (payload) => {
+        if (payload.new.is_deleted) {
+          setMessages(prev => prev.filter(m => m.id !== payload.new.id))
+        }
+      })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
   }, [groupId])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' })
   }, [messages.length])
 
   const send = useCallback(async (e) => {
@@ -386,8 +408,8 @@ function GroupChat({ groupId, userId, isMember }) {
       <div className="px-4 pt-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
           <PaperAirplaneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-navy font-semibold text-sm mb-1">Members only</p>
-          <p className="text-gray-400 text-xs">Join this group to participate in chat.</p>
+          <p className="text-navy font-semibold text-sm mb-1">{t('chat_members_only')}</p>
+          <p className="text-gray-400 text-xs">{t('chat_members_only_desc')}</p>
         </div>
       </div>
     )
@@ -404,14 +426,14 @@ function GroupChat({ groupId, userId, isMember }) {
         )}
         {!loading && messages.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-400 text-sm">No messages yet. Say hello!</p>
+            <p className="text-gray-400 text-sm">{t('chat_empty')}</p>
           </div>
         )}
         {messages.map((msg) => {
           const isMe = msg.user_id === userId
           const name = msg.profiles?.full_name || 'Member'
           return (
-            <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+            <div key={msg.id} className={`flex items-end gap-2 group/msg ${isMe ? 'flex-row-reverse' : ''}`}>
               {!isMe && (
                 <div className="w-7 h-7 rounded-full bg-navy/10 flex items-center justify-center text-xs font-bold text-navy flex-shrink-0">
                   {name.charAt(0).toUpperCase()}
@@ -424,9 +446,21 @@ function GroupChat({ groupId, userId, isMember }) {
                 }`}>
                   <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
-                <p className={`text-[10px] text-gray-400 mt-0.5 ${isMe ? 'mr-1' : 'ml-1'}`}>
-                  {format(new Date(msg.created_at), 'h:mm a')}
-                </p>
+                <div className={`flex items-center gap-2 mt-0.5 ${isMe ? 'flex-row-reverse' : ''}`}>
+                  <p className={`text-[10px] text-gray-400 ${isMe ? 'mr-1' : 'ml-1'}`}>
+                    {format(new Date(msg.created_at), 'h:mm a')}
+                  </p>
+                  {isMe && (
+                    <button
+                      onClick={() => deleteMessage(msg.id)}
+                      disabled={deletingId === msg.id}
+                      className="opacity-0 group-hover/msg:opacity-100 text-[10px] text-gray-400 hover:text-red-500 transition-all"
+                      title="Delete message"
+                    >
+                      <TrashIcon className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )
@@ -440,7 +474,7 @@ function GroupChat({ groupId, userId, isMember }) {
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e) } }}
-          placeholder="Send a message…"
+          placeholder={t('chat_placeholder')}
           rows={1}
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-28 overflow-y-auto"
           style={{ minHeight: '40px' }}

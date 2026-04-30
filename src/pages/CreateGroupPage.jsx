@@ -41,11 +41,27 @@ export default function CreateGroupPage() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
 
-  document.title = `${t('create')} | Communio`
+  useEffect(() => { document.title = `${t('create')} | Communio` }, [t])
+
+  // Revoke preview object URL on change/unmount to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+    }
+  }, [avatarPreview])
 
   function handleAvatarChange(e) {
     const file = e.target.files[0]
     if (!file) return
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowed.includes(file.type)) {
+      toast.error('Please choose a JPEG, PNG, WebP, or GIF image')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be smaller than 5 MB')
+      return
+    }
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
   }
@@ -106,6 +122,7 @@ export default function CreateGroupPage() {
       })
 
       toast.success(t('created'))
+      setAvatarPreview(null)
       navigate(`/group/${group.id}`)
     } catch {
       toast.error('Something went wrong.')

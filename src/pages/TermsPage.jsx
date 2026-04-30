@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
@@ -11,7 +12,7 @@ function Section({ title, children }) {
 }
 
 export default function TermsPage() {
-  document.title = 'Terms of Service | Communio'
+  useEffect(() => { document.title = 'Terms of Service | Communio' }, [])
   const navigate = useNavigate()
 
   return (

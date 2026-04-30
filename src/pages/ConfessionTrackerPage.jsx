@@ -13,7 +13,7 @@ const REMINDER_OPTIONS = [7, 14, 30, 45, 90, null]
 const REMINDER_LABELS = { 7: '7d', 14: '14d', 30: '30d', 45: '45d', 90: '90d', null: 'Off' }
 
 export default function ConfessionTrackerPage() {
-  document.title = 'Confession Tracker | Communio'
+  useEffect(() => { document.title = 'Confession Tracker | Communio' }, [])
 
   const { t } = useTranslation('premium')
   const navigate = useNavigate()
@@ -82,7 +82,7 @@ export default function ConfessionTrackerPage() {
     } else {
       setHistory([])
       setClearConfirm(false)
-      toast.success('History cleared')
+      toast.success(t('tracker_history_cleared'))
     }
     setClearing(false)
   }
@@ -133,7 +133,7 @@ export default function ConfessionTrackerPage() {
             ) : daysSince === 0 ? (
               <>
                 <CheckCircleIcon className="w-16 h-16 text-gold mx-auto mb-2" />
-                <p className="text-sm font-semibold text-navy">Confession recorded today</p>
+                <p className="text-sm font-semibold text-navy">{t('tracker_recorded_today')}</p>
                 <p className="text-xs text-gray-400 mt-1">
                   {format(parseISO(lastConfession.confessed_at), 'MMMM d, yyyy')}
                 </p>
@@ -161,7 +161,7 @@ export default function ConfessionTrackerPage() {
                 : 'bg-gold text-navy hover:bg-gold/90 active:scale-[0.98]'
             }`}
           >
-            {logging ? 'Saving…' : alreadyLoggedToday ? 'Logged today' : t('tracker_log')}
+            {logging ? t('tracker_saving') : alreadyLoggedToday ? t('tracker_logged_today') : t('tracker_log')}
           </button>
 
           {/* ── Reminder frequency ── */}
@@ -184,7 +184,7 @@ export default function ConfessionTrackerPage() {
             </div>
             {reminderDays !== null && (
               <p className="text-xs text-gray-400 mt-2">
-                Reminders every {reminderDays} days (notifications coming soon)
+                {t('tracker_reminder_note', { days: reminderDays })}
               </p>
             )}
           </div>
@@ -193,7 +193,7 @@ export default function ConfessionTrackerPage() {
           {history.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-navy">History</p>
+                <p className="text-xs font-bold text-navy">{t('tracker_history')}</p>
                 <button
                   onClick={() => setClearConfirm(true)}
                   className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors"
@@ -216,7 +216,7 @@ export default function ConfessionTrackerPage() {
                     </div>
                     {i === 0 && (
                       <span className="text-xs bg-gold/10 text-gold font-semibold px-2 py-0.5 rounded-full">
-                        Most recent
+                        {t('tracker_most_recent')}
                       </span>
                     )}
                   </div>
@@ -246,7 +246,7 @@ export default function ConfessionTrackerPage() {
       {clearConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <p className="font-bold text-navy text-base mb-2">Clear history?</p>
+            <p className="font-bold text-navy text-base mb-2">{t('tracker_clear_title')}</p>
             <p className="text-sm text-gray-500 mb-5">{t('tracker_clear_confirm')}</p>
             <div className="flex gap-3">
               <button

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeftIcon,
@@ -76,10 +76,10 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled, pr
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-navy">{label}</span>
           {premiumNote && (
-            <span className="flex items-center gap-0.5 text-xs text-gray-400">
+            <a href="/premium" className="flex items-center gap-0.5 text-xs text-gold hover:underline">
               <LockClosedIcon className="w-3 h-3" />
               {premiumNote}
-            </span>
+            </a>
           )}
         </div>
         <p className="text-xs text-gray-400 mt-0.5 leading-snug">{description}</p>
@@ -171,7 +171,7 @@ function PushSection({ userId }) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationSettingsPage() {
-  document.title = 'Notification Settings | Communio'
+  useEffect(() => { document.title = 'Notification Settings | Communio' }, [])
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()

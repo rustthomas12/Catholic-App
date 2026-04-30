@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { EnvelopeIcon, LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from '../utils/i18n'
@@ -7,7 +7,7 @@ import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
 export default function ForgotPasswordPage() {
-  document.title = 'Forgot Password | Communio'
+  useEffect(() => { document.title = 'Forgot Password | Communio' }, [])
   const { t } = useTranslation('auth')
   const { resetPassword } = useAuth()
 

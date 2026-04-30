@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronRightIcon, UserIcon, BellIcon, CreditCardIcon,
@@ -33,7 +33,7 @@ function SectionHeader({ title }) {
 }
 
 export default function SettingsPage() {
-  document.title = 'Settings | Communio'
+  useEffect(() => { document.title = 'Settings | Communio' }, [])
   const { user, profile, signOut, updateProfile, donationTier, isSupportedByParish } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()

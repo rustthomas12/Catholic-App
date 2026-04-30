@@ -47,8 +47,9 @@ export default function SaintPage() {
   const [relatedSaints, setRelatedSaints] = useState([])
 
   // Set document title when saint loads
-  if (saint) document.title = `${saint.name} | Communio`
-  else document.title = 'Saint | Communio'
+  useEffect(() => {
+    document.title = saint ? `${saint.name} | Communio` : 'Saint | Communio'
+  }, [saint?.name])
 
   // Fetch related saints in same month
   useEffect(() => {

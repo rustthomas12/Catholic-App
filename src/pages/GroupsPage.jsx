@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlassIcon, XMarkIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -48,7 +48,7 @@ export default function GroupsPage() {
   const { groups, loading: searchLoading } = useGroupSearch(searchQuery, activeCategory)
   const { joinGroup, leaveGroup, requestToJoin, hasRequested } = useGroupJoin()
 
-  document.title = `${t('title')} | Communio`
+  useEffect(() => { document.title = `${t('title')} | Communio` }, [t])
 
   const isSearching = searchQuery.trim().length > 0 || activeCategory !== null
 

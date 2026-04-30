@@ -24,7 +24,7 @@ const US_STATES = [
 ]
 
 export default function DirectoryPage() {
-  document.title = 'Parish Directory | Communio'
+  useEffect(() => { document.title = 'Parish Directory | Communio' }, [])
 
   const { user, profile } = useAuth()
   const { results, loading: searchLoading, search, clear } = useParishSearch()
@@ -180,6 +180,7 @@ export default function DirectoryPage() {
             <select
               value={stateFilter}
               onChange={(e) => setStateFilter(e.target.value)}
+              aria-label="Filter by state"
               className="w-full bg-white/90 pl-9 pr-8 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
             >
               <option value="">All states</option>
@@ -194,6 +195,7 @@ export default function DirectoryPage() {
             <button
               onClick={requestLocation}
               disabled={locationLoading}
+              aria-label={locationLoading ? 'Finding your location' : userLocation ? 'Location enabled' : 'Use my location'}
               className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full transition-colors disabled:opacity-60"
             >
               <MapPinIcon className="w-4 h-4" />

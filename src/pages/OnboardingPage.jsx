@@ -10,7 +10,7 @@ import { getLiturgicalSeason, formatLiturgicalDate } from '../utils/liturgical'
 import { format } from 'date-fns'
 
 export default function OnboardingPage() {
-  document.title = 'Welcome | Communio'
+  useEffect(() => { document.title = 'Welcome | Communio' }, [])
   const { t } = useTranslation('auth')
   const { profile, updateProfile } = useAuth()
   const navigate = useNavigate()
@@ -53,12 +53,14 @@ export default function OnboardingPage() {
   async function joinGroup(groupId) {
     if (!profile?.id || joinedGroups.has(groupId)) return
     setJoiningGroup(groupId)
-    await supabase.from('group_members').insert({
+    const { error } = await supabase.from('group_members').insert({
       group_id: groupId,
       user_id: profile.id,
       role: 'member',
     })
-    setJoinedGroups(prev => new Set([...prev, groupId]))
+    if (!error) {
+      setJoinedGroups(prev => new Set([...prev, groupId]))
+    }
     setJoiningGroup(null)
   }
 

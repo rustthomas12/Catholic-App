@@ -10,6 +10,22 @@ const GRAPH_TTL  = 10 * 60 * 1000  // 10 min
 const _feedCache  = new Map() // cacheKey → { posts, hasMore, ts }
 const _graphCache = new Map() // userId   → { parishIds, groupIds, ts }
 
+export function clearFeedCaches() {
+  _feedCache.clear()
+  _graphCache.clear()
+  // Clear localStorage feed/graph entries
+  try {
+    const toRemove = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && (key.startsWith('parish_feed_') || key.startsWith('parish_graph_'))) {
+        toRemove.push(key)
+      }
+    }
+    toRemove.forEach(k => localStorage.removeItem(k))
+  } catch { /* ignore */ }
+}
+
 function getFeedKey(userId, filter, parishId, groupId, orgId) {
   return `${userId}-${filter}-${parishId}-${groupId}-${orgId}`
 }
@@ -321,7 +337,7 @@ export function useFeed(options = {}) {
     setLoading(true)
     offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
-  }, [userId_stable, filter, parishId, groupId, orgId, userId, loadSocialGraph, fetchPage])
+  }, [userId_stable, filter, parishId, groupId, orgId, loadSocialGraph, fetchPage])
 
   // ── Foreground refresh (iOS / PWA background→foreground) ──
   // When the app is backgrounded on iOS, module-level Maps may be GC'd and the

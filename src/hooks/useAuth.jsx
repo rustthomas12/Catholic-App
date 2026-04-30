@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase, supabaseAuth } from '../lib/supabase'
 import i18n from '../utils/i18n'
+import { clearParishCaches } from './useParish.js'
+import { clearFeedCaches } from './useFeed.js'
+import { clearGroupCaches } from './useGroups.js'
 
 const AuthContext = createContext(null)
 
@@ -165,6 +168,9 @@ export function AuthProvider({ children }) {
           setUser(null)
           setProfile(null)
           setLoading(false)
+          clearParishCaches()
+          clearFeedCaches()
+          clearGroupCaches()
           return
         }
 
@@ -287,6 +293,9 @@ export function AuthProvider({ children }) {
     userIdRef.current = null
     setUser(null)
     setProfile(null)
+    clearParishCaches()
+    clearFeedCaches()
+    clearGroupCaches()
     await supabaseAuth.auth.signOut()
   }
 

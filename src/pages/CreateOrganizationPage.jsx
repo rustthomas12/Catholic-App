@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -26,7 +26,7 @@ export default function CreateOrganizationPage() {
     email: '',
   })
 
-  document.title = 'New Organization | Communio'
+  useEffect(() => { document.title = 'New Organization | Communio' }, [])
 
   function handleChange(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -41,12 +41,14 @@ export default function CreateOrganizationPage() {
     if (!user) return
     setSaving(true)
 
-    // Generate a slug from the name
+    // Generate a slug from the name with a cryptographically random suffix
+    const suffix = Array.from(crypto.getRandomValues(new Uint8Array(3)))
+      .map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 5)
     const slug = form.name.trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '') +
-      '-' + Math.random().toString(36).slice(2, 7)
+      '-' + suffix
 
     const { data: org, error: orgError } = await supabase
       .from('organizations')

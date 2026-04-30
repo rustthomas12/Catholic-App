@@ -1,10 +1,10 @@
+import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useState } from 'react'
 
 export default function CheckEmailPage() {
-  document.title = 'Check your email | Communio'
+  useEffect(() => { document.title = 'Check your email | Communio' }, [])
 
   const { state } = useLocation()
   const { resendVerification } = useAuth()

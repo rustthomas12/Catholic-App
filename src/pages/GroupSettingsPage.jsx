@@ -33,9 +33,9 @@ export default function GroupSettingsPage() {
     }
   }, [group, initialized])
 
-  if (loading) return <GroupPageSkeleton />
+  useEffect(() => { document.title = `${t('settings')} | Communio` }, [t])
 
-  document.title = `${t('settings')} | Communio`
+  if (loading) return <GroupPageSkeleton />
 
   async function handleSave() {
     setSaving(true)

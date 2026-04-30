@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftIcon,
@@ -63,7 +63,7 @@ export default function ParishPage() {
     )
   }
 
-  document.title = `${parish.name} | Communio`
+  useEffect(() => { document.title = `${parish.name} | Communio` }, [parish.name])
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -93,7 +93,7 @@ export default function ParishPage() {
                 )}
               </div>
               <p className="text-gray-300 text-sm mt-0.5">
-                {parish.city}, {parish.state}
+                {[parish.city, parish.state].filter(Boolean).join(', ')}
                 {parish.diocese ? ` · ${parish.diocese}` : ''}
               </p>
               <p className="text-gray-400 text-xs mt-1">

@@ -66,5 +66,9 @@
   "create_submit": "Create Group",
   "created": "Group created",
   "request_approved": "Your request was approved",
-  "request_denied": "Your request was not approved"
+  "request_denied": "Your request was not approved",
+  "chat_members_only": "Members only",
+  "chat_members_only_desc": "Join this group to participate in chat.",
+  "chat_empty": "No messages yet. Say hello!",
+  "chat_placeholder": "Send a message…"
 }

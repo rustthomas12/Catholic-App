@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlassIcon, XMarkIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -23,7 +23,7 @@ const MONTHS = [
 ]
 
 export default function SaintsPage() {
-  document.title = 'Saints | Communio'
+  useEffect(() => { document.title = 'Saints | Communio' }, [])
 
   const { t } = useTranslation('faith')
   const navigate = useNavigate()

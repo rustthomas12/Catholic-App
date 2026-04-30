@@ -14,6 +14,11 @@ function _invalidateMemberships() {
   _membershipsPromise = null
 }
 
+export function clearGroupCaches() {
+  _membershipsCache = null
+  _membershipsPromise = null
+}
+
 async function _fetchMemberships(userId) {
   if (_membershipsPromise) return _membershipsPromise
 

@@ -187,6 +187,12 @@ export function invalidateFollowedParishesCache() {
   _followedCache = null
 }
 
+export function clearParishCaches() {
+  _nearbyCache  = null
+  _followedCache = null
+  _followedPromise = null
+}
+
 export function useFollowedParishes() {
   const { user } = useAuth()
 

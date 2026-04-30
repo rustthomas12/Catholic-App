@@ -19,7 +19,7 @@ let _homeParishCache = null  // { parishId, data }
 let _homeGroupsCache = null  // { userId, data }
 
 export default function HomePage() {
-  document.title = 'Home | Communio'
+  useEffect(() => { document.title = 'Home | Communio' }, [])
   const { i18n } = useTranslation()
   const { profile } = useAuth()
   const navigate = useNavigate()
@@ -67,8 +67,8 @@ export default function HomePage() {
           .select('id, name, city, state')
           .eq('id', parishId)
           .single()
-          .then(({ data }) => {
-            if (data) {
+          .then(({ data, error: err }) => {
+            if (!err && data) {
               _homeParishCache = { parishId, data }
               setParish(data)
             }
@@ -84,10 +84,12 @@ export default function HomePage() {
         .select('groups(id, name, member_count, category)')
         .eq('user_id', profileId)
         .limit(6)
-        .then(({ data }) => {
-          const result = (data ?? []).map(d => d.groups).filter(Boolean)
-          _homeGroupsCache = { userId: profileId, data: result }
-          setGroups(result)
+        .then(({ data, error: err }) => {
+          if (!err) {
+            const result = (data ?? []).map(d => d.groups).filter(Boolean)
+            _homeGroupsCache = { userId: profileId, data: result }
+            setGroups(result)
+          }
           setGroupsLoaded(true)
         })
     }
