@@ -27,3 +27,5 @@ dist-ssr
 *.sw?
 
 .vercel
+scripts/data/irs-bmf/eo2.csv
+scripts/data/irs-bmf/eo3.csv
