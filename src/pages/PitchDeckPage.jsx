@@ -472,12 +472,12 @@ function SlideGTM() {
 
 function SlideTraction() {
   const metrics = [
-    { icon: '⛪', stat: '559', label: 'Verified MA parishes in directory' },
+    { icon: '⛪', stat: '17,500+', label: 'US parishes in national directory' },
     { icon: '📱', stat: 'Live', label: 'PWA deployed — iOS & Android' },
-    { icon: '🛠', stat: '11+', label: 'Completed build phases' },
-    { icon: '💳', stat: 'Live', label: 'Stripe billing infrastructure' },
+    { icon: '🛠', stat: '15+', label: 'Completed build phases' },
+    { icon: '💳', stat: 'Live', label: 'Stripe billing — 4-tier parish pricing' },
     { icon: '🔔', stat: 'Live', label: 'Web push notifications wired' },
-    { icon: '📔', stat: 'Live', label: 'Confession tracker & prayer journal' },
+    { icon: '📔', stat: 'Live', label: 'Rosary, journal, hours, formation, confession' },
   ]
   return (
     <SlideWrapper id={9}>
@@ -499,8 +499,8 @@ function SlideTraction() {
           ))}
         </div>
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-wrap items-center gap-4 justify-between">
-          <a href="https://communio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">
-            communio.app
+          <a href="https://getcommunio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">
+            getcommunio.app
           </a>
           <div className="flex flex-wrap gap-3">
             {['React', 'Supabase', 'Vercel'].map((t, i) => (
@@ -639,7 +639,7 @@ function SlideAsk() {
     { icon: '⏱', title: 'Founder time', body: 'Reduce insurance hours. 20+ hours/week on Communio full-time.' },
     { icon: '🤝', title: 'Parish onboarding', body: 'Part-time community manager.' },
     { icon: '🎨', title: 'UX design pass', body: 'Professional design on the app before national launch.' },
-    { icon: '🗺', title: 'National parish data', body: 'Expand from 559 MA parishes to all 17,500 US parishes.' },
+    { icon: '📱', title: 'Native mobile apps', body: 'iOS and Android wrappers to reach parishioners through the App Store and Google Play.' },
     { icon: '✝️', title: 'First Lent campaign', body: 'The single highest-leverage adoption window in the Church year.' },
   ]
   return (
@@ -741,8 +741,8 @@ function SlideClosing() {
           It's whether you think this is something the Church needs."
         </blockquote>
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-white/40 text-sm">
-          <a href="https://communio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
-            communio.app
+          <a href="https://getcommunio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
+            getcommunio.app
           </a>
           <span className="hidden md:block">·</span>
           <span>Thomas Rust</span>
@@ -859,7 +859,7 @@ export default function PitchDeckPage() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-white/20 text-xs border-t border-white/5">
-        Communio · communio.app · Pro Ecclesia. Pro Fide.
+        Communio · getcommunio.app · Pro Ecclesia. Pro Fide.
       </footer>
     </div>
   )
