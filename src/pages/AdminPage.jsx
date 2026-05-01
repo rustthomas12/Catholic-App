@@ -458,10 +458,10 @@ export default function AdminPage() {
   async function banUser() {
     if (banInput !== 'BAN') { toast.error('Type BAN to confirm'); return; }
     try {
-      const { error: banError } = await supabase
-        .from('profiles')
-        .update({ suspended_at: new Date().toISOString() })
-        .eq('id', banTarget.id);
+      const { error: banError } = await supabase.rpc('set_user_suspended', {
+        target_user_id: banTarget.id,
+        suspended: true,
+      });
       if (banError) throw banError;
       if (banFlagId) await dismissFlag(banFlagId);
       toast.success('User suspended');
@@ -477,11 +477,16 @@ export default function AdminPage() {
 
   async function toggleSuspend(user) {
     try {
-      const newValue = user.suspended_at ? null : new Date().toISOString();
-      const { error } = await supabase.from('profiles').update({ suspended_at: newValue }).eq('id', user.id);
+      const suspending = !user.suspended_at;
+      const { error } = await supabase.rpc('set_user_suspended', {
+        target_user_id: user.id,
+        suspended: suspending,
+      });
       if (error) throw error;
-      toast.success(newValue ? 'User suspended' : 'User reinstated');
-      setRecentUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, suspended_at: newValue } : u)));
+      toast.success(suspending ? 'User suspended' : 'User reinstated');
+      setRecentUsers((prev) => prev.map((u) =>
+        u.id === user.id ? { ...u, suspended_at: suspending ? new Date().toISOString() : null } : u
+      ));
     } catch (err) {
       toast.error('Failed to update user status');
     }
