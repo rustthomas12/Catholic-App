@@ -338,7 +338,7 @@ export default function AdminPage() {
       const todayIso = today.toISOString();
 
       const [usersRes, postsRes, flagsRes, parishesRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso),
         supabase.from('post_flags').select('id', { count: 'exact', head: true }).eq('is_resolved', false),
         supabase.from('parishes').select('id', { count: 'exact', head: true }),
