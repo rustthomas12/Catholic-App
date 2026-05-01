@@ -275,6 +275,7 @@ function AnnouncementsTab({ parishId }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [composing, setComposing] = useState(false)
+  const [title, setTitle] = useState('')
   const [draft, setDraft] = useState('')
   const [scheduleFor, setScheduleFor] = useState('')
   const [saving, setSaving] = useState(false)
@@ -308,31 +309,35 @@ function AnnouncementsTab({ parishId }) {
 
   useEffect(() => { load() }, [load])
 
+  function buildContent() {
+    const body = draft.trim()
+    return title.trim() ? `${title.trim()}\n\n${body}` : body
+  }
+
   async function handlePublish() {
     if (!draft.trim() || !user) return
     setSaving(true)
+    const content = buildContent()
 
     if (scheduleFor) {
-      // Future-dated post: goes into scheduled_posts
       const { error } = await supabase.from('scheduled_posts').insert({
         parish_id: parishId,
         author_id: user.id,
-        content: draft.trim(),
+        content,
         published: false,
         scheduled_for: scheduleFor,
       })
       if (error) { toast.error('Could not schedule announcement.') }
-      else { toast.success('Announcement scheduled.'); setDraft(''); setScheduleFor(''); setComposing(false); load() }
+      else { toast.success('Announcement scheduled.'); setTitle(''); setDraft(''); setScheduleFor(''); setComposing(false); load() }
     } else {
-      // Publish now: insert directly into posts table
       const { error } = await supabase.from('posts').insert({
         parish_id: parishId,
         author_id: user.id,
-        content: draft.trim(),
+        content,
         is_announcement: true,
       })
       if (error) { toast.error('Could not publish announcement.') }
-      else { toast.success('Announcement published.'); setDraft(''); setScheduleFor(''); setComposing(false); load() }
+      else { toast.success('Announcement published.'); setTitle(''); setDraft(''); setScheduleFor(''); setComposing(false); load() }
     }
     setSaving(false)
   }
@@ -376,6 +381,13 @@ function AnnouncementsTab({ parishId }) {
 
       {composing && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Title (optional)"
+            maxLength={120}
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-navy focus:outline-none focus:border-navy"
+          />
           <textarea
             value={draft}
             onChange={e => setDraft(e.target.value)}
@@ -395,7 +407,7 @@ function AnnouncementsTab({ parishId }) {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => { setComposing(false); setDraft(''); setScheduleFor('') }}
+                onClick={() => { setComposing(false); setTitle(''); setDraft(''); setScheduleFor('') }}
                 className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Cancel

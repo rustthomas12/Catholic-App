@@ -9,6 +9,7 @@ import {
   TrashIcon,
   FlagIcon,
   XMarkIcon,
+  MegaphoneIcon,
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
@@ -210,6 +211,14 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const isOwnPost = user?.id === post.author?.id
   const TRUNCATE_LIMIT = 500
 
+  // Parse optional title from first line (announcements only)
+  const announcementTitle = post.is_announcement && post.content.includes('\n\n')
+    ? post.content.split('\n\n')[0]
+    : null
+  const announcementBody = announcementTitle
+    ? post.content.slice(announcementTitle.length + 2)
+    : post.content
+
   // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return
@@ -270,18 +279,30 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     }
   }
 
-  const displayContent = expanded || post.content.length <= TRUNCATE_LIMIT
-    ? post.content
-    : post.content.slice(0, TRUNCATE_LIMIT).trimEnd()
+  const bodyText = announcementTitle ? announcementBody : post.content
+  const displayContent = expanded || bodyText.length <= TRUNCATE_LIMIT
+    ? bodyText
+    : bodyText.slice(0, TRUNCATE_LIMIT).trimEnd()
 
   return (
     <>
       <article
         className={[
-          'bg-white border-b border-gray-100 md:rounded-xl md:border md:shadow-sm md:mb-2',
+          'bg-white border-b border-gray-100 md:rounded-xl md:border md:shadow-sm md:mb-2 overflow-hidden',
           post.is_prayer_request ? 'border-l-4 border-l-gold' : '',
+          post.is_announcement ? 'border-l-4 border-l-navy' : '',
         ].join(' ')}
       >
+        {/* Announcement banner */}
+        {post.is_announcement && (
+          <div className="bg-navy px-4 py-2 flex items-center gap-2">
+            <MegaphoneIcon className="w-4 h-4 text-gold flex-shrink-0" />
+            <span className="text-xs font-bold text-white uppercase tracking-wide">Parish Announcement</span>
+            {post.parish?.name && (
+              <span className="text-xs text-white/60 ml-auto">{post.parish.name}</span>
+            )}
+          </div>
+        )}
         <div className="px-4 py-3">
           {/* Prayer request badge */}
           {post.is_prayer_request && (
@@ -383,11 +404,14 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
 
           {/* Content */}
           <div className="mb-2">
+            {announcementTitle && (
+              <p className="text-base font-bold text-navy mb-1">{announcementTitle}</p>
+            )}
             <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">
               {displayContent}
-              {!expanded && post.content.length > TRUNCATE_LIMIT && '...'}
+              {!expanded && bodyText.length > TRUNCATE_LIMIT && '...'}
             </p>
-            {post.content.length > TRUNCATE_LIMIT && (
+            {bodyText.length > TRUNCATE_LIMIT && (
               <button
                 onClick={() => setExpanded((e) => !e)}
                 className="text-sm text-gold font-medium mt-1 min-h-[44px] inline-flex items-center"

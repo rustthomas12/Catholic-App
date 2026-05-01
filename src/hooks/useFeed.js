@@ -93,6 +93,7 @@ function normalisePost(raw, currentUserId) {
     content:          raw.content,
     image_url:        raw.image_url        ?? null,
     is_prayer_request: raw.is_prayer_request ?? false,
+    is_announcement:  raw.is_announcement  ?? false,
     is_anonymous:     raw.is_anonymous     ?? false,
     is_removed:       raw.is_removed       ?? false,
     created_at:       raw.created_at,
