@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, CameraIcon, BuildingLibraryIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -38,17 +38,88 @@ export default function CreateGroupPage() {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
+
+  // Entity association (required)
+  const [entities, setEntities] = useState([])       // { type, id, name, subtitle }
+  const [selectedEntity, setSelectedEntity] = useState(null) // { type, id }
+  const [entitiesLoading, setEntitiesLoading] = useState(true)
+
+  // Avatar
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
 
   useEffect(() => { document.title = `${t('create')} | Communio` }, [t])
 
-  // Revoke preview object URL on change/unmount to avoid memory leaks
+  // Revoke preview object URL on unmount
   useEffect(() => {
-    return () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview)
-    }
+    return () => { if (avatarPreview) URL.revokeObjectURL(avatarPreview) }
   }, [avatarPreview])
+
+  // Load parishes + orgs the user is connected to
+  useEffect(() => {
+    if (!user) return
+
+    async function loadEntities() {
+      const [parishRes, orgRes] = await Promise.all([
+        supabase.from('parish_follows')
+          .select('parish_id, parishes(id, name, city, state)')
+          .eq('user_id', user.id),
+        supabase.from('organization_members')
+          .select('org_id, organizations(id, name, org_type)')
+          .eq('user_id', user.id),
+      ])
+
+      const seen = new Set()
+      const list = []
+
+      // Home parish first (from profile)
+      if (profile?.parish_id) {
+        const { data: homePar } = await supabase
+          .from('parishes')
+          .select('id, name, city, state')
+          .eq('id', profile.parish_id)
+          .single()
+        if (homePar && !seen.has(homePar.id)) {
+          seen.add(homePar.id)
+          list.push({
+            type: 'parish', id: homePar.id, name: homePar.name,
+            subtitle: [homePar.city, homePar.state].filter(Boolean).join(', '),
+          })
+        }
+      }
+
+      // Followed parishes
+      for (const r of parishRes.data ?? []) {
+        const p = r.parishes
+        if (p && !seen.has(p.id)) {
+          seen.add(p.id)
+          list.push({
+            type: 'parish', id: p.id, name: p.name,
+            subtitle: [p.city, p.state].filter(Boolean).join(', '),
+          })
+        }
+      }
+
+      // Member orgs
+      for (const r of orgRes.data ?? []) {
+        const o = r.organizations
+        if (o && !seen.has(o.id)) {
+          seen.add(o.id)
+          list.push({
+            type: 'org', id: o.id, name: o.name,
+            subtitle: o.org_type ?? 'Organization',
+          })
+        }
+      }
+
+      setEntities(list)
+      // Auto-select if only one option
+      if (list.length === 1) setSelectedEntity({ type: list[0].type, id: list[0].id })
+      setEntitiesLoading(false)
+    }
+
+    loadEntities().catch(() => setEntitiesLoading(false))
+  }, [user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAvatarChange(e) {
     const file = e.target.files[0]
@@ -67,18 +138,17 @@ export default function CreateGroupPage() {
   }
 
   function canAdvance() {
-    if (step === 1) return name.trim().length >= 3 && category !== ''
+    if (step === 1) return name.trim().length >= 3 && category !== '' && selectedEntity !== null
     return true
   }
 
   async function handleSubmit() {
-    if (!user) return
+    if (!user || !selectedEntity) return
     setSubmitting(true)
 
     try {
       let avatarUrl = null
 
-      // Upload avatar if provided
       if (avatarFile) {
         const ext = avatarFile.name.split('.').pop()
         const path = `group-avatars/${user.id}/${Date.now()}.${ext}`
@@ -92,8 +162,6 @@ export default function CreateGroupPage() {
         }
       }
 
-      // Create the group — member_count starts at 0 and is incremented
-      // by the trg_group_members_count trigger when the admin row is inserted below.
       const { data: group, error } = await supabase
         .from('groups')
         .insert({
@@ -103,7 +171,8 @@ export default function CreateGroupPage() {
           is_private: isPrivate,
           avatar_url: avatarUrl,
           creator_id: user.id,
-          parish_id: profile?.parish_id ?? null,
+          parish_id: selectedEntity.type === 'parish' ? selectedEntity.id : null,
+          org_id:    selectedEntity.type === 'org'    ? selectedEntity.id : null,
         })
         .select('id')
         .single()
@@ -114,7 +183,6 @@ export default function CreateGroupPage() {
         return
       }
 
-      // Add creator as admin
       await supabase.from('group_members').insert({
         group_id: group.id,
         user_id: user.id,
@@ -130,6 +198,10 @@ export default function CreateGroupPage() {
     }
   }
 
+  const selectedEntityInfo = selectedEntity
+    ? entities.find(e => e.id === selectedEntity.id)
+    : null
+
   return (
     <div className="min-h-screen bg-cream md:pl-60 pb-24">
 
@@ -142,7 +214,6 @@ export default function CreateGroupPage() {
           <h1 className="text-white font-bold text-lg">{t('create')}</h1>
         </div>
 
-        {/* Step indicator */}
         <div className="flex gap-2">
           {STEPS.map(s => (
             <div
@@ -161,6 +232,49 @@ export default function CreateGroupPage() {
         {/* ── Step 1: Basics ── */}
         {step === 1 && (
           <>
+            {/* Association — required */}
+            <div>
+              <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
+                Linked to *
+              </label>
+              {entitiesLoading ? (
+                <div className="space-y-2">
+                  {[1, 2].map(i => <div key={i} className="h-14 bg-white rounded-xl border border-gray-200 animate-pulse" />)}
+                </div>
+              ) : entities.length === 0 ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+                  You need to follow a parish or join an organization before creating a group.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {entities.map(entity => {
+                    const isSelected = selectedEntity?.id === entity.id
+                    const Icon = entity.type === 'parish' ? BuildingLibraryIcon : BuildingOffice2Icon
+                    return (
+                      <button
+                        key={entity.id}
+                        onClick={() => setSelectedEntity({ type: entity.type, id: entity.id })}
+                        className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-colors ${
+                          isSelected ? 'border-gold bg-gold/5' : 'border-gray-200 bg-white hover:border-navy'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-gold/20' : 'bg-gray-100'}`}>
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-navy' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold truncate ${isSelected ? 'text-navy' : 'text-gray-700'}`}>{entity.name}</p>
+                          {entity.subtitle && <p className="text-xs text-gray-400 capitalize">{entity.subtitle}</p>}
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'border-gold' : 'border-gray-300'}`}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-gold" />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
                 {t('create_name')} *
@@ -294,6 +408,11 @@ export default function CreateGroupPage() {
                   <p className="text-xs text-gray-500 mt-0.5">
                     {t(`category_${category}`)} · {isPrivate ? t('private') : t('public')}
                   </p>
+                  {selectedEntityInfo && (
+                    <p className="text-xs text-gold font-semibold mt-1">
+                      {selectedEntityInfo.type === 'parish' ? '⛪' : '🏛'} {selectedEntityInfo.name}
+                    </p>
+                  )}
                   {description && (
                     <p className="text-xs text-gray-600 mt-2 leading-relaxed">{description}</p>
                   )}
@@ -309,7 +428,7 @@ export default function CreateGroupPage() {
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center px-4">
-              You will be set as the admin of this group. You can invite members after creating it.
+              Only followers of {selectedEntityInfo?.name ?? 'the linked parish or organization'} will be able to see and join this group.
             </p>
           </div>
         )}

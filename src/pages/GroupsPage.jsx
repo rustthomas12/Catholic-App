@@ -189,8 +189,10 @@ export default function GroupsPage() {
             <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
               <UserGroupIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
               <p className="font-semibold text-navy text-sm">{t('empty')}</p>
-              <p className="text-gray-400 text-xs mt-1">
-                {activeCategory ? 'Try a different category.' : 'No groups match your search.'}
+              <p className="text-gray-400 text-xs mt-1 max-w-xs mx-auto">
+                {isSearching
+                  ? 'No groups in your parishes or organizations match that search.'
+                  : 'No groups found. Follow a parish or join an organization to discover groups.'}
               </p>
               {searchQuery && (
                 <button

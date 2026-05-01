@@ -56,6 +56,54 @@ export default function GroupPage() {
   const isAdmin = adminGroupIds.has(id)
   const requested = hasRequested(id)
 
+  // Access check: user must follow the group's parish OR be a member of its org
+  const [canAccess, setCanAccess] = useState(null) // null = checking
+
+  useEffect(() => {
+    if (!group) return
+    if (isMember) { setCanAccess(true); return }
+
+    const { parish_id, org_id } = group
+
+    if (!parish_id && !org_id) { setCanAccess(true); return } // legacy ungated group
+
+    if (!user) { setCanAccess(false); return }
+
+    const checks = []
+    if (parish_id) {
+      checks.push(
+        supabase.from('parish_follows')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('parish_id', parish_id)
+          .then(({ count }) => (count ?? 0) > 0)
+      )
+      // Also allow if it's their home parish
+      if (user?.id) {
+        checks.push(
+          supabase.from('profiles')
+            .select('parish_id')
+            .eq('id', user.id)
+            .single()
+            .then(({ data }) => data?.parish_id === parish_id)
+        )
+      }
+    }
+    if (org_id) {
+      checks.push(
+        supabase.from('organization_members')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('org_id', org_id)
+          .then(({ count }) => (count ?? 0) > 0)
+      )
+    }
+
+    Promise.all(checks).then(results => {
+      setCanAccess(results.some(Boolean))
+    })
+  }, [group?.id, group?.parish_id, group?.org_id, isMember, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (group?.name) document.title = `${group.name} | Communio`
   }, [group?.name])
@@ -108,7 +156,7 @@ export default function GroupPage() {
     await denyRequest(req.id, req.user.id, id, group.name)
   }
 
-  if (loading) return <GroupPageSkeleton />
+  if (loading || canAccess === null) return <GroupPageSkeleton />
 
   if (error || !group) {
     return (
@@ -118,6 +166,33 @@ export default function GroupPage() {
           <p className="font-bold text-navy mb-1">{t('group_not_found')}</p>
           <Link to="/groups" className="text-navy text-sm font-semibold hover:underline">
             ← {t('title')}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (canAccess === false) {
+    const entityName = group.parish?.name ?? 'this parish or organization'
+    return (
+      <div className="min-h-screen bg-cream md:pl-60">
+        <div className="bg-navy px-4 pt-14 pb-5 max-w-3xl mx-auto flex flex-col items-center text-center">
+          <GroupAvatar group={group} size={64} />
+          <h1 className="text-white font-bold text-xl mt-3">{group.name}</h1>
+          <p className="text-gray-400 text-xs mt-1">{t(`category_${group.category}`)}</p>
+        </div>
+        <div className="max-w-3xl mx-auto px-4 pt-8 flex flex-col items-center text-center gap-3">
+          <LockClosedIcon className="w-10 h-10 text-gray-300" />
+          <p className="font-bold text-navy">Members only</p>
+          <p className="text-sm text-gray-500 max-w-xs">
+            This group is for followers of <span className="font-semibold text-navy">{entityName}</span>.
+            Follow that {group.org_id ? 'organization' : 'parish'} to join.
+          </p>
+          <Link
+            to="/groups"
+            className="mt-2 text-sm font-semibold text-navy hover:underline"
+          >
+            ← Back to groups
           </Link>
         </div>
       </div>

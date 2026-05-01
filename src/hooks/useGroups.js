@@ -9,6 +9,38 @@ let _membershipsCache = null        // { userId, data, ts }
 let _membershipsPromise = null      // in-flight request
 const MEMBERSHIPS_TTL = 60_000     // 1 minute
 
+// ── User access cache (followed parishes + member orgs) ──────────────────
+let _accessCache = null             // { userId, parishIds, orgIds, ts }
+let _accessPromise = null
+const ACCESS_TTL = 60_000
+
+async function _fetchUserAccess(userId, profileParishId) {
+  if (_accessPromise) return _accessPromise
+
+  _accessPromise = Promise.all([
+    supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
+    supabase.from('organization_members').select('org_id').eq('user_id', userId),
+  ]).then(([pRes, oRes]) => {
+    const parishIds = new Set((pRes.data ?? []).map(r => r.parish_id))
+    if (profileParishId) parishIds.add(profileParishId)
+    const orgIds = new Set((oRes.data ?? []).map(r => r.org_id))
+    const result = { userId, parishIds, orgIds, ts: Date.now() }
+    _accessCache = result
+    _accessPromise = null
+    return result
+  }).catch(() => {
+    _accessPromise = null
+    return { userId, parishIds: new Set(), orgIds: new Set(), ts: Date.now() }
+  })
+
+  return _accessPromise
+}
+
+function _invalidateAccess() {
+  _accessCache = null
+  _accessPromise = null
+}
+
 function _invalidateMemberships() {
   _membershipsCache = null
   _membershipsPromise = null
@@ -17,6 +49,7 @@ function _invalidateMemberships() {
 export function clearGroupCaches() {
   _membershipsCache = null
   _membershipsPromise = null
+  _invalidateAccess()
 }
 
 async function _fetchMemberships(userId) {
@@ -108,6 +141,7 @@ export function useGroupMemberships() {
 
 // ── useGroupSearch ─────────────────────────────────────────
 export function useGroupSearch(query = '', categoryFilter = null) {
+  const { user, profile } = useAuth()
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -116,34 +150,45 @@ export function useGroupSearch(query = '', categoryFilter = null) {
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
+      if (!user) { setGroups([]); setLoading(false); return }
       setLoading(true)
       setError(null)
 
-      let q = supabase
-        .from('groups')
-        .select(`
-          id, name, category, avatar_url, description,
-          is_private, parish_id, member_count,
-          parishes(name, city)
-        `)
-        .order('member_count', { ascending: false })
-        .limit(50)
+      // Fetch user's access in parallel with the group query
+      const accessCached = _accessCache
+      const accessFresh = accessCached && accessCached.userId === user.id && Date.now() - accessCached.ts < ACCESS_TTL
+      const [access, queryResult] = await Promise.all([
+        accessFresh ? Promise.resolve(accessCached) : _fetchUserAccess(user.id, profile?.parish_id),
+        (() => {
+          let q = supabase
+            .from('groups')
+            .select(`
+              id, name, category, avatar_url, description,
+              is_private, parish_id, org_id, member_count,
+              parishes(name, city)
+            `)
+            .order('member_count', { ascending: false })
+            .limit(100)
 
-      if (query.trim().length >= 2) {
-        q = q.ilike('name', `%${query.trim()}%`)
-      }
-      if (categoryFilter) {
-        q = q.eq('category', categoryFilter)
-      }
+          if (query.trim().length >= 2) q = q.ilike('name', `%${query.trim()}%`)
+          if (categoryFilter) q = q.eq('category', categoryFilter)
+          return q
+        })(),
+      ])
 
-      const { data, error: err } = await q
-      if (err) setError(err.message)
-      else setGroups(data ?? [])
+      if (queryResult.error) { setError(queryResult.error.message); setLoading(false); return }
+
+      // Only show groups the user has access to (follows parish or member of org)
+      const filtered = (queryResult.data ?? []).filter(g =>
+        (g.parish_id && access.parishIds.has(g.parish_id)) ||
+        (g.org_id && access.orgIds.has(g.org_id))
+      )
+      setGroups(filtered)
       setLoading(false)
     }, 350)
 
     return () => clearTimeout(debounceRef.current)
-  }, [query, categoryFilter])
+  }, [query, categoryFilter, user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { groups, loading, error }
 }
@@ -158,44 +203,36 @@ export function useSuggestedGroups() {
     if (!user) { setLoading(false); return }
 
     async function load() {
+      // Get user's accessible parishes + orgs
+      const accessCached = _accessCache
+      const accessFresh = accessCached && accessCached.userId === user.id && Date.now() - accessCached.ts < ACCESS_TTL
+      const access = accessFresh ? accessCached : await _fetchUserAccess(user.id, profile?.parish_id)
+
       const queries = []
 
-      // 1. Groups from user's parish
-      if (profile?.parish_id) {
+      // Groups from followed parishes
+      if (access.parishIds.size > 0) {
         queries.push(
           supabase.from('groups')
-            .select('id, name, category, avatar_url, description, is_private, parish_id, member_count, parishes(name, city)')
-            .eq('parish_id', profile.parish_id)
+            .select('id, name, category, avatar_url, description, is_private, parish_id, org_id, member_count, parishes(name, city)')
+            .in('parish_id', Array.from(access.parishIds))
             .order('member_count', { ascending: false })
-            .limit(4)
+            .limit(6)
         )
       }
 
-      // 2. Groups by vocation
-      const vocationCategory = {
-        married: 'families',
-        single: 'young_adults',
-        ordained: 'parish',
-        religious: 'parish',
-      }[profile?.vocation_state]
-
-      if (vocationCategory) {
+      // Groups from member orgs
+      if (access.orgIds.size > 0) {
         queries.push(
           supabase.from('groups')
-            .select('id, name, category, avatar_url, description, is_private, parish_id, member_count, parishes(name, city)')
-            .eq('category', vocationCategory)
+            .select('id, name, category, avatar_url, description, is_private, parish_id, org_id, member_count, parishes(name, city)')
+            .in('org_id', Array.from(access.orgIds))
             .order('member_count', { ascending: false })
-            .limit(4)
+            .limit(6)
         )
       }
 
-      // 3. Popular fallback
-      queries.push(
-        supabase.from('groups')
-          .select('id, name, category, avatar_url, description, is_private, parish_id, member_count, parishes(name, city)')
-          .order('member_count', { ascending: false })
-          .limit(6)
-      )
+      if (queries.length === 0) { setSuggested([]); return }
 
       const results = await Promise.all(queries)
       const seen = new Set()
@@ -203,18 +240,18 @@ export function useSuggestedGroups() {
       for (const res of results) {
         for (const g of res.data ?? []) {
           if (!seen.has(g.id)) { seen.add(g.id); combined.push(g) }
-          if (combined.length >= 6) break
         }
-        if (combined.length >= 6) break
       }
+      // Sort by member_count descending
+      combined.sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0))
 
-      setSuggested(combined)
+      setSuggested(combined.slice(0, 8))
     }
 
     load()
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [user?.id, profile?.parish_id, profile?.vocation_state]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { suggested, loading }
 }

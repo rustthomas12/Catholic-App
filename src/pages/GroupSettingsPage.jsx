@@ -121,6 +121,18 @@ export default function GroupSettingsPage() {
           </div>
         </div>
 
+        {(group?.parish || group?.parish_id || group?.org_id) && (
+          <div className="bg-lightbg rounded-xl px-4 py-3">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Linked to</p>
+            <p className="text-sm font-semibold text-navy">
+              {group.parish?.name ?? 'Parish / Organization'}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Only followers of this {group.org_id ? 'organization' : 'parish'} can see and join this group.
+            </p>
+          </div>
+        )}
+
         <button
           onClick={handleSave}
           disabled={saving || !name.trim()}
