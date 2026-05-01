@@ -15,6 +15,7 @@ import {
   BellSlashIcon,
   ShieldExclamationIcon,
   UserPlusIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 import { useTranslation } from 'react-i18next'
@@ -263,6 +264,12 @@ export default function NotificationSettingsPage() {
       label: t('notifications.type_confession'),
       description: t('notifications.type_confession_desc'),
       column: 'confession_reminder',
+    },
+    {
+      icon: BookOpenIcon,
+      label: 'Daily Readings reminder',
+      description: 'Notified at 7 AM every day to read the daily Mass readings',
+      column: 'daily_readings_reminder',
     },
   ]
 
