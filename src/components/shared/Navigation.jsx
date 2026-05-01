@@ -119,16 +119,16 @@ const mobileTabs = [
 function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishAdminRecords, orgAdminRecords, onSignOut }) {
   const location = useLocation()
   const sheetRef = useRef(null)
+  const [adminExpanded, setAdminExpanded] = useState(false)
 
-  // Close on backdrop click
+  const hasAdmin = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
+
   function handleBackdrop(e) {
     if (e.target === e.currentTarget) onClose()
   }
 
-  // Close when navigating
   useEffect(() => { onClose() }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Trap focus / close on Escape
   useEffect(() => {
     if (!open) return
     function onKey(e) { if (e.key === 'Escape') onClose() }
@@ -138,31 +138,40 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
 
   const isActive = (path) => location.pathname.startsWith(path)
 
+  // Chevron icon
+  function Chevron({ flipped }) {
+    return (
+      <svg className={`w-4 h-4 text-white/40 transition-transform duration-200 ${flipped ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    )
+  }
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={handleBackdrop}
         aria-hidden="true"
       />
 
-      {/* Sheet */}
+      {/* Sheet — navy to match sidebar */}
       <div
         ref={sheetRef}
-        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-navy rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         role="dialog"
         aria-modal="true"
         aria-label="More options"
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
         </div>
 
         {/* Profile card */}
-        <Link to="/profile" className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50 transition-colors">
+        <Link to="/profile" className="flex items-center gap-3 px-5 py-4 border-b border-white/10 active:bg-white/5 transition-colors">
           <Avatar
             src={profile?.avatar_url}
             name={profile?.full_name || 'Me'}
@@ -170,95 +179,79 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
             isVerifiedClergy={profile?.is_verified_clergy}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-navy text-sm truncate">{profile?.full_name || 'My Profile'}</p>
-            {profile?.username && (
-              <p className="text-xs text-gray-400">@{profile.username}</p>
-            )}
+            <p className="font-bold text-white text-sm truncate">{profile?.full_name || 'My Profile'}</p>
+            {profile?.username
+              ? <p className="text-xs text-white/50">@{profile.username}</p>
+              : <p className="text-xs text-white/40">View profile</p>
+            }
           </div>
-          <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <Chevron />
         </Link>
 
         {/* Nav links */}
         <div className="py-2">
-          <SheetRow
-            to="/messages"
-            Icon={ChatBubbleLeftRightIcon}
-            label="Messages"
-            badge={unreadDMs}
-            active={isActive('/messages')}
-          />
-          <SheetRow
-            to="/directory"
-            Icon={MapIcon}
-            label="Directory"
-            active={isActive('/directory') || isActive('/parish/')}
-          />
-          <SheetRow
-            to="/organizations"
-            Icon={BuildingOffice2Icon}
-            label="Organizations"
-            active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')}
-          />
-          <SheetRow
-            to="/settings"
-            Icon={Cog6ToothIcon}
-            label="Settings"
-            active={isActive('/settings')}
-          />
+          <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label="Messages"      badge={unreadDMs} active={isActive('/messages')} />
+          <SheetRow to="/directory"     Icon={MapIcon}                 label="Directory"     active={isActive('/directory') || isActive('/parish/')} />
+          <SheetRow to="/organizations" Icon={BuildingOffice2Icon}     label="Organizations" active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')} />
+          <SheetRow to="/settings"      Icon={Cog6ToothIcon}           label="Settings"      active={isActive('/settings')} />
 
-          {/* Admin section */}
-          {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
+          {/* Admin — collapsible */}
+          {hasAdmin && (
             <>
-              <div className="mx-5 border-t border-gray-100 my-2" />
-              <p className="px-5 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Admin</p>
+              <div className="mx-5 border-t border-white/10 my-2" />
+              <button
+                onClick={() => setAdminExpanded(p => !p)}
+                className="w-full flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors"
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${adminExpanded ? 'bg-red-500/20' : 'bg-white/10'}`}>
+                  <ShieldExclamationIcon className={`w-5 h-5 ${adminExpanded ? 'text-red-400' : 'text-white/70'}`} />
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-white/80">Admin</span>
+                <Chevron flipped={adminExpanded} />
+              </button>
 
-              {isPlatformAdmin && (
-                <SheetRow
-                  to="/admin"
-                  Icon={ShieldExclamationIcon}
-                  label="Platform Admin"
-                  active={isActive('/admin')}
-                  danger
-                />
+              {adminExpanded && (
+                <div className="mx-4 mb-1 rounded-xl bg-white/5 overflow-hidden">
+                  {isPlatformAdmin && (
+                    <SheetSubRow to="/admin" Icon={ShieldExclamationIcon} label="Platform Admin" danger active={isActive('/admin')} />
+                  )}
+                  {parishAdminRecords.map(record => (
+                    <SheetSubRow
+                      key={record.parish_id}
+                      to={`/parish-admin/${record.parish_id}`}
+                      Icon={BuildingLibraryIcon}
+                      label={record.parishes?.name || 'My Parish'}
+                      active={location.pathname === `/parish-admin/${record.parish_id}`}
+                    />
+                  ))}
+                  {orgAdminRecords.map(record => (
+                    <SheetSubRow
+                      key={record.org_id}
+                      to={`/org-admin/${record.org_id}`}
+                      Icon={BuildingOffice2Icon}
+                      label={record.organizations?.name || 'My Organization'}
+                      active={location.pathname === `/org-admin/${record.org_id}`}
+                    />
+                  ))}
+                </div>
               )}
-              {parishAdminRecords.map(record => (
-                <SheetRow
-                  key={record.parish_id}
-                  to={`/parish-admin/${record.parish_id}`}
-                  Icon={BuildingLibraryIcon}
-                  label={record.parishes?.name || 'My Parish'}
-                  active={location.pathname === `/parish-admin/${record.parish_id}`}
-                />
-              ))}
-              {orgAdminRecords.map(record => (
-                <SheetRow
-                  key={record.org_id}
-                  to={`/org-admin/${record.org_id}`}
-                  Icon={BuildingOffice2Icon}
-                  label={record.organizations?.name || 'My Organization'}
-                  active={location.pathname === `/org-admin/${record.org_id}`}
-                />
-              ))}
             </>
           )}
 
-          <div className="mx-5 border-t border-gray-100 my-2" />
+          <div className="mx-5 border-t border-white/10 my-2" />
 
           {/* Sign out */}
           <button
             onClick={onSignOut}
-            className="w-full flex items-center gap-4 px-5 py-3.5 active:bg-gray-50 transition-colors"
+            className="w-full flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors"
           >
-            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
-              <ArrowRightOnRectangleIcon className="w-5 h-5 text-red-400" />
+            <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+              <ArrowRightOnRectangleIcon className="w-5 h-5 text-white/60" />
             </div>
-            <span className="text-sm font-medium text-red-500">Sign out</span>
+            <span className="text-sm font-medium text-white/60">Sign out</span>
           </button>
         </div>
 
-        {/* Language switcher */}
         <div className="px-5 pb-4">
           <LanguageSwitcher variant="compact" />
         </div>
@@ -267,30 +260,26 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
   )
 }
 
-function SheetRow({ to, Icon, label, badge, active, danger }) {
+function SheetRow({ to, Icon, label, badge, active }) {
   return (
-    <Link
-      to={to}
-      className={`flex items-center gap-4 px-5 py-3.5 active:bg-gray-50 transition-colors ${danger ? '' : ''}`}
-    >
-      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-        danger ? 'bg-red-50' : active ? 'bg-navy/10' : 'bg-gray-100'
-      }`}>
-        <Icon className={`w-5 h-5 ${danger ? 'text-red-400' : active ? 'text-navy' : 'text-gray-500'}`} />
+    <Link to={to} className="flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors">
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${active ? 'bg-gold/20' : 'bg-white/10'}`}>
+        <Icon className={`w-5 h-5 ${active ? 'text-gold' : 'text-white/70'}`} />
       </div>
-      <span className={`flex-1 text-sm font-medium ${danger ? 'text-red-500' : active ? 'text-navy font-semibold' : 'text-gray-700'}`}>
-        {label}
-      </span>
-      {badge > 0 && (
-        <span className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-          {badge > 9 ? '9+' : badge}
-        </span>
-      )}
-      {!badge && (
-        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      )}
+      <span className={`flex-1 text-sm font-medium ${active ? 'text-gold' : 'text-white/80'}`}>{label}</span>
+      {badge > 0
+        ? <span className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{badge > 9 ? '9+' : badge}</span>
+        : <svg className="w-4 h-4 text-white/20 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+      }
+    </Link>
+  )
+}
+
+function SheetSubRow({ to, Icon, label, active, danger }) {
+  return (
+    <Link to={to} className="flex items-center gap-3 px-4 py-2.5 active:bg-white/5 transition-colors">
+      <Icon className={`w-4 h-4 flex-shrink-0 ${danger ? 'text-red-400' : active ? 'text-gold' : 'text-white/50'}`} />
+      <span className={`flex-1 text-sm truncate ${danger ? 'text-red-400' : active ? 'text-gold font-medium' : 'text-white/60'}`}>{label}</span>
     </Link>
   )
 }
