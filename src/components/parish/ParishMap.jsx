@@ -6,12 +6,11 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 
-// Default center: geographic center of Massachusetts
-const DEFAULT_CENTER = [42.2, -71.5]
-const DEFAULT_ZOOM = 8
+const DEFAULT_CENTER = [39.5, -98.35] // geographic center of the contiguous US
+const DEFAULT_ZOOM = 4
 
-// Custom cross marker icon (navy/gold)
-function makeIcon(active) {
+// Cross icon for parishes (navy / gold when active)
+function makeParishIcon(active) {
   const bg = active ? '#C9A84C' : '#1B2A4A'
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
@@ -28,13 +27,30 @@ function makeIcon(active) {
   })
 }
 
-// Inner component: manages a MarkerClusterGroup imperatively
+// Building icon for organizations
+function makeOrgIcon(active) {
+  const bg = active ? '#C9A84C' : '#4B6A8F'
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+      <circle cx="15" cy="15" r="14" fill="${bg}" stroke="white" stroke-width="2.5"/>
+      <path d="M8 22V12l7-4 7 4v10H8zm5-2h4v-4h-4v4zm-3-6h10l-5-2.9L10 14z" fill="white"/>
+    </svg>
+  `
+  return L.divIcon({
+    html: svg,
+    className: '',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15],
+  })
+}
+
+// ── Parish cluster layer ───────────────────────────────────
 function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
   const map = useMap()
   const clusterRef = useRef(null)
-  const markersRef = useRef(new Map()) // id → L.Marker
+  const markersRef = useRef(new Map())
 
-  // Create cluster group once on mount
   useEffect(() => {
     const clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 60,
@@ -64,14 +80,12 @@ function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
     }
   }, [map])
 
-  // Sync markers when parishes list changes
   useEffect(() => {
     const cluster = clusterRef.current
     if (!cluster) return
 
     const newIds = new Set(parishes.map(p => p.id))
 
-    // Remove stale markers
     markersRef.current.forEach((marker, id) => {
       if (!newIds.has(id)) {
         cluster.removeLayer(marker)
@@ -79,22 +93,19 @@ function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
       }
     })
 
-    // Add new markers
     parishes.forEach(parish => {
       if (!parish.latitude || !parish.longitude) return
       if (markersRef.current.has(parish.id)) return
 
-      const isActive = parish.id === selectedId
       const marker = L.marker([parish.latitude, parish.longitude], {
-        icon: makeIcon(isActive),
-        zIndexOffset: isActive ? 1000 : 0,
+        icon: makeParishIcon(parish.id === selectedId),
+        zIndexOffset: parish.id === selectedId ? 1000 : 0,
       }).on('click', () => onSelect?.(parish))
 
       cluster.addLayer(marker)
       markersRef.current.set(parish.id, marker)
     })
 
-    // Fit bounds
     const positioned = parishes.filter(p => p.latitude && p.longitude)
     if (positioned.length > 1) {
       const bounds = L.latLngBounds(positioned.map(p => [p.latitude, p.longitude]))
@@ -104,11 +115,10 @@ function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
     }
   }, [parishes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update icon highlights when selection changes (no re-render needed)
   useEffect(() => {
     markersRef.current.forEach((marker, id) => {
       const isActive = id === selectedId
-      marker.setIcon(makeIcon(isActive))
+      marker.setIcon(makeParishIcon(isActive))
       marker.setZIndexOffset(isActive ? 1000 : 0)
     })
   }, [selectedId])
@@ -116,7 +126,65 @@ function ClusteredMarkerLayer({ parishes, selectedId, onSelect }) {
   return null
 }
 
-export default function ParishMap({ parishes = [], selectedId, onSelect, userLocation }) {
+// ── Organization marker layer (non-clustered, typically few) ──
+function OrgMarkerLayer({ organizations, selectedId, onSelect }) {
+  const map = useMap()
+  const markersRef = useRef(new Map())
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      markersRef.current.forEach(m => map.removeLayer(m))
+      markersRef.current.clear()
+    }
+  }, [map])
+
+  // Sync markers when orgs list changes
+  useEffect(() => {
+    const newIds = new Set(organizations.map(o => o.id))
+
+    markersRef.current.forEach((marker, id) => {
+      if (!newIds.has(id)) {
+        map.removeLayer(marker)
+        markersRef.current.delete(id)
+      }
+    })
+
+    organizations.forEach(org => {
+      if (!org.latitude || !org.longitude) return
+      if (markersRef.current.has(org.id)) return
+
+      const marker = L.marker([org.latitude, org.longitude], {
+        icon: makeOrgIcon(org.id === selectedId),
+        zIndexOffset: 500,
+      }).on('click', () => onSelect?.(org))
+
+      marker.addTo(map)
+      markersRef.current.set(org.id, marker)
+    })
+  }, [organizations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update icons when selection changes
+  useEffect(() => {
+    markersRef.current.forEach((marker, id) => {
+      marker.setIcon(makeOrgIcon(id === selectedId))
+      marker.setZIndexOffset(id === selectedId ? 1000 : 500)
+    })
+  }, [selectedId])
+
+  return null
+}
+
+// ── Map component ──────────────────────────────────────────
+export default function ParishMap({
+  parishes = [],
+  organizations = [],
+  selectedId,
+  onSelect,
+  selectedOrgId,
+  onSelectOrg,
+  userLocation,
+}) {
   const center = userLocation
     ? [userLocation.lat, userLocation.lng]
     : DEFAULT_CENTER
@@ -139,6 +207,11 @@ export default function ParishMap({ parishes = [], selectedId, onSelect, userLoc
         parishes={parishes}
         selectedId={selectedId}
         onSelect={onSelect}
+      />
+      <OrgMarkerLayer
+        organizations={organizations}
+        selectedId={selectedOrgId}
+        onSelect={onSelectOrg}
       />
     </MapContainer>
   )

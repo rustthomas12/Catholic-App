@@ -1180,6 +1180,28 @@ function SettingsTab({ org, setOrg, orgId }) {
   async function handleSave() {
     if (!form.name.trim()) return
     setSaving(true)
+
+    // Geocode address via Nominatim when location fields are present
+    let latitude = org.latitude ?? null
+    let longitude = org.longitude ?? null
+    const addressParts = [form.address, form.city, form.state, form.zip].filter(Boolean)
+    if (addressParts.length >= 2) {
+      const q = encodeURIComponent(addressParts.join(', '))
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
+          { headers: { 'User-Agent': 'Communio-App/1.0' } }
+        )
+        const json = await res.json()
+        if (json?.[0]) {
+          latitude = parseFloat(json[0].lat)
+          longitude = parseFloat(json[0].lon)
+        }
+      } catch {
+        // geocoding failure is non-blocking
+      }
+    }
+
     const updates = {
       name:        form.name.trim(),
       description: form.description.trim() || null,
@@ -1194,6 +1216,8 @@ function SettingsTab({ org, setOrg, orgId }) {
       logo_url:    form.logo_url.trim() || null,
       org_type:    form.org_type,
       hours:       form.hours || null,
+      latitude,
+      longitude,
     }
     const { error } = await supabase.from('organizations').update(updates).eq('id', orgId)
     if (error) toast.error('Failed to save changes.')

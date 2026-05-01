@@ -10,8 +10,6 @@ import NearbyEventSuggestions from '../components/parish/NearbyEventSuggestions'
 
 const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 
-const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
-
 const US_STATES = [
   ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
   ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','D.C.'],['FL','Florida'],
@@ -41,6 +39,8 @@ export default function DirectoryPage() {
   const [locationLoading, setLocationLoading] = useState(false)
   const [locationError, setLocationError] = useState(null)
   const [followStates, setFollowStates] = useState({}) // parishId → { isFollowing, loading }
+  const [selectedOrg, setSelectedOrg] = useState(null)
+  const [mapOrgs, setMapOrgs] = useState([])
 
   const { parishes: nearbyParishes, loading: nearbyLoading } = useNearbyParishes(userLocation)
 
@@ -53,6 +53,18 @@ export default function DirectoryPage() {
     })
     setFollowStates((prev) => ({ ...states, ...prev }))
   }, [followedParishes])
+
+  // Fetch organizations that have been geocoded
+  useEffect(() => {
+    supabase
+      .from('organizations')
+      .select('id, name, city, state, org_type, latitude, longitude')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .then(({ data }) => {
+        if (data) setMapOrgs(data)
+      })
+  }, [])
 
   // Search when any filter changes
   useEffect(() => {
@@ -77,7 +89,7 @@ export default function DirectoryPage() {
       ({ coords }) => {
         setUserLocation({ lat: coords.latitude, lng: coords.longitude })
         setLocationLoading(false)
-        if (query.trim().length < 2) setViewMode(TOKEN ? 'map' : 'list')
+        if (query.trim().length < 2) setViewMode('map')
       },
       (err) => {
         setLocationError(
@@ -220,28 +232,26 @@ export default function DirectoryPage() {
               {locationLoading ? 'Finding you…' : userLocation ? 'Location on' : 'Near me'}
             </button>
 
-            {TOKEN && (
-              <div className="flex bg-white/10 rounded-full p-0.5 ml-auto">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-                    viewMode === 'list' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
-                  }`}
-                >
-                  <ListBulletIcon className="w-3.5 h-3.5" />
-                  List
-                </button>
-                <button
-                  onClick={() => setViewMode('map')}
-                  className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-                    viewMode === 'map' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
-                  }`}
-                >
-                  <MapIcon className="w-3.5 h-3.5" />
-                  Map
-                </button>
-              </div>
-            )}
+            <div className="flex bg-white/10 rounded-full p-0.5 ml-auto">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                  viewMode === 'list' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <ListBulletIcon className="w-3.5 h-3.5" />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                  viewMode === 'map' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <MapIcon className="w-3.5 h-3.5" />
+                Map
+              </button>
+            </div>
           </div>
 
           {locationError && (
@@ -250,15 +260,21 @@ export default function DirectoryPage() {
         </div>
 
         {/* ── Map view ── */}
-        {viewMode === 'map' && TOKEN && (
+        {viewMode === 'map' && (
           <div className="relative h-72 md:h-96 bg-lightbg">
             <Suspense fallback={<div className="w-full h-full bg-lightbg animate-pulse" />}>
               <ParishMap
                 parishes={mapParishes}
+                organizations={mapOrgs}
                 selectedId={selectedParish?.id}
                 onSelect={(p) => {
                   setSelectedParish(p)
-                  setViewMode('map')
+                  setSelectedOrg(null)
+                }}
+                selectedOrgId={selectedOrg?.id}
+                onSelectOrg={(o) => {
+                  setSelectedOrg(o)
+                  setSelectedParish(null)
                 }}
                 userLocation={userLocation}
               />
@@ -295,6 +311,27 @@ export default function DirectoryPage() {
                     <XMarkIcon className="w-4 h-4" />
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Selected org mini-card */}
+            {selectedOrg && (
+              <div className="absolute bottom-3 left-3 right-3 bg-white rounded-xl shadow-lg p-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-navy text-sm leading-snug truncate">
+                    {selectedOrg.name}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {selectedOrg.org_type?.replace('_', ' ')}
+                    {selectedOrg.city ? ` · ${selectedOrg.city}, ${selectedOrg.state}` : ''}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrg(null)}
+                  className="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0"
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>

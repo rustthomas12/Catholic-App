@@ -142,30 +142,66 @@ function useMessages(userId, partnerId) {
 }
 
 // ── NewConversationModal ───────────────────────────────────
+// Only shows users who share a parish, group, or organization with the current user
 function NewConversationModal({ userId, onSelect, onClose }) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [searching, setSearching] = useState(false)
-  const debounceRef = useRef(null)
+  const [connectedUsers, setConnectedUsers] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    clearTimeout(debounceRef.current)
-    if (query.trim().length < 2) { setResults([]); return }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true)
-      const { data } = await supabase.from('profiles')
+    async function load() {
+      // Step 1: get the user's parishes, groups, and orgs in parallel
+      const [parishRes, groupRes, orgRes] = await Promise.all([
+        supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
+        supabase.from('group_members').select('group_id').eq('user_id', userId),
+        supabase.from('organization_members').select('org_id').eq('user_id', userId),
+      ])
+
+      const parishIds = (parishRes.data ?? []).map(d => d.parish_id)
+      const groupIds  = (groupRes.data  ?? []).map(d => d.group_id)
+      const orgIds    = (orgRes.data    ?? []).map(d => d.org_id)
+
+      // Step 2: get all other users in those same communities in parallel
+      const [parishUsers, groupUsers, orgUsers] = await Promise.all([
+        parishIds.length
+          ? supabase.from('parish_follows').select('user_id').in('parish_id', parishIds).neq('user_id', userId)
+          : Promise.resolve({ data: [] }),
+        groupIds.length
+          ? supabase.from('group_members').select('user_id').in('group_id', groupIds).neq('user_id', userId)
+          : Promise.resolve({ data: [] }),
+        orgIds.length
+          ? supabase.from('organization_members').select('user_id').in('org_id', orgIds).neq('user_id', userId)
+          : Promise.resolve({ data: [] }),
+      ])
+
+      const connectedIds = new Set([
+        ...(parishUsers.data ?? []).map(d => d.user_id),
+        ...(groupUsers.data  ?? []).map(d => d.user_id),
+        ...(orgUsers.data    ?? []).map(d => d.user_id),
+      ])
+
+      if (connectedIds.size === 0) { setConnectedUsers([]); setLoading(false); return }
+
+      const { data: profiles } = await supabase
+        .from('profiles')
         .select('id, full_name, avatar_url')
-        .ilike('full_name', `%${query.trim()}%`)
-        .neq('id', userId)
-        .limit(20)
-      setResults(data ?? [])
-      setSearching(false)
-    }, 300)
-  }, [query, userId])
+        .in('id', [...connectedIds])
+        .order('full_name')
+        .limit(200)
+
+      setConnectedUsers(profiles ?? [])
+      setLoading(false)
+    }
+    load()
+  }, [userId])
+
+  const filtered = query.trim().length >= 1
+    ? connectedUsers.filter(p => p.full_name?.toLowerCase().includes(query.toLowerCase()))
+    : connectedUsers
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
           <input
@@ -173,21 +209,31 @@ function NewConversationModal({ userId, onSelect, onClose }) {
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search by name…"
+            placeholder="Search members…"
             className="flex-1 text-sm text-navy focus:outline-none"
           />
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm">Cancel</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm font-medium">Cancel</button>
         </div>
-        <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
-          {searching && <div className="p-4 text-center text-sm text-gray-400">Searching…</div>}
-          {!searching && query.trim().length >= 2 && results.length === 0 && (
-            <div className="p-4 text-center text-sm text-gray-400">No users found.</div>
+        <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+          {loading && (
+            <div className="p-4 text-center text-sm text-gray-400">Loading…</div>
           )}
-          {results.map(p => (
+          {!loading && connectedUsers.length === 0 && (
+            <div className="p-6 text-center">
+              <p className="text-sm font-semibold text-navy mb-1">No connections yet</p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                You can message members who share a parish, group, or organization with you.
+              </p>
+            </div>
+          )}
+          {!loading && query.trim().length >= 1 && filtered.length === 0 && connectedUsers.length > 0 && (
+            <div className="p-4 text-center text-sm text-gray-400">No members found.</div>
+          )}
+          {filtered.map(p => (
             <button
               key={p.id}
               onClick={() => { onSelect(p); onClose() }}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-lightbg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-lightbg transition-colors text-left"
             >
               <Avatar src={p.avatar_url} name={p.full_name || 'U'} size="sm" />
               <span className="text-sm font-medium text-navy">{p.full_name || 'Communio Member'}</span>
