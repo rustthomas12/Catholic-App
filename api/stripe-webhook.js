@@ -63,10 +63,22 @@ export default async function handler(req, res) {
       case 'checkout.session.completed': {
         const session = event.data.object
         const userId       = session.metadata?.user_id
+        const parishId     = session.metadata?.parish_id
         const billingType  = session.metadata?.billing_type
         const donationType = session.metadata?.donation_type
         const tier         = session.metadata?.tier
         const customerId   = session.customer
+
+        // Parish subscription checkout
+        if (parishId && billingType?.startsWith('parish_')) {
+          await supabase.from('parish_subscriptions').upsert({
+            parish_id: parishId,
+            stripe_customer_id: customerId,
+            status: 'trialing',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'parish_id' })
+          break
+        }
 
         if (!userId) break
 
@@ -126,10 +138,29 @@ export default async function handler(req, res) {
       case 'customer.subscription.updated': {
         const sub        = event.data.object
         const customerId = sub.customer
-        const status     = sub.status  // active, past_due, canceled, etc.
+        const status     = sub.status  // active, past_due, canceled, trialing, etc.
         const tier       = sub.metadata?.tier
+        const parishId   = sub.metadata?.parish_id
+        const billingType = sub.metadata?.billing_type
         const interval   = sub.items?.data?.[0]?.price?.recurring?.interval
 
+        // Parish subscription
+        if (parishId) {
+          await supabase.from('parish_subscriptions').upsert({
+            parish_id: parishId,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: sub.id,
+            status,
+            trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+            current_period_end: sub.current_period_end
+              ? new Date(sub.current_period_end * 1000).toISOString()
+              : null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'parish_id' })
+          break
+        }
+
+        // Personal subscription
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -158,7 +189,18 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted': {
         const sub        = event.data.object
         const customerId = sub.customer
+        const parishId   = sub.metadata?.parish_id
 
+        // Parish subscription
+        if (parishId) {
+          await supabase.from('parish_subscriptions').update({
+            status: 'canceled',
+            updated_at: new Date().toISOString(),
+          }).eq('parish_id', parishId)
+          break
+        }
+
+        // Personal subscription
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
