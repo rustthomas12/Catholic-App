@@ -44,6 +44,78 @@ export default function DirectoryPage() {
 
   const { parishes: nearbyParishes, loading: nearbyLoading } = useNearbyParishes(userLocation)
 
+  const [geocodedLocation, setGeocodedLocation] = useState(null)
+  const [geoParishes, setGeoParishes] = useState([])
+  const [geoLoading, setGeoLoading] = useState(false)
+
+  // Geocode the City/ZIP field whenever it changes (debounced)
+  useEffect(() => {
+    const trimmed = cityQuery.trim()
+    if (trimmed.length < 2) {
+      setGeocodedLocation(null)
+      setGeoParishes([])
+      return
+    }
+    const timer = setTimeout(async () => {
+      const q = stateFilter ? `${trimmed}, ${stateFilter}, USA` : `${trimmed}, USA`
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us`,
+          { headers: { 'Accept-Language': 'en', 'User-Agent': 'Communio/1.0' } }
+        )
+        const json = await res.json()
+        if (json?.[0]) {
+          setGeocodedLocation({ lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) })
+        } else {
+          setGeocodedLocation(null)
+          setGeoParishes([])
+        }
+      } catch {
+        setGeocodedLocation(null)
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [cityQuery, stateFilter])
+
+  // Bounding-box parish search from geocoded city/zip location
+  useEffect(() => {
+    if (!geocodedLocation) { setGeoParishes([]); return }
+    setGeoLoading(true)
+    const { lat, lng } = geocodedLocation
+    const radiusMiles = 25
+    const dLat = radiusMiles / 69.0
+    const dLng = radiusMiles / (69.0 * Math.cos((lat * Math.PI) / 180))
+    let cancelled = false
+    supabase
+      .from('parishes')
+      .select('id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at')
+      .gte('latitude', lat - dLat)
+      .lte('latitude', lat + dLat)
+      .gte('longitude', lng - dLng)
+      .lte('longitude', lng + dLng)
+      .limit(200)
+      .then(({ data }) => {
+        if (cancelled) return
+        const sorted = (data ?? [])
+          .map(p => ({ ...p, distance: haversineMiles(lat, lng, p.latitude, p.longitude) }))
+          .filter(p => p.distance < radiusMiles)
+          .sort((a, b) => a.distance - b.distance)
+        setGeoParishes(sorted)
+        setGeoLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [geocodedLocation?.lat, geocodedLocation?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Client-side filter geo results by name query
+  const filteredGeoParishes = useMemo(() => {
+    const name = query.trim().toLowerCase()
+    if (!name || name.length < 2) return geoParishes
+    return geoParishes.filter(p =>
+      p.name?.toLowerCase().includes(name) ||
+      p.diocese?.toLowerCase().includes(name)
+    )
+  }, [geoParishes, query])
+
   // Compute nearby orgs sorted by distance whenever location or orgs change
   const nearbyOrgs = useMemo(() => {
     if (!userLocation || !mapOrgs.length) return []
@@ -184,7 +256,7 @@ export default function DirectoryPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, city, diocese, or zip..."
+              placeholder="Search by name or diocese..."
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {query && (
@@ -441,41 +513,82 @@ export default function DirectoryPage() {
           {/* ── Search results ── */}
           {isSearching && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                {stateFilter && !query
-                  ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
-                  : 'Search results'}
-                {results.length > 0 && ` (${results.length})`}
-              </h2>
-
-              {searchLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
-                  ))}
-                </div>
-              ) : results.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-                  <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-navy font-semibold text-sm">No parishes found</p>
-                  <p className="text-gray-400 text-xs mt-1">Try a different name, city, or zip code</p>
-                </div>
+              {/* Geo-based results when city/zip was entered and geocoded */}
+              {geocodedLocation ? (
+                <>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    Parishes near {cityQuery.trim()}
+                    {filteredGeoParishes.length > 0 && ` (${filteredGeoParishes.length})`}
+                  </h2>
+                  {geoLoading ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
+                      ))}
+                    </div>
+                  ) : filteredGeoParishes.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                      <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                      <p className="text-navy font-semibold text-sm">No parishes found nearby</p>
+                      <p className="text-gray-400 text-xs mt-1">Try a different city or zip code</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {filteredGeoParishes.map((parish) => (
+                        <ParishCard
+                          key={parish.id}
+                          parish={parish}
+                          isFollowing={
+                            followStates[parish.id]?.isFollowing ??
+                            followedParishes.some((f) => f.id === parish.id)
+                          }
+                          isMyParish={profile?.parish_id === parish.id}
+                          onFollow={() => handleFollow(parish.id)}
+                          followLoading={followStates[parish.id]?.loading ?? false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {results.map((parish) => (
-                    <ParishCard
-                      key={parish.id}
-                      parish={parish}
-                      isFollowing={
-                        followStates[parish.id]?.isFollowing ??
-                        followedParishes.some((f) => f.id === parish.id)
-                      }
-                      isMyParish={profile?.parish_id === parish.id}
-                      onFollow={() => handleFollow(parish.id)}
-                      followLoading={followStates[parish.id]?.loading ?? false}
-                    />
-                  ))}
-                </div>
+                /* Text-based results (name/diocese/state search, no city geocoding) */
+                <>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    {stateFilter && !query
+                      ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
+                      : 'Search results'}
+                    {results.length > 0 && ` (${results.length})`}
+                  </h2>
+                  {searchLoading ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
+                      ))}
+                    </div>
+                  ) : results.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                      <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                      <p className="text-navy font-semibold text-sm">No parishes found</p>
+                      <p className="text-gray-400 text-xs mt-1">Try a different name, city, or zip code</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {results.map((parish) => (
+                        <ParishCard
+                          key={parish.id}
+                          parish={parish}
+                          isFollowing={
+                            followStates[parish.id]?.isFollowing ??
+                            followedParishes.some((f) => f.id === parish.id)
+                          }
+                          isMyParish={profile?.parish_id === parish.id}
+                          onFollow={() => handleFollow(parish.id)}
+                          followLoading={followStates[parish.id]?.loading ?? false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           )}
