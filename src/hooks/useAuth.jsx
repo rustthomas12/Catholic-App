@@ -214,7 +214,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signUp(email, password, { fullName, parishId, vocationState }) {
+  async function signUp(email, password, { fullName, username, parishId, vocationState }) {
     try {
       const { data, error } = await supabaseAuth.auth.signUp({
         email,
@@ -237,6 +237,7 @@ export function AuthProvider({ children }) {
 
       await supabase.from('profiles').update({
         full_name: fullName,
+        username: username || null,
         parish_id: parishId || null,
         vocation_state: vocationState || null,
       }).eq('id', newUser.id)

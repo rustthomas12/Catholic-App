@@ -135,7 +135,12 @@ function AssignOrgAdmin() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').ilike('full_name', `%${q}%`).limit(8)
+    const trimmed = q.replace(/^@/, '').trim()
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url')
+      .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
+      .limit(8)
     return data || []
   }
 
@@ -179,12 +184,12 @@ function AssignOrgAdmin() {
       <div>
         <label className='text-xs font-semibold text-gray-400 mb-1 block'>User</label>
         <EntitySearch
-          placeholder='Search users by name…'
+          placeholder='Search by name or @username…'
           selected={user}
           onSelect={setUser}
           onClear={() => setUser(null)}
           searchFn={searchUsers}
-          renderResult={u => u.full_name}
+          renderResult={u => u.username ? `${u.full_name} (@${u.username})` : u.full_name}
           icon={UserCircleIcon}
         />
       </div>
@@ -213,7 +218,12 @@ function AssignParishPastor() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').ilike('full_name', `%${q}%`).limit(8)
+    const trimmed = q.replace(/^@/, '').trim()
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url')
+      .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
+      .limit(8)
     return data || []
   }
 
@@ -265,12 +275,12 @@ function AssignParishPastor() {
       <div>
         <label className='text-xs font-semibold text-gray-400 mb-1 block'>User</label>
         <EntitySearch
-          placeholder='Search users by name…'
+          placeholder='Search by name or @username…'
           selected={user}
           onSelect={setUser}
           onClear={() => setUser(null)}
           searchFn={searchUsers}
-          renderResult={u => u.full_name}
+          renderResult={u => u.username ? `${u.full_name} (@${u.username})` : u.full_name}
           icon={UserCircleIcon}
         />
       </div>

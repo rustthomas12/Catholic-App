@@ -76,7 +76,7 @@ function _setStoredGraph(userId, parishIds, groupIds, parentOrgIds) {
 const POST_SELECT = `
   *,
   author:profiles!author_id(
-    id, full_name, avatar_url,
+    id, full_name, username, avatar_url,
     is_verified_clergy, is_premium, is_patron
   ),
   parish:parishes!parish_id(id, name, city, state),

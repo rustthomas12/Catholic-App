@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   EnvelopeIcon, LockClosedIcon, UserIcon, EyeIcon, EyeSlashIcon,
   ExclamationCircleIcon, CheckIcon, XMarkIcon, BuildingLibraryIcon,
+  AtSymbolIcon, CheckCircleIcon,
 } from '@heroicons/react/24/outline'
+
+const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useTranslation } from '../utils/i18n'
 import { supabase } from '../lib/supabase'
@@ -32,6 +35,8 @@ export default function SignupPage() {
   const navigate = useNavigate()
 
   const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState(null) // null | 'checking' | 'available' | 'taken' | 'invalid'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -49,6 +54,7 @@ export default function SignupPage() {
   const [selectedParish, setSelectedParish] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const parishDebounce = useRef(null)
+  const usernameDebounce = useRef(null)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -88,6 +94,24 @@ export default function SignupPage() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  // Username availability check
+  useEffect(() => {
+    const val = username.trim()
+    if (!val) { setUsernameStatus(null); return }
+    if (!USERNAME_REGEX.test(val)) { setUsernameStatus('invalid'); return }
+
+    setUsernameStatus('checking')
+    clearTimeout(usernameDebounce.current)
+    usernameDebounce.current = setTimeout(async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('username', val)
+      setUsernameStatus(count > 0 ? 'taken' : 'available')
+    }, 400)
+    return () => clearTimeout(usernameDebounce.current)
+  }, [username])
+
   const strength = passwordStrength(password)
   const confirmMatch = confirm.length > 0 && confirm === password
   const confirmMismatch = confirm.length > 0 && confirm !== password
@@ -95,6 +119,10 @@ export default function SignupPage() {
   function validate() {
     const e = {}
     if (!fullName.trim() || fullName.trim().length < 2) e.fullName = 'Enter your full name'
+    if (!username.trim()) e.username = 'Choose a username'
+    else if (!USERNAME_REGEX.test(username.trim())) e.username = 'Must be 3–20 characters: letters, numbers, or underscores'
+    else if (usernameStatus === 'taken') e.username = 'That username is already taken'
+    else if (usernameStatus === 'checking') e.username = 'Still checking availability, please wait'
     if (!email || !/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email'
     if (password.length < 8) e.password = t('signup.error_password_weak')
     if (password !== confirm) e.confirm = t('signup.error_password_match') || 'Passwords do not match'
@@ -112,6 +140,7 @@ export default function SignupPage() {
     setSubmitting(true)
     const { error } = await signUp(email, password, {
       fullName: fullName.trim(),
+      username: username.trim(),
       parishId: selectedParish?.id || null,
       vocationState: vocation,
     })
@@ -125,7 +154,9 @@ export default function SignupPage() {
 
   if (loading) return <LoadingSpinner fullPage />
 
-  const canSubmit = fullName.trim().length >= 2 && email && password.length >= 8 &&
+  const canSubmit = fullName.trim().length >= 2 &&
+    USERNAME_REGEX.test(username.trim()) && usernameStatus === 'available' &&
+    email && password.length >= 8 &&
     password === confirm && vocation && agreed && !submitting
 
   return (
@@ -150,7 +181,7 @@ export default function SignupPage() {
       <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-md p-6 md:p-8">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          {/* Name + Email */}
+          {/* Name + Username + Email */}
           <Input
             label={t('signup.full_name')}
             value={fullName}
@@ -161,6 +192,51 @@ export default function SignupPage() {
             error={errors.fullName}
             autoComplete="name"
           />
+
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-semibold text-navy mb-1">
+              Username <span className="text-red-500">*</span>
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-gray-400 font-medium select-none pointer-events-none">@</span>
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
+                maxLength={20}
+                placeholder="yourname"
+                autoComplete="username"
+                className={`w-full rounded-lg border bg-white pl-7 pr-10 py-2.5 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold text-sm ${
+                  errors.username || usernameStatus === 'taken' || usernameStatus === 'invalid'
+                    ? 'border-red-400'
+                    : usernameStatus === 'available'
+                    ? 'border-green-400'
+                    : 'border-gray-300'
+                }`}
+              />
+              <div className="absolute right-3 flex items-center">
+                {usernameStatus === 'checking' && <LoadingSpinner size="sm" />}
+                {usernameStatus === 'available' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-500" />
+                )}
+              </div>
+            </div>
+            {errors.username ? (
+              <p className="text-xs text-red-500 mt-0.5">{errors.username}</p>
+            ) : (
+              <p className={`text-xs mt-0.5 ${
+                usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-500' :
+                usernameStatus === 'available' ? 'text-green-600' : 'text-gray-400'
+              }`}>
+                {usernameStatus === 'taken' && 'This username is already taken.'}
+                {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
+                {usernameStatus === 'available' && 'Available!'}
+                {!usernameStatus && 'Letters, numbers, and underscores only.'}
+              </p>
+            )}
+          </div>
+
           <Input
             label={t('signup.email')}
             type="email"

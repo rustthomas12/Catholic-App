@@ -332,6 +332,9 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 >
                   {post.author?.full_name || 'Parish Member'}
                 </button>
+                {post.author?.username && (
+                  <span className="text-xs text-gray-400">@{post.author.username}</span>
+                )}
               </div>
 
               {showSource && (post.parish || post.group || post.org) && (

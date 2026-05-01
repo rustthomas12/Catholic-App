@@ -186,6 +186,9 @@ export default function ProfilePage() {
             </div>
 
             <h1 className="text-xl font-bold text-navy mt-1">{profile.full_name || 'Parish Member'}</h1>
+            {profile.username && (
+              <p className="text-sm text-gray-400 font-medium">@{profile.username}</p>
+            )}
 
             {parish && (
               <Link to={`/parish/${parish.id}`} className="flex items-center gap-1 mt-1 text-sm text-navy hover:underline">

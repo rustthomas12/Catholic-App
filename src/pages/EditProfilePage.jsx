@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, BuildingLibraryIcon, XMarkIcon, CameraIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, BuildingLibraryIcon, XMarkIcon, CameraIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { uploadAvatar } from '../utils/storage'
@@ -9,6 +9,8 @@ import Button from '../components/shared/Button'
 import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
+
+const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
 const VOCATIONS = [
   { value: 'single', emoji: '🙏', label: 'Single' },
@@ -24,6 +26,8 @@ export default function EditProfilePage() {
   const fileRef = useRef(null)
 
   const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState(null) // null | 'checking' | 'available' | 'taken' | 'invalid'
   const [bio, setBio] = useState('')
   const [vocation, setVocation] = useState('')
   const [avatarUrl, setAvatarUrl] = useState(null)
@@ -35,6 +39,7 @@ export default function EditProfilePage() {
   const [parishSearching, setParishSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const parishDebounceRef = useRef(null)
+  const usernameDebounceRef = useRef(null)
   const dropdownRef = useRef(null)
 
   const [saving, setSaving] = useState(false)
@@ -52,6 +57,7 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (!profile) return
     setFullName(profile.full_name || '')
+    setUsername(profile.username || '')
     setBio(profile.bio || '')
     setVocation(profile.vocation_state || '')
     setAvatarUrl(profile.avatar_url || null)
@@ -68,12 +74,41 @@ export default function EditProfilePage() {
     if (!profile) return
     const changed =
       fullName !== (profile.full_name || '') ||
+      username !== (profile.username || '') ||
       bio !== (profile.bio || '') ||
       vocation !== (profile.vocation_state || '') ||
       avatarFile !== null ||
       (parish?.id || null) !== (profile.parish_id || null)
     setHasChanges(changed)
-  }, [fullName, bio, vocation, avatarFile, parish, profile])
+  }, [fullName, username, bio, vocation, avatarFile, parish, profile])
+
+  // Username availability check
+  useEffect(() => {
+    const val = username.trim()
+    const original = profile?.username || ''
+
+    // No check needed if unchanged or empty
+    if (val === original) { setUsernameStatus(null); return }
+    if (val === '') { setUsernameStatus(null); return }
+
+    if (!USERNAME_REGEX.test(val)) {
+      setUsernameStatus('invalid')
+      return
+    }
+
+    setUsernameStatus('checking')
+    clearTimeout(usernameDebounceRef.current)
+    usernameDebounceRef.current = setTimeout(async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('username', val)
+        .neq('id', user?.id)
+      setUsernameStatus(count > 0 ? 'taken' : 'available')
+    }, 400)
+
+    return () => clearTimeout(usernameDebounceRef.current)
+  }, [username, profile?.username, user?.id])
 
   // Parish search debounce
   useEffect(() => {
@@ -119,6 +154,18 @@ export default function EditProfilePage() {
       toast.error('Name is required.')
       return
     }
+    if (usernameStatus === 'taken') {
+      toast.error('That username is already taken.')
+      return
+    }
+    if (usernameStatus === 'invalid') {
+      toast.error('Username must be 3–20 characters: letters, numbers, or underscores.')
+      return
+    }
+    if (usernameStatus === 'checking') {
+      toast.error('Still checking username availability, please wait.')
+      return
+    }
     setSaving(true)
     try {
       let finalAvatarUrl = avatarUrl
@@ -131,6 +178,7 @@ export default function EditProfilePage() {
 
       const { error } = await updateProfile({
         full_name: fullName.trim(),
+        username: username.trim() || null,
         bio: bio.trim() || null,
         vocation_state: vocation || null,
         avatar_url: finalAvatarUrl,
@@ -220,6 +268,45 @@ export default function EditProfilePage() {
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-navy focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
             />
             <p className="text-xs text-gray-400 text-right mt-0.5">{fullName.length}/50</p>
+          </div>
+
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-semibold text-navy mb-1">Username</label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-gray-400 font-medium select-none">@</span>
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
+                maxLength={20}
+                placeholder="yourname"
+                className={`w-full rounded-lg border bg-white pl-7 pr-10 py-2.5 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold ${
+                  usernameStatus === 'taken' || usernameStatus === 'invalid'
+                    ? 'border-red-400'
+                    : usernameStatus === 'available'
+                    ? 'border-green-400'
+                    : 'border-gray-300'
+                }`}
+              />
+              <div className="absolute right-3">
+                {usernameStatus === 'checking' && <LoadingSpinner size="sm" />}
+                {usernameStatus === 'available' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-500" />
+                )}
+              </div>
+            </div>
+            <p className={`text-xs mt-0.5 ${
+              usernameStatus === 'taken' ? 'text-red-500' :
+              usernameStatus === 'invalid' ? 'text-red-500' :
+              usernameStatus === 'available' ? 'text-green-600' :
+              'text-gray-400'
+            }`}>
+              {usernameStatus === 'taken' && 'This username is already taken.'}
+              {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
+              {usernameStatus === 'available' && 'Available!'}
+              {!usernameStatus && 'Letters, numbers, and underscores only. 3–20 characters.'}
+            </p>
           </div>
 
           {/* Bio */}
