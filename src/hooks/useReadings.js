@@ -14,8 +14,8 @@ function getFromLocalStorage(cacheKey) {
     if (!cached) return null
     const parsed = JSON.parse(cached)
     const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
-    // v:4 — bumped from v:3 to invalidate old HTML-parsed cache entries
-    if (cachedDate === new Date().toDateString() && parsed.v === 4) return parsed
+    // v:5 — bumped from v:4 to invalidate reference-only cache entries (now includes text)
+    if (cachedDate === new Date().toDateString() && parsed.v === 5) return parsed
   } catch {}
   return null
 }
@@ -44,7 +44,7 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
         ...data.readings,
         date: dateStr,
         fetchedAt: new Date().toISOString(),
-        v: 4,
+        v: 5,
       }
       try { localStorage.setItem(`readings_${lang}_${dateStr}`, JSON.stringify(withMeta)) } catch {}
       _caches[lang] = withMeta

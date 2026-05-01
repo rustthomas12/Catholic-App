@@ -17,16 +17,9 @@ const GOLD_CROSS_SM = (
   </svg>
 )
 
-// ── ReadingSection — collapsible reading block ─────────────
-function ReadingSection({ label, reference, text, italic = false, defaultExpanded = false }) {
-  const { t } = useTranslation('faith')
-  const [expanded, setExpanded] = useState(defaultExpanded)
-  const PREVIEW_CHARS = 180
-
+// ── ReadingSection ─────────────────────────────────────────
+function ReadingSection({ label, reference, text, italic = false }) {
   if (!text && !reference) return null
-
-  const isLong = text && text.length > PREVIEW_CHARS
-  const preview = isLong && !expanded ? text.slice(0, PREVIEW_CHARS).trimEnd() + '…' : text
 
   return (
     <div className="py-5 border-b border-gray-100 last:border-b-0">
@@ -37,22 +30,12 @@ function ReadingSection({ label, reference, text, italic = false, defaultExpande
         <p className="text-base font-semibold text-navy mb-2">{reference}</p>
       )}
       {text && (
-        <>
-          <p
-            className={`text-sm leading-relaxed text-gray-800 ${italic ? 'italic' : ''}`}
-            style={{ whiteSpace: 'pre-line' }}
-          >
-            {preview}
-          </p>
-          {isLong && (
-            <button
-              onClick={() => setExpanded((e) => !e)}
-              className="mt-2 text-sm font-semibold text-gold hover:underline"
-            >
-              {expanded ? t('read_less') : t('read_more')}
-            </button>
-          )}
-        </>
+        <p
+          className={`text-sm leading-relaxed text-gray-800 ${italic ? 'italic' : ''}`}
+          style={{ whiteSpace: 'pre-line' }}
+        >
+          {text}
+        </p>
       )}
     </div>
   )
@@ -170,7 +153,6 @@ function TLMReadingsContent({ readings }) {
           label="Gospel"
           reference={readings.gospel.reference}
           text={readings.gospel.text}
-          defaultExpanded
         />
       )}
     </div>
@@ -325,7 +307,6 @@ export default function ReadingsCard({
                 label={t('gospel')}
                 reference={readings.gospel.reference}
                 text={readings.gospel.text}
-                defaultExpanded
               />
             )}
           </div>
