@@ -246,11 +246,11 @@ export default function OrganizationPage() {
               disabled={joinLoading}
               className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
                 isMember
-                  ? 'bg-white/20 text-white hover:bg-white/30'
+                  ? 'bg-white/20 text-white hover:bg-red-500/80'
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
-              {joinLoading ? '…' : isMember ? 'Member' : 'Join'}
+              {joinLoading ? '…' : isMember ? 'Leave' : 'Join'}
             </button>
 
             {(org.email || org.phone) && (

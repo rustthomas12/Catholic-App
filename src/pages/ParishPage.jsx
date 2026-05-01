@@ -51,6 +51,7 @@ export default function ParishPage() {
     followLoading,
     follow,
     setAsMyParish,
+    unsetMyParish,
   } = useParish(id)
 
   // Must be before early returns — hooks cannot come after conditional returns
@@ -126,17 +127,26 @@ export default function ParishPage() {
 
             <button
               onClick={follow}
-              disabled={followLoading || isMyParish}
+              disabled={followLoading}
               className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
                 isFollowing || isMyParish
-                  ? 'bg-white/20 text-white hover:bg-white/30'
+                  ? 'bg-white/20 text-white hover:bg-red-500/80'
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
-              {followLoading ? '…' : isMyParish ? 'Following' : isFollowing ? 'Following' : 'Follow Parish'}
+              {followLoading ? '…' : isFollowing || isMyParish ? 'Unfollow' : 'Follow Parish'}
             </button>
 
-            {!isMyParish && (
+            {!isMyParish && isFollowing && (
+              <button
+                onClick={setAsMyParish}
+                className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                Set as my parish
+              </button>
+            )}
+
+            {!isFollowing && !isMyParish && (
               <button
                 onClick={setAsMyParish}
                 className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
@@ -146,10 +156,20 @@ export default function ParishPage() {
             )}
 
             {isMyParish && (
-              <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-3 py-2.5">
-                <CheckBadgeIcon className="w-4 h-4" />
-                Your parish
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-1 py-2.5">
+                  <CheckBadgeIcon className="w-4 h-4" />
+                  Your parish
+                </span>
+                <button
+                  onClick={unsetMyParish}
+                  className="flex items-center gap-1 text-xs text-white/50 hover:text-white/80 px-2 py-1.5 rounded-lg transition-colors"
+                  title="Remove as my parish"
+                >
+                  <XMarkIcon className="w-3.5 h-3.5" />
+                  Remove
+                </button>
+              </div>
             )}
 
             <button

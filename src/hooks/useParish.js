@@ -305,6 +305,13 @@ export function useParish(parishId) {
     return () => { cancelled = true }
   }, [parishId, userId, profileParishId])
 
+  const unsetMyParish = useCallback(async () => {
+    if (!userId) return
+    const { error: err } = await updateProfile({ parish_id: null })
+    if (!err) setIsMyParish(false)
+    return { error: err }
+  }, [userId, updateProfile])
+
   const follow = useCallback(async () => {
     if (!userId || followLoading) return
     setFollowLoading(true)
@@ -319,6 +326,11 @@ export function useParish(parishId) {
         setIsFollowing(false)
         setFollowerCount((c) => Math.max(0, c - 1))
         invalidateFollowedParishesCache()
+        // If this was the user's default parish, clear that too
+        if (isMyParish) {
+          await updateProfile({ parish_id: null })
+          setIsMyParish(false)
+        }
       }
     } else {
       const { error: err } = await supabase
@@ -353,7 +365,7 @@ export function useParish(parishId) {
     }
 
     setFollowLoading(false)
-  }, [userId, parishId, isFollowing, followLoading])
+  }, [userId, parishId, isFollowing, isMyParish, followLoading, updateProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const setAsMyParish = useCallback(async () => {
     if (!userId) return { error: 'Not authenticated' }
@@ -384,5 +396,6 @@ export function useParish(parishId) {
     followLoading,
     follow,
     setAsMyParish,
+    unsetMyParish,
   }
 }
