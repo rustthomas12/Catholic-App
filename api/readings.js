@@ -33,17 +33,24 @@ export default async function handler(req, res) {
     const data = await response.json()
 
     // API may return readings at top level or under a 'readings' key
-    const readings = data.readings ?? data
+    const raw = data.readings ?? data
+
+    // API returns plain strings (references only) — normalize to { reference, text: null }
+    function normalize(r) {
+      if (!r) return null
+      if (typeof r === 'string') return { reference: r, text: null }
+      return r
+    }
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
     return res.status(200).json({
       success: true,
       readings: {
-        firstReading:       readings.firstReading       ?? null,
-        psalm:              readings.psalm              ?? null,
-        secondReading:      readings.secondReading      ?? null,
-        gospelAcclamation:  readings.gospelAcclamation  ?? null,
-        gospel:             readings.gospel             ?? null,
+        firstReading:       normalize(raw.firstReading),
+        psalm:              normalize(raw.psalm),
+        secondReading:      normalize(raw.secondReading),
+        gospelAcclamation:  normalize(raw.gospelAcclamation),
+        gospel:             normalize(raw.gospel),
       },
       date: isoDate,
       season:      data.season      ?? null,

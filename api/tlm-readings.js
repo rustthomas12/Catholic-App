@@ -1,7 +1,7 @@
 /**
  * Vercel serverless function — Traditional Latin Mass readings proxy.
- * Source: Missale Meum API (https://www.missalemeum.com/en/api/v5/date/YYYY-MM-DD)
- * Free REST API, full 1962 missal propers, proper JSON (no scraping).
+ * Source: Missale Meum API (https://www.missalemeum.com/en/api/v5/proper/YYYY-MM-DD)
+ * Free REST API, full 1962 missal propers, JSON.
  * Date param: YYYY-MM-DD or YYYYMMDD
  */
 export default async function handler(req, res) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `https://www.missalemeum.com/en/api/v5/date/${isoDate}`,
+      `https://www.missalemeum.com/en/api/v5/proper/${isoDate}`,
       {
         headers: {
           Accept: 'application/json',
@@ -35,59 +35,49 @@ export default async function handler(req, res) {
 
     const data = await response.json()
 
-    // API returns an array of observances; use the first (main Mass)
+    // API returns an array; use the first observance (main Mass)
     const observance = Array.isArray(data) ? data[0] : data
     if (!observance) {
       return res.status(200).json({ success: false, readings: null })
     }
 
-    // Build a lookup by section id
-    const proper = observance.proper ?? []
+    // Sections are under 'sections', not 'proper'
+    const sectionList = observance.sections ?? []
     const sections = {}
-    for (const section of proper) {
+    for (const section of sectionList) {
       if (section.id) sections[section.id] = section
     }
 
-    // Extract reference and text from a proper section.
-    // Missale Meum section shape: { id, label, body: string[][] | string[] }
+    // body is an array of bilingual pairs: [[english, latin], ...]
+    // Extract English text only.
+    function extractText(section) {
+      if (!section?.body) return null
+      return section.body
+        .map(pair => (Array.isArray(pair) ? pair[0] : pair))
+        .filter(Boolean)
+        .join('\n\n')
+        .trim() || null
+    }
+
     function extractSection(...ids) {
       for (const id of ids) {
         const s = sections[id]
         if (!s) continue
-        // `label` or `title` often holds the scripture citation
-        const reference = s.label ?? s.title ?? null
-        let text = null
-        if (Array.isArray(s.body)) {
-          // body may be string[][] or string[] — flatten and join
-          const parts = s.body
-            .flat()
-            .map(b => (typeof b === 'string' ? b.trim() : (b?.text ?? '')))
-            .filter(Boolean)
-          text = parts.join('\n\n') || null
-        } else if (typeof s.body === 'string') {
-          text = s.body.trim() || null
-        }
-        return { reference, text }
+        return { reference: null, text: extractText(s) }
       }
       return null
     }
 
     const readings = {
+      // 'GradualeP' is used during Paschaltide; 'Graduale' otherwise
       epistle: extractSection('Lectio', 'Epistola'),
-      gradual: extractSection('Graduale', 'Tractus', 'Alleluia', 'Sequentia'),
+      gradual: extractSection('GradualeP', 'Graduale', 'Tractus', 'Alleluia', 'Sequentia'),
       gospel:  extractSection('Evangelium'),
     }
 
-    // Mass name from observance info or celebration array
-    const massName =
-      observance.info?.title ??
-      (Array.isArray(observance.celebration) ? observance.celebration[0]?.title : null) ??
-      null
-
-    const liturgicalColor =
-      observance.info?.color ??
-      (Array.isArray(observance.celebration) ? observance.celebration[0]?.color : null) ??
-      null
+    // info.colors is an array (e.g. ["white"])
+    const massName       = observance.info?.title ?? null
+    const liturgicalColor = observance.info?.colors?.[0] ?? null
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
     return res.status(200).json({
