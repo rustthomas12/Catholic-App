@@ -392,19 +392,13 @@ export default function AdminPage() {
       let query = supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, suspended_at, created_at, is_verified_clergy, is_admin, vocation_state')
+        .order('suspended_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       // Text search — match full_name OR username
       const trimmed = (search ?? '').trim();
       if (trimmed) {
         query = query.or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`);
-      } else {
-        // No search text — scope to recent unless a filter is active
-        if (filter === 'all') {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-          query = query.gte('created_at', sevenDaysAgo.toISOString());
-        }
       }
 
       // Role / status filters
