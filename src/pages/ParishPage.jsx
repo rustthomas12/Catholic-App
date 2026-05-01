@@ -60,6 +60,11 @@ export default function ParishPage() {
     setAsMyParish,
   } = useParish(id)
 
+  // Must be before early returns — hooks cannot come after conditional returns
+  useEffect(() => {
+    if (parish?.name) document.title = `${parish.name} | Communio`
+  }, [parish?.name])
+
   if (loading) return <ParishPageSkeleton />
 
   if (error || !parish) {
@@ -76,8 +81,6 @@ export default function ParishPage() {
       </div>
     )
   }
-
-  useEffect(() => { document.title = `${parish.name} | Communio` }, [parish.name])
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
