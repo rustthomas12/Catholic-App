@@ -79,6 +79,13 @@ export function AuthProvider({ children }) {
       }
       return null
     }
+
+    // If account is suspended, force sign-out immediately
+    if (data?.suspended_at) {
+      await supabaseAuth.auth.signOut()
+      return null
+    }
+
     setStoredProfile(userId, data)
 
     // Sync language preference from profile to local state
@@ -203,6 +210,16 @@ export function AuthProvider({ children }) {
         return { error: t('common:status.error') }
       }
       if (data.user) {
+        // Check suspension before allowing access
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('suspended_at')
+          .eq('id', data.user.id)
+          .single()
+        if (profile?.suspended_at) {
+          await supabaseAuth.auth.signOut()
+          return { error: 'Your account has been suspended. Please contact support.' }
+        }
         supabase.from('profiles')
           .update({ last_active_at: new Date().toISOString() })
           .eq('id', data.user.id)
