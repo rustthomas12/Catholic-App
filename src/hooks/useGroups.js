@@ -365,8 +365,6 @@ export function useGroupJoin() {
       return { error }
     }
 
-    // Increment member_count
-    await supabase.rpc('increment_member_count', { group_id_param: groupId }).catch(() => {})
     _invalidateMemberships()
     onSuccess?.()
 
