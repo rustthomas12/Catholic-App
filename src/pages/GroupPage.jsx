@@ -56,6 +56,10 @@ export default function GroupPage() {
   const isAdmin = adminGroupIds.has(id)
   const requested = hasRequested(id)
 
+  useEffect(() => {
+    if (group?.name) document.title = `${group.name} | Communio`
+  }, [group?.name])
+
   // Load pending requests when admin views members tab
   function handleTabChange(tabId) {
     setActiveTab(tabId)
@@ -119,8 +123,6 @@ export default function GroupPage() {
       </div>
     )
   }
-
-  useEffect(() => { document.title = `${group.name} | Communio` }, [group.name])
 
   const rawMemberCount = group.member_count ?? group.group_members?.[0]?.count ?? 0
   const memberCount = typeof rawMemberCount === 'string' ? parseInt(rawMemberCount, 10) || 0 : rawMemberCount
