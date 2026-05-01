@@ -24,16 +24,19 @@ export function useParishSearch() {
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
-  // search(query, userLocation?, stateFilter?)
-  // stateFilter: two-letter state code e.g. 'CA', or null/'' for all states
-  const search = useCallback((query, userLocation = null, stateFilter = null) => {
+  // search(nameQuery, userLocation?, stateFilter?, cityQuery?)
+  // - nameQuery: matches parish name and diocese
+  // - cityQuery: narrows by city OR zip (AND-ed with name when both provided)
+  // - stateFilter: two-letter state code (AND-ed with everything)
+  const search = useCallback((nameQuery, userLocation = null, stateFilter = null, cityQuery = null) => {
     clearTimeout(debounceRef.current)
 
-    const trimmed = (query ?? '').trim()
-    const state   = stateFilter ? stateFilter.trim().toUpperCase() : null
+    const trimmed     = (nameQuery ?? '').trim()
+    const cityTrimmed = (cityQuery ?? '').trim()
+    const state       = stateFilter ? stateFilter.trim().toUpperCase() : null
 
-    // Allow empty query when a state filter is selected
-    if (trimmed.length < 2 && !state) {
+    // Need at least one active filter
+    if (trimmed.length < 2 && cityTrimmed.length < 2 && !state) {
       setResults([])
       return
     }
@@ -54,10 +57,19 @@ export function useParishSearch() {
         query = query.eq('state', state)
       }
 
-      if (trimmed.length >= 2) {
+      if (trimmed.length >= 2 && cityTrimmed.length >= 2) {
+        // Both name and city provided — AND them for precise narrowing
+        // e.g. "St Mary's" AND "Worcester" → only St Mary's in Worcester
+        query = query.or(`name.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`)
+        query = query.or(`city.ilike.%${cityTrimmed}%,zip.ilike.%${cityTrimmed}%`)
+      } else if (trimmed.length >= 2) {
+        // Name-only search — match across name, city, zip, diocese
         query = query.or(
           `name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,zip.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`
         )
+      } else if (cityTrimmed.length >= 2) {
+        // City/zip-only search — show all parishes in that city/zip
+        query = query.or(`city.ilike.%${cityTrimmed}%,zip.ilike.%${cityTrimmed}%`)
       }
 
       const { data, error: err } = await query

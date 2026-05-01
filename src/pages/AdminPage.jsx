@@ -298,6 +298,7 @@ export default function AdminPage() {
   const [flaggedPosts, setFlaggedPosts] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
+  const [userFilter, setUserFilter] = useState('all'); // 'all' | 'clergy' | 'suspended' | 'admin'
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingFlags, setLoadingFlags] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -325,10 +326,10 @@ export default function AdminPage() {
   useEffect(() => {
     if (!profile?.is_admin) return;
     const timer = setTimeout(() => {
-      loadRecentUsers(userSearch);
+      loadRecentUsers(userSearch, userFilter);
     }, 400);
     return () => clearTimeout(timer);
-  }, [userSearch, profile]);
+  }, [userSearch, userFilter, profile]);
 
   async function loadStats() {
     setLoadingStats(true);
@@ -375,21 +376,31 @@ export default function AdminPage() {
     }
   }
 
-  const loadRecentUsers = useCallback(async (search) => {
+  const loadRecentUsers = useCallback(async (search, filter = 'all') => {
     setLoadingUsers(true);
     try {
       let query = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, suspended_at, created_at')
+        .select('id, full_name, username, avatar_url, suspended_at, created_at, is_verified_clergy, is_admin, vocation_state')
         .order('created_at', { ascending: false });
 
-      if (search && search.trim()) {
-        query = query.ilike('full_name', '%' + search.trim() + '%');
+      // Text search — match full_name OR username
+      const trimmed = (search ?? '').trim();
+      if (trimmed) {
+        query = query.or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`);
       } else {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        query = query.gte('created_at', sevenDaysAgo.toISOString());
+        // No search text — scope to recent unless a filter is active
+        if (filter === 'all') {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          query = query.gte('created_at', sevenDaysAgo.toISOString());
+        }
       }
+
+      // Role / status filters
+      if (filter === 'clergy')    query = query.eq('is_verified_clergy', true);
+      if (filter === 'suspended') query = query.not('suspended_at', 'is', null);
+      if (filter === 'admin')     query = query.eq('is_admin', true);
 
       const { data, error } = await query.limit(50);
       if (error) {
@@ -583,15 +594,39 @@ export default function AdminPage() {
             Users
           </h2>
 
-          <div className='relative mb-3'>
+          {/* Search input */}
+          <div className='relative mb-2'>
             <MagnifyingGlassIcon className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
             <input
               type='text'
-              placeholder='Search by name...'
+              placeholder='Search by name or username…'
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               className='w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-navy bg-white'
             />
+          </div>
+
+          {/* Filter chips */}
+          <div className='flex gap-2 mb-3 flex-wrap'>
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'clergy', label: 'Clergy' },
+              { key: 'suspended', label: 'Suspended' },
+              { key: 'admin', label: 'Admins' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setUserFilter(key)}
+                className={
+                  'text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ' +
+                  (userFilter === key
+                    ? 'bg-navy text-white border-navy'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-navy hover:text-navy')
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {loadingUsers ? (
@@ -600,7 +635,11 @@ export default function AdminPage() {
             </div>
           ) : recentUsers.length === 0 ? (
             <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-400 text-sm'>
-              {userSearch ? 'No users match that search.' : 'No new users in the last 7 days.'}
+              {userSearch
+                ? `No ${userFilter !== 'all' ? userFilter + ' ' : ''}users match that search.`
+                : userFilter !== 'all'
+                ? `No ${userFilter} users found.`
+                : 'No new users in the last 7 days.'}
             </div>
           ) : (
             <div className='bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50'>
@@ -608,8 +647,20 @@ export default function AdminPage() {
                 <div key={user.id} className='flex items-center gap-3 px-4 py-3'>
                   <Avatar src={user.avatar_url} name={user.full_name} size='sm' />
                   <div className='flex-1 min-w-0'>
-                    <p className='text-sm font-medium text-gray-900 truncate'>{user.full_name}</p>
-                    <p className='text-xs text-gray-400 truncate'>Joined {new Date(user.created_at).toLocaleDateString()}</p>
+                    <div className='flex items-center gap-1.5 flex-wrap'>
+                      <p className='text-sm font-medium text-gray-900 truncate'>{user.full_name}</p>
+                      {user.is_verified_clergy && (
+                        <span className='text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full flex-shrink-0'>Clergy</span>
+                      )}
+                      {user.is_admin && (
+                        <span className='text-[10px] font-bold bg-navy/10 text-navy px-1.5 py-0.5 rounded-full flex-shrink-0'>Admin</span>
+                      )}
+                    </div>
+                    <p className='text-xs text-gray-400 truncate'>
+                      {user.username ? `@${user.username} · ` : ''}
+                      {user.vocation_state ? `${user.vocation_state} · ` : ''}
+                      Joined {new Date(user.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                   {user.suspended_at && (
                     <span className='text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium flex-shrink-0'>

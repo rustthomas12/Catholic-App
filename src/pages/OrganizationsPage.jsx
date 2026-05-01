@@ -6,9 +6,29 @@ import {
   BuildingOffice2Icon,
   PlusIcon,
   CheckBadgeIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
+
+const CATEGORIES = [
+  'Apostolate', 'Charity', 'Education', 'Media', "Men's Ministry",
+  "Women's Ministry", 'Youth', 'Family', 'Pro-Life', 'Prayer',
+  'Missions', 'Religious Order', 'Other',
+]
+
+const US_STATES = [
+  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+  ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','D.C.'],['FL','Florida'],
+  ['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],
+  ['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],
+  ['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
+  ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],
+  ['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],
+  ['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],
+  ['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
+  ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming'],
+]
 
 // ── useOrgSearch ───────────────────────────────────────────
 function useOrgSearch() {
@@ -17,20 +37,42 @@ function useOrgSearch() {
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
-  const search = useCallback((query) => {
+  // search(nameQuery, categoryFilter?, stateFilter?)
+  // Any combination of filters AND together for precise narrowing
+  const search = useCallback((nameQuery, categoryFilter = null, stateFilter = null) => {
     clearTimeout(debounceRef.current)
-    const trimmed = (query ?? '').trim()
-    if (trimmed.length < 2) { setResults([]); return }
+
+    const trimmed  = (nameQuery ?? '').trim()
+    const category = categoryFilter || null
+    const state    = stateFilter ? stateFilter.trim().toUpperCase() : null
+
+    if (trimmed.length < 2 && !category && !state) {
+      setResults([])
+      return
+    }
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       setError(null)
-      const { data, error: err } = await supabase
+
+      let q = supabase
         .from('organizations')
-        .select('id, name, slug, description, category, city, state, is_official')
-        .or(`name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,state.ilike.%${trimmed}%,category.ilike.%${trimmed}%`)
+        .select('id, name, slug, description, category, city, state, is_official, org_type')
         .order('is_official', { ascending: false })
         .limit(40)
+
+      // Each active filter is AND-ed
+      if (trimmed.length >= 2) {
+        q = q.or(`name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+      }
+      if (category) {
+        q = q.eq('category', category)
+      }
+      if (state) {
+        q = q.eq('state', state)
+      }
+
+      const { data, error: err } = await q
       if (err) { setError(err.message); setLoading(false); return }
       setResults(data ?? [])
       setLoading(false)
@@ -56,7 +98,7 @@ function useMyOrgs(userId) {
     if (!userId) { setLoading(false); return }
     supabase
       .from('organization_members')
-      .select('org_id, role, organizations(id, name, slug, category, city, state, is_official)')
+      .select('org_id, role, organizations(id, name, slug, category, city, state, is_official, org_type)')
       .eq('user_id', userId)
       .order('joined_at', { ascending: false })
       .then(({ data }) => {
@@ -84,6 +126,9 @@ function OrgCard({ org, isSubscribed = false }) {
           <p className="font-bold text-navy text-sm leading-snug">{org.name}</p>
           {org.is_official && (
             <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title="Official" />
+          )}
+          {org.org_type === 'national' && (
+            <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded-full">National</span>
           )}
           {isSubscribed && (
             <span className="inline-flex items-center text-[10px] font-semibold bg-gold/10 text-gold border border-gold/20 px-1.5 py-0.5 rounded-full">
@@ -121,21 +166,27 @@ export default function OrganizationsPage() {
   useEffect(() => { document.title = 'Organizations | Communio' }, [])
   const { user } = useAuth()
   const [query, setQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [stateFilter, setStateFilter] = useState('')
   const { results, loading: searchLoading, search, clear } = useOrgSearch()
   const { orgs: myOrgs, loading: myOrgsLoading } = useMyOrgs(user?.id)
   const [subscribedOrgIds, setSubscribedOrgIds] = useState(new Set())
 
+  // Trigger search whenever any filter changes
   useEffect(() => {
-    if (query.trim().length >= 2) search(query)
-    else clear()
-  }, [query, search, clear])
+    const hasName = query.trim().length >= 2
+    const hasCategory = !!categoryFilter
+    const hasState = !!stateFilter
+    if (hasName || hasCategory || hasState) {
+      search(query, categoryFilter, stateFilter)
+    } else {
+      clear()
+    }
+  }, [query, categoryFilter, stateFilter, search, clear])
 
   // Fetch subscription status for visible orgs
   useEffect(() => {
-    const orgsToCheck = [
-      ...(myOrgs.map(o => o.id)),
-      ...(results.map(o => o.id)),
-    ]
+    const orgsToCheck = [...myOrgs.map(o => o.id), ...results.map(o => o.id)]
     const unique = [...new Set(orgsToCheck)]
     if (!unique.length) return
     supabase
@@ -148,7 +199,16 @@ export default function OrganizationsPage() {
       })
   }, [myOrgs, results])
 
-  const isSearching = query.trim().length >= 2
+  const isSearching = query.trim().length >= 2 || !!categoryFilter || !!stateFilter
+
+  const clearAll = () => {
+    setQuery('')
+    setCategoryFilter('')
+    setStateFilter('')
+    clear()
+  }
+
+  const hasActiveFilters = !!categoryFilter || !!stateFilter
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -167,24 +227,60 @@ export default function OrganizationsPage() {
             </Link>
           </div>
 
-          {/* Search */}
+          {/* Name search */}
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, category, or city…"
+              placeholder="Search by name or city…"
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
-            {query && (
+            {(query || hasActiveFilters) && (
               <button
-                onClick={() => { setQuery(''); clear() }}
+                onClick={clearAll}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
             )}
+          </div>
+
+          {/* Category + State row */}
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="relative">
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                aria-label="Filter by category"
+                className={`w-full pl-9 pr-2 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer ${
+                  categoryFilter ? 'bg-gold/10 text-navy font-semibold' : 'bg-white/90 text-navy'
+                }`}
+              >
+                <option value="">All categories</option>
+                {CATEGORIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div className="relative">
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                aria-label="Filter by state"
+                className={`w-full pl-9 pr-2 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer ${
+                  stateFilter ? 'bg-gold/10 text-navy font-semibold' : 'bg-white/90 text-navy'
+                }`}
+              >
+                <option value="">All states</option>
+                {US_STATES.map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -223,7 +319,7 @@ export default function OrganizationsPage() {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                   <BuildingOffice2Icon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                   <p className="text-navy font-semibold text-sm">No organizations found</p>
-                  <p className="text-gray-400 text-xs mt-1">Try a different name or category</p>
+                  <p className="text-gray-400 text-xs mt-1">Try adjusting your search or filters</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -244,7 +340,7 @@ export default function OrganizationsPage() {
                 </div>
                 <h3 className="font-bold text-navy mb-1">Discover Catholic organizations</h3>
                 <p className="text-gray-500 text-sm mb-4">
-                  Search for ministries, apostolates, and Catholic organizations to join.
+                  Search by name, category, or state to find ministries and apostolates.
                 </p>
               </div>
             </section>

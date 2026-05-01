@@ -33,6 +33,7 @@ export default function DirectoryPage() {
   const { parishes: followedParishes, loading: followedLoading } = useFollowedParishes()
 
   const [query, setQuery] = useState('')
+  const [cityQuery, setCityQuery] = useState('')
   const [stateFilter, setStateFilter] = useState('')
   const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
   const [selectedParish, setSelectedParish] = useState(null)
@@ -53,16 +54,17 @@ export default function DirectoryPage() {
     setFollowStates((prev) => ({ ...states, ...prev }))
   }, [followedParishes])
 
-  // Search when query or state filter changes
+  // Search when any filter changes
   useEffect(() => {
-    const hasQuery = query.trim().length >= 2
+    const hasName = query.trim().length >= 2
+    const hasCity = cityQuery.trim().length >= 2
     const hasState = !!stateFilter
-    if (hasQuery || hasState) {
-      search(query, userLocation, stateFilter)
+    if (hasName || hasCity || hasState) {
+      search(query, userLocation, stateFilter, cityQuery)
     } else {
       clear()
     }
-  }, [query, stateFilter, userLocation, search, clear])
+  }, [query, cityQuery, stateFilter, userLocation, search, clear])
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -131,12 +133,13 @@ export default function DirectoryPage() {
 
   const clearQuery = () => {
     setQuery('')
+    setCityQuery('')
     setStateFilter('')
     clear()
   }
 
   // Determine which parishes to show
-  const isSearching = query.trim().length >= 2 || !!stateFilter
+  const isSearching = query.trim().length >= 2 || cityQuery.trim().length >= 2 || !!stateFilter
   const displayParishes = isSearching
     ? results
     : userLocation
@@ -176,20 +179,33 @@ export default function DirectoryPage() {
             )}
           </div>
 
-          {/* State filter */}
-          <div className="relative mt-2">
-            <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              aria-label="Filter by state"
-              className="w-full bg-white/90 pl-9 pr-8 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
-            >
-              <option value="">All states</option>
-              {US_STATES.map(([code, name]) => (
-                <option key={code} value={code}>{name}</option>
-              ))}
-            </select>
+          {/* City / ZIP + State row */}
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="relative">
+              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={cityQuery}
+                onChange={(e) => setCityQuery(e.target.value)}
+                placeholder="City or ZIP"
+                aria-label="Filter by city or ZIP code"
+                className="w-full bg-white/90 pl-9 pr-3 py-2.5 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
+              />
+            </div>
+            <div className="relative">
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                aria-label="Filter by state"
+                className="w-full bg-white/90 pl-9 pr-2 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
+              >
+                <option value="">All states</option>
+                {US_STATES.map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Action row */}
