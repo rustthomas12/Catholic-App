@@ -4,6 +4,13 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
 import './index.css'
 import App from './App.jsx'
 
+// When Vite fails to load a lazy chunk (e.g. after a new deploy invalidates
+// old hashed filenames), reload once to pick up the fresh asset manifest.
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault()
+  window.location.reload()
+})
+
 // ── Update banner shown when a new SW is waiting ──────────
 function UpdateBanner({ onUpdate }) {
   return (
