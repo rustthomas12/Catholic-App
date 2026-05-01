@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth } from '../lib/supabase'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024   // 2 MB
@@ -22,7 +22,7 @@ function getExtension(file) {
 // On page refresh the in-memory token may not be initialized yet,
 // causing RLS to reject the upload even for valid sessions.
 async function ensureSession() {
-  await supabase.auth.getSession()
+  await supabaseAuth.auth.getSession()
 }
 
 /**
