@@ -10,6 +10,7 @@ import {
   UserGroupIcon,
   XMarkIcon,
   Cog6ToothIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -28,6 +29,8 @@ function useOrganization(orgId) {
   const [myRole, setMyRole] = useState(null)
   const [joinLoading, setJoinLoading] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
+  const [parentOrg, setParentOrg] = useState(null)
+  const [chapters, setChapters] = useState([])
 
   useEffect(() => {
     if (!orgId) return
@@ -44,14 +47,38 @@ function useOrganization(orgId) {
       supabase.from('organization_members').select('user_id', { count: 'exact', head: true }).eq('org_id', orgId),
       memberCheck,
       supabase.from('org_subscriptions').select('status').eq('org_id', orgId).maybeSingle(),
-    ]).then(([orgRes, countRes, memberRes, subRes]) => {
+    ]).then(async ([orgRes, countRes, memberRes, subRes]) => {
       if (cancelled) return
-      if (orgRes.error) setError(orgRes.error.message)
-      else setOrg(orgRes.data)
+      if (orgRes.error) { setError(orgRes.error.message); setLoading(false); return }
+
+      const orgData = orgRes.data
+      setOrg(orgData)
       setMemberCount(countRes.count ?? 0)
       setIsMember(!!memberRes.data)
       setMyRole(memberRes.data?.role ?? null)
       setIsSubscribed(['trialing', 'active'].includes(subRes.data?.status))
+
+      // Load parent org if chapter
+      if (orgData.org_type === 'chapter' && orgData.parent_org_id) {
+        const { data: parent } = await supabase
+          .from('organizations')
+          .select('id, name, city, state')
+          .eq('id', orgData.parent_org_id)
+          .single()
+        if (!cancelled) setParentOrg(parent)
+      }
+
+      // Load chapters if national
+      if (orgData.org_type === 'national') {
+        const { data: chaps } = await supabase
+          .from('organizations')
+          .select('id, name, city, state')
+          .eq('parent_org_id', orgId)
+          .eq('org_type', 'chapter')
+          .order('name')
+        if (!cancelled) setChapters(chaps || [])
+      }
+
       setLoading(false)
     })
 
@@ -75,25 +102,26 @@ function useOrganization(orgId) {
     setJoinLoading(false)
   }, [user?.id, orgId, isMember, joinLoading])
 
-  return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed }
+  return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters }
 }
-
-const TABS = [
-  { id: 'feed', label: 'Feed' },
-  { id: 'about', label: 'About' },
-]
 
 export default function OrganizationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('feed')
   const [showContact, setShowContact] = useState(false)
-  const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed } = useOrganization(id)
+  const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters } = useOrganization(id)
 
   useEffect(() => {
     if (org) document.title = `${org.name} | Communio`
     else document.title = 'Organization | Communio'
   }, [org?.name])
+
+  const tabs = org ? [
+    { id: 'feed', label: 'Feed' },
+    { id: 'about', label: 'About' },
+    ...(org.org_type === 'national' ? [{ id: 'chapters', label: 'Chapters' }] : []),
+  ] : [{ id: 'feed', label: 'Feed' }, { id: 'about', label: 'About' }]
 
   if (loading) {
     return (
@@ -131,6 +159,19 @@ export default function OrganizationPage() {
         </button>
 
         <div className="px-4 pt-14 pb-5 max-w-3xl mx-auto">
+          {/* Chapter breadcrumb */}
+          {org.org_type === 'chapter' && parentOrg && (
+            <Link
+              to={`/organizations/${parentOrg.id}`}
+              className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white/90 mb-3 transition-colors"
+            >
+              <BuildingOffice2Icon className="w-3.5 h-3.5" />
+              <span>{parentOrg.name}</span>
+              <ChevronRightIcon className="w-3 h-3" />
+              <span className="text-white/40">Chapter</span>
+            </Link>
+          )}
+
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
               <BuildingOffice2Icon className="w-7 h-7 text-white" />
@@ -142,16 +183,28 @@ export default function OrganizationPage() {
                   <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Page" />
                 )}
               </div>
-              {isSubscribed && (
-                <span className="inline-flex items-center gap-1 text-xs bg-gold/20 text-gold border border-gold/30 rounded-full px-2 py-0.5 font-semibold mt-1">
-                  ✓ Communio Member
-                </span>
-              )}
-              {org.category && (
-                <span className="inline-block text-[10px] font-semibold text-white/60 bg-white/10 px-2 py-0.5 rounded-full mt-0.5 capitalize">
-                  {org.category}
-                </span>
-              )}
+              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                {isSubscribed && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-gold/20 text-gold border border-gold/30 rounded-full px-2 py-0.5 font-semibold">
+                    ✓ Communio Member
+                  </span>
+                )}
+                {org.org_type === 'national' && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-purple-500/20 text-purple-300 border border-purple-400/30 rounded-full px-2 py-0.5 font-semibold">
+                    National Org
+                  </span>
+                )}
+                {org.org_type === 'chapter' && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-white/10 text-white/70 border border-white/20 rounded-full px-2 py-0.5 font-semibold">
+                    Chapter
+                  </span>
+                )}
+                {org.category && (
+                  <span className="inline-block text-[10px] font-semibold text-white/60 bg-white/10 px-2 py-0.5 rounded-full capitalize">
+                    {org.category}
+                  </span>
+                )}
+              </div>
               {(org.city || org.state) && (
                 <p className="text-gray-300 text-sm mt-0.5">
                   {[org.city, org.state].filter(Boolean).join(', ')}
@@ -159,6 +212,7 @@ export default function OrganizationPage() {
               )}
               <p className="text-gray-400 text-xs mt-1">
                 {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
+                {org.org_type === 'national' && chapters.length > 0 && ` · ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}`}
               </p>
             </div>
           </div>
@@ -202,7 +256,7 @@ export default function OrganizationPage() {
       {/* Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -231,16 +285,74 @@ export default function OrganizationPage() {
             emptySubtext="This organization hasn't posted anything yet."
           />
         )}
-        {activeTab === 'about' && <OrgAbout org={org} />}
+        {activeTab === 'about' && <OrgAbout org={org} parentOrg={parentOrg} />}
+        {activeTab === 'chapters' && <ChaptersTab chapters={chapters} />}
       </div>
     </div>
   )
 }
 
+// ── ChaptersTab ────────────────────────────────────────────
+function ChaptersTab({ chapters }) {
+  if (chapters.length === 0) {
+    return (
+      <div className="px-4 pt-8 text-center">
+        <BuildingOffice2Icon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+        <p className="text-navy font-semibold">No chapters yet</p>
+        <p className="text-gray-400 text-sm mt-1">Local chapters will appear here once approved.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-4 pt-4 pb-8 space-y-2">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{chapters.length} Chapter{chapters.length !== 1 ? 's' : ''}</p>
+      {chapters.map(chapter => (
+        <Link
+          key={chapter.id}
+          to={`/organizations/${chapter.id}`}
+          className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 hover:shadow-md transition-shadow group"
+        >
+          <div className="w-9 h-9 bg-navy/5 rounded-xl flex items-center justify-center flex-shrink-0">
+            <BuildingOffice2Icon className="w-5 h-5 text-navy" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-navy group-hover:underline truncate">{chapter.name}</p>
+            {(chapter.city || chapter.state) && (
+              <p className="text-xs text-gray-400">{[chapter.city, chapter.state].filter(Boolean).join(', ')}</p>
+            )}
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 // ── OrgAbout ───────────────────────────────────────────────
-function OrgAbout({ org }) {
+function OrgAbout({ org, parentOrg }) {
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">
+      {/* Parent org card for chapters */}
+      {org.org_type === 'chapter' && parentOrg && (
+        <Link
+          to={`/organizations/${parentOrg.id}`}
+          className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 hover:shadow-md transition-shadow group"
+        >
+          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <BuildingOffice2Icon className="w-5 h-5 text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-0.5">National Organization</p>
+            <p className="text-sm font-semibold text-navy group-hover:underline truncate">{parentOrg.name}</p>
+            {(parentOrg.city || parentOrg.state) && (
+              <p className="text-xs text-gray-400">{[parentOrg.city, parentOrg.state].filter(Boolean).join(', ')}</p>
+            )}
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
+        </Link>
+      )}
+
       {org.description && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <h2 className="font-bold text-navy text-sm mb-2">About</h2>
@@ -310,7 +422,6 @@ function OrgContactModal({ org, onClose }) {
   async function handleSend() {
     if (!body.trim() || !user) return
     setSending(true)
-    // For now, send as a direct message to the org (org admin will see it via DMs)
     const { error } = await supabase.from('direct_messages').insert({
       sender_id: user.id,
       recipient_id: org.created_by,

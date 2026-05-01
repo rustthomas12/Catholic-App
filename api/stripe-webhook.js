@@ -80,6 +80,28 @@ export default async function handler(req, res) {
           break
         }
 
+        // Org subscription checkout
+        if (billingType === 'org_base') {
+          const orgId       = session.metadata?.org_id
+          const billingTrack = session.metadata?.billing_track || 'standalone'
+          const orgTier     = session.metadata?.tier || 'starter'
+          if (orgId) {
+            await supabase.from('org_subscriptions').upsert({
+              org_id: orgId,
+              stripe_customer_id: customerId,
+              status: 'trialing',
+              tier: orgTier,
+              billing_track: billingTrack,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'org_id' })
+            // Update org_type to match billing track
+            await supabase.from('organizations').update({
+              org_type: billingTrack === 'national' ? 'national' : 'standalone',
+            }).eq('id', orgId)
+          }
+          break
+        }
+
         if (!userId) break
 
         if (donationType === 'one_time') {
@@ -157,6 +179,29 @@ export default async function handler(req, res) {
               : null,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
+          break
+        }
+
+        // Org subscription
+        if (sub.metadata?.billing_type === 'org_base') {
+          const orgId        = sub.metadata?.org_id
+          const billingTrack = sub.metadata?.billing_track || 'standalone'
+          const orgTier      = sub.metadata?.tier || 'starter'
+          if (orgId) {
+            await supabase.from('org_subscriptions').upsert({
+              org_id: orgId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: sub.id,
+              status,
+              tier: orgTier,
+              billing_track: billingTrack,
+              trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+              current_period_end: sub.current_period_end
+                ? new Date(sub.current_period_end * 1000).toISOString()
+                : null,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'org_id' })
+          }
           break
         }
 

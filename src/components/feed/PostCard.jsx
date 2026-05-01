@@ -334,7 +334,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 </button>
               </div>
 
-              {showSource && (post.parish || post.group) && (
+              {showSource && (post.parish || post.group || post.org) && (
                 <p className="text-xs text-gray-500 leading-tight">
                   {post.parish && (
                     <Link
@@ -354,7 +354,22 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       in {post.group.name}
                     </Link>
                   )}
+                  {post.org && (
+                    <Link
+                      to={`/organizations/${post.org.id}`}
+                      className="hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      from {post.org.name}
+                    </Link>
+                  )}
                 </p>
+              )}
+              {/* National org inherited post badge */}
+              {post.org?.org_type === 'national' && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-100 rounded-full px-2 py-0.5 mt-0.5">
+                  National Org
+                </span>
               )}
 
               <p className="text-xs text-gray-400">{formatRelativeTime(post.created_at)}</p>

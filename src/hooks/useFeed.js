@@ -66,9 +66,9 @@ function _getStoredGraph(userId) {
   } catch { return null }
 }
 
-function _setStoredGraph(userId, parishIds, groupIds) {
+function _setStoredGraph(userId, parishIds, groupIds, parentOrgIds) {
   try {
-    localStorage.setItem(_lsGraphKey(userId), JSON.stringify({ parishIds, groupIds, ts: Date.now() }))
+    localStorage.setItem(_lsGraphKey(userId), JSON.stringify({ parishIds, groupIds, parentOrgIds, ts: Date.now() }))
   } catch { /* storage quota */ }
 }
 
@@ -81,6 +81,7 @@ const POST_SELECT = `
   ),
   parish:parishes!parish_id(id, name, city, state),
   group:groups!group_id(id, name),
+  org:organizations!org_id(id, name, org_type),
   likes(user_id),
   comments(id)
 `
@@ -100,6 +101,8 @@ function normalisePost(raw, currentUserId) {
     author:           raw.author           ?? null,
     parish:           raw.parish           ?? null,
     group:            raw.group            ?? null,
+    org:              raw.org              ?? null,
+    org_id:           raw.org_id           ?? null,
     like_count:       likes.length,
     comment_count:    comments.length,
     is_liked_by_me:   likes.some((l) => l.user_id === currentUserId),
@@ -156,10 +159,40 @@ export function useFeed(options = {}) {
   // Pre-seed social-graph refs from localStorage so buildQuery has data
   // on the very first call without waiting for loadSocialGraph to finish.
   const _storedGraph    = userId_stable ? _getStoredGraph(userId_stable) : null
-  const followedParishIds = useRef(_storedGraph?.parishIds ?? [])
-  const joinedGroupIds    = useRef(_storedGraph?.groupIds  ?? [])
+  const followedParishIds = useRef(_storedGraph?.parishIds    ?? [])
+  const joinedGroupIds    = useRef(_storedGraph?.groupIds     ?? [])
+  const parentOrgIds      = useRef(_storedGraph?.parentOrgIds ?? [])
 
   const offsetRef    = useRef(_init.posts.length)
+
+  // ── Social graph builder ──────────────────────────────────
+  async function _buildGraph(uid) {
+    const [pr, gr, ar, om] = await Promise.all([
+      supabase.from('parish_follows').select('parish_id').eq('user_id', uid),
+      supabase.from('group_members').select('group_id').eq('user_id', uid),
+      supabase.from('parish_admins').select('parish_id').eq('user_id', uid),
+      supabase.from('organization_members').select('org_id').eq('user_id', uid),
+    ])
+    const followed  = (pr.data ?? []).map(r => r.parish_id)
+    const admined   = (ar.data ?? []).map(r => r.parish_id)
+    const parishIds = [...new Set([...followed, ...admined])]
+    const groupIds  = (gr.data ?? []).map(r => r.group_id)
+
+    // Find parent org IDs for any chapters the user is a member of
+    const memberOrgIds = (om.data ?? []).map(r => r.org_id)
+    let parentOrgIdsList = []
+    if (memberOrgIds.length > 0) {
+      const { data: chapterOrgs } = await supabase
+        .from('organizations')
+        .select('parent_org_id')
+        .in('id', memberOrgIds)
+        .eq('org_type', 'chapter')
+        .not('parent_org_id', 'is', null)
+      parentOrgIdsList = [...new Set((chapterOrgs ?? []).map(o => o.parent_org_id).filter(Boolean))]
+    }
+
+    return { parishIds, groupIds, parentOrgIds: parentOrgIdsList }
+  }
 
   // ── Social graph loader ───────────────────────────────────
   // module cache → localStorage → Supabase
@@ -170,6 +203,7 @@ export function useFeed(options = {}) {
     if (mc && Date.now() - mc.ts < GRAPH_TTL) {
       followedParishIds.current = mc.parishIds
       joinedGroupIds.current    = mc.groupIds
+      parentOrgIds.current      = mc.parentOrgIds ?? []
       return
     }
 
@@ -177,39 +211,26 @@ export function useFeed(options = {}) {
     if (stored) {
       followedParishIds.current = stored.parishIds
       joinedGroupIds.current    = stored.groupIds
+      parentOrgIds.current      = stored.parentOrgIds ?? []
       _graphCache.set(user.id, stored)
       // Revalidate silently in background
-      Promise.all([
-        supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
-        supabase.from('group_members').select('group_id').eq('user_id', user.id),
-        supabase.from('parish_admins').select('parish_id').eq('user_id', user.id),
-      ]).then(([pr, gr, ar]) => {
-        const followed  = (pr.data ?? []).map((r) => r.parish_id)
-        const admined   = (ar.data ?? []).map((r) => r.parish_id)
-        const parishIds = [...new Set([...followed, ...admined])]
-        const groupIds  = (gr.data ?? []).map((r) => r.group_id)
-        followedParishIds.current = parishIds
-        joinedGroupIds.current    = groupIds
-        _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
-        _setStoredGraph(user.id, parishIds, groupIds)
+      _buildGraph(user.id).then(g => {
+        followedParishIds.current = g.parishIds
+        joinedGroupIds.current    = g.groupIds
+        parentOrgIds.current      = g.parentOrgIds
+        _graphCache.set(user.id, { ...g, ts: Date.now() })
+        _setStoredGraph(user.id, g.parishIds, g.groupIds, g.parentOrgIds)
       })
       return
     }
 
     // No cache — must await
-    const [pr, gr, ar] = await Promise.all([
-      supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
-      supabase.from('group_members').select('group_id').eq('user_id', user.id),
-      supabase.from('parish_admins').select('parish_id').eq('user_id', user.id),
-    ])
-    const followed  = (pr.data ?? []).map((r) => r.parish_id)
-    const admined   = (ar.data ?? []).map((r) => r.parish_id)
-    const parishIds = [...new Set([...followed, ...admined])]
-    const groupIds  = (gr.data ?? []).map((r) => r.group_id)
-    followedParishIds.current = parishIds
-    joinedGroupIds.current    = groupIds
-    _graphCache.set(user.id, { parishIds, groupIds, ts: Date.now() })
-    _setStoredGraph(user.id, parishIds, groupIds)
+    const g = await _buildGraph(user.id)
+    followedParishIds.current = g.parishIds
+    joinedGroupIds.current    = g.groupIds
+    parentOrgIds.current      = g.parentOrgIds
+    _graphCache.set(user.id, { ...g, ts: Date.now() })
+    _setStoredGraph(user.id, g.parishIds, g.groupIds, g.parentOrgIds)
   }, [user])
 
   // ── Query builder ─────────────────────────────────────────
@@ -253,11 +274,13 @@ export function useFeed(options = {}) {
       default: {
         const pIds = followedParishIds.current
         const gIds = joinedGroupIds.current
-        if (pIds.length === 0 && gIds.length === 0) return null
-        // Show parish posts (no group) + group posts from joined groups
+        const oIds = parentOrgIds.current
+        if (pIds.length === 0 && gIds.length === 0 && oIds.length === 0) return null
+        // Show parish posts (no group) + group posts from joined groups + inherited national org posts
         const parts = []
         if (pIds.length > 0) parts.push(`and(parish_id.in.(${pIds.join(',')}),group_id.is.null,org_id.is.null)`)
         if (gIds.length > 0) parts.push(`group_id.in.(${gIds.join(',')})`)
+        if (oIds.length > 0) parts.push(`org_id.in.(${oIds.join(',')})`)
         return q.or(parts.join(','))
       }
     }
