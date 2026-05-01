@@ -135,7 +135,7 @@ function AssignOrgAdmin() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').ilike('full_name', `%${q}%`).limit(8)
     return data || []
   }
 
@@ -184,7 +184,7 @@ function AssignOrgAdmin() {
           onSelect={setUser}
           onClear={() => setUser(null)}
           searchFn={searchUsers}
-          renderResult={u => u.full_name + (u.email ? ` (${u.email})` : '')}
+          renderResult={u => u.full_name}
           icon={UserCircleIcon}
         />
       </div>
@@ -213,7 +213,7 @@ function AssignParishPastor() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').ilike('full_name', `%${q}%`).limit(8)
     return data || []
   }
 
@@ -270,7 +270,7 @@ function AssignParishPastor() {
           onSelect={setUser}
           onClear={() => setUser(null)}
           searchFn={searchUsers}
-          renderResult={u => u.full_name + (u.email ? ` (${u.email})` : '')}
+          renderResult={u => u.full_name}
           icon={UserCircleIcon}
         />
       </div>
@@ -380,7 +380,7 @@ export default function AdminPage() {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, email, suspended_at, created_at')
+        .select('id, full_name, avatar_url, suspended_at, created_at')
         .order('created_at', { ascending: false });
 
       if (search && search.trim()) {
@@ -609,7 +609,7 @@ export default function AdminPage() {
                   <Avatar src={user.avatar_url} name={user.full_name} size='sm' />
                   <div className='flex-1 min-w-0'>
                     <p className='text-sm font-medium text-gray-900 truncate'>{user.full_name}</p>
-                    <p className='text-xs text-gray-400 truncate'>{user.email}</p>
+                    <p className='text-xs text-gray-400 truncate'>Joined {new Date(user.created_at).toLocaleDateString()}</p>
                   </div>
                   {user.suspended_at && (
                     <span className='text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium flex-shrink-0'>
