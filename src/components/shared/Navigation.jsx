@@ -1,17 +1,18 @@
-import { memo, useState, useEffect } from 'react'
+import { memo, useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
   BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
   BuildingOffice2Icon, ChatBubbleLeftRightIcon,
-  ShieldExclamationIcon,
+  ShieldExclamationIcon, Bars3Icon, XMarkIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
   UserGroupIcon as UserGroupIconSolid,
-  MapIcon as MapIconSolid,
   BellIcon as BellIconSolid,
   ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
+  MapIcon as MapIconSolid,
 } from '@heroicons/react/24/solid'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
@@ -38,7 +39,7 @@ function CrossIcon({ solid = false, className = '' }) {
   )
 }
 
-// ── Desktop sidebar tabs (all 5) ──────────────────────────
+// ── Desktop sidebar tabs ───────────────────────────────────
 const desktopTabs = [
   {
     label: 'Home',
@@ -79,7 +80,8 @@ const desktopTabs = [
   },
 ]
 
-// ── Mobile bottom tabs (5: Home, Groups, Faith, Messages, Profile) ──
+// ── Mobile bottom tabs ─────────────────────────────────────
+// Home · Groups · Faith · Notifications · More
 const mobileTabs = [
   {
     label: 'Home',
@@ -104,23 +106,196 @@ const mobileTabs = [
     isFaith: true,
   },
   {
-    label: 'Messages',
-    Icon: ChatBubbleLeftRightIcon,
-    IconSolid: ChatBubbleLeftRightIconSolid,
-    active: (p) => p === '/messages',
-    to: '/messages',
-    isDM: true,
-  },
-  {
-    label: 'Profile',
-    Icon: null,
-    IconSolid: null,
-    active: (p) => p.startsWith('/profile') || p.startsWith('/settings'),
-    to: '/profile',
-    isProfile: true,
+    label: 'Alerts',
+    Icon: BellIcon,
+    IconSolid: BellIconSolid,
+    active: (p) => p === '/notifications',
+    to: '/notifications',
+    isBell: true,
   },
 ]
 
+// ── More sheet ─────────────────────────────────────────────
+function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishAdminRecords, orgAdminRecords, onSignOut }) {
+  const location = useLocation()
+  const sheetRef = useRef(null)
+
+  // Close on backdrop click
+  function handleBackdrop(e) {
+    if (e.target === e.currentTarget) onClose()
+  }
+
+  // Close when navigating
+  useEffect(() => { onClose() }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Trap focus / close on Escape
+  useEffect(() => {
+    if (!open) return
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  const isActive = (path) => location.pathname.startsWith(path)
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={handleBackdrop}
+        aria-hidden="true"
+      />
+
+      {/* Sheet */}
+      <div
+        ref={sheetRef}
+        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="More options"
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
+        {/* Profile card */}
+        <Link to="/profile" className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50 transition-colors">
+          <Avatar
+            src={profile?.avatar_url}
+            name={profile?.full_name || 'Me'}
+            size="md"
+            isVerifiedClergy={profile?.is_verified_clergy}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-navy text-sm truncate">{profile?.full_name || 'My Profile'}</p>
+            {profile?.username && (
+              <p className="text-xs text-gray-400">@{profile.username}</p>
+            )}
+          </div>
+          <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+
+        {/* Nav links */}
+        <div className="py-2">
+          <SheetRow
+            to="/messages"
+            Icon={ChatBubbleLeftRightIcon}
+            label="Messages"
+            badge={unreadDMs}
+            active={isActive('/messages')}
+          />
+          <SheetRow
+            to="/directory"
+            Icon={MapIcon}
+            label="Directory"
+            active={isActive('/directory') || isActive('/parish/')}
+          />
+          <SheetRow
+            to="/organizations"
+            Icon={BuildingOffice2Icon}
+            label="Organizations"
+            active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')}
+          />
+          <SheetRow
+            to="/settings"
+            Icon={Cog6ToothIcon}
+            label="Settings"
+            active={isActive('/settings')}
+          />
+
+          {/* Admin section */}
+          {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
+            <>
+              <div className="mx-5 border-t border-gray-100 my-2" />
+              <p className="px-5 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Admin</p>
+
+              {isPlatformAdmin && (
+                <SheetRow
+                  to="/admin"
+                  Icon={ShieldExclamationIcon}
+                  label="Platform Admin"
+                  active={isActive('/admin')}
+                  danger
+                />
+              )}
+              {parishAdminRecords.map(record => (
+                <SheetRow
+                  key={record.parish_id}
+                  to={`/parish-admin/${record.parish_id}`}
+                  Icon={BuildingLibraryIcon}
+                  label={record.parishes?.name || 'My Parish'}
+                  active={location.pathname === `/parish-admin/${record.parish_id}`}
+                />
+              ))}
+              {orgAdminRecords.map(record => (
+                <SheetRow
+                  key={record.org_id}
+                  to={`/org-admin/${record.org_id}`}
+                  Icon={BuildingOffice2Icon}
+                  label={record.organizations?.name || 'My Organization'}
+                  active={location.pathname === `/org-admin/${record.org_id}`}
+                />
+              ))}
+            </>
+          )}
+
+          <div className="mx-5 border-t border-gray-100 my-2" />
+
+          {/* Sign out */}
+          <button
+            onClick={onSignOut}
+            className="w-full flex items-center gap-4 px-5 py-3.5 active:bg-gray-50 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+              <ArrowRightOnRectangleIcon className="w-5 h-5 text-red-400" />
+            </div>
+            <span className="text-sm font-medium text-red-500">Sign out</span>
+          </button>
+        </div>
+
+        {/* Language switcher */}
+        <div className="px-5 pb-4">
+          <LanguageSwitcher variant="compact" />
+        </div>
+      </div>
+    </>
+  )
+}
+
+function SheetRow({ to, Icon, label, badge, active, danger }) {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-4 px-5 py-3.5 active:bg-gray-50 transition-colors ${danger ? '' : ''}`}
+    >
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+        danger ? 'bg-red-50' : active ? 'bg-navy/10' : 'bg-gray-100'
+      }`}>
+        <Icon className={`w-5 h-5 ${danger ? 'text-red-400' : active ? 'text-navy' : 'text-gray-500'}`} />
+      </div>
+      <span className={`flex-1 text-sm font-medium ${danger ? 'text-red-500' : active ? 'text-navy font-semibold' : 'text-gray-700'}`}>
+        {label}
+      </span>
+      {badge > 0 && (
+        <span className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
+      {!badge && (
+        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      )}
+    </Link>
+  )
+}
+
+// ── Main Navigation ────────────────────────────────────────
 function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -129,11 +304,10 @@ function Navigation() {
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
   const season = getLiturgicalSeason()
   const [unreadDMs, setUnreadDMs] = useState(0)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   useEffect(() => {
     if (!user) { setUnreadDMs(0); return }
-
-    // Unread DMs
     supabase
       .from('direct_messages')
       .select('id', { count: 'exact', head: true })
@@ -148,7 +322,22 @@ function Navigation() {
   )
   if (!isAuthenticated || isPublic) return null
 
+  // "More" is visually active when on a page only reachable from the sheet
+  const moreActive = (
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/settings') ||
+    location.pathname === '/messages' ||
+    location.pathname.startsWith('/directory') ||
+    location.pathname.startsWith('/parish/') ||
+    location.pathname.startsWith('/organizations') ||
+    location.pathname.startsWith('/organization/') ||
+    location.pathname.startsWith('/org-admin/') ||
+    location.pathname.startsWith('/parish-admin/') ||
+    location.pathname.startsWith('/admin')
+  )
+
   async function handleSignOut() {
+    setMoreOpen(false)
     await signOut()
     navigate('/login', { replace: true })
   }
@@ -160,7 +349,7 @@ function Navigation() {
         <div className="flex items-center justify-around h-16">
           {mobileTabs.map((tab) => {
             const active = tab.active(location.pathname)
-            const { Icon, IconSolid, label, to, isFaith, isProfile, isDM } = tab
+            const { Icon, IconSolid, label, to, isFaith, isBell } = tab
 
             return (
               <Link
@@ -169,16 +358,7 @@ function Navigation() {
                 className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 group"
               >
                 <div className="relative flex items-center justify-center">
-                  {isProfile ? (
-                    <div className={`rounded-full ring-2 transition-all ${active ? 'ring-gold' : 'ring-transparent'}`}>
-                      <Avatar
-                        src={profile?.avatar_url}
-                        name={profile?.full_name || 'Me'}
-                        size="xs"
-                        isVerifiedClergy={profile?.is_verified_clergy}
-                      />
-                    </div>
-                  ) : active ? (
+                  {active ? (
                     <IconSolid className="w-6 h-6 text-gold" />
                   ) : (
                     <Icon className="w-6 h-6 text-gray-400 group-hover:text-gray-200 transition-colors" />
@@ -191,10 +371,9 @@ function Navigation() {
                     />
                   )}
 
-                  {/* DM badge */}
-                  {isDM && unreadDMs > 0 && (
+                  {isBell && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
-                      {unreadDMs > 9 ? '9+' : unreadDMs}
+                      {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>
@@ -204,8 +383,57 @@ function Navigation() {
               </Link>
             )
           })}
+
+          {/* More button */}
+          <button
+            onClick={() => setMoreOpen(true)}
+            className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 group"
+            aria-label="More options"
+          >
+            <div className="relative flex items-center justify-center">
+              {/* Avatar when "more" pages are active, hamburger otherwise */}
+              {moreActive ? (
+                <div className="rounded-full ring-2 ring-gold">
+                  <Avatar
+                    src={profile?.avatar_url}
+                    name={profile?.full_name || 'Me'}
+                    size="xs"
+                    isVerifiedClergy={profile?.is_verified_clergy}
+                  />
+                </div>
+              ) : (
+                <div className="relative">
+                  <Avatar
+                    src={profile?.avatar_url}
+                    name={profile?.full_name || 'Me'}
+                    size="xs"
+                    isVerifiedClergy={profile?.is_verified_clergy}
+                  />
+                  {/* Dot badge if DMs unread — visible even when not active */}
+                  {unreadDMs > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border border-navy" />
+                  )}
+                </div>
+              )}
+            </div>
+            <span className={`text-[10px] font-medium ${moreActive ? 'text-gold' : 'text-gray-400'}`}>
+              More
+            </span>
+          </button>
         </div>
       </nav>
+
+      {/* ── More slide-up sheet ── */}
+      <MoreSheet
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        profile={profile}
+        unreadDMs={unreadDMs}
+        isPlatformAdmin={isPlatformAdmin}
+        parishAdminRecords={parishAdminRecords}
+        orgAdminRecords={orgAdminRecords}
+        onSignOut={handleSignOut}
+      />
 
       {/* ── Desktop left sidebar ── */}
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3">
@@ -304,7 +532,7 @@ function Navigation() {
             <span className="text-sm font-medium">Messages</span>
           </Link>
 
-          {/* Admin section — platform, parish, org */}
+          {/* Admin section */}
           {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
             <>
               <div className="mx-3 border-t border-white/10 my-1" />
@@ -349,7 +577,7 @@ function Navigation() {
           )}
         </div>
 
-        {/* User info + sign out at bottom */}
+        {/* User info + sign out */}
         <div className="border-t border-white/10 pt-4 mt-2">
           <div className="flex items-center gap-3 px-3 mb-3">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || 'Me'} size="sm"
