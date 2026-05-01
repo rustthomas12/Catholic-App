@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
-import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache } from '../hooks/useParish.js'
+import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache, haversineMiles } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import ParishCard from '../components/parish/ParishCard'
 import DirectoryDiscoveryBanner from '../components/parish/DirectoryDiscoveryBanner'
@@ -43,6 +43,20 @@ export default function DirectoryPage() {
   const [mapOrgs, setMapOrgs] = useState([])
 
   const { parishes: nearbyParishes, loading: nearbyLoading } = useNearbyParishes(userLocation)
+
+  // Compute nearby orgs sorted by distance whenever location or orgs change
+  const nearbyOrgs = useMemo(() => {
+    if (!userLocation || !mapOrgs.length) return []
+    return mapOrgs
+      .filter(o => o.latitude && o.longitude)
+      .map(o => ({
+        ...o,
+        distance: haversineMiles(userLocation.lat, userLocation.lng, o.latitude, o.longitude),
+      }))
+      .filter(o => o.distance < 50)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 8)
+  }, [userLocation, mapOrgs])
 
   // Initialize follow states from profile + followedParishes
   useEffect(() => {
@@ -150,18 +164,10 @@ export default function DirectoryPage() {
     clear()
   }
 
-  // Determine which parishes to show
   const isSearching = query.trim().length >= 2 || cityQuery.trim().length >= 2 || !!stateFilter
-  const displayParishes = isSearching
-    ? results
-    : userLocation
-    ? nearbyParishes
-    : null
 
-  const listLoading = isSearching ? searchLoading : userLocation ? nearbyLoading : false
-
-  // For map: combine displayed + selected
-  const mapParishes = displayParishes ?? followedParishes
+  // For map: search results when searching, else nearby or followed
+  const mapParishes = isSearching ? results : userLocation ? nearbyParishes : followedParishes
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -364,36 +370,99 @@ export default function DirectoryPage() {
             </section>
           )}
 
-          {/* ── Search results / Nearby ── */}
-          {(isSearching || userLocation) && (
+          {/* ── Nearest parishes + orgs (always shown when location available) ── */}
+          {userLocation && (
             <section>
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                {isSearching
-                  ? `${stateFilter && !query ? US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter : 'Search results'}${results.length ? ` (${results.length})` : ''}`
-                  : 'Near you'}
+                Near you
               </h2>
 
-              {listLoading ? (
+              {nearbyLoading ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
                   ))}
                 </div>
-              ) : displayParishes && displayParishes.length === 0 ? (
+              ) : (
+                <>
+                  {nearbyParishes.length === 0 && nearbyOrgs.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                      <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                      <p className="text-navy font-semibold text-sm">No results nearby</p>
+                      <p className="text-gray-400 text-xs mt-1">Try searching by name or zip code instead</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {nearbyParishes.map((parish) => (
+                        <ParishCard
+                          key={parish.id}
+                          parish={parish}
+                          isFollowing={
+                            followStates[parish.id]?.isFollowing ??
+                            followedParishes.some((f) => f.id === parish.id)
+                          }
+                          isMyParish={profile?.parish_id === parish.id}
+                          onFollow={() => handleFollow(parish.id)}
+                          followLoading={followStates[parish.id]?.loading ?? false}
+                        />
+                      ))}
+                      {nearbyOrgs.map((org) => (
+                        <a
+                          key={org.id}
+                          href={`/organization/${org.id}`}
+                          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow block"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-navy/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-navy font-bold text-sm">{org.name[0]}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-navy text-sm truncate">{org.name}</p>
+                              <p className="text-xs text-gray-400 capitalize mt-0.5">
+                                {org.org_type?.replace(/_/g, ' ')}
+                                {org.city ? ` · ${org.city}, ${org.state}` : ''}
+                              </p>
+                              {org.distance != null && (
+                                <p className="text-xs text-gold font-semibold mt-0.5">
+                                  {org.distance < 1 ? '< 1 mi' : `${org.distance.toFixed(1)} mi`}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+          )}
+
+          {/* ── Search results ── */}
+          {isSearching && (
+            <section>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                {stateFilter && !query
+                  ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
+                  : 'Search results'}
+                {results.length > 0 && ` (${results.length})`}
+              </h2>
+
+              {searchLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
+                  ))}
+                </div>
+              ) : results.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                   <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-navy font-semibold text-sm">
-                    {isSearching ? 'No parishes found' : 'No parishes found nearby'}
-                  </p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    {isSearching
-                      ? 'Try a different name, city, or zip code'
-                      : 'Try searching by name or zip code instead'}
-                  </p>
+                  <p className="text-navy font-semibold text-sm">No parishes found</p>
+                  <p className="text-gray-400 text-xs mt-1">Try a different name, city, or zip code</p>
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {(displayParishes ?? []).map((parish) => (
+                  {results.map((parish) => (
                     <ParishCard
                       key={parish.id}
                       parish={parish}
@@ -411,8 +480,8 @@ export default function DirectoryPage() {
             </section>
           )}
 
-          {/* ── Discover prompt (no search, no location) ── */}
-          {!isSearching && !userLocation && (
+          {/* ── Discover prompt (no location) ── */}
+          {!userLocation && (
             <section>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
                 <div className="w-14 h-14 bg-lightbg rounded-2xl flex items-center justify-center mx-auto mb-3">

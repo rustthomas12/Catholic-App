@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 
 // Haversine distance in miles
-function haversineMiles(lat1, lon1, lat2, lon2) {
+export function haversineMiles(lat1, lon1, lat2, lon2) {
   const R = 3958.8
   const toRad = (d) => (d * Math.PI) / 180
   const dLat = toRad(lat2 - lat1)
