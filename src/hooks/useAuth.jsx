@@ -323,24 +323,13 @@ export function AuthProvider({ children }) {
     if (p) setProfile(p)
   }
 
-  const donationTier = profile?.donation_tier ?? null
-  const isDonor = donationTier !== null
-  const isSupportedByParish = profile?.premium_source === 'parish_sponsored' && !!profile?.is_premium
-
   const value = {
     user,
     profile,
     loading,
     isAuthenticated: !!user,
-    isPremium: !!profile?.is_premium,
-    isPatron: !!profile?.is_patron,
     isAdmin: !!profile?.is_admin,
     isVerifiedClergy: !!profile?.is_verified_clergy,
-    subscriptionStatus: profile?.subscription_status ?? null,
-    subscriptionInterval: profile?.subscription_interval ?? null,
-    donationTier,
-    isDonor,
-    isSupportedByParish,
     signIn,
     signUp,
     signOut,

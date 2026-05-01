@@ -300,8 +300,6 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 name={post.author?.full_name}
                 size="md"
                 isVerifiedClergy={post.author?.is_verified_clergy}
-                isPremium={post.author?.is_premium}
-                isPatron={post.author?.is_patron}
               />
             </button>
 

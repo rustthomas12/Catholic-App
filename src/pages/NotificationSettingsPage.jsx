@@ -175,7 +175,7 @@ export default function NotificationSettingsPage() {
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const { user, isPremium } = useAuth()
+  const { user } = useAuth()
   const { preferences, loading, updatePreference, turnOffAll } = useNotificationPreferences()
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
@@ -233,8 +233,6 @@ export default function NotificationSettingsPage() {
       label: t('notifications.type_confession'),
       description: t('notifications.type_confession_desc'),
       column: 'confession_reminder',
-      premiumNote: !isPremium ? t('notifications.type_confession_premium') : null,
-      disabled: !isPremium,
     },
   ]
 

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { StarIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import { StarIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
@@ -52,42 +52,10 @@ function SaintCardSkeleton() {
   )
 }
 
-// ── Premium gate overlay ───────────────────────────────────
-function PremiumGate({ t }) {
-  return (
-    <div className="relative mt-3">
-      {/* Blurred preview */}
-      <p
-        className="text-sm text-gray-600 leading-relaxed select-none"
-        style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}
-      >
-        The life of this saint reveals a remarkable journey of faith and devotion to God.
-        Through years of prayer, sacrifice, and service, they became a beacon of hope for
-        countless souls seeking the way to salvation and eternal life with Christ.
-      </p>
-
-      {/* Overlay */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-lg gap-2 py-3">
-        <LockClosedIcon className="w-5 h-5 text-gold" />
-        <p className="text-xs font-semibold text-navy text-center px-4">
-          Full biography available with Premium
-        </p>
-        <Link
-          to="/premium"
-          className="bg-gold text-navy text-xs font-bold px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
-        >
-          {t('upgrade', { ns: 'premium' })}
-        </Link>
-      </div>
-    </div>
-  )
-}
-
 // ── Main export ────────────────────────────────────────────
 export default function SaintCard({
   saint,
   variant = 'day',
-  isPremium = false,
   isFavorite = false,
   onFavoriteToggle,
   loading = false,
@@ -118,7 +86,7 @@ export default function SaintCard({
               </p>
             )}
           </div>
-          {isPremium && onFavoriteToggle && (
+          {onFavoriteToggle && (
             <button
               onClick={(e) => { e.preventDefault(); onFavoriteToggle() }}
               className="flex-shrink-0 p-1"
@@ -152,7 +120,7 @@ export default function SaintCard({
             </p>
           )}
         </div>
-        {isPremium && onFavoriteToggle && (
+        {onFavoriteToggle && (
           <button
             onClick={onFavoriteToggle}
             className="p-1.5 flex-shrink-0"
@@ -171,40 +139,36 @@ export default function SaintCard({
         <p className="text-sm text-gray-700 leading-relaxed mt-3">{saint.summary}</p>
       )}
 
-      {/* Premium content */}
-      {isPremium ? (
-        <div className="mt-4">
-          {saint.biography ? (
-            <div className="space-y-3">
-              {saint.biography.split('\n\n').map((para, i) => (
-                <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
-          )}
+      {/* Full content */}
+      <div className="mt-4">
+        {saint.biography ? (
+          <div className="space-y-3">
+            {saint.biography.split('\n\n').map((para, i) => (
+              <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
+        )}
 
-          <PatronPills patronOf={saint.patron_of} />
+        <PatronPills patronOf={saint.patron_of} />
 
-          {saint.prayer && (
-            <div className="mt-4 border-l-2 border-gold pl-4">
-              <p className="text-xs font-bold text-gold uppercase tracking-wider mb-2">
-                {t('saints_prayer', { name: saint.name })}
-              </p>
-              <p className="text-sm text-gray-700 italic leading-relaxed">{saint.prayer}</p>
-            </div>
-          )}
+        {saint.prayer && (
+          <div className="mt-4 border-l-2 border-gold pl-4">
+            <p className="text-xs font-bold text-gold uppercase tracking-wider mb-2">
+              {t('saints_prayer', { name: saint.name })}
+            </p>
+            <p className="text-sm text-gray-700 italic leading-relaxed">{saint.prayer}</p>
+          </div>
+        )}
 
-          <Link
-            to={`/saints/${saint.id}`}
-            className="inline-block mt-4 text-sm font-semibold text-navy hover:underline"
-          >
-            {t('saint_learn_more')} →
-          </Link>
-        </div>
-      ) : (
-        <PremiumGate t={t} />
-      )}
+        <Link
+          to={`/saints/${saint.id}`}
+          className="inline-block mt-4 text-sm font-semibold text-navy hover:underline"
+        >
+          {t('saint_learn_more')} →
+        </Link>
+      </div>
     </div>
   )
 }

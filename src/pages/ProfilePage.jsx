@@ -170,27 +170,11 @@ export default function ProfilePage() {
               name={profile.full_name}
               size="xl"
               isVerifiedClergy={profile.is_verified_clergy}
-              donationTier={profile.donation_tier ?? null}
-              isSupportedByParish={profile.premium_source === 'parish_sponsored' && !!profile.is_premium}
             />
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {profile.is_verified_clergy && <Badge variant="clergy" />}
-              {profile.donation_tier && <Badge variant={profile.donation_tier} />}
-              {!profile.donation_tier && profile.premium_source === 'parish_sponsored' && profile.is_premium && (
-                <Badge variant="member" />
-              )}
             </div>
-
-            {/* Donor "since" label */}
-            {profile.donation_tier_since && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                {(profile.donation_tier === 'supporter' ? 'Supporter' :
-                  profile.donation_tier === 'member' ? 'Member' :
-                  profile.donation_tier === 'patron' ? 'Patron' : 'Benefactor')}{' '}
-                since {format(new Date(profile.donation_tier_since), 'MMMM yyyy')}
-              </p>
-            )}
 
             <h1 className="text-xl font-bold text-navy mt-1">{profile.full_name || 'Parish Member'}</h1>
 
@@ -225,8 +209,8 @@ export default function ProfilePage() {
             </Link>
           ) : null}
 
-          {/* Soft support nudge — own profile, no donation tier, not parish-sponsored */}
-          {isOwnProfile && !profile.donation_tier && !(profile.premium_source === 'parish_sponsored' && profile.is_premium) && (
+          {/* Support nudge */}
+          {isOwnProfile && (
             <div className="text-center">
               <Link to="/premium" className="text-xs text-gray-400 hover:text-gold transition-colors">
                 Support the mission →

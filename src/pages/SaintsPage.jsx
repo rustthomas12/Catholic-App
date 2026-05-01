@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlassIcon, XMarkIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../hooks/useAuth.jsx'
 import { useSaintLibrary, useTodaySaint, useSaintFavorites } from '../hooks/useSaints'
 import SaintCard from '../components/faith/SaintCard'
 
@@ -27,8 +26,6 @@ export default function SaintsPage() {
 
   const { t } = useTranslation('faith')
   const navigate = useNavigate()
-  const { isPremium } = useAuth()
-
   const [searchQuery, setSearchQuery] = useState('')
   const [activeMonth, setActiveMonth] = useState(null)
 
@@ -98,7 +95,6 @@ export default function SaintsPage() {
                   <SaintCard
                     saint={todaySaint}
                     variant="library"
-                    isPremium={isPremium}
                     isFavorite={isFavorite(todaySaint.id)}
                     onFavoriteToggle={() => handleFavoriteToggle(todaySaint)}
                   />
@@ -126,8 +122,8 @@ export default function SaintsPage() {
             ))}
           </div>
 
-          {/* ── My favorites (premium) ── */}
-          {isPremium && !searchQuery && favorites.length > 0 && (
+          {/* ── My favorites ── */}
+          {!searchQuery && favorites.length > 0 && (
             <section>
               <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">
                 {t('saints_favorites')}
@@ -138,7 +134,6 @@ export default function SaintsPage() {
                     <SaintCard
                       saint={saint}
                       variant="library"
-                      isPremium={isPremium}
                       isFavorite
                       onFavoriteToggle={() => handleFavoriteToggle(saint)}
                     />
@@ -183,7 +178,6 @@ export default function SaintsPage() {
                     key={saint.id}
                     saint={saint}
                     variant="library"
-                    isPremium={isPremium}
                     isFavorite={isFavorite(saint.id)}
                     onFavoriteToggle={() => handleFavoriteToggle(saint)}
                   />
@@ -192,22 +186,6 @@ export default function SaintsPage() {
             )}
           </section>
 
-          {/* ── Premium upsell ── */}
-          {!isPremium && (
-            <div className="bg-white rounded-2xl border border-gold/30 shadow-sm p-5 text-center">
-              <p className="font-bold text-navy text-sm mb-1">Unlock the full Saint Library</p>
-              <p className="text-gray-500 text-xs leading-relaxed mb-4">
-                Get complete biographies, patron causes, prayers, and save your favorite saints
-                — all with Premium.
-              </p>
-              <Link
-                to="/premium"
-                className="inline-block bg-gold text-navy text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gold/90 transition-colors"
-              >
-                Upgrade to Premium
-              </Link>
-            </div>
-          )}
 
         </div>
       </div>

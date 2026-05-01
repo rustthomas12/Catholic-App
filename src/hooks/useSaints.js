@@ -7,7 +7,7 @@ import { useAuth } from './useAuth.jsx'
 const SAINT_LIST_SELECT =
   'id, name, feast_day, birth_year, death_year, summary, patron_of, image_url'
 
-// Full select — used when isPremium or on detail page
+// Full select — used on detail page
 const SAINT_FULL_SELECT = '*'
 
 // ── useTodaySaint — module-level cache ─────────────────────

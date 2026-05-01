@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  ChevronRightIcon, UserIcon, BellIcon, CreditCardIcon,
+  ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
@@ -34,7 +34,7 @@ function SectionHeader({ title }) {
 
 export default function SettingsPage() {
   useEffect(() => { document.title = 'Settings | Communio' }, [])
-  const { user, profile, signOut, updateProfile, donationTier, isSupportedByParish } = useAuth()
+  const { user, profile, signOut, updateProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
 
@@ -64,13 +64,6 @@ export default function SettingsPage() {
     toast.info('Your account has been deleted.')
     navigate('/login', { replace: true })
   }
-
-  const tierLabels = { supporter: 'Supporter', member: 'Member', patron: 'Patron', benefactor: 'Benefactor' }
-  const planLabel = donationTier
-    ? tierLabels[donationTier] ?? 'Donor'
-    : isSupportedByParish
-      ? 'Parish-sponsored'
-      : 'Free'
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -114,13 +107,7 @@ export default function SettingsPage() {
           {/* Support */}
           <div className="border-t border-gray-100" />
           <SectionHeader title="Support" />
-          <SettingsRow icon={CreditCardIcon} label="Current status" value={planLabel} />
-          <div className="border-t border-gray-50" />
-          {donationTier ? (
-            <SettingsRow icon={null} label="Manage giving →" to="/premium" />
-          ) : (
-            <SettingsRow icon={null} label="Support the Mission →" to="/premium" />
-          )}
+          <SettingsRow icon={null} label="Support the Mission →" to="/premium" />
 
           {/* Privacy */}
           <div className="border-t border-gray-100" />

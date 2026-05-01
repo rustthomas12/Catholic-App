@@ -985,9 +985,18 @@ function MessagesTab({ parishId }) {
   )
 }
 
+// ── Parish pricing tiers (matches pitch deck) ───────────────
+const PARISH_TIERS = [
+  { key: 'small',    label: 'Small',    price: 49,  size: 'Under 200 parishioners',    priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_SMALL' },
+  { key: 'medium',   label: 'Medium',   price: 99,  size: '200–500 parishioners',      priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_MEDIUM',   suggested: true },
+  { key: 'large',    label: 'Large',    price: 199, size: '500–1,500 parishioners',    priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_LARGE' },
+  { key: 'cathedral',label: 'Cathedral',price: 349, size: '1,500+ parishioners',       priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_CATHEDRAL' },
+]
+
 // ── Billing Tab ─────────────────────────────────────────────
 function BillingTab({ parishId, parish, subscription, setSubscription }) {
   const { user } = useAuth()
+  const [selectedTier, setSelectedTier] = useState('medium')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [code, setCode] = useState(null)
@@ -1066,6 +1075,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
           parishName: parish?.name,
           adminUserId: user.id,
           adminEmail: user.email,
+          tierKey: selectedTier,
         }),
       })
       const data = await res.json()
@@ -1179,9 +1189,39 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       {/* ── Subscription status ── */}
       {!subscription ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Base Plan</p>
+          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Plan</p>
           <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
-          <p className="text-sm text-gray-500 mb-5">$75/month after trial. No credit card required until day 90.</p>
+          <p className="text-sm text-gray-500 mb-5">No credit card required until day 90. Choose the plan that fits your parish.</p>
+
+          {/* Tier selector */}
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {PARISH_TIERS.map(tier => (
+              <button
+                key={tier.key}
+                onClick={() => setSelectedTier(tier.key)}
+                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                  selectedTier === tier.key
+                    ? 'border-gold bg-gold/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {tier.suggested && (
+                  <span className="absolute -top-2.5 left-3 bg-gold text-navy text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Most common
+                  </span>
+                )}
+                <p className="font-bold text-navy text-sm">{tier.label}</p>
+                <p className="text-2xl font-black text-navy leading-tight">${tier.price}<span className="text-xs font-normal text-gray-400">/mo</span></p>
+                <p className="text-xs text-gray-500 mt-1">{tier.size}</p>
+                {selectedTier === tier.key && (
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-gold rounded-full flex items-center justify-center">
+                    <svg viewBox="0 0 10 8" className="w-2.5 h-2 fill-navy"><path d="M1 4l3 3 5-5-1-1-4 4-2-2z"/></svg>
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
           <ul className="space-y-2 mb-6">
             {['Announcements & events', 'Mass times editor', 'Parishioner directory', 'Messages inbox', 'Sponsorship codes for your parishioners'].map(f => (
               <li key={f} className="flex items-center gap-2 text-sm text-navy">
@@ -1195,13 +1235,17 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
             disabled={checkoutLoading}
             className="w-full bg-gold text-navy font-bold py-3.5 rounded-xl hover:bg-gold/90 disabled:opacity-60 transition-colors"
           >
-            {checkoutLoading ? 'Redirecting…' : 'Start Free Trial →'}
+            {checkoutLoading ? 'Redirecting…' : `Start Free Trial — $${PARISH_TIERS.find(t => t.key === selectedTier)?.price}/mo after →`}
           </button>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-navy">Parish Base Plan</p>
+            <p className="font-bold text-navy">
+              {PARISH_TIERS.find(t => t.key === subscription.tier_key)
+                ? `${PARISH_TIERS.find(t => t.key === subscription.tier_key).label} Plan — $${PARISH_TIERS.find(t => t.key === subscription.tier_key).price}/mo`
+                : 'Parish Plan'}
+            </p>
             {statusBadge(subscription.status)}
           </div>
           {subscription.status === 'trialing' && subscription.trial_ends_at && (
