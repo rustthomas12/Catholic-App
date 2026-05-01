@@ -230,7 +230,9 @@ export function useFeed(options = {}) {
     switch (filter) {
       case 'parish': {
         const ids = followedParishIds.current
-        return ids.length === 0 ? null : q.in('parish_id', ids)
+        if (ids.length === 0) return null
+        // Parish-only posts (no group context, no org context)
+        return q.in('parish_id', ids).is('group_id', null).is('org_id', null)
       }
       case 'groups': {
         const ids = joinedGroupIds.current
@@ -252,8 +254,9 @@ export function useFeed(options = {}) {
         const pIds = followedParishIds.current
         const gIds = joinedGroupIds.current
         if (pIds.length === 0 && gIds.length === 0) return null
+        // Show parish posts (no group) + group posts from joined groups
         const parts = []
-        if (pIds.length > 0) parts.push(`parish_id.in.(${pIds.join(',')})`)
+        if (pIds.length > 0) parts.push(`and(parish_id.in.(${pIds.join(',')}),group_id.is.null,org_id.is.null)`)
         if (gIds.length > 0) parts.push(`group_id.in.(${gIds.join(',')})`)
         return q.or(parts.join(','))
       }

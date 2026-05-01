@@ -14,6 +14,7 @@ import {
   ClockIcon,
   MapPinIcon,
   PaperAirplaneIcon,
+  BuildingLibraryIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { toast } from '../components/shared/Toast'
@@ -172,9 +173,13 @@ export default function GroupPage() {
           {group.parish && (
             <Link
               to={`/parish/${group.parish.id}`}
-              className="text-gold text-xs mt-0.5 hover:underline"
+              className="inline-flex items-center gap-1.5 mt-2 bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
             >
+              <BuildingLibraryIcon className="w-3.5 h-3.5 text-gold flex-shrink-0" />
               {group.parish.name}
+              {group.parish.city && (
+                <span className="text-white/50">· {group.parish.city}{group.parish.state ? `, ${group.parish.state}` : ''}</span>
+              )}
             </Link>
           )}
 
@@ -770,14 +775,26 @@ function GroupAbout({ group, isAdmin, onDeleteClick, t }) {
             value={group.is_private ? t('private') : t('public')}
           />
           {group.parish && (
-            <DetailRow
-              label={t('about_parish')}
-              value={
-                <Link to={`/parish/${group.parish.id}`} className="text-navy font-semibold hover:underline">
-                  {group.parish.name}
-                </Link>
-              }
-            />
+            <div className="px-4 py-3">
+              <p className="text-xs text-gray-400 mb-2">{t('about_parish')}</p>
+              <Link
+                to={`/parish/${group.parish.id}`}
+                className="flex items-center gap-3 bg-navy/5 hover:bg-navy/10 rounded-xl px-3 py-2.5 transition-colors group"
+              >
+                <div className="w-9 h-9 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
+                  <BuildingLibraryIcon className="w-4.5 h-4.5 text-gold w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-navy group-hover:underline leading-tight">{group.parish.name}</p>
+                  {(group.parish.city || group.parish.state) && (
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {[group.parish.city, group.parish.state].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                </div>
+                <ArrowLeftIcon className="w-4 h-4 text-gray-300 rotate-180 flex-shrink-0" />
+              </Link>
+            </div>
           )}
           {group.creator && (
             <DetailRow label={t('about_creator')} value={group.creator.full_name} />
