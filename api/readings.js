@@ -94,8 +94,8 @@ const BOOK_CODES = {
 // Convert "Acts 13:26-33" or "Psalm 2:6-7, 8-9" to OSIS passage ID
 function referenceToOSIS(reference) {
   if (!reference) return null
-  // Strip verse-letter suffixes like "14b" → "14"
-  const clean = reference.replace(/(\d+)[a-z](?=[\s,\-:]|$)/gi, '$1').trim()
+  // Strip verse-letter suffixes like "14b" or "11ab" → "14" / "11"
+  const clean = reference.replace(/(\d+)[a-z]+(?=[\s,\-:]|$)/gi, '$1').trim()
 
   // Match book + chapter:verses, e.g. "Acts 13:26-33" or "1 Corinthians 12:3b-7, 12-13"
   const m = clean.match(/^(.+?)\s+(\d+):(.+)$/)
