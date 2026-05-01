@@ -5,6 +5,8 @@ import { toast } from '../components/shared/Toast'
 import { useParishSearch, useNearbyParishes, useFollowedParishes, invalidateFollowedParishesCache } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import ParishCard from '../components/parish/ParishCard'
+import DirectoryDiscoveryBanner from '../components/parish/DirectoryDiscoveryBanner'
+import NearbyEventSuggestions from '../components/parish/NearbyEventSuggestions'
 
 const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 
@@ -284,6 +286,11 @@ export default function DirectoryPage() {
 
         <div className="px-4 pt-4 space-y-6">
 
+          {/* ── Discovery banner (shown to users following < 3 parishes) ── */}
+          {user && (
+            <DirectoryDiscoveryBanner followedCount={followedParishes.length} />
+          )}
+
           {/* ── Your parishes ── */}
           {!isSearching && !followedLoading && followedParishes.length > 0 && (
             <section>
@@ -372,6 +379,11 @@ export default function DirectoryPage() {
                 </button>
               </div>
             </section>
+          )}
+
+          {/* ── Nearby event suggestions (only when location is available) ── */}
+          {user && userLocation && (
+            <NearbyEventSuggestions userLocation={userLocation} />
           )}
 
         </div>
