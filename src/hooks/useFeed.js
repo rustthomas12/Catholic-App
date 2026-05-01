@@ -182,8 +182,11 @@ export function useFeed(options = {}) {
       Promise.all([
         supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
         supabase.from('group_members').select('group_id').eq('user_id', user.id),
-      ]).then(([pr, gr]) => {
-        const parishIds = (pr.data ?? []).map((r) => r.parish_id)
+        supabase.from('parish_admins').select('parish_id').eq('user_id', user.id),
+      ]).then(([pr, gr, ar]) => {
+        const followed  = (pr.data ?? []).map((r) => r.parish_id)
+        const admined   = (ar.data ?? []).map((r) => r.parish_id)
+        const parishIds = [...new Set([...followed, ...admined])]
         const groupIds  = (gr.data ?? []).map((r) => r.group_id)
         followedParishIds.current = parishIds
         joinedGroupIds.current    = groupIds
@@ -194,11 +197,14 @@ export function useFeed(options = {}) {
     }
 
     // No cache — must await
-    const [pr, gr] = await Promise.all([
+    const [pr, gr, ar] = await Promise.all([
       supabase.from('parish_follows').select('parish_id').eq('user_id', user.id),
       supabase.from('group_members').select('group_id').eq('user_id', user.id),
+      supabase.from('parish_admins').select('parish_id').eq('user_id', user.id),
     ])
-    const parishIds = (pr.data ?? []).map((r) => r.parish_id)
+    const followed  = (pr.data ?? []).map((r) => r.parish_id)
+    const admined   = (ar.data ?? []).map((r) => r.parish_id)
+    const parishIds = [...new Set([...followed, ...admined])]
     const groupIds  = (gr.data ?? []).map((r) => r.group_id)
     followedParishIds.current = parishIds
     joinedGroupIds.current    = groupIds
