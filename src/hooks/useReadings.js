@@ -14,8 +14,8 @@ function getFromLocalStorage(cacheKey) {
     if (!cached) return null
     const parsed = JSON.parse(cached)
     const cachedDate = parsed.fetchedAt ? new Date(parsed.fetchedAt).toDateString() : null
-    // v:5 — bumped from v:4 to invalidate reference-only cache entries (now includes text)
-    if (cachedDate === new Date().toDateString() && parsed.v === 5) return parsed
+    // v:6 — bumped from v:5 to invalidate null-text cache entries (api.bible key now live)
+    if (cachedDate === new Date().toDateString() && parsed.v === 6) return parsed
   } catch {}
   return null
 }
@@ -46,7 +46,7 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
         feastInfo:      data.feastInfo      ?? null,
         date: dateStr,
         fetchedAt: new Date().toISOString(),
-        v: 5,
+        v: 6,
       }
       try { localStorage.setItem(`readings_${lang}_${dateStr}`, JSON.stringify(withMeta)) } catch {}
       _caches[lang] = withMeta
