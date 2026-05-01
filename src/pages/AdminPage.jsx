@@ -351,7 +351,7 @@ export default function AdminPage() {
       const [usersRes, postsRes, flagsRes, parishesRes] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso),
-        supabase.from('post_flags').select('id', { count: 'exact', head: true }).eq('is_resolved', false),
+        supabase.from('post_flags').select('id', { count: 'exact', head: true }).neq('is_resolved', true),
         supabase.from('parishes').select('id', { count: 'exact', head: true }),
       ]);
 
@@ -374,7 +374,7 @@ export default function AdminPage() {
       const { data, error } = await supabase
         .from('post_flags')
         .select('id, reason, created_at, post:posts!post_id(id, content, image_url, created_at, author:profiles!author_id(id, full_name, avatar_url)), reporter:profiles!user_id(id, full_name)')
-        .eq('is_resolved', false)
+        .neq('is_resolved', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
