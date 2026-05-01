@@ -135,7 +135,7 @@ function AssignOrgAdmin() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).is('deleted_at', null).limit(8)
+    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).limit(8)
     return data || []
   }
 
@@ -213,7 +213,7 @@ function AssignParishPastor() {
   }
 
   async function searchUsers(q) {
-    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).is('deleted_at', null).limit(8)
+    const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').ilike('full_name', `%${q}%`).limit(8)
     return data || []
   }
 
@@ -381,7 +381,6 @@ export default function AdminPage() {
       let query = supabase
         .from('profiles')
         .select('id, full_name, avatar_url, email, suspended_at, created_at')
-        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (search && search.trim()) {
@@ -393,10 +392,13 @@ export default function AdminPage() {
       }
 
       const { data, error } = await query.limit(50);
-      if (error) throw error;
+      if (error) {
+        console.error('loadRecentUsers error:', error);
+        throw error;
+      }
       setRecentUsers(data || []);
     } catch (err) {
-      toast.error('Failed to load users');
+      toast.error('Failed to load users: ' + (err?.message || 'unknown error'));
     } finally {
       setLoadingUsers(false);
     }
