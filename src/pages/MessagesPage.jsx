@@ -162,9 +162,10 @@ function NewConversationModal({ userId, onSelect, onClose }) {
       const orgIds    = (orgRes.data    ?? []).map(d => d.org_id)
 
       // Step 2: get all other users in those same communities in parallel
+      // Parish: query profiles.parish_id (publicly readable) instead of parish_follows (RLS blocks other users' rows)
       const [parishUsers, groupUsers, orgUsers] = await Promise.all([
         parishIds.length
-          ? supabase.from('parish_follows').select('user_id').in('parish_id', parishIds).neq('user_id', userId)
+          ? supabase.from('profiles').select('id').in('parish_id', parishIds).neq('id', userId)
           : Promise.resolve({ data: [] }),
         groupIds.length
           ? supabase.from('group_members').select('user_id').in('group_id', groupIds).neq('user_id', userId)
@@ -175,7 +176,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
       ])
 
       const connectedIds = new Set([
-        ...(parishUsers.data ?? []).map(d => d.user_id),
+        ...(parishUsers.data ?? []).map(d => d.id),
         ...(groupUsers.data  ?? []).map(d => d.user_id),
         ...(orgUsers.data    ?? []).map(d => d.user_id),
       ])
