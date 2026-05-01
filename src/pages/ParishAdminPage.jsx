@@ -830,16 +830,30 @@ function ParishionersTab({ parishId }) {
 
   useEffect(() => {
     async function load() {
-      const { data: follows } = await supabase
-        .from('parish_follows')
-        .select('user_id, created_at')
-        .eq('parish_id', parishId)
-        .order('created_at', { ascending: false })
-        .limit(100)
+      const [{ data: follows }, { data: admins }] = await Promise.all([
+        supabase
+          .from('parish_follows')
+          .select('user_id, created_at')
+          .eq('parish_id', parishId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('parish_admins')
+          .select('user_id, created_at')
+          .eq('parish_id', parishId),
+      ])
 
-      if (!follows?.length) { setLoading(false); return }
+      // Build a merged, deduplicated list — admins first, then followers
+      const adminIds = new Set((admins ?? []).map(a => a.user_id))
+      const followerEntries = (follows ?? []).map(f => ({ user_id: f.user_id, created_at: f.created_at, isAdmin: adminIds.has(f.user_id) }))
+      const adminOnlyEntries = (admins ?? [])
+        .filter(a => !(follows ?? []).some(f => f.user_id === a.user_id))
+        .map(a => ({ user_id: a.user_id, created_at: a.created_at, isAdmin: true }))
 
-      const userIds = follows.map(f => f.user_id)
+      const allEntries = [...adminOnlyEntries, ...followerEntries]
+      if (!allEntries.length) { setLoading(false); return }
+
+      const userIds = [...new Set(allEntries.map(e => e.user_id))]
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, vocation_state, is_verified_clergy')
@@ -847,9 +861,9 @@ function ParishionersTab({ parishId }) {
 
       const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
       setParishioners(
-        follows
-          .map(f => ({ created_at: f.created_at, profiles: profileMap[f.user_id] ?? null }))
-          .filter(f => f.profiles)
+        allEntries
+          .map(e => ({ created_at: e.created_at, isAdmin: e.isAdmin, profiles: profileMap[e.user_id] ?? null }))
+          .filter(e => e.profiles)
       )
       setLoading(false)
     }
@@ -892,6 +906,9 @@ function ParishionersTab({ parishId }) {
                   <p className="text-xs text-gray-400">{vocLabels[p.profiles.vocation_state]}</p>
                 )}
               </div>
+              {p.isAdmin && (
+                <span className="text-xs bg-gold/20 text-gold font-semibold px-2 py-0.5 rounded-full">Admin</span>
+              )}
               {p.profiles.is_verified_clergy && (
                 <span className="text-xs bg-navy/10 text-navy font-semibold px-2 py-0.5 rounded-full">Clergy</span>
               )}
