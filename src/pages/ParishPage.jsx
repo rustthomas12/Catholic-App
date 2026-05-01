@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useAdminAccess } from '../hooks/useAdminAccess'
 import { useParish } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -31,22 +32,14 @@ const TABS = [
 export default function ParishPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { profile, user } = useAuth()
+  const { profile } = useAuth()
+  const { parishAdminRecords } = useAdminAccess()
   const [activeTab, setActiveTab] = useState('feed')
   const [showContact, setShowContact] = useState(false)
-  const [adminRole, setAdminRole] = useState(null) // 'admin' | 'staff' | null
 
-  useEffect(() => {
-    if (!user || !id) return
-    supabase
-      .from('parish_admins')
-      .select('role')
-      .eq('parish_id', id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => setAdminRole(data?.role ?? null))
-      .catch(() => {})
-  }, [user?.id, id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Check if the current user admins THIS specific parish
+  const adminRecord = parishAdminRecords.find(r => r.parish_id === id)
+  const adminRole = adminRecord?.role ?? null
 
   const {
     parish,
