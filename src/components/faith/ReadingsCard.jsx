@@ -78,10 +78,10 @@ function ReadingsSkeleton() {
 // ── Fallback (fetch error) ─────────────────────────────────
 function ReadingsFallback({ t, isTLM }) {
   const today = new Date()
+  const yyyy = today.getFullYear()
   const mm = String(today.getMonth() + 1).padStart(2, '0')
   const dd = String(today.getDate()).padStart(2, '0')
-  const yyyy = today.getFullYear()
-  const doUrl = `https://www.divinumofficium.com/cgi-bin/missa/missa.pl?date=${mm}/${dd}/${yyyy}&lang=English&command=praySancta+Missa&Propers=1`
+  const mmUrl = `https://www.missalemeum.com/en/${yyyy}-${mm}-${dd}`
 
   return (
     <div className="py-8 flex flex-col items-center text-center gap-3">
@@ -92,13 +92,13 @@ function ReadingsFallback({ t, isTLM }) {
       <p className="text-gray-500 text-sm">{t('readings_error')}</p>
       {isTLM ? (
         <a
-          href={doUrl}
+          href={mmUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 bg-gold text-navy text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gold/90 transition-colors"
         >
           <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-          Open Divinum Officium
+          Open Missale Meum
         </a>
       ) : (
         <a
@@ -342,7 +342,7 @@ export default function ReadingsCard({
         <div className="px-5 pb-4">
           <p className="text-xs text-gray-300 text-center">
             {isTLM
-              ? 'Traditional readings provided by Divinum Officium'
+              ? 'Traditional readings provided by Missale Meum'
               : t('readings_credit')}
           </p>
         </div>

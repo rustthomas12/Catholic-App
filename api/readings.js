@@ -1,37 +1,56 @@
 /**
- * Vercel serverless function — Universalis readings proxy.
- * Fetches today's Mass readings from universalis.com (static HTML, no JS rendering).
- * Date param: YYYYMMDD
+ * Vercel serverless function — Catholic Readings API proxy.
+ * Source: https://cpbjr.github.io/catholic-readings-api/
+ * Free JSON, NAB translation, no API key required. References only (no full text).
+ * Date param: YYYYMMDD (legacy) or YYYY-MM-DD
  */
 export default async function handler(req, res) {
   const { date } = req.query
 
-  // Validate: must be exactly 8 digits (YYYYMMDD)
-  if (!date || !/^\d{8}$/.test(date)) {
-    return res.status(400).json({ success: false, error: 'Invalid date format, expected YYYYMMDD' })
+  // Accept YYYYMMDD (legacy) or YYYY-MM-DD
+  let isoDate
+  if (/^\d{8}$/.test(date)) {
+    isoDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    isoDate = date
+  } else {
+    return res.status(400).json({ success: false, error: 'Invalid date format, expected YYYYMMDD or YYYY-MM-DD' })
   }
 
+  const [yyyy, mm, dd] = isoDate.split('-')
+  const url = `https://cpbjr.github.io/catholic-readings-api/readings/${yyyy}/${mm}-${dd}.json`
+
   try {
-    const url = `https://universalis.com/${date}/mass.htm`
     const response = await fetch(url, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-      },
+      headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(8000),
     })
 
     if (!response.ok) {
-      return res.status(200).json({ success: false, html: null })
+      return res.status(200).json({ success: false, readings: null })
     }
 
-    const html = await response.text()
+    const data = await response.json()
+
+    // API may return readings at top level or under a 'readings' key
+    const readings = data.readings ?? data
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
-    return res.status(200).json({ success: true, html })
+    return res.status(200).json({
+      success: true,
+      readings: {
+        firstReading:       readings.firstReading       ?? null,
+        psalm:              readings.psalm              ?? null,
+        secondReading:      readings.secondReading      ?? null,
+        gospelAcclamation:  readings.gospelAcclamation  ?? null,
+        gospel:             readings.gospel             ?? null,
+      },
+      date: isoDate,
+      season:      data.season      ?? null,
+      celebration: data.celebration ?? null,
+      usccbLink:   data.usccbLink   ?? `https://bible.usccb.org/bible/readings/${mm}${dd}${yyyy.slice(2)}.cfm`,
+    })
   } catch {
-    return res.status(200).json({ success: false, html: null })
+    return res.status(200).json({ success: false, readings: null })
   }
 }
