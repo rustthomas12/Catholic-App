@@ -265,7 +265,7 @@ export function usePost(postId, initialPost) {
     async (reason, notes) => {
       if (!user) return { error: 'Not authenticated' }
 
-      const { error } = await supabase.from('post_flags').insert({
+      const { error } = await supabase.from('post_flags').upsert({
         post_id: postId,
         user_id: user.id,
         reason,
