@@ -4,6 +4,7 @@ import {
   HomeIcon, UserGroupIcon, MapIcon,
   BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
   BuildingOffice2Icon, ChatBubbleLeftRightIcon,
+  ShieldExclamationIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -14,6 +15,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
+import { useAdminAccess } from '../../hooks/useAdminAccess'
 import { getLiturgicalSeason } from '../../utils/liturgical'
 import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -124,30 +126,12 @@ function Navigation() {
   const navigate = useNavigate()
   const { isAuthenticated, profile, user, signOut } = useAuth()
   const { unreadCount } = useNotifications()
+  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
   const season = getLiturgicalSeason()
-  const [adminParishId, setAdminParishId] = useState(null)
-  const [adminOrgId, setAdminOrgId] = useState(null)
   const [unreadDMs, setUnreadDMs] = useState(0)
 
   useEffect(() => {
-    if (!user) { setAdminParishId(null); setAdminOrgId(null); setUnreadDMs(0); return }
-
-    supabase
-      .from('parish_admins')
-      .select('parish_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => setAdminParishId(data?.parish_id ?? null))
-      .catch(() => {})
-
-    supabase
-      .from('organization_members')
-      .select('org_id')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .limit(1)
-      .then(({ data }) => setAdminOrgId(data?.[0]?.org_id ?? null))
-      .catch(() => {})
+    if (!user) { setUnreadDMs(0); return }
 
     // Unread DMs
     supabase
@@ -320,26 +304,48 @@ function Navigation() {
             <span className="text-sm font-medium">Messages</span>
           </Link>
 
-          {/* Parish Admin link — only for parish admins */}
-          {adminParishId && (
-            <Link to={`/parish-admin/${adminParishId}`}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                location.pathname.startsWith('/parish-admin') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-              }`}>
-              <BuildingLibraryIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">Parish Admin</span>
-            </Link>
-          )}
+          {/* Admin section — platform, parish, org */}
+          {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
+            <>
+              <div className="mx-3 border-t border-white/10 my-1" />
+              <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold text-white/40 uppercase tracking-widest">
+                Admin
+              </p>
 
-          {/* Org Admin link — only for org admins */}
-          {adminOrgId && (
-            <Link to={`/org-admin/${adminOrgId}`}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                location.pathname.startsWith('/org-admin') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-              }`}>
-              <BuildingOffice2Icon className="w-5 h-5" />
-              <span className="text-sm font-medium">Org Admin</span>
-            </Link>
+              {isPlatformAdmin && (
+                <Link to="/admin"
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    location.pathname.startsWith('/admin') ? 'bg-red-900/40 text-red-300' : 'text-red-400 hover:bg-red-900/20 hover:text-red-300'
+                  }`}>
+                  <ShieldExclamationIcon className="w-5 h-5" />
+                  <span className="text-sm font-medium">Platform Admin</span>
+                </Link>
+              )}
+
+              {parishAdminRecords.map(record => (
+                <Link key={record.parish_id} to={`/parish-admin/${record.parish_id}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    location.pathname === `/parish-admin/${record.parish_id}` ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}>
+                  <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate">
+                    {record.parishes?.name || 'My Parish'}
+                  </span>
+                </Link>
+              ))}
+
+              {orgAdminRecords.map(record => (
+                <Link key={record.org_id} to={`/org-admin/${record.org_id}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    location.pathname === `/org-admin/${record.org_id}` ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}>
+                  <BuildingOffice2Icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate">
+                    {record.organizations?.name || 'My Organization'}
+                  </span>
+                </Link>
+              ))}
+            </>
           )}
         </div>
 

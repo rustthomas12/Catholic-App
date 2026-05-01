@@ -8,6 +8,7 @@ import {
   GlobeAltIcon,
   EnvelopeIcon,
   XMarkIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -30,9 +31,22 @@ const TABS = [
 export default function ParishPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const [activeTab, setActiveTab] = useState('feed')
   const [showContact, setShowContact] = useState(false)
+  const [adminRole, setAdminRole] = useState(null) // 'admin' | 'staff' | null
+
+  useEffect(() => {
+    if (!user || !id) return
+    supabase
+      .from('parish_admins')
+      .select('role')
+      .eq('parish_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setAdminRole(data?.role ?? null))
+      .catch(() => {})
+  }, [user?.id, id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     parish,
@@ -104,6 +118,16 @@ export default function ParishPage() {
 
           {/* Action buttons */}
           <div className="flex gap-2 mt-4 flex-wrap">
+            {adminRole && (
+              <Link
+                to={`/parish-admin/${id}`}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gold text-navy rounded-xl text-sm font-semibold hover:bg-gold/90 transition-colors"
+              >
+                <Cog6ToothIcon className="w-4 h-4" />
+                Manage Parish
+              </Link>
+            )}
+
             <button
               onClick={follow}
               disabled={followLoading || isMyParish}

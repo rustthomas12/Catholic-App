@@ -9,6 +9,7 @@ import {
   MapPinIcon,
   UserGroupIcon,
   XMarkIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -188,9 +189,10 @@ export default function OrganizationPage() {
             {myRole === 'admin' && (
               <Link
                 to={`/org-admin/${org.id}`}
-                className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors"
               >
-                Manage
+                <Cog6ToothIcon className="w-4 h-4" />
+                Manage Organization
               </Link>
             )}
           </div>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
-  ExclamationTriangleIcon,
+  ExclamationTriangleIcon, ShieldExclamationIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotifications } from '../hooks/useNotifications'
@@ -34,7 +34,7 @@ function SectionHeader({ title }) {
 
 export default function SettingsPage() {
   useEffect(() => { document.title = 'Settings | Communio' }, [])
-  const { user, profile, signOut, updateProfile } = useAuth()
+  const { user, profile, isAdmin, signOut, updateProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
 
@@ -73,6 +73,25 @@ export default function SettingsPage() {
         <div className="px-4 py-5 border-b border-gray-100 bg-white">
           <h1 className="text-xl font-bold text-navy">Settings</h1>
         </div>
+
+        {/* Platform Administration — only for platform admins */}
+        {isAdmin && (
+          <div className="mx-3 mt-4">
+            <Link
+              to="/admin"
+              className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <ShieldExclamationIcon className="w-5 h-5 text-red-600" />
+                <div>
+                  <p className="text-sm font-semibold text-red-700">Admin Dashboard</p>
+                  <p className="text-xs text-red-400">Platform moderation and management</p>
+                </div>
+              </div>
+              <ChevronRightIcon className="w-4 h-4 text-red-400" />
+            </Link>
+          </div>
+        )}
 
         {/* Language / Idioma — always bilingual label so Spanish speakers can find it */}
         <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm px-4 py-4">

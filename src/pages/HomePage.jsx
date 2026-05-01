@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useAdminAccess } from '../hooks/useAdminAccess'
 import { useFollowedParishes } from '../hooks/useParish.js'
 import { supabase } from '../lib/supabase'
 import { differenceInDays } from 'date-fns'
@@ -22,6 +23,8 @@ export default function HomePage() {
   useEffect(() => { document.title = 'Home | Communio' }, [])
   const { i18n } = useTranslation()
   const { profile } = useAuth()
+  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
+  const hasAnyAdminAccess = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
   const navigate = useNavigate()
 
   const [parish, setParish] = useState(() =>
@@ -221,6 +224,11 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="border-t-4 border-gray-100">
+            {hasAnyAdminAccess && <AdminQuickAccess
+              isPlatformAdmin={isPlatformAdmin}
+              parishAdminRecords={parishAdminRecords}
+              orgAdminRecords={orgAdminRecords}
+            />}
             <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
             <Feed
               filter={activeFilter}
@@ -299,6 +307,13 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Admin quick access */}
+          {hasAnyAdminAccess && <AdminQuickAccess
+            isPlatformAdmin={isPlatformAdmin}
+            parishAdminRecords={parishAdminRecords}
+            orgAdminRecords={orgAdminRecords}
+          />}
+
           {/* Daily faith card */}
           <ReadingsCard
             variant="compact"
@@ -352,6 +367,48 @@ export default function HomePage() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Admin Quick Access card ────────────────────────────────
+function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords }) {
+  return (
+    <div className="bg-lightbg border-b border-gold/20 px-4 py-3">
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Your Admin Access</p>
+      <div className="flex flex-wrap gap-2">
+        {isPlatformAdmin && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium"
+          >
+            <ShieldExclamationIcon className="w-3.5 h-3.5" />
+            Platform Admin
+          </Link>
+        )}
+        {parishAdminRecords.map(r => (
+          <Link
+            key={r.parish_id}
+            to={`/parish-admin/${r.parish_id}`}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-navy text-white rounded-lg font-medium"
+          >
+            <BuildingLibraryIcon className="w-3.5 h-3.5" />
+            {r.parishes?.name
+              ? r.parishes.name.replace(/^(St\.|Saint)\s/i, '').slice(0, 20)
+              : 'My Parish'}
+          </Link>
+        ))}
+        {orgAdminRecords.map(r => (
+          <Link
+            key={r.org_id}
+            to={`/org-admin/${r.org_id}`}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-navy text-white rounded-lg font-medium"
+          >
+            <BuildingOffice2Icon className="w-3.5 h-3.5" />
+            {r.organizations?.name?.slice(0, 20) || 'My Organization'}
+          </Link>
+        ))}
       </div>
     </div>
   )

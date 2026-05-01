@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import Avatar from '../components/shared/Avatar'
@@ -30,7 +30,7 @@ function ProfileSkeleton() {
 
 export default function ProfilePage() {
   const { id } = useParams()
-  const { user, profile: currentProfile, loading: authLoading } = useAuth()
+  const { user, profile: currentProfile, isAdmin, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const [profile, setProfile] = useState(null)
@@ -174,6 +174,15 @@ export default function ProfilePage() {
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {profile.is_verified_clergy && <Badge variant="clergy" />}
+              {isOwnProfile && isAdmin && (
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full hover:bg-red-100 transition-colors"
+                >
+                  <ShieldExclamationIcon className="w-3.5 h-3.5" />
+                  Platform Admin
+                </Link>
+              )}
             </div>
 
             <h1 className="text-xl font-bold text-navy mt-1">{profile.full_name || 'Parish Member'}</h1>
