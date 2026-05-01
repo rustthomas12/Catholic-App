@@ -25,8 +25,13 @@ const TYPE_TO_PREF: Record<string, string> = {
   confession_reminder:    'confession_reminder',
   direct_message:         'direct_messages',
   event_reminder:         'event_reminders',
-  post_flagged:           'post_flagged',
-  new_parish_member:      'new_parish_member',
+  post_flagged:              'post_flagged',
+  new_parish_member:         'new_parish_member',
+  group_post:                'group_posts',
+  new_group_member:          'new_group_member',
+  new_org_member:            'new_org_member',
+  chapter_request:           'chapter_requests',
+  chapter_request_resolved:  'chapter_requests',
 }
 
 // Map notification types to push-friendly titles and deep-link URLs
@@ -50,8 +55,13 @@ function formatNotification(type: string, message: string | null, actorName?: st
     confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession`, url: '/premium/confession-tracker' },
     direct_message:         { title: '💬 New message',         body: `${actor} sent you a message`,            url: '/messages' },
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event`,     url: '/notifications' },
-    post_flagged:           { title: '🚩 Post reported',        body: body || `A post was flagged for review`,  url: '/admin' },
-    new_parish_member:      { title: '⛪ New parish follower',   body: `${actor} is following your parish`,      url: '/parish-admin' },
+    post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review`,              url: '/admin' },
+    new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish`,                  url: '/parish-admin' },
+    group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group`,              url: '/groups' },
+    new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group`,                 url: '/groups' },
+    new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization`,          url: '/organizations' },
+    chapter_request:          { title: '📋 Chapter request',         body: body || `${actor} requested a chapter`,               url: '/organizations' },
+    chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed`,          url: '/organizations' },
   }
 
   const format = formats[type] ?? { title: 'Communio', body: body, url: '/' }

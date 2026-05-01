@@ -14,6 +14,11 @@ const PREFERENCE_MAP = {
   event_reminder:         'event_reminders',
   post_flagged:           'post_flagged',
   new_parish_member:      'new_parish_member',
+  group_post:             'group_posts',
+  new_group_member:       'new_group_member',
+  chapter_request:        'chapter_requests',
+  chapter_request_resolved: 'chapter_requests',
+  new_org_member:         'new_org_member',
 }
 
 /**

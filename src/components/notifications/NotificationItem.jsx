@@ -12,6 +12,8 @@ import {
   XCircleIcon,
   ShieldExclamationIcon,
   UserPlusIcon,
+  BuildingOffice2Icon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline'
 import Avatar from '../shared/Avatar'
 import { formatRelativeTime } from '../../utils/dates'
@@ -36,6 +38,10 @@ function TypeIcon({ type, message }) {
   if (type === 'direct_message') return <EnvelopeIcon className={`${base} text-navy`} />
   if (type === 'post_flagged') return <ShieldExclamationIcon className={`${base} text-red-500`} />
   if (type === 'new_parish_member') return <UserPlusIcon className={`${base} text-gold`} />
+  if (type === 'group_post') return <DocumentTextIcon className={`${base} text-navy`} />
+  if (type === 'new_group_member') return <UserPlusIcon className={`${base} text-navy`} />
+  if (type === 'new_org_member') return <BuildingOffice2Icon className={`${base} text-gold`} />
+  if (type === 'chapter_request' || type === 'chapter_request_resolved') return <BuildingOffice2Icon className={`${base} text-navy`} />
   return <HandRaisedIcon className={`${base} text-navy`} />
 }
 

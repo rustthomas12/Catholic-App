@@ -183,11 +183,31 @@ export default function NotificationSettingsPage() {
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
   const [isParishAdmin, setIsParishAdmin] = useState(false)
+  const [isGroupAdmin, setIsGroupAdmin] = useState(false)
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false)
+  const [isNationalOrgAdmin, setIsNationalOrgAdmin] = useState(false)
 
   useEffect(() => {
     if (!user) return
     supabase.from('parish_admins').select('parish_id', { count: 'exact', head: true }).eq('user_id', user.id)
       .then(({ count }) => setIsParishAdmin((count ?? 0) > 0))
+    supabase.from('group_members').select('group_id', { count: 'exact', head: true }).eq('user_id', user.id).eq('role', 'admin')
+      .then(({ count }) => setIsGroupAdmin((count ?? 0) > 0))
+    supabase.from('organization_members').select('org_id', { count: 'exact', head: true }).eq('user_id', user.id).eq('role', 'admin')
+      .then(({ count }) => {
+        if ((count ?? 0) > 0) {
+          setIsOrgAdmin(true)
+          // Check if admin of any national org (for chapter_requests toggle)
+          supabase
+            .from('organization_members')
+            .select('organizations!inner(org_type)')
+            .eq('user_id', user.id)
+            .eq('role', 'admin')
+            .eq('organizations.org_type', 'national')
+            .limit(1)
+            .then(({ data }) => setIsNationalOrgAdmin((data ?? []).length > 0))
+        }
+      })
   }, [user])
 
   async function handleTurnOffAll() {
@@ -320,6 +340,58 @@ export default function NotificationSettingsPage() {
                 value={preferences.new_parish_member}
                 onChange={(v) => updatePreference('new_parish_member', v)}
               />
+            </div>
+          </div>
+        )}
+
+        {/* ── Group admin notifications ── */}
+        {!loading && isGroupAdmin && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Group Admin</p>
+            <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <PrefRow
+                icon={UserGroupIcon}
+                label="New posts in my groups"
+                description="When a member posts in a group you admin"
+                value={preferences.group_posts}
+                onChange={(v) => updatePreference('group_posts', v)}
+              />
+              <div className="h-px bg-gray-50 mx-4" />
+              <PrefRow
+                icon={UserPlusIcon}
+                label="New group members"
+                description="When someone joins a group you admin"
+                value={preferences.new_group_member}
+                onChange={(v) => updatePreference('new_group_member', v)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── Org admin notifications ── */}
+        {!loading && isOrgAdmin && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Organization Admin</p>
+            <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <PrefRow
+                icon={UserPlusIcon}
+                label="New org members"
+                description="When someone joins an organization you admin"
+                value={preferences.new_org_member}
+                onChange={(v) => updatePreference('new_org_member', v)}
+              />
+              {isNationalOrgAdmin && (
+                <>
+                  <div className="h-px bg-gray-50 mx-4" />
+                  <PrefRow
+                    icon={UserGroupIcon}
+                    label="Chapter requests"
+                    description="When a group requests to become a chapter of your national org"
+                    value={preferences.chapter_requests}
+                    onChange={(v) => updatePreference('chapter_requests', v)}
+                  />
+                </>
+              )}
             </div>
           </div>
         )}

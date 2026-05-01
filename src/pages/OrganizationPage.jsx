@@ -97,7 +97,30 @@ function useOrganization(orgId) {
       const { error: err } = await supabase.from('organization_members')
         .insert({ org_id: orgId, user_id: user.id })
       if (err) toast.error('Could not join organization.')
-      else { setIsMember(true); setMyRole('member'); setMemberCount(c => c + 1) }
+      else {
+        setIsMember(true); setMyRole('member'); setMemberCount(c => c + 1)
+        // Fire-and-forget: notify org admins of new member
+        ;(async () => {
+          const { data: admins } = await supabase
+            .from('organization_members')
+            .select('user_id')
+            .eq('org_id', orgId)
+            .eq('role', 'admin')
+            .neq('user_id', user.id)
+          if (admins?.length) {
+            await supabase.from('notifications').insert(
+              admins.map(a => ({
+                user_id: a.user_id,
+                type: 'new_org_member',
+                reference_id: orgId,
+                message: `Someone joined your organization`,
+                actor_id: user.id,
+                is_read: false,
+              }))
+            )
+          }
+        })()
+      }
     }
     setJoinLoading(false)
   }, [user?.id, orgId, isMember, joinLoading])

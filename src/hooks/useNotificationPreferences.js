@@ -14,6 +14,10 @@ const DEFAULTS = {
   event_reminders:        true,
   post_flagged:           true,
   new_parish_member:      true,
+  group_posts:            true,
+  new_group_member:       true,
+  chapter_requests:       true,
+  new_org_member:         true,
   reminder_interval_days: 30,
 }
 
@@ -78,6 +82,10 @@ export function useNotificationPreferences() {
       event_reminders:     false,
       post_flagged:        false,
       new_parish_member:   false,
+      group_posts:         false,
+      new_group_member:    false,
+      chapter_requests:    false,
+      new_org_member:      false,
     }
 
     // Optimistic update

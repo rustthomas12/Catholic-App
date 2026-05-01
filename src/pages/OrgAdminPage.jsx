@@ -130,6 +130,7 @@ export default function OrgAdminPage() {
   const [chapterCount, setChapterCount] = useState(0)
 
   const isNational = org?.org_type === 'national'
+  const isChapter = org?.org_type === 'chapter'
 
   const ALL_TABS = [
     { id: 'overview',  label: 'Overview' },
@@ -137,7 +138,7 @@ export default function OrgAdminPage() {
     { id: 'invites',   label: 'Invites' },
     ...(isNational ? [{ id: 'chapters', label: 'Chapters' }] : []),
     { id: 'settings',  label: 'Settings' },
-    { id: 'billing',   label: 'Billing', icon: CreditCardIcon },
+    ...(!isChapter ? [{ id: 'billing', label: 'Billing', icon: CreditCardIcon }] : []),
   ]
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -169,7 +170,8 @@ export default function OrgAdminPage() {
       .then(({ data }) => { setSubscription(data); setSubLoading(false) })
   }, [orgId])
 
-  const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
+  // Chapters of national orgs are always free — no subscription required
+  const hasActiveSub = isChapter || ['trialing', 'active'].includes(subscription?.status)
   const goToBilling = () => setActiveTab('billing')
 
   if (loading) return (

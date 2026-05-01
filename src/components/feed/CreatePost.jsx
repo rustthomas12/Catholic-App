@@ -171,6 +171,30 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
     // Update last_active_at
     supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', user.id).then(() => {})
 
+    // Fire-and-forget: notify group admins of new post
+    if (groupId && data?.id) {
+      ;(async () => {
+        const { data: admins } = await supabase
+          .from('group_members')
+          .select('user_id')
+          .eq('group_id', groupId)
+          .eq('role', 'admin')
+          .neq('user_id', user.id)
+        if (admins?.length) {
+          await supabase.from('notifications').insert(
+            admins.map(a => ({
+              user_id: a.user_id,
+              type: 'group_post',
+              reference_id: data.id,
+              message: `${profile?.full_name || 'Someone'} posted in your group`,
+              actor_id: user.id,
+              is_read: false,
+            }))
+          )
+        }
+      })()
+    }
+
     // Fire-and-forget: notify parish followers of new post
     if (parishId && data?.id) {
       ;(async () => {

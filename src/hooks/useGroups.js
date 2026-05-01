@@ -332,6 +332,30 @@ export function useGroupJoin() {
     await supabase.rpc('increment_member_count', { group_id_param: groupId }).catch(() => {})
     _invalidateMemberships()
     onSuccess?.()
+
+    // Fire-and-forget: notify group admins of new member
+    ;(async () => {
+      const { data: admins } = await supabase
+        .from('group_members')
+        .select('user_id')
+        .eq('group_id', groupId)
+        .eq('role', 'admin')
+        .neq('user_id', user.id)
+      if (admins?.length) {
+        const { data: grp } = await supabase.from('groups').select('name').eq('id', groupId).single()
+        await supabase.from('notifications').insert(
+          admins.map(a => ({
+            user_id: a.user_id,
+            type: 'new_group_member',
+            reference_id: groupId,
+            message: `Someone joined ${grp?.name || 'your group'}`,
+            actor_id: user.id,
+            is_read: false,
+          }))
+        )
+      }
+    })()
+
     return { error: null }
   }, [user])
 
