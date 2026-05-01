@@ -444,9 +444,15 @@ export function useGroupJoin() {
       return { error: 'already_requested' }
     }
 
+    // If a rejected record exists, delete it before re-inserting
+    // (upsert requires UPDATE permission which RLS may not grant)
+    if (existing) {
+      await supabase.from('group_join_requests').delete().eq('id', existing.id)
+    }
+
     const { error } = await supabase
       .from('group_join_requests')
-      .upsert({ group_id: groupId, user_id: user.id, status: 'pending' }, { onConflict: 'group_id,user_id' })
+      .insert({ group_id: groupId, user_id: user.id, status: 'pending' })
 
     if (error) {
       toast.error('Could not send request. Please try again.')
