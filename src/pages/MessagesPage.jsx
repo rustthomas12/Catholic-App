@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { createNotification } from '../lib/notifications'
 import Avatar from '../components/shared/Avatar'
 import { format, isToday, isYesterday } from 'date-fns'
 
@@ -125,7 +126,16 @@ function useMessages(userId, partnerId) {
       recipient_id: partnerId,
       content: content.trim(),
     }).select().single()
-    if (!error && data) setMessages(prev => [...prev, data])
+    if (!error && data) {
+      setMessages(prev => [...prev, data])
+      createNotification({
+        userId: partnerId,
+        type: 'direct_message',
+        referenceId: userId,
+        message: `You have a new message`,
+        actorId: userId,
+      })
+    }
   }, [userId, partnerId])
 
   return { messages, loading, send }

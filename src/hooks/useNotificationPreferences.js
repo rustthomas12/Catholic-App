@@ -12,6 +12,8 @@ const DEFAULTS = {
   confession_reminder:    true,
   direct_messages:        true,
   event_reminders:        true,
+  post_flagged:           true,
+  new_parish_member:      true,
   reminder_interval_days: 30,
 }
 
@@ -74,6 +76,8 @@ export function useNotificationPreferences() {
       confession_reminder: false,
       direct_messages:     false,
       event_reminders:     false,
+      post_flagged:        false,
+      new_parish_member:   false,
     }
 
     // Optimistic update

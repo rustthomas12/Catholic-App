@@ -273,6 +273,28 @@ export function usePost(postId, initialPost) {
       })
 
       if (error) return { error: error.message }
+
+      // Fire-and-forget: notify all platform admins
+      ;(async () => {
+        const { data: admins } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('is_admin', true)
+          .neq('id', user.id)
+        if (admins?.length) {
+          await supabase.from('notifications').insert(
+            admins.map(a => ({
+              user_id: a.id,
+              type: 'post_flagged',
+              reference_id: postId,
+              message: `A post was reported: ${reason}`,
+              actor_id: user.id,
+              is_read: false,
+            }))
+          )
+        }
+      })()
+
       return { error: null }
     },
     [user, postId]

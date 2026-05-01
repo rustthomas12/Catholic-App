@@ -12,6 +12,8 @@ const PREFERENCE_MAP = {
   confession_reminder:    'confession_reminder',
   direct_message:         'direct_messages',
   event_reminder:         'event_reminders',
+  post_flagged:           'post_flagged',
+  new_parish_member:      'new_parish_member',
 }
 
 /**

@@ -171,6 +171,30 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
     // Update last_active_at
     supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', user.id).then(() => {})
 
+    // Fire-and-forget: notify parish followers of new post
+    if (parishId && data?.id) {
+      ;(async () => {
+        const { data: followers } = await supabase
+          .from('parish_follows')
+          .select('user_id')
+          .eq('parish_id', parishId)
+          .neq('user_id', user.id)
+          .limit(500)
+        if (followers?.length) {
+          await supabase.from('notifications').insert(
+            followers.map(f => ({
+              user_id: f.user_id,
+              type: 'parish_post',
+              reference_id: data.id,
+              message: `${profile?.full_name || 'Someone'} posted in your parish`,
+              actor_id: user.id,
+              is_read: false,
+            }))
+          )
+        }
+      })()
+    }
+
     toast.success(t('post.success'))
     onPost?.(data)
     onClose()

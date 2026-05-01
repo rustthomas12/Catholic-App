@@ -13,7 +13,10 @@ import {
   LockClosedIcon,
   BellIcon,
   BellSlashIcon,
+  ShieldExclamationIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline'
+import { supabase } from '../lib/supabase'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
@@ -175,10 +178,17 @@ export default function NotificationSettingsPage() {
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { preferences, loading, updatePreference, turnOffAll } = useNotificationPreferences()
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
+  const [isParishAdmin, setIsParishAdmin] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('parish_admins').select('parish_id', { count: 'exact', head: true }).eq('user_id', user.id)
+      .then(({ count }) => setIsParishAdmin((count ?? 0) > 0))
+  }, [user])
 
   async function handleTurnOffAll() {
     await turnOffAll()
@@ -295,6 +305,38 @@ export default function NotificationSettingsPage() {
                 />
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Parish admin notifications ── */}
+        {!loading && isParishAdmin && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Parish Admin</p>
+            <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <PrefRow
+                icon={UserPlusIcon}
+                label="New parish followers"
+                description="When someone starts following your parish"
+                value={preferences.new_parish_member}
+                onChange={(v) => updatePreference('new_parish_member', v)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── Platform admin notifications ── */}
+        {!loading && isAdmin && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Platform Admin</p>
+            <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <PrefRow
+                icon={ShieldExclamationIcon}
+                label="Post reports"
+                description="When a member reports a post for review"
+                value={preferences.post_flagged}
+                onChange={(v) => updatePreference('post_flagged', v)}
+              />
+            </div>
           </div>
         )}
 

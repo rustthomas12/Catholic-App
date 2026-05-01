@@ -25,6 +25,8 @@ const TYPE_TO_PREF: Record<string, string> = {
   confession_reminder:    'confession_reminder',
   direct_message:         'direct_messages',
   event_reminder:         'event_reminders',
+  post_flagged:           'post_flagged',
+  new_parish_member:      'new_parish_member',
 }
 
 // Map notification types to push-friendly titles and deep-link URLs
@@ -48,6 +50,8 @@ function formatNotification(type: string, message: string | null, actorName?: st
     confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession`, url: '/premium/confession-tracker' },
     direct_message:         { title: '💬 New message',         body: `${actor} sent you a message`,            url: '/messages' },
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event`,     url: '/notifications' },
+    post_flagged:           { title: '🚩 Post reported',        body: body || `A post was flagged for review`,  url: '/admin' },
+    new_parish_member:      { title: '⛪ New parish follower',   body: `${actor} is following your parish`,      url: '/parish-admin' },
   }
 
   const format = formats[type] ?? { title: 'Communio', body: body, url: '/' }

@@ -4,6 +4,7 @@ import { ChevronLeftIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { createNotification } from '../lib/notifications'
 import Avatar from '../components/shared/Avatar'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { formatRelativeTime } from '../utils/dates'
@@ -129,6 +130,16 @@ export default function PrayerRequestsPage() {
     const { error } = await supabase
       .from('prayer_responses')
       .insert({ prayer_request_id: intentionId, user_id: user.id })
+
+    if (!error && intention?.author_id && intention.author_id !== user.id) {
+      createNotification({
+        userId: intention.author_id,
+        type: 'prayer_response',
+        referenceId: intentionId,
+        message: `Someone prayed for your intention`,
+        actorId: user.id,
+      })
+    }
 
     if (error) {
       setIntentions((prev) =>

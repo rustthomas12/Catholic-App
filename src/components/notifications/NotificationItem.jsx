@@ -10,6 +10,8 @@ import {
   EnvelopeIcon,
   CheckCircleIcon,
   XCircleIcon,
+  ShieldExclamationIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline'
 import Avatar from '../shared/Avatar'
 import { formatRelativeTime } from '../../utils/dates'
@@ -32,6 +34,8 @@ function TypeIcon({ type, message }) {
   if (type === 'confession_reminder') return <ClipboardDocumentCheckIcon className={`${base} text-navy`} />
   if (type === 'event_reminder') return <CalendarIcon className={`${base} text-navy`} />
   if (type === 'direct_message') return <EnvelopeIcon className={`${base} text-navy`} />
+  if (type === 'post_flagged') return <ShieldExclamationIcon className={`${base} text-red-500`} />
+  if (type === 'new_parish_member') return <UserPlusIcon className={`${base} text-gold`} />
   return <HandRaisedIcon className={`${base} text-navy`} />
 }
 
