@@ -42,6 +42,8 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
       }
       const withMeta = {
         ...data.readings,
+        liturgicalInfo: data.liturgicalInfo ?? null,
+        feastInfo:      data.feastInfo      ?? null,
         date: dateStr,
         fetchedAt: new Date().toISOString(),
         v: 5,
@@ -76,8 +78,6 @@ export function useReadings(language = 'en') {
     }
   })
 
-  const liturgicalInfo = getLiturgicalSeason(new Date())
-  const feastInfo = isMajorFeastDay(new Date())
   const todayFormatted = format(new Date(), 'EEEE, MMMM d')
 
   useEffect(() => {
@@ -89,6 +89,10 @@ export function useReadings(language = 'en') {
       setState({ readings: result, loading: false, error: _errors[lang] })
     })
   }, [dateStr, lang])
+
+  // Prefer authoritative data from the API; fall back to local computation
+  const liturgicalInfo = state.readings?.liturgicalInfo ?? getLiturgicalSeason(new Date())
+  const feastInfo      = state.readings?.feastInfo      ?? isMajorFeastDay(new Date())
 
   return {
     readings: state.readings,

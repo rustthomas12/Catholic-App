@@ -2,13 +2,48 @@
  * Vercel serverless function — Catholic Readings API proxy.
  * References: https://cpbjr.github.io/catholic-readings-api/
  * Text:       https://bible-api.com/ (WEB translation, public domain, no key required)
+ * Liturgical: http://calapi.inadiutorium.cz/ (Church Calendar API, free, no key required)
  */
+
+// ── Liturgical colour → display values ──────────────────────
+const COLOUR_MAP = {
+  green:  { color: '#15803D', textColor: '#ffffff' },
+  violet: { color: '#6B21A8', textColor: '#ffffff' },
+  white:  { color: '#F5F0E8', textColor: '#1B2A4A' },
+  red:    { color: '#DC2626', textColor: '#ffffff' },
+  rose:   { color: '#DB2777', textColor: '#ffffff' },
+}
+
+const SEASON_LABEL = {
+  ordinary:  'Ordinary Time',
+  advent:    'Advent',
+  christmas: 'Christmas',
+  lent:      'Lent',
+  easter:    'Easter',
+}
+
+// Fetch authoritative liturgical day data from calapi
+async function fetchLiturgicalDay(yyyy, mm, dd) {
+  // Drop leading zeros for calapi path (it accepts both but plain numbers are safer)
+  const m = parseInt(mm, 10)
+  const d = parseInt(dd, 10)
+  const url = `http://calapi.inadiutorium.cz/api/v0/en/calendars/general-en/${yyyy}/${m}/${d}`
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
 
 // Fetch full reading text from bible-api.com given a reference like "Acts 13:26-33"
 async function fetchBibleText(reference) {
   if (!reference) return null
   try {
-    // bible-api.com accepts references as path, spaces as +
     const path = reference.trim().replace(/\s+/g, '+')
     const res = await fetch(`https://bible-api.com/${encodeURIComponent(path)}?translation=web`, {
       headers: { Accept: 'application/json' },
@@ -17,9 +52,7 @@ async function fetchBibleText(reference) {
     if (!res.ok) return null
     const data = await res.json()
     if (data.error) return null
-    // bible-api returns verses array or a text block; prefer text
-    const text = data.text?.trim()
-    return text || null
+    return data.text?.trim() || null
   } catch {
     return null
   }
@@ -39,67 +72,92 @@ export default async function handler(req, res) {
   }
 
   const [yyyy, mm, dd] = isoDate.split('-')
-  const url = `https://cpbjr.github.io/catholic-readings-api/readings/${yyyy}/${mm}-${dd}.json`
 
-  try {
-    const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000),
-    })
+  // Fetch readings references + liturgical day data in parallel
+  const cpbjrUrl = `https://cpbjr.github.io/catholic-readings-api/readings/${yyyy}/${mm}-${dd}.json`
 
-    if (!response.ok) {
-      return res.status(200).json({ success: false, readings: null })
+  const [cpbjrRes, litDay] = await Promise.all([
+    fetch(cpbjrUrl, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) })
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null),
+    fetchLiturgicalDay(yyyy, mm, dd),
+  ])
+
+  // ── Build liturgicalInfo from calapi data ──────────────────
+  let liturgicalInfo = null
+  let feastInfo = { isFeast: false, feastName: null }
+
+  if (litDay) {
+    // Celebrations are ordered by rank_num ascending (lowest = highest priority)
+    const primary = litDay.celebrations?.[0] ?? null
+    const colour = primary?.colour ?? 'green'
+    const displayColors = COLOUR_MAP[colour] ?? COLOUR_MAP.green
+    liturgicalInfo = {
+      season:    litDay.season,
+      label:     SEASON_LABEL[litDay.season] ?? litDay.season,
+      weekNum:   litDay.season_week,
+      colour,
+      ...displayColors,
     }
 
-    const data = await response.json()
-    const raw = data.readings ?? data
-
-    // Extract reference strings from the cpbjr payload (may be string or object)
-    function getRef(r) {
-      if (!r) return null
-      if (typeof r === 'string') return r
-      return r.reference ?? r.ref ?? null
+    // It's a feast if the top celebration has a title and isn't just ferial
+    if (primary?.title && primary.rank !== 'ferial') {
+      feastInfo = { isFeast: true, feastName: primary.title }
     }
-
-    const refs = {
-      firstReading:      getRef(raw.firstReading),
-      psalm:             getRef(raw.psalm),
-      secondReading:     getRef(raw.secondReading),
-      gospelAcclamation: getRef(raw.gospelAcclamation),
-      gospel:            getRef(raw.gospel),
-    }
-
-    // Fetch all texts in parallel — psalm and gospel acclamation are often short verses
-    // For psalm, bible-api may not handle comma-separated multi-sections well; fetch first section only
-    function psalmRef(ref) {
-      if (!ref) return null
-      // "Psalm 2:6-7, 8-9, 10-11" → take up to the first comma for the lookup
-      return ref.split(',')[0].trim()
-    }
-
-    const [firstText, psalmText, secondText, gospelText] = await Promise.all([
-      fetchBibleText(refs.firstReading),
-      fetchBibleText(psalmRef(refs.psalm)),
-      fetchBibleText(refs.secondReading),
-      fetchBibleText(refs.gospel),
-    ])
-
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
-    return res.status(200).json({
-      success: true,
-      readings: {
-        firstReading:      refs.firstReading      ? { reference: refs.firstReading,      text: firstText }  : null,
-        psalm:             refs.psalm             ? { reference: refs.psalm,             text: psalmText }  : null,
-        secondReading:     refs.secondReading     ? { reference: refs.secondReading,     text: secondText } : null,
-        gospelAcclamation: refs.gospelAcclamation ? { reference: refs.gospelAcclamation, text: null }       : null,
-        gospel:            refs.gospel            ? { reference: refs.gospel,            text: gospelText } : null,
-      },
-      date: isoDate,
-      season:      data.season      ?? null,
-      celebration: data.celebration ?? null,
-      usccbLink:   data.usccbLink   ?? `https://bible.usccb.org/bible/readings/${mm}${dd}${yyyy.slice(2)}.cfm`,
-    })
-  } catch {
-    return res.status(200).json({ success: false, readings: null })
   }
+
+  // ── Build readings if cpbjr returned data ──────────────────
+  if (!cpbjrRes) {
+    return res.status(200).json({
+      success: false,
+      readings: null,
+      liturgicalInfo,
+      feastInfo,
+    })
+  }
+
+  const raw = cpbjrRes.readings ?? cpbjrRes
+
+  function getRef(r) {
+    if (!r) return null
+    if (typeof r === 'string') return r
+    return r.reference ?? r.ref ?? null
+  }
+
+  const refs = {
+    firstReading:      getRef(raw.firstReading),
+    psalm:             getRef(raw.psalm),
+    secondReading:     getRef(raw.secondReading),
+    gospelAcclamation: getRef(raw.gospelAcclamation),
+    gospel:            getRef(raw.gospel),
+  }
+
+  // For psalms, bible-api struggles with comma-separated multi-sections — use first section only
+  function psalmRef(ref) {
+    if (!ref) return null
+    return ref.split(',')[0].trim()
+  }
+
+  const [firstText, psalmText, secondText, gospelText] = await Promise.all([
+    fetchBibleText(refs.firstReading),
+    fetchBibleText(psalmRef(refs.psalm)),
+    fetchBibleText(refs.secondReading),
+    fetchBibleText(refs.gospel),
+  ])
+
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
+  return res.status(200).json({
+    success: true,
+    readings: {
+      firstReading:      refs.firstReading      ? { reference: refs.firstReading,      text: firstText }  : null,
+      psalm:             refs.psalm             ? { reference: refs.psalm,             text: psalmText }  : null,
+      secondReading:     refs.secondReading     ? { reference: refs.secondReading,     text: secondText } : null,
+      gospelAcclamation: refs.gospelAcclamation ? { reference: refs.gospelAcclamation, text: null }       : null,
+      gospel:            refs.gospel            ? { reference: refs.gospel,            text: gospelText } : null,
+    },
+    liturgicalInfo,
+    feastInfo,
+    date: isoDate,
+    usccbLink: cpbjrRes.usccbLink ?? `https://bible.usccb.org/bible/readings/${mm}${dd}${yyyy.slice(2)}.cfm`,
+  })
 }
