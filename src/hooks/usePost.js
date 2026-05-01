@@ -270,7 +270,7 @@ export function usePost(postId, initialPost) {
         user_id: user.id,
         reason,
         notes: notes || null,
-      })
+      }, { onConflict: 'post_id,user_id', ignoreDuplicates: true })
 
       if (error) return { error: error.message }
 
