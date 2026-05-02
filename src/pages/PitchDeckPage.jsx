@@ -132,7 +132,7 @@ function SlideSolution() {
     {
       icon: '🤝',
       title: 'Community',
-      desc: 'Groups, prayer requests, direct messaging to leaders, peer connections — the life of the parish, extended.',
+      desc: 'Groups, organizations (KoC, FOCUS, Opus Dei), parish clusters, prayer requests, direct messaging — the life of the parish, extended.',
     },
   ]
   return (
@@ -197,7 +197,7 @@ function SlideWhyNow() {
       <div className="max-w-5xl mx-auto w-full">
         <Tag color="purple">03 · Why Now</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-          Three forces converging<br />
+          Four forces converging<br />
           <span className="text-amber-400">to make this the moment.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-10" />
@@ -472,9 +472,9 @@ function SlideGTM() {
 
 function SlideTraction() {
   const metrics = [
-    { icon: '⛪', stat: '17,500+', label: 'US parishes in national directory' },
+    { icon: '⛪', stat: '10,000+', label: 'US parishes in national directory' },
     { icon: '📱', stat: 'Live', label: 'PWA deployed — iOS & Android' },
-    { icon: '🛠', stat: '15+', label: 'Completed build phases' },
+    { icon: '🛠', stat: '20+', label: 'Completed build phases' },
     { icon: '💳', stat: 'Live', label: 'Stripe billing — 4-tier parish pricing' },
     { icon: '🔔', stat: 'Live', label: 'Web push notifications wired' },
     { icon: '📔', stat: 'Live', label: 'Rosary, journal, hours, formation, confession' },
