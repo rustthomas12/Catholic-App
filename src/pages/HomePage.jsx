@@ -224,11 +224,15 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="border-t-4 border-gray-100">
-            {hasAnyAdminAccess && <AdminQuickAccess
-              isPlatformAdmin={isPlatformAdmin}
-              parishAdminRecords={parishAdminRecords}
-              orgAdminRecords={orgAdminRecords}
-            />}
+            {hasAnyAdminAccess && (
+              <div className="hidden md:block">
+                <AdminQuickAccess
+                  isPlatformAdmin={isPlatformAdmin}
+                  parishAdminRecords={parishAdminRecords}
+                  orgAdminRecords={orgAdminRecords}
+                />
+              </div>
+            )}
             <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
             <Feed
               filter={activeFilter}
