@@ -65,13 +65,21 @@ function useConversations(userId) {
 
   useEffect(() => { load() }, [load])
 
-  return { convos, loading, reload: load }
+  const markRead = useCallback((partnerId) => {
+    setConvos(prev => prev.map(c =>
+      c.partnerId === partnerId ? { ...c, unread: false } : c
+    ))
+  }, [])
+
+  return { convos, loading, reload: load, markRead }
 }
 
 // ── useMessages ────────────────────────────────────────────
-function useMessages(userId, partnerId) {
+function useMessages(userId, partnerId, onRead) {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
+  const onReadRef = useRef(onRead)
+  useEffect(() => { onReadRef.current = onRead }, [onRead])
 
   useEffect(() => {
     if (!userId || !partnerId) return
@@ -90,15 +98,17 @@ function useMessages(userId, partnerId) {
         setLoading(false)
       })
 
-    // Mark as read
+    // Mark all unread messages from this partner as read
     supabase.from('direct_messages')
       .update({ is_read: true })
       .eq('sender_id', partnerId)
       .eq('recipient_id', userId)
       .eq('is_read', false)
-      .then(() => {})
+      .then(({ error }) => {
+        if (!error) onReadRef.current?.()
+      })
 
-    // Realtime subscription
+    // Realtime subscription — new incoming messages
     const channel = supabase
       .channel(`dm_${[userId, partnerId].sort().join('_')}`)
       .on('postgres_changes', {
@@ -110,8 +120,11 @@ function useMessages(userId, partnerId) {
         const msg = payload.new
         if (msg.sender_id === partnerId) {
           setMessages(prev => [...prev, msg])
-          // Mark read immediately
-          supabase.from('direct_messages').update({ is_read: true }).eq('id', msg.id).then(() => {})
+          // Mark read immediately since thread is open
+          supabase.from('direct_messages')
+            .update({ is_read: true })
+            .eq('id', msg.id)
+            .then(({ error }) => { if (!error) onReadRef.current?.() })
         }
       })
       .subscribe()
@@ -247,8 +260,8 @@ function NewConversationModal({ userId, onSelect, onClose }) {
 }
 
 // ── ConversationView ───────────────────────────────────────
-function ConversationView({ userId, partner, onBack }) {
-  const { messages, loading, send } = useMessages(userId, partner.id)
+function ConversationView({ userId, partner, onBack, onRead }) {
+  const { messages, loading, send } = useMessages(userId, partner.id, onRead)
   const [draft, setDraft] = useState('')
   const bottomRef = useRef(null)
 
@@ -327,7 +340,7 @@ function ConversationView({ userId, partner, onBack }) {
 export default function MessagesPage() {
   useEffect(() => { document.title = 'Messages | Communio' }, [])
   const { user } = useAuth()
-  const { convos, loading, reload } = useConversations(user?.id)
+  const { convos, loading, reload, markRead } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
 
@@ -371,7 +384,7 @@ export default function MessagesPage() {
             {convos.map(({ partner, lastMessage, unread }) => (
               <button
                 key={partner.id}
-                onClick={() => setActivePartner(partner)}
+                onClick={() => { setActivePartner(partner); markRead(partner.id) }}
                 className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-lightbg transition-colors text-left ${
                   activePartner?.id === partner.id ? 'bg-lightbg' : ''
                 }`}
@@ -407,6 +420,7 @@ export default function MessagesPage() {
               userId={user.id}
               partner={activePartner}
               onBack={() => { setActivePartner(null); reload() }}
+              onRead={() => markRead(activePartner.id)}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-cream">
