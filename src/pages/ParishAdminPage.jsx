@@ -877,16 +877,46 @@ function ParishionersTab({ parishId }) {
 
   const vocLabels = { single: 'Single', married: 'Married', religious: 'Religious', ordained: 'Ordained' }
 
+  function handleExportCSV() {
+    const rows = [['Name', 'Vocation', 'Role', 'Joined']]
+    parishioners.forEach(p => {
+      rows.push([
+        p.profiles.full_name ?? '',
+        vocLabels[p.profiles.vocation_state] ?? '',
+        p.isAdmin ? 'Admin' : 'Parishioner',
+        format(parseISO(p.created_at), 'yyyy-MM-dd'),
+      ])
+    })
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `parishioners-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-bold text-navy">Parishioners ({parishioners.length})</h2>
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search…"
-          className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-navy w-40"
-        />
+        <div className="flex items-center gap-2">
+          {parishioners.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="text-xs font-semibold text-navy border border-navy/20 px-3 py-1.5 rounded-xl hover:bg-navy/5 transition-colors"
+            >
+              Export CSV
+            </button>
+          )}
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search…"
+            className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-navy w-40"
+          />
+        </div>
       </div>
 
       {loading ? <LoadingSpinner /> : filtered.length === 0 ? (
