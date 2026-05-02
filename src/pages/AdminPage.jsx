@@ -11,6 +11,8 @@ import {
   BuildingOffice2Icon,
   UserCircleIcon,
   CheckIcon,
+  PlusIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { supabase } from '../lib/supabase';
@@ -692,6 +694,11 @@ export default function AdminPage() {
         </section>
       </div>
 
+      {/* Parish Clusters */}
+      <section>
+        <ParishClusters />
+      </section>
+
       {/* Ban Confirmation Modal */}
       <Modal
         isOpen={banModalOpen}
@@ -733,4 +740,177 @@ export default function AdminPage() {
       </Modal>
     </div>
   );
+}
+
+// ── Parish Clusters ────────────────────────────────────────
+function ParishClusters() {
+  const [clusters, setClusters] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [newName, setNewName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [addState, setAddState] = useState({})
+
+  useEffect(() => { loadClusters() }, [])
+
+  async function loadClusters() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('parish_clusters')
+      .select('id, name, parish_cluster_members(parishes(id, name, city, state))')
+      .order('name')
+    setClusters(data ?? [])
+    setLoading(false)
+  }
+
+  async function createCluster() {
+    if (!newName.trim()) return
+    setCreating(true)
+    const { error } = await supabase.from('parish_clusters').insert({ name: newName.trim() })
+    if (error) toast.error('Could not create cluster')
+    else { setNewName(''); await loadClusters() }
+    setCreating(false)
+  }
+
+  async function deleteCluster(clusterId) {
+    const { error } = await supabase.from('parish_clusters').delete().eq('id', clusterId)
+    if (error) toast.error('Could not delete cluster')
+    else setClusters(prev => prev.filter(c => c.id !== clusterId))
+  }
+
+  async function removeParish(clusterId, parishId) {
+    await supabase.from('parish_cluster_members').delete()
+      .eq('cluster_id', clusterId).eq('parish_id', parishId)
+    setClusters(prev => prev.map(c =>
+      c.id !== clusterId ? c : {
+        ...c,
+        parish_cluster_members: c.parish_cluster_members.filter(m => m.parishes?.id !== parishId),
+      }
+    ))
+  }
+
+  async function searchParishes(clusterId, q) {
+    setAddState(prev => ({ ...prev, [clusterId]: { ...prev[clusterId], query: q, results: [] } }))
+    if (q.trim().length < 2) return
+    const { data } = await supabase.from('parishes')
+      .select('id, name, city, state')
+      .ilike('name', `%${q.trim()}%`)
+      .limit(8)
+    setAddState(prev => ({ ...prev, [clusterId]: { ...prev[clusterId], results: data ?? [] } }))
+  }
+
+  async function addParish(clusterId, parish) {
+    const { error } = await supabase.from('parish_cluster_members')
+      .insert({ cluster_id: clusterId, parish_id: parish.id })
+    if (error) {
+      toast.error(error.code === '23505' ? 'Already in this cluster' : 'Could not add parish')
+    } else {
+      setClusters(prev => prev.map(c =>
+        c.id !== clusterId ? c : {
+          ...c,
+          parish_cluster_members: [...c.parish_cluster_members, { parishes: parish }],
+        }
+      ))
+      setAddState(prev => ({ ...prev, [clusterId]: { query: '', results: [] } }))
+    }
+  }
+
+  return (
+    <div className='bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden'>
+      <div className='bg-navy px-5 py-4'>
+        <h2 className='text-white font-bold'>Parish Clusters</h2>
+        <p className='text-white/60 text-xs mt-0.5'>Group parishes under a shared pastoral name</p>
+      </div>
+
+      <div className='p-5 space-y-6'>
+        {/* Create */}
+        <div className='flex gap-2'>
+          <input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && createCluster()}
+            placeholder='Cluster name (e.g. Carlo Acutis Parish)'
+            className='flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy'
+          />
+          <button
+            onClick={createCluster}
+            disabled={creating || !newName.trim()}
+            className='flex items-center gap-1.5 bg-navy text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-navy/90 disabled:opacity-50 transition-colors'
+          >
+            <PlusIcon className='w-4 h-4' />
+            Create
+          </button>
+        </div>
+
+        {loading ? <LoadingSpinner /> : clusters.length === 0 ? (
+          <p className='text-gray-400 text-sm text-center py-4'>No clusters yet.</p>
+        ) : (
+          <div className='space-y-5'>
+            {clusters.map(cluster => {
+              const state = addState[cluster.id] ?? {}
+              return (
+                <div key={cluster.id} className='border border-gray-100 rounded-2xl overflow-hidden'>
+                  <div className='bg-lightbg px-4 py-3 flex items-center justify-between'>
+                    <p className='font-bold text-navy text-sm'>{cluster.name}</p>
+                    <button
+                      onClick={() => deleteCluster(cluster.id)}
+                      className='text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors'
+                    >
+                      <TrashIcon className='w-3.5 h-3.5' />
+                      Delete
+                    </button>
+                  </div>
+
+                  <div className='divide-y divide-gray-50'>
+                    {cluster.parish_cluster_members.map((m, i) => m.parishes && (
+                      <div key={i} className='px-4 py-2.5 flex items-center gap-3'>
+                        <BuildingLibraryIcon className='w-4 h-4 text-navy/40 flex-shrink-0' />
+                        <div className='flex-1 min-w-0'>
+                          <p className='text-sm font-medium text-navy truncate'>{m.parishes.name}</p>
+                          {m.parishes.city && (
+                            <p className='text-xs text-gray-400'>{m.parishes.city}, {m.parishes.state}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeParish(cluster.id, m.parishes.id)}
+                          className='text-gray-300 hover:text-red-400 transition-colors p-1'
+                        >
+                          <XMarkIcon className='w-4 h-4' />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className='px-4 py-3 border-t border-gray-50 space-y-1'>
+                    <div className='relative'>
+                      <MagnifyingGlassIcon className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none' />
+                      <input
+                        value={state.query ?? ''}
+                        onChange={e => searchParishes(cluster.id, e.target.value)}
+                        placeholder='Add a parish by name…'
+                        className='w-full border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:border-navy'
+                      />
+                    </div>
+                    {state.results?.length > 0 && (
+                      <div className='border border-gray-100 rounded-xl overflow-hidden'>
+                        {state.results.map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => addParish(cluster.id, p)}
+                            className='w-full flex items-center gap-2 px-3 py-2 hover:bg-lightbg transition-colors text-left text-sm'
+                          >
+                            <span className='font-medium text-navy truncate'>{p.name}</span>
+                            <span className='text-gray-400 text-xs flex-shrink-0'>{p.city}, {p.state}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

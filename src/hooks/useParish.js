@@ -262,12 +262,10 @@ export function useParish(parishId) {
   const [isFollowing, setIsFollowing] = useState(false)
   const [isMyParish, setIsMyParish] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
-  const [isServing, setIsServing] = useState(false)
-  const [linkedChurches, setLinkedChurches] = useState([])
-  const [parentParish, setParentParish] = useState(null)
+  // cluster: { id, name, parishes: [...sibling parishes] }
+  const [cluster, setCluster] = useState(null)
 
   const userId = user?.id
-  const isClergy = !!profile?.is_verified_clergy
   const profileParishId = profile?.parish_id
 
   useEffect(() => {
@@ -276,20 +274,12 @@ export function useParish(parishId) {
     let cancelled = false
     setLoading(true)
     setError(null)
+    setCluster(null)
 
     const followCheck = userId
       ? supabase
           .from('parish_follows')
           .select('id')
-          .eq('parish_id', parishId)
-          .eq('user_id', userId)
-          .maybeSingle()
-      : Promise.resolve({ data: null })
-
-    const servingCheck = userId && isClergy
-      ? supabase
-          .from('user_served_parishes')
-          .select('parish_id')
           .eq('parish_id', parishId)
           .eq('user_id', userId)
           .maybeSingle()
@@ -302,39 +292,44 @@ export function useParish(parishId) {
         .select('user_id', { count: 'exact', head: true })
         .eq('parish_id', parishId),
       followCheck,
-      servingCheck,
-      // Linked churches (missions/campuses under this parish)
+      // Which cluster (if any) does this parish belong to?
       supabase
-        .from('parishes')
-        .select('id, name, city, state')
-        .eq('parent_parish_id', parishId),
-    ]).then(([parishRes, countRes, followRes, servingRes, linkedRes]) => {
+        .from('parish_cluster_members')
+        .select('cluster_id, parish_clusters(id, name)')
+        .eq('parish_id', parishId)
+        .maybeSingle(),
+    ]).then(async ([parishRes, countRes, followRes, clusterMemberRes]) => {
       if (cancelled) return
-      if (parishRes.error) {
-        setError(parishRes.error.message)
-      } else {
-        const data = parishRes.data
-        setParish(data)
-        // Fetch parent parish name if this is a linked church
-        if (data?.parent_parish_id) {
-          supabase
-            .from('parishes')
-            .select('id, name, city, state')
-            .eq('id', data.parent_parish_id)
-            .single()
-            .then(({ data: p }) => { if (!cancelled && p) setParentParish(p) })
-        }
-      }
+      if (parishRes.error) setError(parishRes.error.message)
+      else setParish(parishRes.data)
+
       setFollowerCount(countRes.count ?? 0)
       setIsFollowing(!!followRes.data)
       setIsMyParish(profileParishId === parishId)
-      setIsServing(!!servingRes.data)
-      setLinkedChurches(linkedRes.data ?? [])
       setLoading(false)
+
+      // Fetch sibling parishes in the same cluster
+      if (clusterMemberRes.data?.cluster_id) {
+        const clusterId = clusterMemberRes.data.cluster_id
+        const clusterName = clusterMemberRes.data.parish_clusters?.name
+        const { data: members } = await supabase
+          .from('parish_cluster_members')
+          .select('parishes(id, name, city, state)')
+          .eq('cluster_id', clusterId)
+        if (!cancelled) {
+          setCluster({
+            id: clusterId,
+            name: clusterName,
+            parishes: (members ?? [])
+              .map(m => m.parishes)
+              .filter(p => p && p.id !== parishId),
+          })
+        }
+      }
     })
 
     return () => { cancelled = true }
-  }, [parishId, userId, profileParishId, isClergy])
+  }, [parishId, userId, profileParishId])
 
   const unsetMyParish = useCallback(async () => {
     if (!userId) return
@@ -417,39 +412,6 @@ export function useParish(parishId) {
     return { error: err }
   }, [userId, parishId, updateProfile, isFollowing])
 
-  const addServedParish = useCallback(async () => {
-    if (!userId) return { error: 'Not authenticated' }
-    const { error: err } = await supabase
-      .from('user_served_parishes')
-      .insert({ parish_id: parishId, user_id: userId })
-    if (!err) {
-      setIsServing(true)
-      // Auto-follow if not already following
-      if (!isFollowing) {
-        const { error: fErr } = await supabase
-          .from('parish_follows')
-          .insert({ parish_id: parishId, user_id: userId })
-        if (!fErr) {
-          setIsFollowing(true)
-          setFollowerCount((c) => c + 1)
-          invalidateFollowedParishesCache()
-        }
-      }
-    }
-    return { error: err }
-  }, [userId, parishId, isFollowing])
-
-  const removeServedParish = useCallback(async () => {
-    if (!userId) return { error: 'Not authenticated' }
-    const { error: err } = await supabase
-      .from('user_served_parishes')
-      .delete()
-      .eq('parish_id', parishId)
-      .eq('user_id', userId)
-    if (!err) setIsServing(false)
-    return { error: err }
-  }, [userId, parishId])
-
   return {
     parish,
     loading,
@@ -461,10 +423,6 @@ export function useParish(parishId) {
     follow,
     setAsMyParish,
     unsetMyParish,
-    isServing,
-    addServedParish,
-    removeServedParish,
-    linkedChurches,
-    parentParish,
+    cluster,
   }
 }
