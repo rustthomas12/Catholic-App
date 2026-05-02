@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 // Side-effect: initialize i18n
 import './utils/i18n'
 
+import MarketingRouter from './marketing/MarketingRouter'
+
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx'
 import ErrorBoundary from './components/shared/ErrorBoundary'
 import ProtectedRoute from './components/shared/ProtectedRoute'
@@ -54,7 +56,6 @@ const PrivacyPage              = lazy(() => import('./pages/PrivacyPage'))
 const PolicyPage               = lazy(() => import('./pages/PolicyPage'))
 const NotFoundPage             = lazy(() => import('./pages/NotFoundPage'))
 const PitchDeckPage            = lazy(() => import('./pages/PitchDeckPage'))
-const LandingPage              = lazy(() => import('./pages/LandingPage'))
 const RosaryTrackerPage        = lazy(() => import('./pages/RosaryTrackerPage'))
 const PrayerJournalPage        = lazy(() => import('./pages/PrayerJournalPage'))
 const LiturgyOfHoursPage       = lazy(() => import('./pages/LiturgyOfHoursPage'))
@@ -189,9 +190,7 @@ export default function App() {
     return (
       <ErrorBoundary>
         <BrowserRouter>
-          <Suspense fallback={null}>
-            <LandingPage />
-          </Suspense>
+          <MarketingRouter />
         </BrowserRouter>
       </ErrorBoundary>
     )
