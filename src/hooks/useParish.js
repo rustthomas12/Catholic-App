@@ -15,7 +15,7 @@ export function haversineMiles(lat1, lon1, lat2, lon2) {
 }
 
 const PARISH_SELECT =
-  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at'
+  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id'
 
 // ── useParishSearch ────────────────────────────────────────
 export function useParishSearch() {
@@ -262,8 +262,12 @@ export function useParish(parishId) {
   const [isFollowing, setIsFollowing] = useState(false)
   const [isMyParish, setIsMyParish] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
+  const [isServing, setIsServing] = useState(false)
+  const [linkedChurches, setLinkedChurches] = useState([])
+  const [parentParish, setParentParish] = useState(null)
 
   const userId = user?.id
+  const isClergy = !!profile?.is_verified_clergy
   const profileParishId = profile?.parish_id
 
   useEffect(() => {
@@ -282,6 +286,15 @@ export function useParish(parishId) {
           .maybeSingle()
       : Promise.resolve({ data: null })
 
+    const servingCheck = userId && isClergy
+      ? supabase
+          .from('user_served_parishes')
+          .select('parish_id')
+          .eq('parish_id', parishId)
+          .eq('user_id', userId)
+          .maybeSingle()
+      : Promise.resolve({ data: null })
+
     Promise.all([
       supabase.from('parishes').select(PARISH_SELECT).eq('id', parishId).single(),
       supabase
@@ -289,21 +302,39 @@ export function useParish(parishId) {
         .select('user_id', { count: 'exact', head: true })
         .eq('parish_id', parishId),
       followCheck,
-    ]).then(([parishRes, countRes, followRes]) => {
+      servingCheck,
+      // Linked churches (missions/campuses under this parish)
+      supabase
+        .from('parishes')
+        .select('id, name, city, state')
+        .eq('parent_parish_id', parishId),
+    ]).then(([parishRes, countRes, followRes, servingRes, linkedRes]) => {
       if (cancelled) return
       if (parishRes.error) {
         setError(parishRes.error.message)
       } else {
-        setParish(parishRes.data)
+        const data = parishRes.data
+        setParish(data)
+        // Fetch parent parish name if this is a linked church
+        if (data?.parent_parish_id) {
+          supabase
+            .from('parishes')
+            .select('id, name, city, state')
+            .eq('id', data.parent_parish_id)
+            .single()
+            .then(({ data: p }) => { if (!cancelled && p) setParentParish(p) })
+        }
       }
       setFollowerCount(countRes.count ?? 0)
       setIsFollowing(!!followRes.data)
       setIsMyParish(profileParishId === parishId)
+      setIsServing(!!servingRes.data)
+      setLinkedChurches(linkedRes.data ?? [])
       setLoading(false)
     })
 
     return () => { cancelled = true }
-  }, [parishId, userId, profileParishId])
+  }, [parishId, userId, profileParishId, isClergy])
 
   const unsetMyParish = useCallback(async () => {
     if (!userId) return
@@ -386,6 +417,39 @@ export function useParish(parishId) {
     return { error: err }
   }, [userId, parishId, updateProfile, isFollowing])
 
+  const addServedParish = useCallback(async () => {
+    if (!userId) return { error: 'Not authenticated' }
+    const { error: err } = await supabase
+      .from('user_served_parishes')
+      .insert({ parish_id: parishId, user_id: userId })
+    if (!err) {
+      setIsServing(true)
+      // Auto-follow if not already following
+      if (!isFollowing) {
+        const { error: fErr } = await supabase
+          .from('parish_follows')
+          .insert({ parish_id: parishId, user_id: userId })
+        if (!fErr) {
+          setIsFollowing(true)
+          setFollowerCount((c) => c + 1)
+          invalidateFollowedParishesCache()
+        }
+      }
+    }
+    return { error: err }
+  }, [userId, parishId, isFollowing])
+
+  const removeServedParish = useCallback(async () => {
+    if (!userId) return { error: 'Not authenticated' }
+    const { error: err } = await supabase
+      .from('user_served_parishes')
+      .delete()
+      .eq('parish_id', parishId)
+      .eq('user_id', userId)
+    if (!err) setIsServing(false)
+    return { error: err }
+  }, [userId, parishId])
+
   return {
     parish,
     loading,
@@ -397,5 +461,10 @@ export function useParish(parishId) {
     follow,
     setAsMyParish,
     unsetMyParish,
+    isServing,
+    addServedParish,
+    removeServedParish,
+    linkedChurches,
+    parentParish,
   }
 }

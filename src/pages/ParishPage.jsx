@@ -9,8 +9,9 @@ import {
   EnvelopeIcon,
   XMarkIcon,
   Cog6ToothIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline'
-import { CheckBadgeIcon } from '@heroicons/react/24/solid'
+import { CheckBadgeIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useAdminAccess } from '../hooks/useAdminAccess'
 import { useParish } from '../hooks/useParish.js'
@@ -52,7 +53,14 @@ export default function ParishPage() {
     follow,
     setAsMyParish,
     unsetMyParish,
+    isServing,
+    addServedParish,
+    removeServedParish,
+    linkedChurches,
+    parentParish,
   } = useParish(id)
+
+  const isClergy = !!profile?.is_verified_clergy
 
   // Must be before early returns — hooks cannot come after conditional returns
   useEffect(() => {
@@ -110,6 +118,15 @@ export default function ParishPage() {
               <p className="text-gray-400 text-xs mt-1">
                 {followerCount.toLocaleString()} parishioner{followerCount !== 1 ? 's' : ''} here
               </p>
+              {parentParish && (
+                <Link
+                  to={`/parish/${parentParish.id}`}
+                  className="inline-flex items-center gap-1 text-gold/80 hover:text-gold text-xs mt-1 transition-colors"
+                >
+                  <LinkIcon className="w-3 h-3" />
+                  Part of {parentParish.name}
+                </Link>
+              )}
             </div>
           </div>
 
@@ -137,7 +154,35 @@ export default function ParishPage() {
               {followLoading ? '…' : isFollowing || isMyParish ? 'Unfollow' : 'Follow Parish'}
             </button>
 
-            {!isMyParish && isFollowing && (
+            {/* ── Clergy: "I serve here" toggle (multi-parish) ── */}
+            {isClergy && (
+              isServing ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-1 py-2.5">
+                    <CheckCircleIcon className="w-4 h-4" />
+                    Serving here
+                  </span>
+                  <button
+                    onClick={removeServedParish}
+                    className="flex items-center gap-1 text-xs text-white/50 hover:text-white/80 px-2 py-1.5 rounded-lg transition-colors"
+                    title="Remove from my parishes"
+                  >
+                    <XMarkIcon className="w-3.5 h-3.5" />
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={addServedParish}
+                  className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+                >
+                  I serve here
+                </button>
+              )
+            )}
+
+            {/* ── Regular users: single "my parish" ── */}
+            {!isClergy && !isMyParish && (
               <button
                 onClick={setAsMyParish}
                 className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
@@ -146,16 +191,7 @@ export default function ParishPage() {
               </button>
             )}
 
-            {!isFollowing && !isMyParish && (
-              <button
-                onClick={setAsMyParish}
-                className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
-              >
-                Set as my parish
-              </button>
-            )}
-
-            {isMyParish && (
+            {!isClergy && isMyParish && (
               <div className="flex items-center gap-1.5">
                 <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-1 py-2.5">
                   <CheckBadgeIcon className="w-4 h-4" />
@@ -224,7 +260,9 @@ export default function ParishPage() {
 
         {activeTab === 'events' && <ParishEvents parishId={id} />}
         {activeTab === 'groups' && <ParishGroups parishId={id} />}
-        {activeTab === 'about' && <ParishAbout parish={parish} />}
+        {activeTab === 'about' && (
+          <ParishAbout parish={parish} linkedChurches={linkedChurches} />
+        )}
       </div>
     </div>
   )
@@ -299,7 +337,7 @@ function ContactModal({ parishId, parishName, onClose }) {
 }
 
 // ── About tab ──────────────────────────────────────────────
-function ParishAbout({ parish }) {
+function ParishAbout({ parish, linkedChurches = [] }) {
   const hasContact = parish.address || parish.phone || parish.website || parish.email
   const isIrsBmf   = parish.data_source === 'irs_bmf'
 
@@ -392,6 +430,36 @@ function ParishAbout({ parish }) {
               Visit parish website →
             </a>
           )}
+        </div>
+      )}
+
+      {/* Linked churches / missions */}
+      {linkedChurches.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-navy px-4 py-3 flex items-center gap-2">
+            <LinkIcon className="w-4 h-4 text-white" />
+            <h2 className="text-white font-bold text-sm">Linked Churches</h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {linkedChurches.map(church => (
+              <Link
+                key={church.id}
+                to={`/parish/${church.id}`}
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors"
+              >
+                <div className="w-8 h-8 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <BuildingLibraryIcon className="w-4 h-4 text-navy" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-navy truncate">{church.name}</p>
+                  {church.city && (
+                    <p className="text-xs text-gray-400">{church.city}, {church.state}</p>
+                  )}
+                </div>
+                <ArrowLeftIcon className="w-3.5 h-3.5 text-gray-300 rotate-180 flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
