@@ -54,6 +54,7 @@ const PrivacyPage              = lazy(() => import('./pages/PrivacyPage'))
 const PolicyPage               = lazy(() => import('./pages/PolicyPage'))
 const NotFoundPage             = lazy(() => import('./pages/NotFoundPage'))
 const PitchDeckPage            = lazy(() => import('./pages/PitchDeckPage'))
+const LandingPage              = lazy(() => import('./pages/LandingPage'))
 const RosaryTrackerPage        = lazy(() => import('./pages/RosaryTrackerPage'))
 const PrayerJournalPage        = lazy(() => import('./pages/PrayerJournalPage'))
 const LiturgyOfHoursPage       = lazy(() => import('./pages/LiturgyOfHoursPage'))
@@ -178,7 +179,24 @@ function AppInner() {
   )
 }
 
+// Serve the marketing site when accessed from the main domain
+const isMarketingDomain =
+  window.location.hostname === 'getcommunio.app' ||
+  window.location.hostname === 'www.getcommunio.app'
+
 export default function App() {
+  if (isMarketingDomain) {
+    return (
+      <ErrorBoundary>
+        <BrowserRouter>
+          <Suspense fallback={null}>
+            <LandingPage />
+          </Suspense>
+        </BrowserRouter>
+      </ErrorBoundary>
+    )
+  }
+
   return (
     <ErrorBoundary>
       <AuthProvider>
