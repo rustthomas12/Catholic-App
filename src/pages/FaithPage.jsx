@@ -182,6 +182,45 @@ export default function FaithPage() {
           </div>
         </div>
 
+        {/* ── Morning Offering, Examination, Private Intentions ── */}
+        <div className="mt-6 grid grid-cols-1 gap-3">
+          <Link
+            to="/faith/morning-offering"
+            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">☀️</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-navy text-sm">Morning Offering</p>
+              <p className="text-gray-400 text-xs mt-0.5">Offer your day to God before it begins</p>
+            </div>
+            <span className="text-gray-300 text-sm">→</span>
+          </Link>
+
+          <Link
+            to="/faith/examination"
+            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">📋</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-navy text-sm">Examination of Conscience</p>
+              <p className="text-gray-400 text-xs mt-0.5">Prepare your heart before Confession</p>
+            </div>
+            <span className="text-gray-300 text-sm">→</span>
+          </Link>
+
+          <Link
+            to="/faith/intentions"
+            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">🙏</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-navy text-sm">Prayer Intentions</p>
+              <p className="text-gray-400 text-xs mt-0.5">Your private list of people and intentions</p>
+            </div>
+            <span className="text-gray-300 text-sm">→</span>
+          </Link>
+        </div>
+
         {/* ── Confession Tracker CTA ── */}
         <div className="mt-10">
           <div className="bg-white rounded-2xl border-l-4 border-gold border-t border-b border-r border-gray-100 shadow-sm p-4">

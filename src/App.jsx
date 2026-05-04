@@ -60,6 +60,8 @@ const RosaryTrackerPage        = lazy(() => import('./pages/RosaryTrackerPage'))
 const PrayerJournalPage        = lazy(() => import('./pages/PrayerJournalPage'))
 const LiturgyOfHoursPage       = lazy(() => import('./pages/LiturgyOfHoursPage'))
 const FormationPage            = lazy(() => import('./pages/FormationPage'))
+const MorningOfferingPage      = lazy(() => import('./pages/MorningOfferingPage'))
+const PrivateIntentionsPage    = lazy(() => import('./pages/PrivateIntentionsPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -152,6 +154,9 @@ function AppInner() {
           <Route path="/faith/rosary"                  element={<ProtectedRoute><RouteErrorBoundary><RosaryTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/hours"                   element={<ProtectedRoute><RouteErrorBoundary><LiturgyOfHoursPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/formation/:program"      element={<ProtectedRoute><RouteErrorBoundary><FormationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/morning-offering"        element={<ProtectedRoute><RouteErrorBoundary><MorningOfferingPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/intentions"              element={<ProtectedRoute><RouteErrorBoundary><PrivateIntentionsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/faith/examination"             element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile"                   element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile/:id"               element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings"                  element={<ProtectedRoute><RouteErrorBoundary><SettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
