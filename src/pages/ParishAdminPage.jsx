@@ -15,6 +15,7 @@ import {
   XCircleIcon,
   EnvelopeIcon,
   CreditCardIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
@@ -22,6 +23,7 @@ import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
+import IntegrationsTab from '../components/parish/IntegrationsTab'
 
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
@@ -30,8 +32,9 @@ const TABS = [
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
   { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
-  { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
   { id: 'billing',       label: 'Billing',       Icon: CreditCardIcon },
+  { id: 'integrations',  label: 'Integrations',  Icon: ArrowsRightLeftIcon },
+  { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
 ]
 
 // ── Access guard ────────────────────────────────────────────
@@ -113,6 +116,7 @@ export default function ParishAdminPage() {
     messages:      MessagesTab,
     settings:      SettingsTab,
     billing:       BillingTab,
+    integrations:  IntegrationsTab,
   }[activeTab]
 
   return (
