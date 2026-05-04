@@ -26,7 +26,7 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
 
   const controller = new AbortController()
   const fetchTimeout = setTimeout(() => controller.abort(), 5000)
-  const endpoint = lang === 'es' ? `/api/readings-es?date=${dateStr}` : `/api/readings?date=${dateStr}`
+  const endpoint = lang === 'es' ? `/api/readings?date=${dateStr}&lang=es` : `/api/readings?date=${dateStr}`
 
   _promises[lang] = fetch(endpoint, { signal: controller.signal })
     .then(res => {
@@ -116,7 +116,7 @@ function fetchTLMOnce(dateParam) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10000)
 
-  _tlmPromise = fetch(`/api/tlm-readings?date=${dateParam}`, { signal: controller.signal })
+  _tlmPromise = fetch(`/api/readings?date=${dateParam}&rite=tlm`, { signal: controller.signal })
     .then(res => { if (!res.ok) throw new Error(); return res.json() })
     .then(data => {
       clearTimeout(timeout)

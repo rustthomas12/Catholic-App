@@ -126,7 +126,7 @@ export default function IntegrationsTab({ parishId }) {
         admin_user_id: user.id,
       })
       const popup = window.open(
-        `/api/integrations/${platform.id}/auth?${params}`,
+        `/api/integrations?action=facebook-auth&${params}`,
         'communio_oauth',
         'width=600,height=700,left=200,top=100'
       )
@@ -165,8 +165,8 @@ export default function IntegrationsTab({ parishId }) {
     setSaving(true)
     try {
       const endpoint = platform.authType === 'api_key'
-        ? '/api/integrations/flocknote/connect'
-        : '/api/integrations/webhook/connect'
+        ? '/api/integrations?action=flocknote-connect'
+        : '/api/integrations?action=webhook-connect'
 
       const res = await fetch(endpoint, {
         method: 'POST',
