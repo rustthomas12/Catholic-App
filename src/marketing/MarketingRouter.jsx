@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
-const Home        = lazy(() => import('./Home'))
-const Features    = lazy(() => import('./Features'))
-const ForParishes = lazy(() => import('./ForParishes'))
-const About       = lazy(() => import('./About'))
-const Contact     = lazy(() => import('./Contact'))
+const Home          = lazy(() => import('./Home'))
+const Features      = lazy(() => import('./Features'))
+const ForParishes   = lazy(() => import('./ForParishes'))
+const About         = lazy(() => import('./About'))
+const Contact       = lazy(() => import('./Contact'))
+const PitchDeckPage = lazy(() => import('../pages/PitchDeckPage'))
 
 function Spinner() {
   return (
@@ -24,6 +25,7 @@ export default function MarketingRouter() {
         <Route path="/parishes"  element={<ForParishes />} />
         <Route path="/about"     element={<About />} />
         <Route path="/contact"   element={<Contact />} />
+        <Route path="/pitch"     element={<PitchDeckPage />} />
         {/* Catch-all → home */}
         <Route path="*"          element={<Home />} />
       </Routes>
