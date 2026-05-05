@@ -127,7 +127,7 @@ function SlideSolution() {
     {
       icon: '✝️',
       title: 'Faith',
-      desc: 'Daily readings, saint of the day, prayer journal, rosary tracker, confession tracker, Lent & Advent formation programs.',
+      desc: 'Daily readings, saints, morning offering, examination of conscience, rosary tracker, confession tracker, private prayer intentions, Liturgy of Hours, and formation programs.',
     },
     {
       icon: '🤝',
@@ -264,6 +264,7 @@ function SlideCompetition() {
     { feature: 'Parishioner-facing community', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: true },
     { feature: 'Daily faith content', communio: true, flocknote: false, hallow: true, parishsoft: false, facebook: false },
     { feature: 'Private confession tracker', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
+    { feature: 'Platform integrations (FB, Flocknote…)', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
     { feature: 'No algorithm / no ads', communio: true, flocknote: true, hallow: true, parishsoft: true, facebook: false },
     { feature: 'Free for individuals', communio: true, flocknote: false, hallow: false, parishsoft: true, facebook: true },
     { feature: 'Parish admin dashboard', communio: true, flocknote: true, hallow: false, parishsoft: true, facebook: false },
@@ -332,7 +333,7 @@ function SlideBusinessModel() {
   const features = [
     'Parish admin dashboard', 'Announcements & events', 'Mass times editor',
     'Parishioner directory', 'Push notifications', 'Community feed',
-    'Faith content', '90-day free trial',
+    'Platform integrations hub', 'Faith content', '90-day free trial',
   ]
   return (
     <SlideWrapper id={7}>
@@ -476,8 +477,9 @@ function SlideTraction() {
     { icon: '📱', stat: 'Live', label: 'PWA deployed — iOS & Android' },
     { icon: '🛠', stat: '20+', label: 'Completed build phases' },
     { icon: '💳', stat: 'Live', label: 'Stripe billing — 4-tier parish pricing' },
-    { icon: '🔔', stat: 'Live', label: 'Web push notifications wired' },
-    { icon: '📔', stat: 'Live', label: 'Rosary, journal, hours, formation, confession' },
+    { icon: '🔔', stat: 'Live', label: 'Web push notifications + daily readings cron' },
+    { icon: '📔', stat: '10+', label: 'Faith tools: rosary, journal, confession, morning offering, examination, private intentions, hours, formation' },
+    { icon: '🔗', stat: 'Live', label: 'Platform integrations hub — auto-posts to Facebook, Flocknote, website webhooks on publish' },
   ]
   return (
     <SlideWrapper id={9}>
@@ -489,7 +491,7 @@ function SlideTraction() {
           <span className="text-amber-400">It exists.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-8" />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {metrics.map((m, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
               <div className="text-3xl mb-3">{m.icon}</div>
