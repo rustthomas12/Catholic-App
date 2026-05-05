@@ -266,7 +266,7 @@ function SlideWhyNow() {
     {
       n: '1',
       title: 'Hallow proved the behavior',
-      body: '20 million downloads and $51M ARR from a Catholic prayer app. Catholics adopt faith technology.',
+      body: '18 million downloads and $157M raised from a Catholic prayer app — with no community layer. Catholics adopt faith technology at scale.',
     },
     {
       n: '2',
@@ -322,10 +322,10 @@ function SlideMarket() {
         <div className="w-16 h-px bg-amber-500/50 my-10" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {[
-            { n: '70M', label: 'US Catholics' },
+            { n: '76M', label: 'US Catholics' },
             { n: '17,500', label: 'US Catholic Parishes' },
-            { n: '1.3B', label: 'Catholics Worldwide' },
-            { n: '$51M', label: 'Hallow ARR — prayer only' },
+            { n: '1.39B', label: 'Catholics Worldwide' },
+            { n: '$157M', label: 'Hallow raised — prayer only' },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-6 text-center hover:bg-white/8 transition-colors">
               <div className="text-3xl md:text-4xl font-black text-amber-400 mb-2">{item.n}</div>
@@ -335,9 +335,9 @@ function SlideMarket() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { label: 'TAM', amount: 'US $22.9M, Global $288M', desc: '17,500 US parishes at blended $109/mo', color: 'from-amber-500/20 to-amber-500/5' },
-            { label: 'SAM', amount: '$3.4M', desc: 'Est. 15% digitally ready parishes (Year 5 horizon)', color: 'from-blue-500/20 to-blue-500/5' },
-            { label: 'SOM', amount: '$229K', desc: 'Year 3 target: 175 parishes — 1% of US market', color: 'from-emerald-500/20 to-emerald-500/5' },
+            { label: 'TAM', amount: 'US $27.1M, Global $350M', desc: '17,500 US parishes at blended $129/mo', color: 'from-amber-500/20 to-amber-500/5' },
+            { label: 'SAM', amount: '$4.1M', desc: 'Est. 15% digitally ready parishes (Year 5 horizon)', color: 'from-blue-500/20 to-blue-500/5' },
+            { label: 'SOM', amount: '$218K', desc: 'Year 3 target: 141 parishes — 0.8% of US market', color: 'from-emerald-500/20 to-emerald-500/5' },
           ].map((item, i) => (
             <div key={i} className={`rounded-2xl bg-gradient-to-br ${item.color} border border-white/10 p-8`}>
               <div className="text-xs font-black tracking-widest text-white/50 uppercase mb-2">{item.label}</div>
@@ -418,10 +418,10 @@ function SlideCompetition() {
 
 function SlideBusinessModel() {
   const tiers = [
-    { label: 'Small', price: '$49', period: '/mo', size: 'Under 200 parishioners' },
-    { label: 'Medium', price: '$99', period: '/mo', size: '200–500 parishioners', featured: true },
-    { label: 'Large', price: '$199', period: '/mo', size: '500–1,500 parishioners' },
-    { label: 'Cathedral', price: '$349', period: '/mo', size: '1,500+ parishioners' },
+    { label: 'Small', price: '$59', period: '/mo', size: 'Under 200 parishioners' },
+    { label: 'Medium', price: '$119', period: '/mo', size: '200–500 parishioners', featured: true },
+    { label: 'Large', price: '$229', period: '/mo', size: '500–1,500 parishioners' },
+    { label: 'Cathedral', price: '$389', period: '/mo', size: '1,500+ parishioners' },
   ]
   const features = [
     'Parish admin dashboard', 'Announcements & events', 'Mass times editor',
@@ -461,15 +461,31 @@ function SlideBusinessModel() {
           </div>
           <div className="rounded-2xl bg-white/5 border border-white/10 p-6 flex flex-col justify-center gap-4">
             {[
-              { label: 'Blended avg', val: '$109/month' },
-              { label: 'Income replacement', val: '46 parishes' },
-              { label: 'US market share', val: '0.26%' },
+              { label: 'Blended avg', val: '$129/month' },
+              { label: 'Income replacement', val: '39 parishes' },
+              { label: 'US market share', val: '0.22%' },
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3 last:border-0 last:pb-0">
                 <span className="text-white/40 text-sm">{item.label}</span>
                 <span className="text-amber-400 font-bold">{item.val}</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Parish OS */}
+        <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div className="text-3xl flex-shrink-0">⚙️</div>
+          <div>
+            <p className="text-amber-400 font-bold text-sm mb-1">
+              Parish OS — Professional Services
+            </p>
+            <p className="text-white/60 text-sm leading-relaxed">
+              Done-for-you digital setup and automation for parishes.
+              One-time setup fee ($499–$1,999) + optional monthly retainer ($79–$129/mo).
+              Every Parish OS client is also a Communio subscriber.
+              Combined Year 3 revenue: <span className="text-amber-400 font-semibold">$489K</span>.
+            </p>
           </div>
         </div>
       </div>
@@ -566,9 +582,9 @@ function SlideGTM() {
 
 function SlideTraction() {
   const metrics = [
-    { icon: '⛪', stat: '10,000+', label: 'US parishes in national directory' },
+    { icon: '⛪', stat: '559', label: 'Verified MA parishes in directory — national data in progress' },
     { icon: '📱', stat: 'Live', label: 'PWA deployed — iOS & Android' },
-    { icon: '🛠', stat: '20+', label: 'Completed build phases' },
+    { icon: '🛠', stat: '15+', label: 'Completed build phases' },
     { icon: '💳', stat: 'Live', label: 'Stripe billing — 4-tier parish pricing' },
     { icon: '🔔', stat: 'Live', label: 'Web push notifications + daily readings cron' },
     { icon: '📔', stat: '10+', label: 'Faith tools: rosary, journal, confession, morning offering, examination, private intentions, hours, formation' },
@@ -603,7 +619,7 @@ function SlideTraction() {
             <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Demand Signals</p>
             <div className="space-y-3">
               {[
-                { icon: '🏛', text: '10,000+ US parishes seeded in directory — all targetable on day one of outreach' },
+                { icon: '🏛', text: '559 verified MA parishes in directory — national data expansion in progress' },
                 { icon: '📋', text: 'Parish application form live on marketing site — intake pipeline open' },
                 { icon: '🎯', text: '90-day free trial as conversion mechanism — zero friction to first paying parish' },
                 { icon: '✉️', text: 'SENT Summit pitch competition — initial market validation and investor exposure' },
@@ -621,7 +637,7 @@ function SlideTraction() {
             <div className="space-y-3">
               {[
                 { done: true,  when: 'Q1–Q2 2026', what: 'Full platform built & deployed — parish admin, faith tools, integrations hub' },
-                { done: true,  when: 'Q2 2026',     what: 'National parish directory (10,000+), Stripe billing, push notifications live' },
+                { done: true,  when: 'Q2 2026',     what: '559 verified MA parishes in directory, Stripe billing, push notifications live' },
                 { done: false, when: 'Q3 2026',      what: 'First 5 paid parishes — Worcester & Boston diocese outreach' },
                 { done: false, when: 'Q1 2027',      what: 'First Lent campaign — 20 parishes, bulletin inserts, pulpit scripts' },
                 { done: false, when: '2027',          what: 'First diocese endorsement → 80–160 parishes in one relationship' },
@@ -735,8 +751,8 @@ function SlideFounder() {
 function SlideFinancials() {
   const years = [
     { year: 'Year 1', arr: '$0', label: 'Building traction', parishes: '—', color: 'text-white/40' },
-    { year: 'Year 2', arr: '$89K', label: 'Moderate scenario', parishes: '74 parishes · 8% churn', color: 'text-blue-400' },
-    { year: 'Year 3', arr: '$179K', label: 'Moderate scenario', parishes: '149 parishes · 1 diocese partner', color: 'text-amber-400' },
+    { year: 'Year 2', arr: '$124K', label: 'Communio SaaS only', parishes: '80 parishes · 8% churn', color: 'text-blue-400' },
+    { year: 'Year 3', arr: '$489K', label: 'Communio + Parish OS', parishes: '141 parishes · 1 diocese partner', color: 'text-amber-400' },
   ]
   return (
     <SlideWrapper id={12}>
@@ -760,8 +776,8 @@ function SlideFinancials() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Income replacement', val: '46 parishes' },
-            { label: 'Blended avg', val: '$109/mo' },
+            { label: 'Income replacement', val: '39 parishes' },
+            { label: 'Blended avg', val: '$129/mo' },
             { label: '3-yr LTV', val: '$3,500–$12,500' },
             { label: 'LTV:CAC', val: '25:1 – 85:1' },
           ].map((item, i) => (
@@ -775,9 +791,9 @@ function SlideFinancials() {
           <div className="text-white/40 text-xs uppercase tracking-widest mb-3">Year 3 ARR Range</div>
           <div className="flex items-end gap-4">
             {[
-              { label: 'Conservative', val: '$63K', h: 'h-8' },
-              { label: 'Moderate', val: '$174K', h: 'h-16' },
-              { label: 'Optimistic', val: '$546K', h: 'h-28' },
+              { label: 'Conservative', val: '$156K', h: 'h-8' },
+              { label: 'Moderate', val: '$489K', h: 'h-16' },
+              { label: 'Optimistic', val: '$780K', h: 'h-28' },
             ].map((bar, i) => (
               <div key={i} className="flex flex-col items-center gap-2">
                 <div className="text-amber-400 font-bold text-sm">{bar.val}</div>
@@ -836,9 +852,12 @@ function SlideAsk() {
           ))}
         </div>
         <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-8 text-center">
-          <p className="text-amber-200/90 text-xl leading-relaxed font-light italic">
+          <p className="text-amber-200/90 text-xl leading-relaxed font-light italic mb-4">
             "The return is not a 10x exit.<br />
             It is the Church, served faithfully for decades."
+          </p>
+          <p className="text-white/50 text-sm">
+            Raising $100K–$150K on a SAFE · $1M valuation cap · 20% discount · 18 months runway
           </p>
         </div>
       </div>
