@@ -305,9 +305,7 @@ async function handleTLM(req, res) {
     for (const section of sectionList) { if (section.id) sections[section.id] = section }
     function extractText(section) {
       if (!section?.body) return null
-      return section.body.map(pair => Array.isArray(pair) ? pair[0] : pair).filter(Boolean).join('
-
-').trim() || null
+      return section.body.map(pair => Array.isArray(pair) ? pair[0] : pair).filter(Boolean).join('\n\n').trim() || null
     }
     function extractSection(...ids) {
       for (const id of ids) { const s = sections[id]; if (s) return { reference: null, text: extractText(s) } }
