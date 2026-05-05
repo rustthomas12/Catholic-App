@@ -97,7 +97,7 @@ function SlideProblem() {
           {[
             { stat: '86%', label: 'of Catholic organizations feel unprepared for digital engagement', source: 'eCatholic 2025' },
             { stat: '4–6', label: 'disconnected tools pastors juggle weekly: email, Facebook, WhatsApp, bulletin, website', source: '' },
-            { stat: '7%', label: 'of Catholic organizations report fully integrated digital communication systems', source: '' },
+            { stat: '7%', label: 'of Catholic organizations report fully integrated digital communication systems', source: 'eCatholic 2025' },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-8 hover:bg-white/8 transition-colors">
               <div className="text-5xl md:text-6xl font-black text-amber-400 mb-4">{item.stat}</div>
@@ -108,7 +108,7 @@ function SlideProblem() {
         </div>
         <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6">
           <p className="text-amber-200/80 text-base leading-relaxed">
-            <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not communioty.</span>
+            <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not community.</span>
             {' '}No platform exists that was built specifically for local Catholic communities.
           </p>
         </div>
