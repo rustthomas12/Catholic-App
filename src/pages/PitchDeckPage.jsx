@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react'
 
 const slides = [
-  { id: 1, type: 'cover' },
-  { id: 2, type: 'problem' },
-  { id: 3, type: 'solution' },
-  { id: 4, type: 'whynow' },
-  { id: 5, type: 'market' },
-  { id: 6, type: 'competition' },
-  { id: 7, type: 'business' },
-  { id: 8, type: 'gtm' },
-  { id: 9, type: 'traction' },
-  { id: 10, type: 'founder' },
-  { id: 11, type: 'financials' },
-  { id: 12, type: 'ask' },
-  { id: 13, type: 'vision' },
-  { id: 14, type: 'closing' },
+  { id: 1,  type: 'cover' },
+  { id: 2,  type: 'problem' },
+  { id: 3,  type: 'solution' },
+  { id: 4,  type: 'product' },
+  { id: 5,  type: 'whynow' },
+  { id: 6,  type: 'market' },
+  { id: 7,  type: 'competition' },
+  { id: 8,  type: 'business' },
+  { id: 9,  type: 'gtm' },
+  { id: 10, type: 'traction' },
+  { id: 11, type: 'founder' },
+  { id: 12, type: 'financials' },
+  { id: 13, type: 'ask' },
+  { id: 14, type: 'vision' },
+  { id: 15, type: 'closing' },
 ]
 
 function SlideWrapper({ children, className = '', id }) {
@@ -31,7 +32,7 @@ function SlideWrapper({ children, className = '', id }) {
 function SlideNumber({ n }) {
   return (
     <div className="absolute top-8 right-10 text-white/20 text-sm font-mono tracking-widest">
-      {String(n).padStart(2, '0')} / 14
+      {String(n).padStart(2, '0')} / 15
     </div>
   )
 }
@@ -168,6 +169,89 @@ function SlideSolution() {
   )
 }
 
+function SlideProduct() {
+  const forParish = [
+    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to Facebook, Flocknote, and your parish website — the moment you hit publish.' },
+    { icon: '📊', title: 'Full parish admin dashboard', body: 'Manage parishioners, events, Mass times, RSVP tracking, and a direct inbox — all in one place.' },
+    { icon: '🔔', title: 'Push notifications that land', body: 'OS-level alerts that bypass email spam filters and Facebook algorithms entirely.' },
+    { icon: '🏘', title: 'Built for how parishes actually work', body: 'Multi-parish clergy support, parish clusters, and a 90-day free trial with no per-seat fees.' },
+  ]
+  const forParishioner = [
+    { icon: '⛪', title: 'Parish at the center', body: 'Follow your parish, join groups and organizations, RSVP to events, and see your community\'s feed — all without social media.' },
+    { icon: '✝️', title: '10+ personal faith tools', body: 'Daily readings, morning offering, examination of conscience, rosary tracker, confession tracker, private prayer intentions, Liturgy of Hours, and formation programs.' },
+    { icon: '📱', title: 'Works like a native app', body: 'Add to home screen on any iPhone or Android. No App Store. No download barrier. Instant access.' },
+    { icon: '🔒', title: 'No algorithm. No ads. No data sold.', body: 'Your spiritual life is not a revenue stream. Revenue comes from parishes — not from your attention.' },
+  ]
+
+  return (
+    <SlideWrapper id={4}>
+      <SlideNumber n={4} />
+      <div className="max-w-5xl mx-auto w-full">
+        <Tag color="green">03 · The Product</Tag>
+
+        {/* UVP */}
+        <div className="mt-6 mb-10">
+          <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
+            The only platform that serves<br />
+            <span className="text-amber-400">pastor and parishioner together.</span>
+          </h2>
+          <p className="text-white/60 text-lg max-w-3xl leading-relaxed">
+            Communio gives every pastor a single hub to communicate, manage, and grow their parish — and gives every Catholic a free, private, algorithm-free home for their faith and community life.
+          </p>
+        </div>
+
+        <div className="w-16 h-px bg-amber-500/50 mb-10" />
+
+        {/* Two-column: For parishes vs for parishioners */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Parish side */}
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6">
+            <div className="text-xs font-black tracking-widest text-amber-400 uppercase mb-5">For the Pastor</div>
+            <div className="space-y-4">
+              {forParish.map((item, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                  <div>
+                    <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
+                    <p className="text-white/55 text-xs leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Parishioner side */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+            <div className="text-xs font-black tracking-widest text-white/50 uppercase mb-5">For the Parishioner</div>
+            <div className="space-y-4">
+              {forParishioner.map((item, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                  <div>
+                    <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
+                    <p className="text-white/55 text-xs leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Parish OS statement */}
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div className="text-3xl flex-shrink-0">🔗</div>
+          <div>
+            <p className="text-amber-400 font-bold text-sm mb-1">Communio is the Parish OS.</p>
+            <p className="text-white/60 text-sm leading-relaxed">
+              Every tool a parish touches — Facebook, Flocknote, email lists, the bulletin, the website — flows through Communio. One publish reaches every platform simultaneously. No pastor should need six tools to talk to their own parishioners.
+            </p>
+          </div>
+        </div>
+      </div>
+    </SlideWrapper>
+  )
+}
+
 function SlideWhyNow() {
   const reasons = [
     {
@@ -192,10 +276,10 @@ function SlideWhyNow() {
     },
   ]
   return (
-    <SlideWrapper id={4}>
-      <SlideNumber n={4} />
+    <SlideWrapper id={5}>
+      <SlideNumber n={5} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="purple">03 · Why Now</Tag>
+        <Tag color="purple">04 · Why Now</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-4">
           Four forces converging<br />
           <span className="text-amber-400">to make this the moment.</span>
@@ -219,10 +303,10 @@ function SlideWhyNow() {
 
 function SlideMarket() {
   return (
-    <SlideWrapper id={5}>
-      <SlideNumber n={5} />
+    <SlideWrapper id={6}>
+      <SlideNumber n={6} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="gold">04 · Market Opportunity</Tag>
+        <Tag color="gold">05 · Market Opportunity</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-4">
           The market is <span className="text-amber-400">massive.</span>
         </h2>
@@ -280,10 +364,10 @@ function SlideCompetition() {
   const vals = ['communio', 'flocknote', 'hallow', 'parishsoft', 'facebook']
 
   return (
-    <SlideWrapper id={6}>
-      <SlideNumber n={6} />
+    <SlideWrapper id={7}>
+      <SlideNumber n={7} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="blue">05 · Competition & Moat</Tag>
+        <Tag color="blue">06 · Competition & Moat</Tag>
         <h2 className="mt-6 text-3xl md:text-5xl font-black text-white leading-tight mb-4">
           No one has built<br />
           <span className="text-amber-400">all three layers together.</span>
@@ -336,10 +420,10 @@ function SlideBusinessModel() {
     'Platform integrations hub', 'Faith content', '90-day free trial',
   ]
   return (
-    <SlideWrapper id={7}>
-      <SlideNumber n={7} />
+    <SlideWrapper id={8}>
+      <SlideNumber n={8} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="green">06 · Business Model</Tag>
+        <Tag color="green">07 · Business Model</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           Free for every Catholic.<br />
           <span className="text-amber-400">Parishes pay a simple flat fee.</span>
@@ -427,10 +511,10 @@ function SlideGTM() {
     },
   ]
   return (
-    <SlideWrapper id={8}>
-      <SlideNumber n={8} />
+    <SlideWrapper id={9}>
+      <SlideNumber n={9} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="purple">07 · Go-to-Market</Tag>
+        <Tag color="purple">08 · Go-to-Market</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           Parish sales is <span className="text-amber-400">pastoral,</span><br />not cold outreach.
         </h2>
@@ -482,10 +566,10 @@ function SlideTraction() {
     { icon: '🔗', stat: 'Live', label: 'Platform integrations hub — auto-posts to Facebook, Flocknote, website webhooks on publish' },
   ]
   return (
-    <SlideWrapper id={9}>
-      <SlideNumber n={9} />
+    <SlideWrapper id={10}>
+      <SlideNumber n={10} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="green">08 · Product & Traction</Tag>
+        <Tag color="green">09 · Product & Traction</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           This is not a concept.<br />
           <span className="text-amber-400">It exists.</span>
@@ -526,10 +610,10 @@ function SlideFounder() {
     { icon: '🎓', label: 'Philosophically & analytically educated' },
   ]
   return (
-    <SlideWrapper id={10}>
-      <SlideNumber n={10} />
+    <SlideWrapper id={11}>
+      <SlideNumber n={11} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="gold">09 · The Founder</Tag>
+        <Tag color="gold">10 · The Founder</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-4">
           Thomas Rust
         </h2>
@@ -583,10 +667,10 @@ function SlideFinancials() {
     { year: 'Year 3', arr: '$179K', label: 'Moderate scenario', parishes: '149 parishes · 1 diocese partner', color: 'text-amber-400' },
   ]
   return (
-    <SlideWrapper id={11}>
-      <SlideNumber n={11} />
+    <SlideWrapper id={12}>
+      <SlideNumber n={12} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="blue">10 · Financial Projections</Tag>
+        <Tag color="blue">11 · Financial Projections</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           Conservative. Achievable.<br />
           <span className="text-amber-400">Mission-first.</span>
@@ -645,10 +729,10 @@ function SlideAsk() {
     { icon: '✝️', title: 'First Lent campaign', body: 'The single highest-leverage adoption window in the Church year.' },
   ]
   return (
-    <SlideWrapper id={12}>
-      <SlideNumber n={12} />
+    <SlideWrapper id={13}>
+      <SlideNumber n={13} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="purple">11 · The Ask</Tag>
+        <Tag color="purple">12 · The Ask</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           Not venture capital.<br />
           <span className="text-amber-400">A Catholic investment in Catholic infrastructure.</span>
@@ -684,10 +768,10 @@ function SlideVision() {
     { icon: '⛪', period: 'Year 10', label: 'Infrastructure', body: 'Communio is infrastructure for the Church — like the bulletin, but alive. 1B+ Catholics with a digital home.' },
   ]
   return (
-    <SlideWrapper id={13}>
-      <SlideNumber n={13} />
+    <SlideWrapper id={14}>
+      <SlideNumber n={14} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="gold">12 · The Vision</Tag>
+        <Tag color="gold">13 · The Vision</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           Where Communio is<br />
           <span className="text-amber-400">in 10 years.</span>
@@ -728,7 +812,7 @@ function SlideVision() {
 
 function SlideClosing() {
   return (
-    <SlideWrapper id={14} className="items-center text-center">
+    <SlideWrapper id={15} className="items-center text-center">
       <SlideNumber n={14} />
       <div className="max-w-3xl mx-auto">
         <div className="text-7xl md:text-9xl font-black tracking-tight text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
@@ -757,20 +841,21 @@ function SlideClosing() {
 }
 
 const SLIDE_COMPONENTS = {
-  cover: SlideCover,
-  problem: SlideProblem,
-  solution: SlideSolution,
-  whynow: SlideWhyNow,
-  market: SlideMarket,
+  cover:       SlideCover,
+  problem:     SlideProblem,
+  solution:    SlideSolution,
+  product:     SlideProduct,
+  whynow:      SlideWhyNow,
+  market:      SlideMarket,
   competition: SlideCompetition,
-  business: SlideBusinessModel,
-  gtm: SlideGTM,
-  traction: SlideTraction,
-  founder: SlideFounder,
-  financials: SlideFinancials,
-  ask: SlideAsk,
-  vision: SlideVision,
-  closing: SlideClosing,
+  business:    SlideBusinessModel,
+  gtm:         SlideGTM,
+  traction:    SlideTraction,
+  founder:     SlideFounder,
+  financials:  SlideFinancials,
+  ask:         SlideAsk,
+  vision:      SlideVision,
+  closing:     SlideClosing,
 }
 
 export default function PitchDeckPage() {
@@ -778,8 +863,9 @@ export default function PitchDeckPage() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const slideLabels = [
-    'Cover', 'Problem', 'Solution', 'Why Now', 'Market', 'Competition',
-    'Business Model', 'Go-to-Market', 'Traction', 'Founder', 'Financials', 'The Ask', 'Vision', 'Closing',
+    'Cover', 'Problem', 'Solution', 'The Product', 'Why Now', 'Market',
+    'Competition', 'Business Model', 'Go-to-Market', 'Traction',
+    'Founder', 'Financials', 'The Ask', 'Vision', 'Closing',
   ]
 
   useEffect(() => {
