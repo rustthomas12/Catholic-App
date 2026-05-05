@@ -108,8 +108,8 @@ function SlideProblem() {
         </div>
         <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6">
           <p className="text-amber-200/80 text-base leading-relaxed">
-            <span className="text-amber-400 font-semibold">Bulletins go unread. Emails go to spam. Facebook algorithms bury parish posts.</span>
-            {' '}The infrastructure of Catholic community life is broken — and no one has fixed it.
+            <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not communioty.</span>
+            {' '}No platform exists that was built specifically for local Catholic communities.
           </p>
         </div>
       </div>
@@ -127,7 +127,7 @@ function SlideSolution() {
     {
       icon: '✝️',
       title: 'Faith',
-      desc: 'Daily readings, saints, morning offering, examination of conscience, rosary tracker, confession tracker, private prayer intentions, Liturgy of Hours, and formation programs.',
+      desc: 'Daily readings, saints, morning offering, examination of conscience, confession tracker, and a private prayer intention list.',
     },
     {
       icon: '🤝',
@@ -173,12 +173,12 @@ function SlideWhyNow() {
     {
       n: '1',
       title: 'Hallow proved the behavior',
-      body: '20 million downloads and $51M ARR from a Catholic prayer app. Catholics adopt faith technology. The next category is community — and no one has built it yet.',
+      body: '20 million downloads and $51M ARR from a Catholic prayer app. Catholics adopt faith technology.',
     },
     {
       n: '2',
       title: 'The post-COVID parish crisis',
-      body: 'Mass attendance dropped 30–50% during COVID and has not fully recovered. Parishes are urgently looking for tools to re-engage lapsed parishioners.',
+      body: 'Mass attendance dropped significantly during COVID and has not fully recovered. Parishes are urgently looking for tools to re-engage lapsed parishioners.',
     },
     {
       n: '3',
