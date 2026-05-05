@@ -37,8 +37,8 @@ function facebookAuth(req, res) {
   if (!parish_id || !admin_user_id) {
     return res.status(400).json({ error: 'Missing parish_id or admin_user_id' })
   }
-  if (!process.env.FACEBOOK_APP_ID) {
-    return res.status(500).json({ error: 'Facebook app not configured' })
+  if (!process.env.FACEBOOK_APP_ID || process.env.FACEBOOK_APP_ID === 'pending') {
+    return res.send(closePopup('facebook', 'not_configured'))
   }
 
   const state = Buffer.from(JSON.stringify({ parish_id, admin_user_id })).toString('base64url')

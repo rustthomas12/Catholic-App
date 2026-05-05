@@ -27,21 +27,6 @@ const PLATFORMS = [
     ],
   },
   {
-    id: 'instagram',
-    name: 'Instagram',
-    description: 'Share announcements with images to Instagram.',
-    icon: '📷',
-    authType: 'oauth',
-    note: 'Only posts with images are shared. Requires a Facebook Business account.',
-  },
-  {
-    id: 'google_business',
-    name: 'Google Business',
-    description: 'Post announcements and keep your Google listing active.',
-    icon: '🔍',
-    authType: 'oauth',
-  },
-  {
     id: 'website_webhook',
     name: 'Parish Website',
     description: 'Send posts to your website via webhook (WordPress, eCatholic, etc.)',
@@ -142,6 +127,8 @@ export default function IntegrationsTab({ parishId }) {
           toast.info('Select your Facebook page below to complete setup.')
         } else if (e.data.result === 'denied') {
           toast.error('Authorization was denied.')
+        } else if (e.data.result === 'not_configured') {
+          toast.error('Facebook integration is not yet configured. Contact support to enable it.')
         } else {
           toast.error(`Connection failed: ${e.data.result}`)
         }
