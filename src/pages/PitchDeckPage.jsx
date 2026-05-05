@@ -107,11 +107,20 @@ function SlideProblem() {
             </div>
           ))}
         </div>
-        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6">
+        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6 mb-4">
           <p className="text-amber-200/80 text-base leading-relaxed">
             <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not community.</span>
             {' '}No platform exists that was built specifically for local Catholic communities.
           </p>
+        </div>
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-start gap-4">
+          <div className="text-2xl flex-shrink-0">⏰</div>
+          <div>
+            <p className="text-white font-bold text-sm mb-1">The urgency is now.</p>
+            <p className="text-white/60 text-sm leading-relaxed">
+              30–50% of Mass attendance lost since COVID has not returned. A generation of Catholics is drifting — and every year without a solution is another year of lost community. The tools that could reverse this (web push, AI-assisted development) only became viable in 2023. The window to build this is open. It will not stay open.
+            </p>
+          </div>
         </div>
       </div>
     </SlideWrapper>
@@ -569,13 +578,15 @@ function SlideTraction() {
     <SlideWrapper id={10}>
       <SlideNumber n={10} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="green">09 · Product & Traction</Tag>
+        <Tag color="green">09 · Traction & Milestones</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           This is not a concept.<br />
-          <span className="text-amber-400">It exists.</span>
+          <span className="text-amber-400">It exists. It's ready.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-8" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+
+        {/* Product metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {metrics.map((m, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
               <div className="text-3xl mb-3">{m.icon}</div>
@@ -584,7 +595,52 @@ function SlideTraction() {
             </div>
           ))}
         </div>
-        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-wrap items-center gap-4 justify-between">
+
+        {/* Demand signals + Milestones side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          {/* Demand signals */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Demand Signals</p>
+            <div className="space-y-3">
+              {[
+                { icon: '🏛', text: '10,000+ US parishes seeded in directory — all targetable on day one of outreach' },
+                { icon: '📋', text: 'Parish application form live on marketing site — intake pipeline open' },
+                { icon: '🎯', text: '90-day free trial as conversion mechanism — zero friction to first paying parish' },
+                { icon: '✉️', text: 'SENT Summit pitch competition — initial market validation and investor exposure' },
+              ].map((d, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <span className="text-base flex-shrink-0">{d.icon}</span>
+                  <p className="text-white/60 text-xs leading-relaxed">{d.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Milestone timeline */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Milestone Timeline</p>
+            <div className="space-y-3">
+              {[
+                { done: true,  when: 'Q1–Q2 2026', what: 'Full platform built & deployed — parish admin, faith tools, integrations hub' },
+                { done: true,  when: 'Q2 2026',     what: 'National parish directory (10,000+), Stripe billing, push notifications live' },
+                { done: false, when: 'Q3 2026',      what: 'First 5 paid parishes — Worcester & Boston diocese outreach' },
+                { done: false, when: 'Q1 2027',      what: 'First Lent campaign — 20 parishes, bulletin inserts, pulpit scripts' },
+                { done: false, when: '2027',          what: 'First diocese endorsement → 80–160 parishes in one relationship' },
+              ].map((m, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <span className={`text-xs font-bold mt-0.5 flex-shrink-0 ${m.done ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {m.done ? '✓' : '→'}
+                  </span>
+                  <div>
+                    <span className={`text-xs font-mono mr-2 ${m.done ? 'text-white/30' : 'text-amber-400/70'}`}>{m.when}</span>
+                    <span className="text-white/60 text-xs">{m.what}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-wrap items-center gap-4 justify-between">
           <a href="https://getcommunio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">
             getcommunio.app
           </a>
@@ -613,13 +669,12 @@ function SlideFounder() {
     <SlideWrapper id={11}>
       <SlideNumber n={11} />
       <div className="max-w-5xl mx-auto w-full">
-        <Tag color="gold">10 · The Founder</Tag>
-        <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-4">
-          Thomas Rust
+        <Tag color="gold">10 · The Team</Tag>
+        <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
+          Why Thomas Rust<br /><span className="text-amber-400">is the right founder for this.</span>
         </h2>
-        <div className="text-amber-400 text-lg mb-8">Founder &amp; Builder, Communio</div>
-        <div className="w-16 h-px bg-amber-500/50 mb-10" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="w-16 h-px bg-amber-500/50 mt-6 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
             <div className="grid grid-cols-1 gap-3">
               {facts.map((f, i) => (
@@ -633,7 +688,7 @@ function SlideFounder() {
           <div className="flex flex-col gap-6">
             <blockquote className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-8">
               <p className="text-amber-100/90 text-lg leading-relaxed italic">
-                “Right now, people leave Mass and disappear into their phones. Communio flips that, so that the same device actually brings them back into parish life during the week."
+                "Right now, people leave Mass and disappear into their phones. Communio flips that, so that the same device actually brings them back into parish life during the week."
               </p>
             </blockquote>
             <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
@@ -653,6 +708,23 @@ function SlideFounder() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        {/* Why We Win */}
+        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6">
+          <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-4">Why We Win</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { icon: '✝️', text: 'Catholic by conviction — this is not a market opportunity, it is a calling. The founder felt the isolation firsthand as a parishioner.' },
+              { icon: '💼', text: 'Insurance background means relationship-based sales — exactly how parish adoption works. Pastors don\'t buy SaaS; they trust people.' },
+              { icon: '💻', text: 'Proved execution: full-featured platform built solo in months at $0 infrastructure cost. Not a prototype — a live product.' },
+              { icon: '⚡', text: 'AI-assisted development permanently lowers the execution gap. A solo Catholic founder can now out-ship a funded team in this space.' },
+            ].map((w, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <span className="text-lg flex-shrink-0">{w.icon}</span>
+                <p className="text-white/70 text-sm leading-relaxed">{w.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -738,6 +810,20 @@ function SlideAsk() {
           <span className="text-amber-400">A Catholic investment in Catholic infrastructure.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-8" />
+
+        {/* Explicit ask statement */}
+        <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-5 mb-6 flex items-start gap-4">
+          <div className="text-2xl flex-shrink-0">🎯</div>
+          <div>
+            <p className="text-amber-400 font-bold text-sm mb-1">The Ask: Pre-Seed Investment</p>
+            <p className="text-white/70 text-sm leading-relaxed">
+              We are raising pre-seed capital to execute Phase 1 — signing 10–20 paying parishes in Massachusetts, establishing the first diocese relationship, and running the Lent 2027 adoption campaign. The product is built. The market is ready. We are asking for the capital to turn it on.
+            </p>
+          </div>
+        </div>
+
+        {/* Use of funds */}
+        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Use of Funds</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {items.map((item, i) => (
             <div key={i} className="flex gap-5 rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
