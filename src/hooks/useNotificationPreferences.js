@@ -18,6 +18,7 @@ const DEFAULTS = {
   new_group_member:         true,
   chapter_requests:         true,
   new_org_member:           true,
+  morning_offering_reminder: true,
   daily_readings_reminder:  true,
   reminder_interval_days:   30,
 }
@@ -87,6 +88,7 @@ export function useNotificationPreferences() {
       new_group_member:         false,
       chapter_requests:         false,
       new_org_member:           false,
+      morning_offering_reminder: false,
       daily_readings_reminder:  false,
     }
 

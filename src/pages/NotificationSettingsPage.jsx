@@ -267,8 +267,14 @@ export default function NotificationSettingsPage() {
     },
     {
       icon: BookOpenIcon,
+      label: 'Morning Offering reminder',
+      description: 'Notified at 6 AM every day to offer your morning to God',
+      column: 'morning_offering_reminder',
+    },
+    {
+      icon: BookOpenIcon,
       label: 'Daily Readings reminder',
-      description: 'Notified at 7 AM every day to read the daily Mass readings',
+      description: 'Notified at 12 PM every day to read the daily Mass readings',
       column: 'daily_readings_reminder',
     },
   ]

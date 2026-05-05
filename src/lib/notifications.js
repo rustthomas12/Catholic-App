@@ -18,7 +18,9 @@ const PREFERENCE_MAP = {
   new_group_member:       'new_group_member',
   chapter_request:        'chapter_requests',
   chapter_request_resolved: 'chapter_requests',
-  new_org_member:         'new_org_member',
+  new_org_member:            'new_org_member',
+  morning_offering_reminder: 'morning_offering_reminder',
+  daily_readings_reminder:   'daily_readings_reminder',
 }
 
 /**
