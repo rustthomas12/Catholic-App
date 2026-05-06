@@ -124,7 +124,7 @@ function SlideSolution() {
     {
       icon: '⛪',
       title: 'Parish',
-      desc: 'Announcements, events, Mass times, RSVP — reaches every parishioner without algorithm interference via push notifications.',
+      desc: 'Announcements, events, Mass times, and RSVP reach every parishioner without algorithm interference via push notifications.',
     },
     {
       icon: '✝️',
@@ -172,7 +172,7 @@ function SlideSolution() {
 
 function SlideProduct() {
   const forParish = [
-    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to Facebook, Flocknote, and your parish website — the moment you hit publish.' },
+    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to Communio, Facebook, and Flocknote!' },
     { icon: '📊', title: 'Full parish admin dashboard', body: 'Manage parishioners, events, Mass times, RSVP tracking, and a direct inbox — all in one place.' },
     { icon: '🔔', title: 'Push notifications that land', body: 'OS-level alerts that bypass email spam filters and Facebook algorithms entirely.' },
     { icon: '🏘', title: 'Built for how parishes actually work', body: 'Multi-parish clergy support, parish clusters, and a 90-day free trial with no per-seat fees.' },
