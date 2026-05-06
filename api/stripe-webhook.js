@@ -71,12 +71,22 @@ export default async function handler(req, res) {
 
         // Parish subscription checkout
         if (parishId && billingType?.startsWith('parish_')) {
+          const adminUserId = session.metadata?.admin_user_id
+
           await supabase.from('parish_subscriptions').upsert({
             parish_id: parishId,
             stripe_customer_id: customerId,
             status: 'trialing',
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
+
+          // Ensure the subscribing pastor is a parish admin
+          if (adminUserId) {
+            await supabase.from('parish_admins').upsert(
+              { parish_id: parishId, user_id: adminUserId, role: 'admin' },
+              { onConflict: 'parish_id,user_id' }
+            )
+          }
           break
         }
 

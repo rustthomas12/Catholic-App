@@ -62,6 +62,7 @@ const LiturgyOfHoursPage       = lazy(() => import('./pages/LiturgyOfHoursPage')
 const FormationPage            = lazy(() => import('./pages/FormationPage'))
 const MorningOfferingPage      = lazy(() => import('./pages/MorningOfferingPage'))
 const PrivateIntentionsPage    = lazy(() => import('./pages/PrivateIntentionsPage'))
+const PastorOnboardingPage     = lazy(() => import('./pages/PastorOnboardingPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -155,6 +156,7 @@ function AppInner() {
           <Route path="/faith/hours"                   element={<ProtectedRoute><RouteErrorBoundary><LiturgyOfHoursPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/formation/:program"      element={<ProtectedRoute><RouteErrorBoundary><FormationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/morning-offering"        element={<ProtectedRoute><RouteErrorBoundary><MorningOfferingPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/pastor-setup"                  element={<ProtectedRoute><RouteErrorBoundary><PastorOnboardingPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/intentions"              element={<ProtectedRoute><RouteErrorBoundary><PrivateIntentionsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/examination"             element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile"                   element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />

@@ -66,7 +66,12 @@ export default function OnboardingPage() {
 
   async function finish() {
     await updateProfile({ onboarding_completed: true })
-    navigate('/', { replace: true })
+    // Ordained/religious priests get routed to pastor parish setup
+    if (['ordained', 'religious'].includes(profile?.vocation_state)) {
+      navigate('/pastor-setup', { replace: true })
+    } else {
+      navigate('/', { replace: true })
+    }
   }
 
   function skip() {
