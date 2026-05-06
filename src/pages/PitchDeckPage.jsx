@@ -91,7 +91,7 @@ function SlideProblem() {
         <Tag color="blue">01 · Problem</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-4">
           The Church has no digital infrastructure for<br />
-          <span className="text-amber-400">daily parish life.</span>
+          <span className="text-amber-400">local Catholic communities.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-10" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -110,7 +110,7 @@ function SlideProblem() {
         <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6 mb-4">
           <p className="text-amber-200/80 text-base leading-relaxed">
             <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not community.</span>
-            {' '}No platform exists that was built specifically for local Catholic communities.
+            {' '}No one has built the digital parish hall...until now.
           </p>
         </div>
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-start gap-4">
