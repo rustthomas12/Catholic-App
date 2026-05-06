@@ -113,15 +113,7 @@ function SlideProblem() {
             {' '}No one has built the digital parish hall...until now.
           </p>
         </div>
-        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-start gap-4">
-          <div className="text-2xl flex-shrink-0">⏰</div>
-          <div>
-            <p className="text-white font-bold text-sm mb-1">The urgency is now.</p>
-            <p className="text-white/60 text-sm leading-relaxed">
-              30–50% of Mass attendance lost since COVID has not returned. A generation of Catholics is drifting — and every year without a solution is another year of lost community. The tools that could reverse this (web push, AI-assisted development) only became viable in 2023. The window to build this is open. It will not stay open.
-            </p>
-          </div>
-        </div>
+       
       </div>
     </SlideWrapper>
   )
