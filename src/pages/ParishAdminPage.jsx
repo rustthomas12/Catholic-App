@@ -1057,10 +1057,10 @@ function MessagesTab({ parishId }) {
 
 // ── Parish pricing tiers (matches pitch deck) ───────────────
 const PARISH_TIERS = [
-  { key: 'small',    label: 'Small',    price: 49,  size: 'Under 200 parishioners',    priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_SMALL' },
-  { key: 'medium',   label: 'Medium',   price: 99,  size: '200–500 parishioners',      priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_MEDIUM',   suggested: true },
-  { key: 'large',    label: 'Large',    price: 199, size: '500–1,500 parishioners',    priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_LARGE' },
-  { key: 'cathedral',label: 'Cathedral',price: 349, size: '1,500+ parishioners',       priceEnvKey: 'VITE_STRIPE_PARISH_PRICE_CATHEDRAL' },
+  { key: 'small',    label: 'Small',    price: 59,  size: 'Under 200 parishioners',  suggested: false },
+  { key: 'medium',   label: 'Medium',   price: 119, size: '200–500 parishioners',    suggested: true  },
+  { key: 'large',    label: 'Large',    price: 229, size: '500–1,500 parishioners',  suggested: false },
+  { key: 'cathedral',label: 'Cathedral',price: 389, size: '1,500+ parishioners',     suggested: false },
 ]
 
 // ── Billing Tab ─────────────────────────────────────────────
