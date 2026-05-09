@@ -346,7 +346,7 @@ function ForParishes() {
             </div>
             <p className="text-gray-400 text-xs mt-4 text-center">All plans include a 90-day free trial</p>
             <a
-              href="mailto:hello@getcommunio.app?subject=Parish inquiry"
+              href="mailto:info@getcommunio.app?subject=Parish inquiry"
               className="mt-6 block text-center bg-gold text-navy font-bold px-6 py-3 rounded-2xl hover:bg-gold/90 transition-colors"
             >
               Contact Us to Get Started
@@ -450,7 +450,7 @@ function CTA() {
             Open Communio — Free
           </a>
           <a
-            href="mailto:hello@getcommunio.app?subject=Parish inquiry"
+            href="mailto:info@getcommunio.app?subject=Parish inquiry"
             className="w-full sm:w-auto border-2 border-navy text-navy font-bold px-8 py-4 rounded-2xl hover:bg-navy/5 transition-colors"
           >
             Get Your Parish Set Up
@@ -498,7 +498,7 @@ function Footer() {
             <div className="space-y-2">
               {[
                 { label: 'For Parishes', href: '#for-parishes' },
-                { label: 'Contact', href: 'mailto:hello@getcommunio.app' },
+                { label: 'Contact', href: 'mailto:info@getcommunio.app' },
                 { label: 'Privacy Policy', href: `${APP_URL}/privacy` },
                 { label: 'Terms of Service', href: `${APP_URL}/terms` },
                 { label: 'Content Policy', href: `${APP_URL}/policy` },

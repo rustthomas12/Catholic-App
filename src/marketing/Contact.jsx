@@ -32,7 +32,7 @@ export default function ContactPage() {
       message: form.message,
     })
     if (error) {
-      toast.error('Something went wrong. Please email us directly at hello@getcommunio.app')
+      toast.error('Something went wrong. Please email us directly at info@getcommunio.app')
     } else {
       setSubmitted(true)
     }
@@ -65,7 +65,7 @@ export default function ContactPage() {
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Ways to Reach Us</p>
               <div className="space-y-4">
                 {[
-                  { icon: '✉️', label: 'Email', value: 'hello@getcommunio.app', href: 'mailto:hello@getcommunio.app' },
+                  { icon: '✉️', label: 'Email', value: 'info@getcommunio.app', href: 'mailto:info@getcommunio.app' },
                 ].map((c, i) => (
                   <a key={i} href={c.href} className="flex items-start gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                     <span className="text-2xl">{c.icon}</span>

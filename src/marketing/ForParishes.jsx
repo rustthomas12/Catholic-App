@@ -47,7 +47,7 @@ function ParishApplicationForm() {
       notes: form.notes || null,
     })
     if (error) {
-      toast.error('Something went wrong. Please email us at hello@getcommunio.app')
+      toast.error('Something went wrong. Please email us at info@getcommunio.app')
     } else {
       setSubmitted(true)
     }
@@ -224,7 +224,7 @@ export default function ForParishesPage() {
           </div>
           <p className="text-center text-gray-400 text-sm mt-6">
             Prefer email? Write us at{' '}
-            <a href="mailto:hello@getcommunio.app" className="text-navy font-semibold hover:underline">hello@getcommunio.app</a>
+            <a href="mailto:info@getcommunio.app" className="text-navy font-semibold hover:underline">info@getcommunio.app</a>
           </p>
         </div>
       </section>

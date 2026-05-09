@@ -1355,7 +1355,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
 
   async function handleStartTrial() {
     if (selectedTier === 'national_network') {
-      toast.info('National Network (51+ chapters) requires a custom contract. Contact hello@getcommunio.app.')
+      toast.info('National Network (51+ chapters) requires a custom contract. Contact info@getcommunio.app.')
       return
     }
     setCheckoutLoading(true)
@@ -1456,7 +1456,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
           </p>
 
           {selectedTier === 'national_network' ? (
-            <a href="mailto:hello@getcommunio.app?subject=National Network inquiry"
+            <a href="mailto:info@getcommunio.app?subject=National Network inquiry"
               className="block w-full text-center bg-purple-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-purple-700 transition-colors">
               Contact us for National Network pricing →
             </a>
