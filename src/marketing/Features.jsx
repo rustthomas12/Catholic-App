@@ -11,9 +11,9 @@ const FEATURES = [
       { icon: '📢', title: 'Parish Feed', desc: 'Announcements, posts, and updates from your parish — straight to you, no algorithm.' },
       { icon: '📅', title: 'Events & RSVP', desc: 'See upcoming parish events, RSVP with one tap, and get push reminders.' },
       { icon: '🕐', title: 'Mass Times', desc: 'Always up-to-date Mass schedule for your parish, viewable by any follower.' },
-      { icon: '🔔', title: 'Push Notifications', desc: 'OS-level alerts for announcements and events — no app check needed.' },
-      { icon: '⛪', title: 'Parish Directory', desc: '559 verified Massachusetts parishes in directory — national expansion in progress.' },
-      { icon: '🔗', title: 'Parish Clusters', desc: 'Multiple parishes under one pastoral name (e.g. Carlo Acutis Parish) shown as a cluster.' },
+      { icon: '🔔', title: 'Push Notifications', desc: 'No need to even open the app to stay up to date.' },
+      { icon: '⛪', title: 'Parish Directory', desc: 'Find multiple local parishes and track all of their events.' },
+      { icon: '🔗', title: 'Parish Clusters', desc: 'Multiple parishes under one pastoral name.' },
     ],
   },
   {
@@ -34,32 +34,14 @@ const FEATURES = [
     color: 'bg-purple-500/10 border-purple-500/20',
     accent: 'text-purple-400',
     items: [
-      { icon: '📖', title: 'Daily Readings', desc: 'Full USCCB Mass readings, liturgical season, and calendar — every day.' },
-      { icon: '🌅', title: 'Morning Offering', desc: 'Offer your day to God before it begins. Four classic prayers including the traditional Apostleship of Prayer offering.' },
-      { icon: '🪞', title: 'Examination of Conscience', desc: 'A guided examination across all Ten Commandments and the Precepts of the Church — prepare well for Confession.' },
-      { icon: '🛡️', title: 'Confession Tracker', desc: 'Track your last confession and how many days it\'s been. Completely private.' },
-      { icon: '👑', title: 'Saints Library', desc: 'Full biographies, feast days, patron causes, and prayers for hundreds of saints.' },
-      { icon: '📿', title: 'Rosary Tracker', desc: 'Log your daily rosary. Track your streak. Build the habit.' },
-      { icon: '📔', title: 'Prayer Journal', desc: 'A private space for your intentions and reflections. Only you can see it.' },
-      { icon: '🕯️', title: 'Liturgy of Hours', desc: 'Morning, Evening, and Night Prayer with full psalms, canticles, and readings.' },
-      { icon: '🌿', title: 'Formation Programs', desc: 'Lent and Advent programs, daily spiritual reading, and formation tracks.' },
-      { icon: '🤍', title: 'Private Prayer Intentions', desc: 'Keep a personal list of people and intentions you\'re praying for. Mark as prayed or answered.' },
-    ],
+      { icon: '📖', title: 'Daily Readings', desc: 'Mass readings, liturgical season, and calendar for every day.' },
+      { icon: '📔', title: 'Intention Tracker', desc: 'A private, encrypted space for your daily intentions.' },
+      { icon: '🕊', title: 'Confession Tracker', desc: 'Track your last confession and how many days it\'s been.' },
+      { icon: '🕯', title: 'Examination of Conscience', desc: 'A detailed examination of conscience easily accesible in the app.' },
+      { icon: '', title: 'Morning Offering', desc: 'Get a push notification reminder to say a morning offering.' },
+     ],
   },
-  {
-    category: 'For Parishes (Admin)',
-    color: 'bg-amber-500/10 border-amber-500/20',
-    accent: 'text-amber-400',
-    items: [
-      { icon: '📊', title: 'Admin Dashboard', desc: 'Full parish management dashboard — parishioners, posts, events, messages, billing.' },
-      { icon: '👥', title: 'Parishioner List', desc: 'See who follows your parish with name, vocation, and join date. Export to CSV.' },
-      { icon: '📣', title: 'Announcements', desc: 'Post announcements that reach every follower directly — no algorithm filter.' },
-      { icon: '🗓', title: 'Event Management', desc: 'Create events, track RSVPs, and view attendee breakdowns.' },
-      { icon: '⏱', title: 'Scheduled Posts', desc: 'Write posts in advance and schedule them to publish automatically.' },
-      { icon: '🏘', title: 'Multi-Parish Clergy', desc: 'Pastors serving multiple parishes can be set as admin of each one.' },
-      { icon: '🔗', title: 'Platform Integrations', desc: 'Auto-post announcements to Facebook, Flocknote, and your website the moment you publish in Communio.' },
-    ],
-  },
+
   {
     category: 'Platform',
     color: 'bg-gray-500/10 border-gray-500/20',
@@ -84,7 +66,7 @@ export default function FeaturesPage() {
         <div className="max-w-3xl mx-auto">
           <p className="text-gold text-xs font-bold tracking-widest uppercase mb-4">Everything in One App</p>
           <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Built for the way Catholics<br />live their faith daily.
+            Communio has everything you need<br />to keep your parish connected through the week.
           </h1>
           <p className="text-white/60 text-lg mb-8">
             Every feature is free for individual Catholics. Parishes subscribe to unlock admin tools.
@@ -123,8 +105,7 @@ export default function FeaturesPage() {
       <section className="bg-navy py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Ready to get started?</h2>
-          <p className="text-white/50 mb-8">Free for every Catholic. Always.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href={APP_URL} className="bg-gold text-navy font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors">
               Open the App Free
             </a>

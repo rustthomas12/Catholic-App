@@ -113,7 +113,6 @@ export function MarketingFooter() {
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
             </p>
-            <p className="text-white/25 text-xs mt-4 italic">Pro Ecclesia. Pro Fide.</p>
           </div>
 
           <div>
@@ -146,9 +145,9 @@ export function MarketingFooter() {
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-white/20 text-xs">© {new Date().getFullYear()} Communio · getcommunio.app</p>
           <div className="flex items-center gap-4">
-            <a href="mailto:hello@getcommunio.app" className="text-white/30 hover:text-white/60 text-xs transition-colors">hello@getcommunio.app</a>
+            <a href="mailto:info@getcommunio.app" className="text-white/30 hover:text-white/60 text-xs transition-colors">info@getcommunio.app</a>
             <span className="text-white/10">·</span>
-            <p className="text-white/20 text-xs">Built with ✝ in Massachusetts</p>
+            <p className="text-white/20 text-xs">Built in Massachusetts</p>
           </div>
         </div>
       </div>
