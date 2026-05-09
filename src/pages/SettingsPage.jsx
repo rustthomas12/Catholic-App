@@ -7,7 +7,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotifications } from '../hooks/useNotifications'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth } from '../lib/supabase'
 import Modal from '../components/shared/Modal'
 import Button from '../components/shared/Button'
 import { toast } from '../components/shared/Toast'
@@ -51,18 +51,27 @@ export default function SettingsPage() {
   async function handleDeleteAccount() {
     if (deleteInput !== 'DELETE') return
     setDeleting(true)
-    const { error } = await supabase
-      .from('profiles')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', profile.id)
-    if (error) {
-      toast.error('Something went wrong. Please try again.')
+    try {
+      // Get the current session token to authenticate the server request
+      const { data: { session } } = await supabaseAuth.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not delete account')
+
+      await signOut()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong. Please try again.')
       setDeleting(false)
-      return
     }
-    await signOut()
-    toast.info('Your account has been deleted.')
-    navigate('/login', { replace: true })
   }
 
   return (

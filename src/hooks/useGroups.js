@@ -489,10 +489,15 @@ export function useGroupJoin() {
       .update({ status: 'approved' })
       .eq('id', requestId)
 
-    // Insert into group_members
-    await supabase
+    // Insert into group_members — admin is inserting for another user
+    const { error: insertErr } = await supabase
       .from('group_members')
       .insert({ group_id: groupId, user_id: requestUserId, role: 'member' })
+
+    if (insertErr) {
+      console.error('approveRequest insert error:', insertErr.message)
+      return
+    }
 
     _invalidateMemberships()
     // Remove from pending list
