@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { Toaster } from '../components/shared/Toast'
 
 export const APP_URL = 'https://app.getcommunio.app'
 
@@ -159,6 +160,7 @@ export default function MarketingLayout({ children }) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
   return (
     <div className="font-sans">
+      <Toaster />
       <MarketingNav />
       <main>{children}</main>
       <MarketingFooter />
