@@ -18,6 +18,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [parish, setParish] = useState(null)
   const [suggestedGroups, setSuggestedGroups] = useState([])
+  const [groupsLoading, setGroupsLoading] = useState(false)
   const [joinedGroups, setJoinedGroups] = useState(new Set())
   const [joiningGroup, setJoiningGroup] = useState(null)
 
@@ -36,6 +37,7 @@ export default function OnboardingPage() {
   // Load suggested groups for step 2
   useEffect(() => {
     if (step !== 2) return
+    setGroupsLoading(true)
     const vocMap = { married: 'families', single: 'young_adults', ordained: 'parish', religious: 'parish' }
     const cat = vocMap[profile?.vocation_state] || 'other'
 
@@ -47,7 +49,7 @@ export default function OnboardingPage() {
           : `category.eq.${cat}`
       )
       .limit(6)
-      .then(({ data }) => setSuggestedGroups(data || []))
+      .then(({ data }) => { setSuggestedGroups(data || []); setGroupsLoading(false) })
   }, [step, profile])
 
   async function joinGroup(groupId) {
@@ -87,6 +89,16 @@ export default function OnboardingPage() {
         <button onClick={skip} className="text-sm text-gray-400 hover:text-navy transition-colors min-h-[44px] px-2">
           Skip
         </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="px-6 pt-1 pb-3">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3].map(n => (
+            <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-gold' : 'bg-gray-200'}`} />
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 mt-1.5 text-right">Step {step} of 3</p>
       </div>
 
       {/* Step content */}
@@ -150,7 +162,19 @@ export default function OnboardingPage() {
               </div>
 
               <div className="flex flex-col gap-3">
-                {suggestedGroups.length > 0 ? suggestedGroups.map(g => (
+                {groupsLoading ? (
+                  // Skeleton loader
+                  [1, 2, 3].map(i => (
+                    <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 animate-pulse">
+                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-gray-200 rounded w-3/4" />
+                        <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                      </div>
+                      <div className="w-14 h-8 bg-gray-200 rounded-lg" />
+                    </div>
+                  ))
+                ) : suggestedGroups.length > 0 ? suggestedGroups.map(g => (
                   <div key={g.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
                     <div className="w-10 h-10 bg-lightbg rounded-lg flex items-center justify-center flex-shrink-0">
                       <UserGroupIcon className="w-5 h-5 text-navy" />
@@ -167,7 +191,9 @@ export default function OnboardingPage() {
                           ? 'bg-gold text-navy cursor-default'
                           : 'bg-navy text-white hover:bg-opacity-90'
                       }`}>
-                      {joiningGroup === g.id ? '...' : joinedGroups.has(g.id) ? 'Joined ✓' : 'Join'}
+                      {joiningGroup === g.id ? (
+                    <span className="flex items-center gap-1"><LoadingSpinner size="sm" />...</span>
+                  ) : joinedGroups.has(g.id) ? 'Joined ✓' : 'Join'}
                     </button>
                   </div>
                 )) : (
@@ -189,6 +215,9 @@ export default function OnboardingPage() {
               <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={() => setStep(3)}>
                 {t('onboarding.continue')}
               </Button>
+              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">
+                ← Back
+              </button>
             </div>
           )}
 
@@ -236,16 +265,12 @@ export default function OnboardingPage() {
               <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={finish}>
                 {t('onboarding.go_to_parish')}
               </Button>
+              <button onClick={() => setStep(2)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">
+                ← Back
+              </button>
             </div>
           )}
         </div>
-      </div>
-
-      {/* Progress dots */}
-      <div className="flex justify-center gap-2 pb-8">
-        {[1, 2, 3].map(n => (
-          <div key={n} className={`rounded-full transition-all ${n === step ? 'w-6 h-2 bg-gold' : 'w-2 h-2 bg-gray-300'}`} />
-        ))}
       </div>
     </div>
   )

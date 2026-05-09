@@ -428,17 +428,15 @@ export default function PastorOnboardingPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
-      {/* Progress dots */}
+      {/* Progress bar */}
       {step > 1 && (
-        <div className="flex gap-2 mb-8">
-          {[1, 2, 3, 4].map(n => (
-            <div
-              key={n}
-              className={`rounded-full transition-all ${
-                n === step ? 'w-6 h-2 bg-navy' : n < step ? 'w-2 h-2 bg-navy/40' : 'w-2 h-2 bg-gray-200'
-              }`}
-            />
-          ))}
+        <div className="w-full max-w-sm mb-6">
+          <div className="flex items-center gap-2 mb-1.5">
+            {[1, 2, 3, 4].map(n => (
+              <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-navy' : 'bg-gray-200'}`} />
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 text-right">Step {step} of 4</p>
         </div>
       )}
 
@@ -450,9 +448,14 @@ export default function PastorOnboardingPage() {
           />
         )}
         {step === 2 && (
-          <StepParish
-            onSelect={parish => { setSelectedParish(parish); setStep(3) }}
-          />
+          <>
+            <StepParish
+              onSelect={parish => { setSelectedParish(parish); setStep(3) }}
+            />
+            <button onClick={() => setStep(1)} className="w-full text-sm text-gray-400 hover:text-navy transition-colors text-center mt-4 py-1">
+              ← Back
+            </button>
+          </>
         )}
         {step === 3 && selectedParish && (
           <StepSize

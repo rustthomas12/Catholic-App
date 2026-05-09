@@ -206,6 +206,9 @@ export default function SignupPage() {
                 maxLength={20}
                 placeholder="yourname"
                 autoComplete="username"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck="false"
                 className={`w-full rounded-lg border bg-white pl-7 pr-10 py-2.5 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold text-sm ${
                   errors.username || usernameStatus === 'taken' || usernameStatus === 'invalid'
                     ? 'border-red-400'
@@ -247,6 +250,7 @@ export default function SignupPage() {
             required
             error={errors.email}
             autoComplete="email"
+            inputMode="email"
           />
 
           {/* Password */}
@@ -335,10 +339,10 @@ export default function SignupPage() {
                 </div>
 
                 {showDropdown && parishResults.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                  <div className="mt-1 bg-white border border-gray-200 rounded-xl shadow-md max-h-40 overflow-y-auto">
                     {parishResults.map(p => (
                       <button key={p.id} type="button"
-                        className="w-full text-left px-3 py-2.5 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0"
+                        className="w-full text-left px-3 py-3 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0 min-h-[48px]"
                         onClick={() => { setSelectedParish(p); setParishQuery(''); setShowDropdown(false) }}>
                         <p className="text-sm font-semibold text-navy">{p.name}</p>
                         <p className="text-xs text-gray-500">{p.city}, {p.state}</p>
@@ -348,7 +352,7 @@ export default function SignupPage() {
                 )}
 
                 {showDropdown && parishResults.length === 0 && parishQuery.length >= 2 && !parishSearching && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-3 text-sm text-gray-500">
+                  <div className="mt-1 bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-500">
                     No parishes found. Try a different search.
                   </div>
                 )}
@@ -376,10 +380,12 @@ export default function SignupPage() {
             {errors.vocation && <p className="mt-1 text-sm text-red-600">{errors.vocation}</p>}
           </div>
 
-          {/* Terms */}
-          <label className="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-navy flex-shrink-0" />
+          {/* Terms — full-row touch target */}
+          <label className="flex items-start gap-3 cursor-pointer min-h-[44px] py-1">
+            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
+                className="w-5 h-5 accent-navy cursor-pointer" />
+            </div>
             <span className="text-sm text-gray-500 leading-snug">
               {t('signup.terms').split('Terms of Service')[0]}
               <Link to="/terms" target="_blank" className="text-navy underline">Terms of Service</Link>

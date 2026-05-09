@@ -55,7 +55,7 @@ export default function InstallPrompt() {
   // iOS: show manual instructions sheet
   if (isIOS) {
     return (
-      <div className="fixed bottom-20 left-4 right-4 z-50 md:hidden">
+      <div className="fixed left-4 right-4 z-50 md:hidden" style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
         <div className="bg-navy rounded-2xl shadow-xl p-4 relative">
           <button
             onClick={dismiss}
@@ -118,7 +118,7 @@ export default function InstallPrompt() {
 
   // Android/Chrome: native install button
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 md:hidden">
+    <div className="fixed left-4 right-4 z-50 md:hidden" style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <div className="bg-navy rounded-2xl shadow-xl p-4 relative flex items-center gap-3">
         <button
           onClick={dismiss}
