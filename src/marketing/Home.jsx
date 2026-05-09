@@ -26,7 +26,7 @@ export default function MarketingHome() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <a href={APP_URL} className="w-full sm:w-auto bg-gold text-navy text-base font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors shadow-lg shadow-gold/20">
-              Open the App! It's Free for parishioners!
+              Open the Free App!
             </a>
             <Link to="/parishes" className="w-full sm:w-auto border border-white/20 text-white text-sm font-semibold px-8 py-4 rounded-2xl hover:bg-white/5 transition-colors">
               Get Your Parish Set Up →
