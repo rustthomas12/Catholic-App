@@ -5,10 +5,10 @@ import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 
 const TIERS = [
-  { label: 'Small', price: '$49', size: 'Under 200 parishioners', features: ['All platform features', 'Parish admin dashboard', 'Push notifications', '90-day free trial'] },
-  { label: 'Medium', price: '$99', size: '200–500 parishioners', featured: true, features: ['Everything in Small', 'Priority support', 'CSV export', 'Scheduled posts'] },
-  { label: 'Large', price: '$199', size: '500–1,500 parishioners', features: ['Everything in Medium', 'Multi-parish admin', 'Parish cluster support', 'Analytics'] },
-  { label: 'Cathedral', price: '$349', size: '1,500+ parishioners', features: ['Everything in Large', 'Dedicated onboarding', 'Custom contract available'] },
+  { label: 'Small', price: '$59', size: 'Under 200 parishioners', features: ['All platform features', 'Parish admin dashboard', 'Push notifications', '90-day free trial'] },
+  { label: 'Medium', price: '$119', size: '200–500 parishioners', featured: true, features: ['Everything in Small', 'Priority support', 'CSV export', 'Scheduled posts'] },
+  { label: 'Large', price: '$229', size: '500–1,500 parishioners', features: ['Everything in Medium', 'Multi-parish admin', 'Parish cluster support', 'Analytics'] },
+  { label: 'Cathedral', price: '$389', size: '1,500+ parishioners', features: ['Everything in Large', 'Dedicated onboarding', 'Custom contract available'] },
 ]
 
 const ADMIN_FEATURES = [

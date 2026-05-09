@@ -39,7 +39,7 @@ export default function MarketingHome() {
         </div>
 
         <div className="relative mt-12 flex flex-wrap justify-center gap-2.5 max-w-2xl">
-          {['⛪ Parish Feed','📖 Daily Readings','🤝 Groups','🏛 Organizations','🔔 Push Notifications','📿 Rosary Tracker','💬 Direct Messages','🙏 Prayer Intentions'].map((p,i) => (
+          {['⛪ Parish Feed','📖 Daily Readings','🌅 Morning Offering','🪞 Examination of Conscience','🤝 Groups','🔔 Push Notifications','📿 Rosary Tracker','🤍 Private Intentions'].map((p,i) => (
             <span key={i} className="bg-white/5 border border-white/10 text-white/50 text-xs px-4 py-2 rounded-full">{p}</span>
           ))}
         </div>
@@ -84,7 +84,7 @@ export default function MarketingHome() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {[
               { icon: '⛪', title: 'Parish', desc: 'Announcements, events, Mass times, groups, and a community feed for every parish in America.' },
-              { icon: '✝️', title: 'Faith', desc: 'Daily readings, saints, rosary & confession trackers, Liturgy of Hours, and formation programs.' },
+              { icon: '✝️', title: 'Faith', desc: 'Daily readings, saints, morning offering, examination of conscience, rosary, confession tracker, Liturgy of Hours, and formation programs.' },
               { icon: '🤝', title: 'Community', desc: 'Groups, organizations, prayer intentions, and direct messaging — the life of the parish, extended.' },
             ].map((p, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-colors">
@@ -111,7 +111,7 @@ export default function MarketingHome() {
               Give your parishioners<br />a home during the week.
             </h2>
             <p className="text-navy/70 mt-3 max-w-md">
-              Parish admin dashboard, push notifications, event RSVPs, parishioner directory, and more. Starting at $49/month with a 90-day free trial.
+              Parish admin dashboard, push notifications, event RSVPs, parishioner directory, and more. Starting at $59/month with a 90-day free trial.
             </p>
           </div>
           <Link
@@ -152,7 +152,7 @@ export default function MarketingHome() {
           <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
             Your parish community<br />is waiting.
           </h2>
-          <p className="text-white/50 mb-10">Join thousands of Catholics already on Communio.</p>
+          <p className="text-white/50 mb-10">Free for every Catholic. No download required.</p>
           <a href={APP_URL} className="inline-block bg-gold text-navy font-bold px-10 py-4 rounded-2xl hover:bg-gold/90 transition-colors text-lg">
             Get Started — Free
           </a>
