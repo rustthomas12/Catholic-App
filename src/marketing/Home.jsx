@@ -116,7 +116,7 @@ export default function MarketingHome() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { icon: '🛡', title: 'Your Data Is Yours', desc: "We don't sell your information. Your prayer journal, confessions, and messages are private." },
-              { icon: '✝', title: 'Mission First', desc: 'Built by a practicing Catholic, for the Church. Revenue comes from parishes — not from your attention.' },
+              { icon: '✝', title: 'Mission First', desc: 'Built by a practicing Catholic, for the Church. Revenue comes from parishes rather than from your attention.' },
               { icon: '📱', title: 'Always Free for Individuals', desc: "Every Catholic can use Communio forever, at no cost. No premium tier, no paywalled prayers." },
             ].map((v, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
@@ -135,9 +135,8 @@ export default function MarketingHome() {
           <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
             Your parish community<br />is waiting.
           </h2>
-          <p className="text-white/50 mb-10">Join thousands of Catholics already on Communio.</p>
           <a href={APP_URL} className="inline-block bg-gold text-navy font-bold px-10 py-4 rounded-2xl hover:bg-gold/90 transition-colors text-lg">
-            Get Started — Free
+            Get Started For Free!
           </a>
         </div>
       </section>
