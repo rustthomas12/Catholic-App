@@ -36,7 +36,7 @@ export default function MarketingHome() {
         </div>
 
         <div className="relative mt-12 flex flex-wrap justify-center gap-2.5 max-w-2xl">
-          {['⛪ Parish Feed','📖 Daily Readings','🤝 Groups','🏛 Organizations','🔔 Push Notifications','💬 Direct Messages','🙏 Prayer Intentions'].map((p,i) => (
+          {['⛪ Parish Feed','📖 Daily Readings','🌅 Morning Offering','🪞 Examination','🤝 Groups','📿 Rosary','🔔 Push Notifications','🤍 Private Intentions'].map((p,i) => (
             <span key={i} className="bg-white/5 border border-white/10 text-white/50 text-xs px-4 py-2 rounded-full">{p}</span>
           ))}
         </div>
