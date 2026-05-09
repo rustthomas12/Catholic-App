@@ -30,8 +30,11 @@ export function MarketingNav() {
     }`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="text-white font-black text-xl tracking-tight flex-shrink-0" style={{ fontFamily: 'Georgia, serif' }}>
-          Communio
+        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
+          <img src="/icons/icon-192.png" alt="Communio" className="w-8 h-8 rounded-xl" />
+          <span className="text-white font-black text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
+            Communio
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -103,7 +106,10 @@ export function MarketingFooter() {
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
-            <div className="text-white font-black text-xl mb-3" style={{ fontFamily: 'Georgia, serif' }}>Communio</div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <img src="/icons/icon-192.png" alt="Communio" className="w-8 h-8 rounded-xl" />
+              <span className="text-white font-black text-xl" style={{ fontFamily: 'Georgia, serif' }}>Communio</span>
+            </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
             </p>
