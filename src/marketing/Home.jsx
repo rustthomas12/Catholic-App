@@ -36,7 +36,7 @@ export default function MarketingHome() {
         </div>
 
         <div className="relative mt-12 flex flex-wrap justify-center gap-2.5 max-w-2xl">
-          {['⛪ Parish Feed','📖 Daily Readings','🤝 Groups','🏛 Organizations','🔔 Push Notifications','📿 Rosary Tracker','💬 Direct Messages','🙏 Prayer Intentions'].map((p,i) => (
+          {['⛪ Parish Feed','📖 Daily Readings','🤝 Groups','🏛 Organizations','🔔 Push Notifications','💬 Direct Messages','🙏 Prayer Intentions'].map((p,i) => (
             <span key={i} className="bg-white/5 border border-white/10 text-white/50 text-xs px-4 py-2 rounded-full">{p}</span>
           ))}
         </div>
@@ -66,9 +66,9 @@ export default function MarketingHome() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {[
-              { icon: '⛪', title: 'Parish', desc: 'Announcements, events, Mass times, groups, and a community feed for every parish in America.' },
-              { icon: '✝️', title: 'Faith', desc: 'Daily readings, saints, rosary & confession trackers, Liturgy of Hours, and formation programs.' },
-              { icon: '🤝', title: 'Community', desc: 'Groups, organizations, prayer intentions, and direct messaging — the life of the parish, extended.' },
+              { icon: '⛪', title: 'Parish', desc: 'Announcements, events, Mass times, parish groups, and a community feed for every parish in America.' },
+              { icon: '✝️', title: 'Faith', desc: 'Daily readings, saints, private confession tracker, prayer requests.' },
+              { icon: '🤝', title: 'Community', desc: 'Events with RSVP, groups, parish updates, and direct messaging; the life of the parish, extended.' },
             ].map((p, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-colors">
                 <div className="text-4xl mb-4">{p.icon}</div>
