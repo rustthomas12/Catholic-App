@@ -17,19 +17,16 @@ export default function MarketingHome() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-navy" />
 
         <div className="relative max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-gold/15 border border-gold/30 text-gold text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
-            ✝ Free for every Catholic · Always
-          </div>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-none mb-6" style={{ fontFamily: 'Georgia, serif' }}>
             The Digital<br /><span className="text-gold">Parish Hall.</span>
           </h1>
           <p className="text-white/65 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            Communio connects Catholics with their parish, their faith, and each other —
+            Communio connects Catholics with their parish, their faith, and each other 
             without algorithms, ads, or noise.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <a href={APP_URL} className="w-full sm:w-auto bg-gold text-navy text-base font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors shadow-lg shadow-gold/20">
-              Open the App — It's Free
+              Open the App! It's Free for parishioners!
             </a>
             <Link to="/parishes" className="w-full sm:w-auto border border-white/20 text-white text-sm font-semibold px-8 py-4 rounded-2xl hover:bg-white/5 transition-colors">
               Get Your Parish Set Up →
@@ -53,22 +50,8 @@ export default function MarketingHome() {
             Your parish deserves better<br className="hidden md:block" /> than forgotten bulletins.
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-14">
-            Bulletins go unread. Emails go to spam. Facebook buries parish posts behind cat videos.
-            The infrastructure of Catholic community life is broken — and no one fixed it. Until now.
+            Bulletins go unread. Emails go to spam. Facebook is built for engagement, not community.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { stat: '86%', label: 'of Catholic organizations feel unprepared for digital engagement', src: 'eCatholic 2025' },
-              { stat: '4–6', label: 'disconnected tools pastors juggle every week just to communicate with their flock' },
-              { stat: '30–50%', label: 'of Mass attendance lost since COVID — parishes are urgently looking for reconnection tools' },
-            ].map((item, i) => (
-              <div key={i} className="bg-lightbg rounded-2xl p-8">
-                <div className="text-5xl font-black text-navy mb-4">{item.stat}</div>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.label}</p>
-                {item.src && <p className="text-gray-400 text-xs mt-3">{item.src}</p>}
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
