@@ -47,7 +47,7 @@ export default function MarketingHome() {
         <div className="max-w-5xl mx-auto text-center">
           <p className="text-gold text-xs font-bold tracking-widest uppercase mb-3">The Problem</p>
           <h2 className="text-3xl md:text-5xl font-black text-navy leading-tight mb-4">
-            Your parish deserves better<br className="hidden md:block" /> than forgotten bulletins.
+            Your parish deserves better<br className="hidden md:block" />tools for communication.
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-14">
             Bulletins go unread. Emails go to spam. Facebook is built for engagement, not community.
@@ -91,10 +91,10 @@ export default function MarketingHome() {
           <div>
             <p className="text-navy/60 text-xs font-bold uppercase tracking-widest mb-2">For Parishes</p>
             <h2 className="text-2xl md:text-4xl font-black text-navy leading-tight">
-              Give your parishioners<br />a home during the week.
+              Keep your parishioners in the loop<br /> during the week.
             </h2>
             <p className="text-navy/70 mt-3 max-w-md">
-              Parish admin dashboard, push notifications, event RSVPs, parishioner directory, and more. Starting at $49/month with a 90-day free trial.
+              Parish admin dashboard, push notifications, event RSVPs, and more. Starting at $59/month with a 90-day free trial.
             </p>
           </div>
           <Link
