@@ -272,16 +272,6 @@ function StepTrial({ parish, tier, user, onBack }) {
   async function startTrial() {
     setLoading(true)
     try {
-      // Add as parish admin immediately — no race condition with Stripe webhook
-      const { error: adminErr } = await supabase
-        .from('parish_admins')
-        .upsert(
-          { parish_id: parish.id, user_id: user.id, role: 'admin' },
-          { onConflict: 'parish_id,user_id' }
-        )
-      if (adminErr) throw adminErr
-
-      // Create Stripe checkout session
       const res = await fetch('/api/create-parish-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -295,8 +285,6 @@ function StepTrial({ parish, tier, user, onBack }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
-
-      // Redirect to Stripe
       window.location.href = data.url
     } catch (err) {
       toast.error(err.message || 'Something went wrong. Please try again.')
@@ -397,9 +385,21 @@ export default function PastorOnboardingPage() {
 
   const navigate = useNavigate()
   const { user, profile } = useAuth()
-  const [step, setStep] = useState(1)
+
+  // Support pre-selecting a parish via ?parish_id= (from ParishPage "Apply" button)
+  const preselectedParishId = new URLSearchParams(window.location.search).get('parish_id')
+
+  const [step, setStep] = useState(preselectedParishId ? 3 : 1)
   const [selectedParish, setSelectedParish] = useState(null)
   const [selectedTier, setSelectedTier] = useState(null)
+
+  // Load pre-selected parish if coming from ParishPage
+  useEffect(() => {
+    if (!preselectedParishId) return
+    supabase.from('parishes').select('id, name, city, state')
+      .eq('id', preselectedParishId).single()
+      .then(({ data }) => { if (data) setSelectedParish(data) })
+  }, [preselectedParishId])
 
   // If not ordained/religious, redirect home
   useEffect(() => {
@@ -407,18 +407,6 @@ export default function PastorOnboardingPage() {
       navigate('/', { replace: true })
     }
   }, [profile, navigate])
-
-  // If already a parish admin somewhere, skip to home
-  useEffect(() => {
-    if (!user) return
-    supabase
-      .from('parish_admins')
-      .select('parish_id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .then(({ count }) => {
-        if ((count ?? 0) > 0) navigate('/', { replace: true })
-      })
-  }, [user, navigate])
 
   function handleSkip() {
     navigate('/', { replace: true })

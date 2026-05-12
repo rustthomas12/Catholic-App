@@ -80,12 +80,53 @@ export default async function handler(req, res) {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
 
-          // Ensure the subscribing pastor is a parish admin
+          // Do NOT auto-add to parish_admins — requires manual verification.
+          // Send verification email to info@getcommunio.app for review.
           if (adminUserId) {
-            await supabase.from('parish_admins').upsert(
-              { parish_id: parishId, user_id: adminUserId, role: 'admin' },
-              { onConflict: 'parish_id,user_id' }
-            )
+            try {
+              const [profileRes, parishRes] = await Promise.all([
+                supabase.from('profiles').select('full_name').eq('id', adminUserId).single(),
+                supabase.from('parishes').select('name, city, state').eq('id', parishId).single(),
+              ])
+              const priest = profileRes.data
+              const parish = parishRes.data
+              const tierName = billingType.replace('parish_', '')
+              const resendKey = process.env.RESEND_API_KEY
+              if (resendKey && resendKey !== 're_placeholder') {
+                const approvalSQL =
+                  "INSERT INTO parish_admins (parish_id, user_id, role)\nVALUES ('" +
+                  parishId + "', '" + adminUserId + "', 'admin')\nON CONFLICT (parish_id, user_id) DO UPDATE SET role = 'admin';"
+                await fetch('https://api.resend.com/emails', {
+                  method: 'POST',
+                  headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    from: 'Communio <noreply@getcommunio.app>',
+                    to: ['info@getcommunio.app'],
+                    subject: '[Verification Needed] Pastor Application — ' + (parish?.name || parishId),
+                    html:
+                      '<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto">' +
+                      '<div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">' +
+                      '<h2 style="color:#C9A84C;margin:0">Pastor Application — Verification Needed</h2></div>' +
+                      '<div style="padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px">' +
+                      '<table style="width:100%;border-collapse:collapse">' +
+                      '<tr><td style="padding:6px 0;color:#888;width:140px">Pastor</td><td>' + (priest?.full_name || 'Unknown') + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">User ID</td><td style="font-family:monospace;font-size:12px">' + adminUserId + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Parish</td><td>' + (parish?.name || parishId) + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Parish ID</td><td style="font-family:monospace;font-size:12px">' + parishId + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Location</td><td>' + [parish?.city, parish?.state].filter(Boolean).join(', ') + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Plan</td><td>' + tierName + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Stripe Customer</td><td>' + customerId + '</td></tr>' +
+                      '</table>' +
+                      '<hr style="border:none;border-top:1px solid #C9A84C;margin:20px 0"/>' +
+                      '<p style="font-size:13px;color:#555"><strong>To approve, run in Supabase SQL Editor:</strong></p>' +
+                      '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;font-size:12px;white-space:pre-wrap">' + approvalSQL + '</pre>' +
+                      '</div></div>',
+                  }),
+                })
+              }
+            } catch (emailErr) {
+              console.error('Verification email failed:', emailErr.message)
+            }
           }
           break
         }

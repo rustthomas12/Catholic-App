@@ -38,6 +38,9 @@ export default function ParishPage() {
   const [activeTab, setActiveTab] = useState('feed')
   const [showContact, setShowContact] = useState(false)
 
+  // Detect Stripe success redirect (?applied=true)
+  const appliedSuccess = new URLSearchParams(window.location.search).get('applied') === 'true'
+
   // Check if the current user admins THIS specific parish
   const adminRecord = parishAdminRecords.find(r => r.parish_id === id)
   const adminRole = adminRecord?.role ?? null
@@ -121,6 +124,17 @@ export default function ParishPage() {
             </div>
           </div>
 
+          {/* Applied success banner */}
+          {appliedSuccess && (
+            <div className="mt-4 flex items-start gap-3 bg-green-500/20 border border-green-400/30 rounded-2xl px-4 py-3">
+              <span className="text-green-300 text-lg flex-shrink-0">✓</span>
+              <div>
+                <p className="text-white font-semibold text-sm">Application submitted!</p>
+                <p className="text-white/70 text-xs mt-0.5">We'll review and verify your pastor status within 24 hours. You'll be notified once access is granted.</p>
+              </div>
+            </div>
+          )}
+
           {/* Action buttons */}
           <div className="flex gap-2 mt-4 flex-wrap">
             {adminRole && (
@@ -175,6 +189,17 @@ export default function ParishPage() {
               <EnvelopeIcon className="w-4 h-4" />
               Contact
             </button>
+
+            {/* Clergy-only: apply to manage this parish */}
+            {['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !appliedSuccess && (
+              <button
+                onClick={() => navigate(`/pastor-setup?parish_id=${id}`)}
+                className="w-full sm:w-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors mt-1 sm:mt-0"
+              >
+                <BuildingLibraryIcon className="w-4 h-4" />
+                Apply to manage this parish
+              </button>
+            )}
           </div>
         </div>
       </div>
