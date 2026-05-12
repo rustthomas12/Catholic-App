@@ -59,12 +59,20 @@ export function usePushNotifications(userId) {
     })
   }, [isSupported])
 
-  // On mount, check if this browser/device is already subscribed
+  // On mount, check if this browser/device is already subscribed.
+  // Also re-upsert to push_subscriptions in case the DB row was cleaned
+  // up (expired endpoint, account recreation, etc.) while the browser
+  // subscription is still valid.
   useEffect(() => {
     if (!isSupported || !userId) return
     navigator.serviceWorker.ready.then(async (registration) => {
       const existing = await registration.pushManager.getSubscription()
-      setIsSubscribed(!!existing)
+      if (existing) {
+        setIsSubscribed(true)
+        saveSubscription(existing.toJSON(), userId).catch(() => {})
+      } else {
+        setIsSubscribed(false)
+      }
     })
   }, [isSupported, userId])
 
