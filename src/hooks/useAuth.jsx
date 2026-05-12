@@ -67,6 +67,8 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .single()
 
+    let profileData = data
+
     if (error) {
       if (error.code === 'PGRST116') {
         const { data: newProfile } = await supabase
@@ -75,33 +77,61 @@ export function AuthProvider({ children }) {
           .select()
           .single()
         if (newProfile) setStoredProfile(userId, newProfile)
-        return newProfile ?? null
+        profileData = newProfile ?? null
+      } else {
+        return null
       }
-      return null
+    }
+
+    if (!profileData) return null
+
+    // Apply pending signup data stored before email verification.
+    // signUp() runs before any session exists so DB writes fail RLS — we defer
+    // them to here, which runs with a valid JWT after email confirmation.
+    const pendingKey = `communio-pending-${userId}`
+    const pendingRaw = localStorage.getItem(pendingKey)
+    if (pendingRaw) {
+      try {
+        const pending = JSON.parse(pendingRaw)
+        const { data: updated } = await supabase
+          .from('profiles')
+          .update(pending)
+          .eq('id', userId)
+          .select()
+          .single()
+        if (updated) profileData = updated
+        if (pending.parish_id) {
+          supabase.from('parish_follows').upsert(
+            { parish_id: pending.parish_id, user_id: userId },
+            { onConflict: 'parish_id,user_id' }
+          ).then(() => {})
+        }
+      } catch {}
+      localStorage.removeItem(pendingKey)
     }
 
     // If account is suspended, force sign-out immediately
-    if (data?.suspended_at) {
+    if (profileData?.suspended_at) {
       await supabaseAuth.auth.signOut()
       return null
     }
 
-    setStoredProfile(userId, data)
+    setStoredProfile(userId, profileData)
 
     // Sync language preference from profile to local state
-    if (data?.language && (data.language === 'en' || data.language === 'es')) {
+    if (profileData?.language && (profileData.language === 'en' || profileData.language === 'es')) {
       try {
         const stored = localStorage.getItem('communio-language')
-        if (stored !== data.language) {
-          i18n.changeLanguage(data.language)
-          localStorage.setItem('communio-language', data.language)
+        if (stored !== profileData.language) {
+          i18n.changeLanguage(profileData.language)
+          localStorage.setItem('communio-language', profileData.language)
         }
       } catch {}
     }
 
     // Fire-and-forget: track return visit for parish-sponsored users (once per session)
     if (
-      data?.premium_source === 'parish_sponsored' &&
+      profileData?.premium_source === 'parish_sponsored' &&
       !sessionStorage.getItem('communio-return-tracked')
     ) {
       sessionStorage.setItem('communio-return-tracked', 'true')
@@ -112,7 +142,7 @@ export function AuthProvider({ children }) {
       }).catch(() => {})
     }
 
-    return data
+    return profileData
   }, [])
 
   useEffect(() => {
@@ -252,20 +282,17 @@ export function AuthProvider({ children }) {
       const newUser = data.user
       if (!newUser) return { error: t('common:status.error') }
 
-      await supabase.from('profiles').upsert({
-        id: newUser.id,
-        full_name: fullName,
-        username: username || null,
-        parish_id: parishId || null,
-        vocation_state: vocationState || null,
-      }, { onConflict: 'id' })
-
-      if (parishId) {
-        await supabase.from('parish_follows').insert({
-          user_id: newUser.id,
-          parish_id: parishId,
-        })
-      }
+      // No active session exists before email confirmation, so DB writes
+      // are blocked by RLS. Store the data in localStorage and apply it in
+      // fetchProfile() after the user verifies their email and a session exists.
+      try {
+        localStorage.setItem(`communio-pending-${newUser.id}`, JSON.stringify({
+          full_name: fullName,
+          username: username || null,
+          parish_id: parishId || null,
+          vocation_state: vocationState || null,
+        }))
+      } catch {}
 
       return { error: null }
     } catch {
