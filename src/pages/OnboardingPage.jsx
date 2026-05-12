@@ -67,15 +67,21 @@ export default function OnboardingPage() {
     )
   }
 
-  // Load suggested groups for step 2
+  // Load suggested groups for step 2 — only from parishes the user follows
   useEffect(() => {
     if (step !== 2) return
     setGroupsLoading(true)
-    const vocMap = { married: 'families', single: 'young_adults', ordained: 'parish', religious: 'parish' }
-    const cat = vocMap[profile?.vocation_state] || 'other'
+
+    if (!profile?.parish_id) {
+      // No parish set yet — show empty state
+      setSuggestedGroups([])
+      setGroupsLoading(false)
+      return
+    }
+
     supabase.from('groups')
       .select('id, name, category, member_count, parish_id')
-      .or(profile?.parish_id ? `parish_id.eq.${profile.parish_id},category.eq.${cat}` : `category.eq.${cat}`)
+      .eq('parish_id', profile.parish_id)
       .limit(6)
       .then(({ data }) => { setSuggestedGroups(data || []); setGroupsLoading(false) })
   }, [step, profile])
