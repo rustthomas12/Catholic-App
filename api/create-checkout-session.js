@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
 
 const TIER_PRICE_MAP = () => ({
   [process.env.STRIPE_PRICE_SUPPORTER]: 'supporter',
@@ -23,7 +24,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing userId' })
   }
 
-  const appUrl = process.env.VITE_APP_URL || 'https://getcommunio.app'
+  const appUrl = APP_URL
 
   try {
     let session

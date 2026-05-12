@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
 
 const STANDALONE_PRICES = {
   starter:     process.env.STRIPE_PRICE_ORG_STARTER,
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `Invalid tier: ${tier}` })
   }
 
-  const appUrl = process.env.VITE_APP_URL || 'https://getcommunio.app'
+  const appUrl = APP_URL
 
   try {
     const session = await stripe.checkout.sessions.create({

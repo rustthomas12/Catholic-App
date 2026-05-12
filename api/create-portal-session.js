@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: stripeCustomerId,
-      return_url: `${process.env.VITE_APP_URL || 'https://getcommunio.app'}/settings`,
+      return_url: `${APP_URL}/settings`,
     })
 
     res.status(200).json({ url: session.url })
