@@ -81,6 +81,14 @@ export default async function handler(req, res) {
           }, { onConflict: 'parish_id' })
 
           // Do NOT auto-add to parish_admins — requires manual verification.
+          // Mark the applicant's profile as pending so the parish page shows
+          // "Application under review" until an admin approves.
+          if (adminUserId) {
+            await supabase.from('profiles')
+              .update({ pending_pastor_parish_id: parishId })
+              .eq('id', adminUserId)
+          }
+
           // Send verification email to info@getcommunio.app for review.
           if (adminUserId) {
             try {
@@ -95,7 +103,8 @@ export default async function handler(req, res) {
               if (resendKey && resendKey !== 're_placeholder') {
                 const approvalSQL =
                   "INSERT INTO parish_admins (parish_id, user_id, role)\nVALUES ('" +
-                  parishId + "', '" + adminUserId + "', 'admin')\nON CONFLICT (parish_id, user_id) DO UPDATE SET role = 'admin';"
+                  parishId + "', '" + adminUserId + "', 'admin')\nON CONFLICT (parish_id, user_id) DO UPDATE SET role = 'admin';\n\n" +
+                  "UPDATE profiles SET pending_pastor_parish_id = NULL WHERE id = '" + adminUserId + "';"
                 await fetch('https://api.resend.com/emails', {
                   method: 'POST',
                   headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
