@@ -329,7 +329,7 @@ function AnnouncementsTab({ parishId }) {
         author_id: user.id,
         content,
         published: false,
-        scheduled_for: scheduleFor,
+        scheduled_for: new Date(scheduleFor).toISOString(),
       })
       if (error) { toast.error('Could not schedule announcement.') }
       else { toast.success('Announcement scheduled.'); setTitle(''); setDraft(''); setScheduleFor(''); setComposing(false); load() }
@@ -405,6 +405,7 @@ function AnnouncementsTab({ parishId }) {
               <input
                 type="datetime-local"
                 value={scheduleFor}
+                min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
                 onChange={e => setScheduleFor(e.target.value)}
                 className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-navy focus:outline-none focus:border-navy"
               />
