@@ -29,10 +29,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({ deleted_at: new Date().toISOString() }),
     })
 
-    // 2. Ban the auth account permanently (876,000 hours = ~100 years).
-    //    This prevents the user from ever logging back in without
-    //    touching any related data (posts, messages, etc.) — avoiding
-    //    FK cascade failures from hard-deletion.
+    // 2. Ban the auth account and replace the email with a placeholder.
+    //    - ban_duration prevents the user logging back in
+    //    - Replacing the email frees it up so they can re-register with
+    //      the same address if they change their mind
     const banRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
       method: 'PUT',
       headers: {
@@ -40,7 +40,10 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${SERVICE_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ban_duration: '876000h' }),
+      body: JSON.stringify({
+        email: `deleted-${userId}@communio.invalid`,
+        ban_duration: '876000h',
+      }),
     })
 
     if (!banRes.ok) {
