@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   if (!userId) return res.status(401).json({ error: 'Could not identify user' })
 
   try {
-    // 1. Soft-delete the profile so the UI shows the account as removed
+    // 1. Soft-delete the profile and free the username so it can be re-registered
     await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
       method: 'PATCH',
       headers: {
@@ -26,7 +26,10 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
-      body: JSON.stringify({ deleted_at: new Date().toISOString() }),
+      body: JSON.stringify({
+        deleted_at: new Date().toISOString(),
+        username: `deleted-${userId.slice(0, 8)}`,
+      }),
     })
 
     // 2. Ban the auth account and replace the email with a placeholder.
