@@ -107,6 +107,7 @@ export default function SignupPage() {
         .from('profiles')
         .select('id', { count: 'exact', head: true })
         .eq('username', val)
+        .is('deleted_at', null)
       setUsernameStatus(count > 0 ? 'taken' : 'available')
     }, 400)
     return () => clearTimeout(usernameDebounce.current)
