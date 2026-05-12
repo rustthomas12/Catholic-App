@@ -1,29 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useTranslation } from '../utils/i18n'
 import { supabase } from '../lib/supabase'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import { getLiturgicalSeason, formatLiturgicalDate } from '../utils/liturgical'
+import { getLiturgicalSeason } from '../utils/liturgical'
 import { format } from 'date-fns'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | Communio' }, [])
   const { t } = useTranslation('auth')
-  const { profile, updateProfile } = useAuth()
+  const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
+
+  const isClergy = ['ordained', 'religious'].includes(profile?.vocation_state)
+  const totalSteps = isClergy ? 4 : 3
+  const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
+  const season = getLiturgicalSeason()
 
   const [step, setStep] = useState(1)
   const [parish, setParish] = useState(null)
+  const [parishQuery, setParishQuery] = useState('')
+  const [parishResults, setParishResults] = useState([])
+  const [parishSearching, setParishSearching] = useState(false)
   const [suggestedGroups, setSuggestedGroups] = useState([])
   const [groupsLoading, setGroupsLoading] = useState(false)
   const [joinedGroups, setJoinedGroups] = useState(new Set())
   const [joiningGroup, setJoiningGroup] = useState(null)
-
-  const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
-  const season = getLiturgicalSeason()
 
   // Load parish if user has one
   useEffect(() => {
@@ -34,20 +39,43 @@ export default function OnboardingPage() {
     }
   }, [profile?.parish_id])
 
+  // Inline parish search
+  useEffect(() => {
+    const q = parishQuery.trim()
+    if (q.length < 2) { setParishResults([]); return }
+    const timer = setTimeout(async () => {
+      setParishSearching(true)
+      const { data } = await supabase.from('parishes')
+        .select('id, name, city, state')
+        .or(`name.ilike.%${q}%,city.ilike.%${q}%`)
+        .limit(5)
+      setParishResults(data ?? [])
+      setParishSearching(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [parishQuery])
+
+  async function selectParish(p) {
+    setParish(p)
+    setParishQuery('')
+    setParishResults([])
+    // Save to profile and follow
+    await updateProfile({ parish_id: p.id })
+    await supabase.from('parish_follows').upsert(
+      { parish_id: p.id, user_id: user.id },
+      { onConflict: 'parish_id,user_id' }
+    )
+  }
+
   // Load suggested groups for step 2
   useEffect(() => {
     if (step !== 2) return
     setGroupsLoading(true)
     const vocMap = { married: 'families', single: 'young_adults', ordained: 'parish', religious: 'parish' }
     const cat = vocMap[profile?.vocation_state] || 'other'
-
     supabase.from('groups')
       .select('id, name, category, member_count, parish_id')
-      .or(
-        profile?.parish_id
-          ? `parish_id.eq.${profile.parish_id},category.eq.${cat}`
-          : `category.eq.${cat}`
-      )
+      .or(profile?.parish_id ? `parish_id.eq.${profile.parish_id},category.eq.${cat}` : `category.eq.${cat}`)
       .limit(6)
       .then(({ data }) => { setSuggestedGroups(data || []); setGroupsLoading(false) })
   }, [step, profile])
@@ -55,28 +83,18 @@ export default function OnboardingPage() {
   async function joinGroup(groupId) {
     if (!profile?.id || joinedGroups.has(groupId)) return
     setJoiningGroup(groupId)
-    const { error } = await supabase.from('group_members').insert({
-      group_id: groupId,
-      user_id: profile.id,
-      role: 'member',
-    })
-    if (!error) {
-      setJoinedGroups(prev => new Set([...prev, groupId]))
-    }
+    const { error } = await supabase.from('group_members').insert({ group_id: groupId, user_id: profile.id, role: 'member' })
+    if (!error) setJoinedGroups(prev => new Set([...prev, groupId]))
     setJoiningGroup(null)
   }
 
   async function finish() {
     await updateProfile({ onboarding_completed: true })
-    // Ordained/religious priests get routed to pastor parish setup
-    if (['ordained', 'religious'].includes(profile?.vocation_state)) {
-      navigate('/pastor-setup', { replace: true })
-    } else {
-      navigate('/', { replace: true })
-    }
+    navigate('/', { replace: true })
   }
 
   function skip() {
+    updateProfile({ onboarding_completed: true })
     navigate('/', { replace: true })
   }
 
@@ -84,7 +102,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">
-      {/* Skip button */}
+      {/* Skip */}
       <div className="flex justify-end p-4">
         <button onClick={skip} className="text-sm text-gray-400 hover:text-navy transition-colors min-h-[44px] px-2">
           Skip
@@ -94,18 +112,18 @@ export default function OnboardingPage() {
       {/* Progress bar */}
       <div className="px-6 pt-1 pb-3">
         <div className="flex items-center gap-2">
-          {[1, 2, 3].map(n => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map(n => (
             <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-gold' : 'bg-gray-200'}`} />
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right">Step {step} of 3</p>
+        <p className="text-xs text-gray-400 mt-1.5 text-right">Step {step} of {totalSteps}</p>
       </div>
 
-      {/* Step content */}
+      {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
         <div className="w-full max-w-sm">
 
-          {/* ── STEP 1 ── */}
+          {/* ── STEP 1 — Welcome + parish ── */}
           {step === 1 && (
             <div className="flex flex-col items-center text-center gap-5">
               <svg viewBox="0 0 60 60" className="w-16 h-16">
@@ -113,37 +131,62 @@ export default function OnboardingPage() {
                 <rect x="27" y="12" width="6" height="36" fill="#C9A84C"/>
                 <rect x="15" y="24" width="30" height="6" fill="#C9A84C"/>
               </svg>
-
               <div>
-                <h1 className="text-2xl font-bold text-navy">
-                  {t('onboarding.step1_title', { name: firstName })}
-                </h1>
+                <h1 className="text-2xl font-bold text-navy">{t('onboarding.step1_title', { name: firstName })}</h1>
                 <p className="text-gray-500 mt-1 text-sm">{t('onboarding.step1_body')}</p>
               </div>
 
-              {/* Parish card */}
+              {/* Parish — show selected or inline search */}
               {parish ? (
                 <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-lightbg rounded-lg flex items-center justify-center flex-shrink-0">
                       <BuildingLibraryIcon className="w-5 h-5 text-navy" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-navy text-sm">{parish.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-navy text-sm truncate">{parish.name}</p>
                       <p className="text-gray-500 text-xs">{parish.city}, {parish.state}</p>
-                      {parish.diocese && <p className="text-gray-400 text-xs">{parish.diocese}</p>}
-                      <p className="text-navy text-xs mt-1 font-medium">Your parish community is here</p>
+                      <p className="text-navy text-xs mt-1 font-medium">Your parish ✓</p>
                     </div>
+                    <button onClick={() => { setParish(null); updateProfile({ parish_id: null }) }}
+                      className="text-xs text-gray-400 hover:text-navy transition-colors px-1">
+                      Change
+                    </button>
                   </div>
                 </div>
               ) : (
-                <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-                  <BuildingLibraryIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">Find your parish to connect with your community</p>
-                  <button onClick={() => navigate('/directory')}
-                    className="mt-2 text-sm text-navy font-semibold hover:underline">
-                    Find my parish →
-                  </button>
+                <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left space-y-2">
+                  <p className="text-sm font-semibold text-navy mb-2">Find your parish</p>
+                  <div className="relative">
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={parishQuery}
+                      onChange={e => setParishQuery(e.target.value)}
+                      placeholder="Search by name or city…"
+                      className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-navy"
+                    />
+                    {parishSearching && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2"><LoadingSpinner size="sm" /></div>
+                    )}
+                  </div>
+                  {parishResults.length > 0 && (
+                    <div className="rounded-xl border border-gray-100 overflow-hidden">
+                      {parishResults.map(p => (
+                        <button key={p.id} onClick={() => selectParish(p)}
+                          className="w-full text-left px-3 py-2.5 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0 min-h-[44px]">
+                          <p className="text-sm font-semibold text-navy">{p.name}</p>
+                          <p className="text-xs text-gray-400">{p.city}, {p.state}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {parishQuery.length >= 2 && !parishSearching && parishResults.length === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-1">No parishes found — try a different search.</p>
+                  )}
+                  {!parishQuery && (
+                    <p className="text-xs text-gray-400 text-center">Optional — you can add this later</p>
+                  )}
                 </div>
               )}
 
@@ -153,18 +196,16 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── STEP 2 ── */}
+          {/* ── STEP 2 — Groups ── */}
           {step === 2 && (
             <div className="flex flex-col gap-5">
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-navy">{t('onboarding.step2_title')}</h1>
                 <p className="text-gray-500 mt-1 text-sm">{t('onboarding.step2_subtitle')}</p>
               </div>
-
               <div className="flex flex-col gap-3">
                 {groupsLoading ? (
-                  // Skeleton loader
-                  [1, 2, 3].map(i => (
+                  [1,2,3].map(i => (
                     <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 animate-pulse">
                       <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0" />
                       <div className="flex-1 space-y-2">
@@ -181,25 +222,20 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{g.name}</p>
-                      <p className="text-xs text-gray-400 capitalize">{g.category?.replace('_', ' ')} · {g.member_count || 0} members</p>
+                      <p className="text-xs text-gray-400 capitalize">{g.category?.replace('_',' ')} · {g.member_count||0} members</p>
                     </div>
                     <button
                       onClick={() => joinGroup(g.id)}
                       disabled={joinedGroups.has(g.id) || joiningGroup === g.id}
                       className={`text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[36px] transition-colors ${
-                        joinedGroups.has(g.id)
-                          ? 'bg-gold text-navy cursor-default'
-                          : 'bg-navy text-white hover:bg-opacity-90'
+                        joinedGroups.has(g.id) ? 'bg-gold text-navy cursor-default' : 'bg-navy text-white hover:bg-opacity-90'
                       }`}>
-                      {joiningGroup === g.id ? (
-                    <span className="flex items-center gap-1"><LoadingSpinner size="sm" />...</span>
-                  ) : joinedGroups.has(g.id) ? 'Joined ✓' : 'Join'}
+                      {joiningGroup === g.id ? <LoadingSpinner size="sm" /> : joinedGroups.has(g.id) ? 'Joined ✓' : 'Join'}
                     </button>
                   </div>
                 )) : (
-                  // Empty state — decorative placeholders
-                  ["Men's Group", "Young Adults", "Parish Community"].map(name => (
-                    <div key={name} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 opacity-60">
+                  ['Men\'s Group','Young Adults','Parish Community'].map(name => (
+                    <div key={name} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 opacity-50">
                       <div className="w-10 h-10 bg-lightbg rounded-lg flex items-center justify-center">
                         <UserGroupIcon className="w-5 h-5 text-navy" />
                       </div>
@@ -211,25 +247,20 @@ export default function OnboardingPage() {
                   ))
                 )}
               </div>
-
               <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={() => setStep(3)}>
                 {t('onboarding.continue')}
               </Button>
-              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">
-                ← Back
-              </button>
+              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">← Back</button>
             </div>
           )}
 
-          {/* ── STEP 3 ── */}
+          {/* ── STEP 3 — Readings ── */}
           {step === 3 && (
             <div className="flex flex-col items-center text-center gap-5">
               <div>
                 <h1 className="text-2xl font-bold text-navy">{t('onboarding.step3_title')}</h1>
                 <p className="text-gray-500 mt-1 text-sm">{t('onboarding.step3_subtitle')}</p>
               </div>
-
-              {/* Mock readings card */}
               <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden text-left">
                 <div className="bg-navy px-4 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -246,11 +277,7 @@ export default function OnboardingPage() {
                 <div className="p-4">
                   <p className="text-xs text-gray-400 mb-3">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
                   <div className="flex flex-col gap-2">
-                    {[
-                      ['First Reading', 'Isaiah 40:1-5'],
-                      ['Responsorial Psalm', 'Psalm 85'],
-                      ['Gospel', 'Mark 1:1-8'],
-                    ].map(([label, ref]) => (
+                    {[['First Reading','Isaiah 40:1-5'],['Responsorial Psalm','Psalm 85'],['Gospel','Mark 1:1-8']].map(([label,ref]) => (
                       <div key={label} className="flex items-center gap-2">
                         <span className="text-xs text-gray-400 w-28 flex-shrink-0">{label}</span>
                         <span className="text-sm text-navy font-medium">{ref}</span>
@@ -259,17 +286,49 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               </div>
-
               <p className="text-sm text-gray-500">{t('onboarding.step3_body')}</p>
-
-              <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={finish}>
-                {t('onboarding.go_to_parish')}
+              <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold"
+                onClick={() => isClergy ? setStep(4) : finish()}>
+                {isClergy ? t('onboarding.continue') : t('onboarding.go_to_parish')}
               </Button>
-              <button onClick={() => setStep(2)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">
-                ← Back
-              </button>
+              <button onClick={() => setStep(2)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">← Back</button>
             </div>
           )}
+
+          {/* ── STEP 4 — Clergy only: parish setup ── */}
+          {step === 4 && isClergy && (
+            <div className="flex flex-col items-center text-center gap-5">
+              <div className="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center">
+                <BuildingLibraryIcon className="w-7 h-7 text-gold" />
+              </div>
+              <div>
+                <p className="text-gold text-xs font-bold tracking-widest uppercase mb-1">For Priests</p>
+                <h1 className="text-2xl font-bold text-navy leading-tight">Are you the pastor of a parish?</h1>
+                <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+                  Set up your parish on Communio — reach your parishioners with announcements, events, and a community feed.
+                </p>
+              </div>
+              <div className="w-full bg-gold/10 border border-gold/20 rounded-2xl px-4 py-3 text-left">
+                <p className="text-navy text-xs font-semibold mb-1">Includes a 90-day free trial</p>
+                <p className="text-gray-500 text-xs">No credit card charged until day 91. Cancel any time.</p>
+              </div>
+              <div className="w-full space-y-3">
+                <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold"
+                  onClick={async () => {
+                    await updateProfile({ onboarding_completed: true })
+                    navigate('/pastor-setup', { replace: true })
+                  }}>
+                  Yes, set up my parish →
+                </Button>
+                <button onClick={finish}
+                  className="w-full text-sm text-gray-400 hover:text-navy transition-colors py-3 min-h-[44px]">
+                  Not right now — go to the app
+                </button>
+              </div>
+              <button onClick={() => setStep(3)} className="text-sm text-gray-400 hover:text-navy transition-colors py-1">← Back</button>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
