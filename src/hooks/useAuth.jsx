@@ -252,12 +252,13 @@ export function AuthProvider({ children }) {
       const newUser = data.user
       if (!newUser) return { error: t('common:status.error') }
 
-      await supabase.from('profiles').update({
+      await supabase.from('profiles').upsert({
+        id: newUser.id,
         full_name: fullName,
         username: username || null,
         parish_id: parishId || null,
         vocation_state: vocationState || null,
-      }).eq('id', newUser.id)
+      }, { onConflict: 'id' })
 
       if (parishId) {
         await supabase.from('parish_follows').insert({
