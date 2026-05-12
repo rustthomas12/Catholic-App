@@ -47,7 +47,7 @@ export default async function handler(req, res) {
           billing_type: 'parish_' + (tierKey || 'medium'),
         },
       },
-      success_url: `${process.env.VITE_APP_URL || 'https://app.getcommunio.app'}/parish/${parishId}?applied=true`,
+      success_url: `${process.env.VITE_APP_URL || 'https://app.getcommunio.app'}/pastor-verification-pending?parish_id=${parishId}`,
       cancel_url:  `${process.env.VITE_APP_URL || 'https://app.getcommunio.app'}/parish/${parishId}`,
     })
 
