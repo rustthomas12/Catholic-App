@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
-  ExclamationTriangleIcon, ShieldExclamationIcon,
+  ExclamationTriangleIcon, ShieldExclamationIcon, EnvelopeIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotifications } from '../hooks/useNotifications'
@@ -168,6 +168,8 @@ export default function SettingsPage() {
           <SettingsRow icon={null} label="Privacy Policy" to="/privacy" />
           <div className="border-t border-gray-50" />
           <SettingsRow icon={null} label="Content Policy" to="/policy" />
+          <div className="border-t border-gray-50" />
+          <SettingsRow icon={EnvelopeIcon} label="Contact Us" to="/contact" />
 
           {/* Danger zone */}
           <div className="border-t border-gray-100" />
