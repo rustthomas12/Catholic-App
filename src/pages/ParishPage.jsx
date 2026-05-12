@@ -155,18 +155,15 @@ export default function ParishPage() {
             )}
 
             {isMyParish && (
-              <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1.5 text-sm text-gold font-semibold px-1 py-2.5">
-                  <CheckBadgeIcon className="w-4 h-4" />
-                  Your parish
-                </span>
+              <div className="flex items-center gap-2 bg-gold/20 rounded-xl px-3 py-2">
+                <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" />
+                <span className="text-sm text-gold font-semibold">Your home parish</span>
                 <button
                   onClick={unsetMyParish}
-                  className="flex items-center gap-1 text-xs text-white/50 hover:text-white/80 px-2 py-1.5 rounded-lg transition-colors"
-                  title="Remove as my parish"
+                  className="ml-1 text-white/50 hover:text-white/90 transition-colors"
+                  title="Remove as my home parish"
                 >
                   <XMarkIcon className="w-3.5 h-3.5" />
-                  Remove
                 </button>
               </div>
             )}
