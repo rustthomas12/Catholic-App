@@ -69,6 +69,7 @@ const PastorVerificationPendingPage     = lazy(() => import('./pages/PastorVerif
 const AppContactPage                    = lazy(() => import('./pages/AppContactPage'))
 const BlockedUsersPage                  = lazy(() => import('./pages/BlockedUsersPage'))
 const PostPage                          = lazy(() => import('./pages/PostPage'))
+const DeleteAccountInfoPage             = lazy(() => import('./pages/DeleteAccountInfoPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -148,6 +149,7 @@ function AppInner() {
           <Route path="/privacy"         element={<PrivacyPage />} />
           <Route path="/policy"          element={<PolicyPage />} />
           <Route path="/pitch"           element={<PitchDeckPage />} />
+          <Route path="/delete-account"  element={<DeleteAccountInfoPage />} />
 
           {/* Protected */}
           <Route path="/"                          element={<ProtectedRoute><RouteErrorBoundary><HomePage /></RouteErrorBoundary></ProtectedRoute>} />

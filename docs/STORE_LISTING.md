@@ -116,7 +116,7 @@ User-generated content: every post has a "…" menu with "Report post" (reports 
 
 Payments: individual users never pay and there are no in-app purchases. Parishes and Catholic organizations can subscribe to administrative tools (B2B, guideline 3.1.3(c)); that checkout happens on our website.
 
-Account deletion: Settings > Delete account.
+Account deletion: Settings > Delete my account (content is hidden immediately; the account is permanently erased after 90 days). Details: https://app.getcommunio.app/delete-account
 
 Location is used only when the user taps "Near me" in the parish directory, to show nearby parishes.
 ```
@@ -153,9 +153,8 @@ Uses only standard encryption (HTTPS). Already declared in the app
 
 - Collects data: **Yes**. Shares data with third parties: **No**.
 - Encrypted in transit: **Yes**.
-- Users can request deletion: **Yes** — in-app (Settings → Delete account);
-  web link: `https://app.getcommunio.app/delete-account` *(available once the
-  account-deletion update ships — see docs/MOBILE.md)*.
+- Users can request deletion: **Yes** — in-app (Settings → Delete my account);
+  web link: `https://app.getcommunio.app/delete-account`.
 
 | Data type | Collected | Optional? | Purpose |
 |---|---|---|---|

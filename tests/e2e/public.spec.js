@@ -9,6 +9,7 @@ const PUBLIC_PAGES = [
   ['/terms', /terms/i],
   ['/privacy', /privacy/i],
   ['/policy', /policy|community/i],
+  ['/delete-account', /delete your communio account/i],
 ]
 
 for (const [path, heading] of PUBLIC_PAGES) {
