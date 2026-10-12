@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase, supabaseAuth } from '../lib/supabase'
+import { apiUrl, authRedirectUrl } from '../lib/platform'
 import i18n from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
 import { clearFeedCaches } from './useFeed.js'
@@ -135,7 +136,7 @@ export function AuthProvider({ children }) {
       !sessionStorage.getItem('communio-return-tracked')
     ) {
       sessionStorage.setItem('communio-return-tracked', 'true')
-      fetch('/api/track-return', {
+      fetch(apiUrl('/api/track-return'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -268,7 +269,7 @@ export function AuthProvider({ children }) {
         password,
         options: {
           data: { full_name: fullName },
-          emailRedirectTo: window.location.origin + '/onboarding',
+          emailRedirectTo: authRedirectUrl('/onboarding'),
         },
       })
       if (error) {
@@ -313,7 +314,7 @@ export function AuthProvider({ children }) {
   async function resetPassword(email) {
     try {
       const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
+        redirectTo: authRedirectUrl('/reset-password'),
       })
       return { error: error ? t('common:status.error') : null }
     } catch {
@@ -326,7 +327,7 @@ export function AuthProvider({ children }) {
       const { error } = await supabaseAuth.auth.resend({
         type: 'signup',
         email,
-        options: { emailRedirectTo: window.location.origin + '/onboarding' },
+        options: { emailRedirectTo: authRedirectUrl('/onboarding') },
       })
       return { error: error ? t('common:status.error') : null }
     } catch {

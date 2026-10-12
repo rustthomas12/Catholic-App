@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import { useSaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
+import { currentPublicUrl } from '../lib/platform'
 
 function formatFeastDay(feastDay) {
   if (!feastDay) return null
@@ -73,7 +74,7 @@ export default function SaintPage() {
   }
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = currentPublicUrl()
     const text = saint ? `Learn about ${saint.name} on Communio` : 'Communio'
     if (navigator.share) {
       try {

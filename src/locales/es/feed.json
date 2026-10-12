@@ -36,7 +36,12 @@
     "uploading": "Subiendo imagen...",
     "destination_label": "Publicando en",
     "destination_public": "Público",
-    "report": "Reportar publicación"
+    "report": "Reportar publicación",
+    "block": "Bloquear usuario",
+    "block_title": "¿Bloquear a {{name}}?",
+    "block_body": "No verás sus publicaciones, comentarios, peticiones de oración ni mensajes, y no podrá enviarte mensajes. Puedes desbloquearlo en cualquier momento en Configuración.",
+    "block_confirm": "Bloquear",
+    "blocked": "{{name}} ha sido bloqueado"
   },
   "like": {
     "like": "Me gusta",

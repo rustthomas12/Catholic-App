@@ -8,6 +8,7 @@ to their parish community, groups, and daily faith life.
 - Supabase (backend, auth, database, storage)
 - Tailwind CSS (styling)
 - Vercel (hosting)
+- Capacitor (iOS & Android apps — see [docs/MOBILE.md](docs/MOBILE.md))
 - Mapbox (parish directory map)
 
 ## Development Setup
@@ -15,6 +16,14 @@ to their parish community, groups, and daily faith life.
 2. Copy `.env.example` to `.env.local` and fill in values
 3. `npm install`
 4. `npm run dev`
+5. `npm test` — unit tests
+
+## Mobile apps
+The App Store / Google Play apps wrap this same codebase with Capacitor.
+Setup, building without a Mac, testing and releasing: [docs/MOBILE.md](docs/MOBILE.md).
+- `npm run mobile:build` — build web + sync into ios/ and android/
+- `npm run mobile:android` — open in Android Studio
+- `npm run mobile:ios` — open in Xcode (Mac only)
 
 ## Build Phases
 - Phase 1: Foundation ✓
@@ -33,4 +42,4 @@ to their parish community, groups, and daily faith life.
 - No Mass livestreaming
 - Strictly chronological feeds (no algorithm)
 - Confession tracker is 100% private, no exceptions
-- Web PWA first, React Native in Year 2
+- Web PWA first; native iOS/Android apps via Capacitor from the same codebase

@@ -86,3 +86,54 @@ export async function createNotification({
   //   confession_reminder    → "It has been X days since your last confession"
   // Check user's email preferences (separate column) before sending.
 }
+
+/**
+ * Screen a notification opens when tapped (in-app list and push taps).
+ * Keep in sync with notificationPath() in supabase/functions/send-push.
+ *
+ * reference_id holds a post ID for post-related types, otherwise the
+ * group / parish / organization the notification is about.
+ *
+ * @param {string} type
+ * @param {string|null} referenceId
+ * @returns {string}
+ */
+export function notificationPath(type, referenceId) {
+  const ref = referenceId || null
+  switch (type) {
+    case 'like':
+    case 'comment':
+    case 'parish_post':
+    case 'group_post':
+      return ref ? `/post/${ref}` : '/'
+    case 'group_invite':
+    case 'group_request':
+    case 'group_request_response':
+    case 'new_group_member':
+      return ref ? `/group/${ref}` : '/groups'
+    case 'new_parish_member':
+      return ref ? `/parish-admin/${ref}` : '/'
+    case 'new_org_member':
+      return ref ? `/org-admin/${ref}` : '/organizations'
+    case 'chapter_request_resolved':
+      return ref ? `/organization/${ref}` : '/organizations'
+    case 'chapter_request':
+      return '/organizations'
+    case 'post_flagged':
+      return '/admin'
+    case 'prayer_response':
+      return '/faith/prayer'
+    case 'confession_reminder':
+      return '/premium/confession-tracker'
+    case 'direct_message':
+      return '/messages'
+    case 'morning_offering_reminder':
+      return '/faith/morning-offering'
+    case 'daily_readings_reminder':
+      return '/faith'
+    case 'event_reminder':
+      return '/notifications'
+    default:
+      return '/'
+  }
+}

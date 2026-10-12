@@ -6,6 +6,7 @@
 
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { sendFcmToUsers } from './_fcm.js'
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -49,27 +50,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: subError.message })
   }
 
-  if (!subs?.length) {
-    return res.status(200).json({ sent: 0, message: 'No push subscriptions found' })
-  }
-
   const today = new Date()
   const tag = `morning-offering-${today.toISOString().slice(0, 10)}`
 
-  const payload = JSON.stringify({
+  const message = {
     title: '☀️ Morning Offering',
     body: 'Offer your day to God before it begins.',
     icon: '/icons/icon-192.svg',
     badge: '/icons/icon-72.svg',
     url: '/faith/morning-offering',
     tag,
-  })
+  }
+  const payload = JSON.stringify(message)
 
   let sent = 0
   const expiredEndpoints = []
 
   await Promise.allSettled(
-    subs.map(async (sub) => {
+    (subs ?? []).map(async (sub) => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
@@ -93,6 +91,9 @@ export default async function handler(req, res) {
       .in('endpoint', expiredEndpoints)
   }
 
-  console.log(`Morning offering reminder: ${sent} sent, ${expiredEndpoints.length} expired cleaned up`)
-  return res.status(200).json({ sent, expired: expiredEndpoints.length })
+  // iOS / Android app users (Firebase Cloud Messaging)
+  const native = await sendFcmToUsers(supabase, userIds, message)
+
+  console.log(`Morning offering reminder: ${sent} web + ${native.sent} native sent, ${expiredEndpoints.length + native.expired} expired cleaned up`)
+  return res.status(200).json({ sent: sent + native.sent, expired: expiredEndpoints.length + native.expired })
 }

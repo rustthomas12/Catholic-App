@@ -1,0 +1,51 @@
+{
+  "appId": "app.getcommunio",
+  "appName": "Communio",
+  "webDir": "dist",
+  "backgroundColor": "#FAF7F2",
+  "ios": {
+    "contentInset": "never",
+    "scheme": "Communio"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "launchAutoHide": true,
+      "backgroundColor": "#1B2A4A",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK"
+    },
+    "Keyboard": {
+      "resizeOnFullScreen": true
+    },
+    "FirebaseMessaging": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    },
+    "SystemBars": {
+      "insetsHandling": "native",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
+  },
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capacitor-firebase/messaging": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}

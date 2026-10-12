@@ -1,3 +1,4 @@
+import { applyNativeCors } from './_native.js'
 /**
  * Vercel serverless function — Catholic Readings API proxy.
  * References:  https://cpbjr.github.io/catholic-readings-api/
@@ -172,6 +173,7 @@ async function fetchLiturgicalDay(yyyy, mm, dd) {
 
 // ── Handler ────────────────────────────────────────────────
 export default async function handler(req, res) {
+  if (applyNativeCors(req, res, { publicData: true })) return
   const { date, lang, rite } = req.query
 
   // Route to sub-handlers based on query params

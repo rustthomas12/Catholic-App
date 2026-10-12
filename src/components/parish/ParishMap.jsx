@@ -176,6 +176,24 @@ function OrgMarkerLayer({ organizations, selectedId, onSelect }) {
 }
 
 // ── Map component ──────────────────────────────────────────
+// Map tiles: Mapbox when VITE_MAPBOX_TOKEN is set (keyed, suited to app
+// traffic), otherwise the public OpenStreetMap tile server.
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+const TILES = MAPBOX_TOKEN
+  ? {
+      url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`,
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> ' + OSM_ATTRIBUTION,
+    }
+  : {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      maxZoom: 19,
+      attribution: OSM_ATTRIBUTION,
+    }
+
 export default function ParishMap({
   parishes = [],
   organizations = [],
@@ -198,11 +216,7 @@ export default function ParishMap({
       zoomControl={true}
       attributionControl={true}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        maxZoom={19}
-      />
+      <TileLayer {...TILES} />
       <ClusteredMarkerLayer
         parishes={parishes}
         selectedId={selectedId}

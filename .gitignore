@@ -29,3 +29,8 @@ dist-ssr
 .vercel
 scripts/data/irs-bmf/eo2.csv
 scripts/data/irs-bmf/eo3.csv
+
+# Playwright
+test-results/
+playwright-report/
+dev-dist/

@@ -10,17 +10,20 @@ import {
   FlagIcon,
   XMarkIcon,
   MegaphoneIcon,
+  NoSymbolIcon,
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { usePost } from '../../hooks/usePost'
+import { useBlockedUsers } from '../../hooks/useBlockedUsers'
 import Avatar from '../shared/Avatar'
 import Modal from '../shared/Modal'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { CommentSkeleton } from '../shared/skeletons'
 import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
+import { publicOrigin } from '../../lib/platform'
 
 // ── Report modal ───────────────────────────────────────────
 const REPORT_REASONS = ['spam', 'hateful', 'misinformation', 'violates_values', 'other']
@@ -98,6 +101,32 @@ function DeleteModal({ isOpen, onClose, onConfirm, loading }) {
         >
           {loading ? <LoadingSpinner size="sm" color="white" /> : null}
           {t('common:actions.delete')}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ── Block user modal ───────────────────────────────────────
+function BlockModal({ isOpen, onClose, onConfirm, loading, name }) {
+  const { t } = useTranslation(['feed', 'common'])
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={t('feed:post.block_title', { name })}>
+      <p className="text-sm text-gray-500 mb-4">{t('feed:post.block_body')}</p>
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          className="flex-1 border border-gray-200 text-navy rounded-lg py-2.5 text-sm font-medium min-h-[44px]"
+        >
+          {t('common:actions.cancel')}
+        </button>
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {loading ? <LoadingSpinner size="sm" color="white" /> : null}
+          {t('feed:post.block_confirm')}
         </button>
       </div>
     </Modal>
@@ -200,6 +229,8 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const [menuOpen, setMenuOpen] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [blockLoading, setBlockLoading] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [commentInput, setCommentInput] = useState('')
@@ -209,6 +240,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const menuRef = useRef(null)
 
   const isOwnPost = user?.id === post.author?.id
+  const { isBlocked, block } = useBlockedUsers()
   const TRUNCATE_LIMIT = 500
 
   // Parse optional title from first line (announcements only)
@@ -239,7 +271,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   }
 
   async function handleShare() {
-    const url = `${window.location.origin}/post/${post.id}`
+    const url = `${publicOrigin()}/post/${post.id}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Communio', url })
@@ -278,6 +310,22 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
       onDelete?.(post.id)
     }
   }
+
+  async function handleBlockAuthor() {
+    setBlockLoading(true)
+    const { error } = await block(post.author?.id)
+    setBlockLoading(false)
+    if (error) {
+      toast.error(t('common:status.error'))
+    } else {
+      setShowBlockModal(false)
+      toast.success(t('post.blocked', { name: post.author?.full_name || 'Parish Member' }))
+    }
+  }
+
+  // Hidden immediately once the author is blocked (the database stops
+  // returning their posts on the next fetch)
+  if (!isOwnPost && isBlocked(post.author?.id)) return null
 
   const bodyText = announcementTitle ? announcementBody : post.content
   const displayContent = expanded || bodyText.length <= TRUNCATE_LIMIT
@@ -407,13 +455,24 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={() => { setMenuOpen(false); setShowReportModal(true) }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
-                    >
-                      <FlagIcon className="w-4 h-4" />
-                      {t('post.report')}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => { setMenuOpen(false); setShowReportModal(true) }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
+                      >
+                        <FlagIcon className="w-4 h-4" />
+                        {t('post.report')}
+                      </button>
+                      {post.author?.id && (
+                        <button
+                          onClick={() => { setMenuOpen(false); setShowBlockModal(true) }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 min-h-[44px]"
+                        >
+                          <NoSymbolIcon className="w-4 h-4" />
+                          {t('post.block')}
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -513,7 +572,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               </div>
             ) : (
               <div className="pt-2">
-                {comments.map((c) => (
+                {comments.filter((c) => !isBlocked(c.author?.id)).map((c) => (
                   <CommentItem
                     key={c.id}
                     comment={c}
@@ -570,6 +629,13 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
         onSubmit={reportPost}
+      />
+      <BlockModal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onConfirm={handleBlockAuthor}
+        loading={blockLoading}
+        name={post.author?.full_name || 'Parish Member'}
       />
       {showImageModal && post.image_url && (
         <ImageModal src={post.image_url} onClose={() => setShowImageModal(false)} />

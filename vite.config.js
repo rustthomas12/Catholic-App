@@ -7,7 +7,8 @@ export default defineConfig({
     proxy: {
       // Forward /api/* to Vercel dev server (run `vercel dev` on port 3000)
       '/api': {
-        target: 'http://localhost:3000',
+        // API_PROXY_TARGET lets e2e tests point at a deployed API
+        target: process.env.API_PROXY_TARGET || 'http://localhost:3000',
         changeOrigin: true,
       },
     },

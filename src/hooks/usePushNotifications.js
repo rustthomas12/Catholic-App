@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { isNative } from '../lib/platform'
+import { useNativePushNotifications } from './useNativePushNotifications'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
@@ -32,7 +34,7 @@ async function deleteSubscription(endpoint, userId) {
     .eq('endpoint', endpoint)
 }
 
-export function usePushNotifications(userId) {
+function useWebPushNotifications(userId) {
   const [permission, setPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   )
@@ -174,3 +176,8 @@ export function usePushNotifications(userId) {
     unsubscribe,
   }
 }
+
+// Web: VAPID web push via the service worker (above).
+// iOS / Android apps: Firebase Cloud Messaging via Capacitor.
+// isNative never changes at runtime, so this is a stable hook choice.
+export const usePushNotifications = isNative ? useNativePushNotifications : useWebPushNotifications

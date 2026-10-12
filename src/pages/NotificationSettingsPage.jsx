@@ -10,7 +10,6 @@ import {
   CalendarIcon,
   EnvelopeIcon,
   ClipboardDocumentCheckIcon,
-  LockClosedIcon,
   BellIcon,
   BellSlashIcon,
   ShieldExclamationIcon,
@@ -62,7 +61,7 @@ function SavedIndicator({ visible }) {
 }
 
 // ── Preference row ────────────────────────────────────────
-function PrefRow({ icon: Icon, label, description, value, onChange, disabled, premiumNote }) {
+function PrefRow({ icon: Icon, label, description, value, onChange, disabled }) {
   const [saved, setSaved] = useState(false)
 
   function handleChange(v) {
@@ -79,12 +78,6 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled, pr
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-navy">{label}</span>
-          {premiumNote && (
-            <a href="/premium" className="flex items-center gap-0.5 text-xs text-gold hover:underline">
-              <LockClosedIcon className="w-3 h-3" />
-              {premiumNote}
-            </a>
-          )}
         </div>
         <p className="text-xs text-gray-400 mt-0.5 leading-snug">{description}</p>
       </div>
@@ -334,7 +327,6 @@ export default function NotificationSettingsPage() {
                   value={preferences[row.column]}
                   onChange={(v) => updatePreference(row.column, v)}
                   disabled={row.disabled}
-                  premiumNote={row.premiumNote}
                 />
               </div>
             ))}

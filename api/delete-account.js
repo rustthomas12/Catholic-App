@@ -1,7 +1,9 @@
+import { applyNativeCors } from './_native.js'
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export default async function handler(req, res) {
+  if (applyNativeCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).end()
 
   const token = req.headers.authorization?.replace('Bearer ', '')

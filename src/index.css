@@ -112,3 +112,48 @@
   line-height: 32px !important;
   color: #1B2A4A !important;
 }
+
+/* ── Native apps (iOS / Android) ──────────────────────────
+   In the Capacitor apps the WebView runs edge-to-edge, under the status bar
+   and notch. In the browser/PWA the OS keeps content below the status bar,
+   so these rules only apply when main.jsx has tagged <html> as native. */
+html.cap-native {
+  /* On older Android WebViews Capacitor pads the WebView itself and env()
+     reports 0 (SystemBars insetsHandling: native), so this never doubles up. */
+  --app-safe-top: env(safe-area-inset-top, 0px);
+}
+
+html.cap-native body {
+  padding-top: var(--app-safe-top);
+}
+
+/* Solid bar behind the status bar so scrolled content never shows through */
+html.cap-native::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-safe-top);
+  background: #1B2A4A;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+html.cap-native .min-h-screen {
+  min-height: calc(100vh - var(--app-safe-top));
+}
+
+html.cap-native .sticky.top-0,
+html.cap-native .fixed.top-0 {
+  top: var(--app-safe-top);
+}
+
+html.cap-native .sticky.top-2 {
+  top: calc(var(--app-safe-top) + 0.5rem);
+}
+
+/* Close buttons pinned to the top of full-screen overlays (e.g. image viewer) */
+html.cap-native .fixed.inset-0 > .absolute.top-4 {
+  top: calc(var(--app-safe-top) + 1rem);
+}

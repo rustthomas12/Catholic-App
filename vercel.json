@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ],
   "crons": [
     {
@@ -10,6 +13,17 @@
     {
       "path": "/api/readings-reminder",
       "schedule": "0 17 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
     }
   ]
 }

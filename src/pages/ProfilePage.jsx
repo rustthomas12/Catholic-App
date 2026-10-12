@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useBlockedUsers } from '../hooks/useBlockedUsers'
 import { supabase } from '../lib/supabase'
 import Avatar from '../components/shared/Avatar'
 import Badge from '../components/shared/Badge'
 import Button from '../components/shared/Button'
+import Modal from '../components/shared/Modal'
+import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import Feed from '../components/feed/Feed'
 import { format } from 'date-fns'
@@ -94,6 +98,21 @@ export default function ProfilePage() {
   }, [targetId, authLoading])
 
   const isOwnProfile = user?.id === targetId
+  const { t } = useTranslation(['feed', 'common'])
+  const { isBlocked, block, unblock } = useBlockedUsers()
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [blockLoading, setBlockLoading] = useState(false)
+  const blocked = isBlocked(targetId)
+
+  async function handleBlockToggle() {
+    const name = profile?.full_name || 'Parish Member'
+    setBlockLoading(true)
+    const { error } = blocked ? await unblock(targetId) : await block(targetId)
+    setBlockLoading(false)
+    setShowBlockModal(false)
+    if (error) toast.error(t('common:status.error'))
+    else if (!blocked) toast.success(t('feed:post.blocked', { name }))
+  }
 
   if (loading) return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -160,6 +179,20 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Block / unblock (other people's profiles) */}
+          {!isOwnProfile && user && (
+            <div className="absolute top-4 right-4 z-10">
+              <button
+                onClick={() => (blocked ? handleBlockToggle() : setShowBlockModal(true))}
+                disabled={blockLoading}
+                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-sm font-medium px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors disabled:opacity-50 text-red-600"
+              >
+                <NoSymbolIcon className="w-4 h-4" />
+                {blocked ? 'Unblock' : 'Block'}
+              </button>
+            </div>
+          )}
+
           {/* Banner gradient */}
           <div className="h-28 bg-gradient-to-b from-navy to-navy/60 rounded-b-none" />
 
@@ -221,15 +254,6 @@ export default function ProfilePage() {
             </Link>
           ) : null}
 
-          {/* Support nudge */}
-          {isOwnProfile && (
-            <div className="text-center">
-              <Link to="/premium" className="text-xs text-gray-400 hover:text-gold transition-colors">
-                Support the mission →
-              </Link>
-            </div>
-          )}
-
           {/* Stats row */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 grid grid-cols-3 divide-x divide-gray-100">
             <div className="text-center px-2">
@@ -247,6 +271,11 @@ export default function ProfilePage() {
           </div>
 
           {/* Posts feed */}
+          {blocked ? (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center text-sm text-gray-500">
+              You blocked this account. Their posts are hidden.
+            </div>
+          ) : (
           <div className="-mx-4">
             <h2 className="text-base font-bold text-navy px-4 mb-3">Posts</h2>
             <Feed
@@ -269,8 +298,32 @@ export default function ProfilePage() {
               }
             />
           </div>
+          )}
         </div>
       </div>
+
+      <Modal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        title={t('feed:post.block_title', { name: profile?.full_name || 'Parish Member' })}
+      >
+        <p className="text-sm text-gray-500 mb-4">{t('feed:post.block_body')}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowBlockModal(false)}
+            className="flex-1 border border-gray-200 text-navy rounded-lg py-2.5 text-sm font-medium min-h-[44px]"
+          >
+            {t('common:actions.cancel')}
+          </button>
+          <button
+            onClick={handleBlockToggle}
+            disabled={blockLoading}
+            className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50"
+          >
+            {t('feed:post.block_confirm')}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

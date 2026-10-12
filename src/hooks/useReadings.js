@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
+import { apiUrl } from '../lib/platform'
 import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
 
 // ── Module-level cache ─────────────────────────────────────
@@ -28,7 +29,7 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
   const fetchTimeout = setTimeout(() => controller.abort(), 5000)
   const endpoint = lang === 'es' ? `/api/readings?date=${dateStr}&lang=es` : `/api/readings?date=${dateStr}`
 
-  _promises[lang] = fetch(endpoint, { signal: controller.signal })
+  _promises[lang] = fetch(apiUrl(endpoint), { signal: controller.signal })
     .then(res => {
       if (!res.ok) throw new Error('Proxy error')
       return res.json()
@@ -116,7 +117,7 @@ function fetchTLMOnce(dateParam) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10000)
 
-  _tlmPromise = fetch(`/api/readings?date=${dateParam}&rite=tlm`, { signal: controller.signal })
+  _tlmPromise = fetch(apiUrl(`/api/readings?date=${dateParam}&rite=tlm`), { signal: controller.signal })
     .then(res => { if (!res.ok) throw new Error(); return res.json() })
     .then(data => {
       clearTimeout(timeout)

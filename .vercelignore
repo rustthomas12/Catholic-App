@@ -7,3 +7,9 @@ coverage
 .env.development.local
 .env.test.local
 .env.production.local
+ios
+android
+assets
+tests
+scripts/data
+test-results
