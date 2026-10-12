@@ -9,6 +9,7 @@ import {
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 
 const TIERS = [
@@ -272,7 +273,7 @@ function StepTrial({ parish, tier, user, onBack }) {
   async function startTrial() {
     setLoading(true)
     try {
-      const res = await fetch('/api/create-parish-checkout-session', {
+      const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -285,7 +286,8 @@ function StepTrial({ parish, tier, user, onBack }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
-      window.location.href = data.url
+      await openExternal(data.url)
+      if (isNative) setLoading(false)
     } catch (err) {
       toast.error(err.message || 'Something went wrong. Please try again.')
       setLoading(false)

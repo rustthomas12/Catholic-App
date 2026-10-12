@@ -1,12 +1,10 @@
+import { applyNativeCors, returnUrl } from './_native.js'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-// APP_URL must always point to the app subdomain, not the marketing site.
-// VITE_APP_URL in Vercel is often set to the marketing domain — don't use it here.
-const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
-
 export default async function handler(req, res) {
+  if (applyNativeCors(req, res)) return
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -51,8 +49,8 @@ export default async function handler(req, res) {
           billing_type: 'parish_' + (tierKey || 'medium'),
         },
       },
-      success_url: `${APP_URL}/pastor-verification-pending?parish_id=${parishId}`,
-      cancel_url:  `${APP_URL}/parish/${parishId}`,
+      success_url: returnUrl(req, `/pastor-verification-pending?parish_id=${parishId}`),
+      cancel_url:  returnUrl(req, `/parish/${parishId}`),
     })
 
     res.status(200).json({ url: session.url })

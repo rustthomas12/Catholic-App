@@ -1,0 +1,52 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "APPLE_TEAM_ID.app.getcommunio"
+        ],
+        "components": [
+          {
+            "/": "/join/*"
+          },
+          {
+            "/": "/group/*"
+          },
+          {
+            "/": "/groups*"
+          },
+          {
+            "/": "/parish/*"
+          },
+          {
+            "/": "/profile/*"
+          },
+          {
+            "/": "/organization/*"
+          },
+          {
+            "/": "/organizations*"
+          },
+          {
+            "/": "/saints*"
+          },
+          {
+            "/": "/faith*"
+          },
+          {
+            "/": "/messages*"
+          },
+          {
+            "/": "/notifications*"
+          },
+          {
+            "/": "/directory*"
+          },
+          {
+            "/": "/settings*"
+          }
+        ]
+      }
+    ]
+  }
+}

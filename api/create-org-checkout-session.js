@@ -1,7 +1,7 @@
+import { applyNativeCors, returnUrl } from './_native.js'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
 
 const STANDALONE_PRICES = {
   starter:     process.env.STRIPE_PRICE_ORG_STARTER,
@@ -22,6 +22,7 @@ function getPriceId(billingTrack, tier) {
 }
 
 export default async function handler(req, res) {
+  if (applyNativeCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { orgId, orgName, adminUserId, adminEmail, billingTrack = 'standalone', tier } = req.body
@@ -41,7 +42,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `Invalid tier: ${tier}` })
   }
 
-  const appUrl = APP_URL
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -66,8 +66,8 @@ export default async function handler(req, res) {
           tier,
         },
       },
-      success_url: `${appUrl}/org-admin/${orgId}?tab=billing&subscribed=true`,
-      cancel_url:  `${appUrl}/org-admin/${orgId}?tab=billing`,
+      success_url: returnUrl(req, `/org-admin/${orgId}?tab=billing&subscribed=true`),
+      cancel_url:  returnUrl(req, `/org-admin/${orgId}?tab=billing`),
     })
     res.status(200).json({ url: session.url })
   } catch (err) {

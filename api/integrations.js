@@ -1,3 +1,4 @@
+import { applyNativeCors } from './_native.js'
 /**
  * Consolidated integrations handler.
  * Routes via ?action= query param:
@@ -17,6 +18,7 @@ const supabase = createClient(
 const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
 
 export default async function handler(req, res) {
+  if (applyNativeCors(req, res)) return
   const { action } = req.query
 
   switch (action) {
@@ -32,16 +34,17 @@ export default async function handler(req, res) {
 // ── Facebook Auth ───────────────────────────────────────────
 
 function facebookAuth(req, res) {
-  const { parish_id, admin_user_id } = req.query
+  const { parish_id, admin_user_id, native } = req.query
+  const nativeFlow = native === '1'
 
   if (!parish_id || !admin_user_id) {
     return res.status(400).json({ error: 'Missing parish_id or admin_user_id' })
   }
   if (!process.env.FACEBOOK_APP_ID || process.env.FACEBOOK_APP_ID === 'pending') {
-    return res.send(closePopup('facebook', 'not_configured'))
+    return res.send(closePopup('facebook', 'not_configured', nativeFlow))
   }
 
-  const state = Buffer.from(JSON.stringify({ parish_id, admin_user_id })).toString('base64url')
+  const state = Buffer.from(JSON.stringify({ parish_id, admin_user_id, native: nativeFlow })).toString('base64url')
 
   const params = new URLSearchParams({
     client_id:     process.env.FACEBOOK_APP_ID,
@@ -58,8 +61,9 @@ function facebookAuth(req, res) {
 
 async function facebookCallback(req, res) {
   const { code, state, error } = req.query
+  const nativeFlow = readNativeFlag(state)
 
-  if (error) return res.send(closePopup('facebook', 'denied'))
+  if (error) return res.send(closePopup('facebook', 'denied', nativeFlow))
 
   let parish_id, admin_user_id
   try {
@@ -82,7 +86,7 @@ async function facebookCallback(req, res) {
     }),
   })
   const tokenData = await tokenRes.json()
-  if (!tokenData.access_token) return res.send(closePopup('facebook', 'token_error'))
+  if (!tokenData.access_token) return res.send(closePopup('facebook', 'token_error', nativeFlow))
 
   // Exchange for long-lived token (~60 days)
   const longRes = await fetch(
@@ -97,7 +101,7 @@ async function facebookCallback(req, res) {
   const pagesRes = await fetch(`https://graph.facebook.com/v18.0/me/accounts?access_token=${longToken}`)
   const { data: pages } = await pagesRes.json()
 
-  if (!pages || pages.length === 0) return res.send(closePopup('facebook', 'no_pages'))
+  if (!pages || pages.length === 0) return res.send(closePopup('facebook', 'no_pages', nativeFlow))
 
   const expiresAt = new Date(Date.now() + (expires_in || 5184000) * 1000).toISOString()
 
@@ -114,7 +118,7 @@ async function facebookCallback(req, res) {
       error_count: 0,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'parish_id,platform' })
-    return res.send(closePopup('facebook', 'connected'))
+    return res.send(closePopup('facebook', 'connected', nativeFlow))
   }
 
   // Multiple pages — let admin pick in-app
@@ -128,7 +132,7 @@ async function facebookCallback(req, res) {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'parish_id,platform' })
 
-  return res.send(closePopup('facebook', 'select_page'))
+  return res.send(closePopup('facebook', 'select_page', nativeFlow))
 }
 
 // ── Flocknote Connect ───────────────────────────────────────
@@ -215,7 +219,16 @@ async function webhookConnect(req, res) {
 
 // ── Helper ──────────────────────────────────────────────────
 
-function closePopup(platform, result) {
+function closePopup(platform, result, nativeFlow = false) {
+  if (nativeFlow) {
+    // Started from the iOS / Android app in an in-app browser sheet: hand the
+    // result back through the communio:// scheme (the app closes the sheet).
+    const appLink = `communio://oauth-complete?platform=${encodeURIComponent(platform)}&result=${encodeURIComponent(result)}`
+    return `<!DOCTYPE html><html><body>
+    <script>window.location.replace('${appLink}');</script>
+    <p>You can close this window and return to Communio.</p>
+    </body></html>`
+  }
   return `<!DOCTYPE html><html><body>
     <script>
       try { window.opener?.postMessage({ type: 'INTEGRATION_RESULT', platform: '${platform}', result: '${result}' }, '*'); } catch(e) {}
@@ -223,4 +236,13 @@ function closePopup(platform, result) {
     </script>
     <p>You can close this window.</p>
     </body></html>`
+}
+
+// Reads the `native` flag from the OAuth state without failing the request
+function readNativeFlag(state) {
+  try {
+    return JSON.parse(Buffer.from(state, 'base64url').toString()).native === true
+  } catch {
+    return false
+  }
 }

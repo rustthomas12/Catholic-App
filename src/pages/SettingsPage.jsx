@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
-  ExclamationTriangleIcon, ShieldExclamationIcon, EnvelopeIcon,
+  ExclamationTriangleIcon, ShieldExclamationIcon, EnvelopeIcon, NoSymbolIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotifications } from '../hooks/useNotifications'
 import { supabase, supabaseAuth } from '../lib/supabase'
+import { apiUrl } from '../lib/platform'
 import Modal from '../components/shared/Modal'
 import Button from '../components/shared/Button'
 import { toast } from '../components/shared/Toast'
@@ -56,7 +57,7 @@ export default function SettingsPage() {
       const { data: { session } } = await supabaseAuth.auth.getSession()
       if (!session?.access_token) throw new Error('Not authenticated')
 
-      const res = await fetch('/api/delete-account', {
+      const res = await fetch(apiUrl('/api/delete-account'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,6 +158,8 @@ export default function SettingsPage() {
               <option value="members_only">Members only</option>
             </select>
           </div>
+          <div className="border-t border-gray-50" />
+          <SettingsRow icon={NoSymbolIcon} label="Blocked users" to="/settings/blocked" />
 
           {/* About */}
           <div className="border-t border-gray-100" />

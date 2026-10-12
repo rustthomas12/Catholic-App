@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import { formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { apiUrl, isNative, openExternal } from '../../lib/platform'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { toast } from '../shared/Toast'
 import LoadingSpinner from '../shared/LoadingSpinner'
@@ -110,8 +111,13 @@ export default function IntegrationsTab({ parishId }) {
         parish_id:     parishId,
         admin_user_id: user.id,
       })
-      const popup = window.open(
-        `/api/integrations?action=facebook-auth&${params}`,
+      // Native apps can't open popup windows: run OAuth in the in-app browser
+      // sheet instead. The server's result page deep-links back and
+      // NativeBridge re-posts it as the same INTEGRATION_RESULT message.
+      if (isNative) params.set('native', '1')
+      const authUrl = apiUrl(`/api/integrations?action=facebook-auth&${params}`)
+      const popup = isNative ? null : window.open(
+        authUrl,
         'communio_oauth',
         'width=600,height=700,left=200,top=100'
       )
@@ -135,6 +141,14 @@ export default function IntegrationsTab({ parishId }) {
       }
       window.addEventListener('message', onMessage)
 
+      if (isNative) {
+        openExternal(authUrl).then(() => {
+          // Sheet closed — allow a moment for the deep-linked result to arrive
+          setTimeout(() => window.removeEventListener('message', onMessage), 3000)
+        })
+        return
+      }
+
       // Cleanup if popup is closed without posting a message
       const poll = setInterval(() => {
         if (popup?.closed) {
@@ -155,7 +169,7 @@ export default function IntegrationsTab({ parishId }) {
         ? '/api/integrations?action=flocknote-connect'
         : '/api/integrations?action=webhook-connect'
 
-      const res = await fetch(endpoint, {
+      const res = await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ parish_id: parishId, platform: platform.id, ...formData }),

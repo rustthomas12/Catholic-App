@@ -15,6 +15,10 @@ import InstallPrompt from './components/shared/InstallPrompt'
 import PushPrompt from './components/shared/PushPrompt'
 import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
+import { isNative } from './lib/platform'
+
+// iOS / Android only — deep links, push taps, back button
+const NativeBridge = isNative ? lazy(() => import('./components/shared/NativeBridge')) : null
 
 // ── Lazy page imports ──────────────────────────────────────
 const HomePage                 = lazy(() => import('./pages/HomePage'))
@@ -65,6 +69,7 @@ const PrivateIntentionsPage    = lazy(() => import('./pages/PrivateIntentionsPag
 const PastorOnboardingPage              = lazy(() => import('./pages/PastorOnboardingPage'))
 const PastorVerificationPendingPage     = lazy(() => import('./pages/PastorVerificationPendingPage'))
 const AppContactPage                    = lazy(() => import('./pages/AppContactPage'))
+const BlockedUsersPage                  = lazy(() => import('./pages/BlockedUsersPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -126,7 +131,9 @@ function AppInner() {
       <OfflineDetector />
       <LastActiveUpdater />
       <SuspendedBanner />
-      <InstallPrompt />
+      {/* "Add to Home Screen" makes no sense inside the installed app */}
+      {!isNative && <InstallPrompt />}
+      {NativeBridge && <Suspense fallback={null}><NativeBridge /></Suspense>}
       <PushPrompt />
       <Navigation />
       <Suspense fallback={<div className="min-h-screen bg-cream" />}>
@@ -168,6 +175,7 @@ function AppInner() {
           <Route path="/settings"                  element={<ProtectedRoute><RouteErrorBoundary><SettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/profile"          element={<ProtectedRoute><RouteErrorBoundary><EditProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/notifications"    element={<ProtectedRoute><RouteErrorBoundary><NotificationSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/settings/blocked"          element={<ProtectedRoute><RouteErrorBoundary><BlockedUsersPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/notifications"             element={<ProtectedRoute><RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium"                   element={<RouteErrorBoundary><PremiumPage /></RouteErrorBoundary>} />
           <Route path="/premium/success"           element={<ProtectedRoute><RouteErrorBoundary><PremiumSuccessPage /></RouteErrorBoundary></ProtectedRoute>} />

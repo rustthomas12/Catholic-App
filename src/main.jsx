@@ -3,6 +3,14 @@ import { createRoot } from 'react-dom/client'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import './index.css'
 import App from './App.jsx'
+import { isNative, platform } from './lib/platform'
+
+// iOS / Android app: route browser APIs to native plugins and tag <html> so
+// CSS can account for the status bar / notch (see index.css).
+if (isNative) {
+  document.documentElement.classList.add('cap-native', `cap-${platform}`)
+  import('./lib/nativeShims').then((m) => m.installNativeShims())
+}
 
 // When Vite fails to load a lazy chunk (e.g. after a new deploy invalidates
 // old hashed filenames), reload once to pick up the fresh asset manifest.
@@ -56,6 +64,8 @@ function AppWithSWUpdater() {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppWithSWUpdater />
+    {/* Native apps ship their web assets in the binary (updated through the
+        stores), so there is no service worker to register or update. */}
+    {isNative ? <App /> : <AppWithSWUpdater />}
   </StrictMode>,
 )

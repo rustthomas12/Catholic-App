@@ -1,0 +1,175 @@
+# Builds the iOS and Android apps on GitHub's machines (no Mac needed).
+#
+#  • Every push / PR: unit tests, web build, Android debug APK, iOS simulator
+#    build — proves both native projects still compile.
+#  • Run manually (Actions → Mobile apps → Run workflow) with "release" ticked
+#    to produce signed store builds:
+#      - iOS: uploaded to App Store Connect → TestFlight
+#      - Android: signed .aab uploaded to Google Play's internal testing track
+#    Each release step only runs when its secrets are configured.
+#    Secrets are listed in docs/MOBILE.md.
+
+name: Mobile apps
+
+on:
+  push:
+    branches: [main, mobile-apps]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Build signed release builds and upload to TestFlight / Play internal testing'
+        type: boolean
+        default: false
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  # Baked into the app bundle at build time (public values — the anon key is
+  # designed to ship in clients; RLS protects the data).
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+
+jobs:
+  web:
+    name: Tests and web build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  android:
+    name: Android
+    needs: web
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_VERSION_CODE: ${{ github.run_number }}
+      HAS_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      HAS_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+
+      - name: Add Firebase config
+        if: env.HAS_GOOGLE_SERVICES == 'true'
+        env:
+          CONTENT: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: printf '%s' "$CONTENT" > android/app/google-services.json
+
+      - name: Debug APK (install on any Android phone for testing)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: communio-android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Signed release bundle
+        if: inputs.release && env.HAS_KEYSTORE == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          ./gradlew bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: inputs.release && env.HAS_KEYSTORE == 'true'
+        with:
+          name: communio-android-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload to Google Play (internal testing)
+        if: inputs.release && env.HAS_KEYSTORE == 'true' && env.HAS_PLAY == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.getcommunio
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+  ios:
+    name: iOS
+    needs: web
+    runs-on: macos-15
+    env:
+      HAS_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST != '' }}
+      HAS_APPSTORE: ${{ secrets.APPSTORE_API_KEY_P8_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      # App Store uploads must be built with the current Xcode / iOS SDK
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+
+      - name: Add Firebase config
+        if: env.HAS_GOOGLE_SERVICES == 'true'
+        env:
+          CONTENT: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: printf '%s' "$CONTENT" > ios/App/App/GoogleService-Info.plist
+
+      - name: Simulator build (compile check, no signing)
+        working-directory: ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 40
+
+      - name: Archive and upload to TestFlight
+        if: inputs.release && env.HAS_APPSTORE == 'true'
+        working-directory: ios/App
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          API_KEY_P8_BASE64: ${{ secrets.APPSTORE_API_KEY_P8_BASE64 }}
+        run: |
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${API_KEY_ID}.p8"
+          printf '%s' "$API_KEY_P8_BASE64" | base64 --decode > "$KEY_PATH"
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY_PATH -authenticationKeyID $API_KEY_ID -authenticationKeyIssuerID $API_ISSUER_ID"
+
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Communio.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            $AUTH archive
+
+          sed "s/APPLE_TEAM_ID/$APPLE_TEAM_ID/" ../ExportOptions.plist > "$RUNNER_TEMP/ExportOptions.plist"
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Communio.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            $AUTH

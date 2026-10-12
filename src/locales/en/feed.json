@@ -37,6 +37,11 @@
     "destination_label": "Posting to",
     "destination_public": "Public",
     "report": "Report post",
+    "block": "Block user",
+    "block_title": "Block {{name}}?",
+    "block_body": "You won't see their posts, comments, prayer requests or messages, and they won't be able to message you. You can unblock them any time in Settings.",
+    "block_confirm": "Block",
+    "blocked": "{{name}} has been blocked",
     "deleted": "Post deleted"
   },
   "like": {

@@ -24,6 +24,7 @@ import {
 import { format, parseISO, addDays } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
@@ -846,7 +847,7 @@ function InvitesTab({ orgId, user, hasActiveSub }) {
   }
 
   const copyLink = (code) => {
-    navigator.clipboard.writeText(`${window.location.origin}/join/${code}`)
+    navigator.clipboard.writeText(`${publicOrigin()}/join/${code}`)
     toast.success('Link copied!')
   }
 
@@ -1360,13 +1361,13 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     }
     setCheckoutLoading(true)
     try {
-      const res = await fetch('/api/create-org-checkout-session', {
+      const res = await fetch(apiUrl('/api/create-org-checkout-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orgId, orgName: org.name, adminUserId: user.id, adminEmail: user.email, billingTrack, tier: selectedTier }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (data.url) await openExternal(data.url)
       else toast.error(data.error || 'Something went wrong.')
     } catch { toast.error('Something went wrong.') }
     setCheckoutLoading(false)
@@ -1376,12 +1377,12 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
-      const res = await fetch('/api/create-portal-session', {
+      const res = await fetch(apiUrl('/api/create-portal-session'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (data.url) await openExternal(data.url)
       else toast.error('Something went wrong.')
     } catch { toast.error('Something went wrong.') }
     setPortalLoading(false)

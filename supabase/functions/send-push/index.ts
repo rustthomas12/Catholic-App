@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendFcmToUsers } from '../_shared/fcm.ts'
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -126,17 +127,26 @@ serve(async (req) => {
     actorName = actor?.full_name ?? undefined
   }
 
-  // Fetch all push subscriptions for this user
-  const { data: subscriptions, error: subError } = await supabase
+  // Fetch all web push subscriptions for this user
+  const { data: subscriptions } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
     .eq('user_id', user_id)
 
-  if (subError || !subscriptions || subscriptions.length === 0) {
-    return new Response('No push subscriptions for user', { status: 200 })
-  }
-
   const notification = formatNotification(type, message, actorName)
+
+  // iOS / Android app devices (Firebase Cloud Messaging)
+  const native = await sendFcmToUsers(supabase, [user_id], notification)
+
+  if (!subscriptions || subscriptions.length === 0) {
+    if (native.sent + native.failed + native.expired === 0) {
+      return new Response('No push subscriptions for user', { status: 200 })
+    }
+    return new Response(
+      JSON.stringify({ sent: native.sent, failed: native.failed }),
+      { headers: { 'Content-Type': 'application/json' }, status: 200 }
+    )
+  }
 
   const pushPayload = JSON.stringify({
     title: notification.title,
@@ -170,8 +180,8 @@ serve(async (req) => {
     })
   )
 
-  const sent = results.filter((r) => r.status === 'fulfilled').length
-  const failed = results.filter((r) => r.status === 'rejected').length
+  const sent = results.filter((r) => r.status === 'fulfilled').length + native.sent
+  const failed = results.filter((r) => r.status === 'rejected').length + native.failed
 
   console.log(`Push for user ${user_id}: ${sent} sent, ${failed} failed (type: ${type})`)
 

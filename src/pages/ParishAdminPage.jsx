@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -1089,7 +1090,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     if (!user) return
     setCheckoutLoading(true)
     try {
-      const res = await fetch('/api/create-parish-checkout-session', {
+      const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1102,7 +1103,8 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      window.location.href = data.url
+      await openExternal(data.url)
+      if (isNative) setCheckoutLoading(false)
     } catch (err) {
       console.error(err)
       toast.error('Could not start trial. Please try again.')
@@ -1114,14 +1116,15 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
-      const res = await fetch('/api/create-portal-session', {
+      const res = await fetch(apiUrl('/api/create-portal-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      window.location.href = data.url
+      await openExternal(data.url)
+      if (isNative) setPortalLoading(false)
     } catch (err) {
       console.error(err)
       toast.error('Something went wrong.')

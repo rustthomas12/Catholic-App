@@ -4,6 +4,7 @@ import { ShareIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outlin
 import { useTranslation } from 'react-i18next'
 import { toast } from '../shared/Toast'
 import { useTLMReadings } from '../../hooks/useReadings'
+import { currentPublicUrl } from '../../lib/platform'
 
 const GOLD_CROSS = (
   <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -348,7 +349,7 @@ function ShareReadingsButton({ readings, isTLM, t }) {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Today's Readings", text, url: window.location.href })
+        await navigator.share({ title: "Today's Readings", text, url: currentPublicUrl() })
       } catch { /* cancelled */ }
     } else {
       try {
