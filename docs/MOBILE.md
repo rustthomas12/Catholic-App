@@ -182,9 +182,28 @@ To change them, edit that script or drop your own 1024×1024 PNGs into
 
 ### Automated
 - `npm test`: unit tests for the native glue (URL handling, CORS, Stripe
-  return URLs, deep links, push message format). These run in CI on every push.
-- CI also proves the iOS project compiles (simulator build) and the Android
-  project builds (debug APK).
+  return URLs, deep links, push format, notification routing). These run in
+  CI on every push.
+- `npm run test:e2e`: Playwright drives the app in a phone-sized browser.
+  - `tests/e2e/public.spec.js` covers signed-out screens, the login error and
+    redirects.
+  - `tests/e2e/app.spec.js` signs in with test accounts and opens every main
+    screen. It creates, opens by link, likes, comments on and deletes a post,
+    then blocks and unblocks a user (needs migration 028). Set
+    `E2E_EMAIL`, `E2E_PASSWORD`, `E2E_EMAIL_2`, `E2E_PASSWORD_2` and
+    `SUPABASE_SERVICE_ROLE_KEY`.
+- **Real Android app** (emulator or USB phone with the debug build running):
+  `node tests/native/android-smoke.mjs` runs sign-in, every tab, the server
+  connection, clipboard and the back button.
+  `node tests/native/android-location.mjs` tests the "Near me" permission
+  and the map.
+- CI builds the iOS app (simulator) and the Android app (debug APK) on every push.
+
+### Android emulator on this PC
+The Android SDK is installed at `%LOCALAPPDATA%AndroidSdk`, with Java
+at `%LOCALAPPDATA%Androidjdk`, and there's an emulator named
+`communio_test` (Pixel 7, Android 15). Install Android Studio to get a
+visual emulator and one-click runs; it reuses the same SDK.
 
 ### Beta testers
 - **iOS: TestFlight.** After a release run, App Store Connect → TestFlight.
@@ -277,22 +296,24 @@ In-app deletion exists (Settings), as Apple guideline 5.1.1(v) requires.
 
 ---
 
-## 7. Known issues to resolve before submission
+## 7. Issues found and fixed during testing
 
-These existed before the mobile work and weren't changed, but reviewers or
-testers will hit them:
+- The "Make a Gift" / Support the Mission feature was removed entirely. Old
+  `/premium` links redirect home.
+- Shared post links now open the post (`/post/:id`).
+- Notification taps (in-app and push) open the right screen: likes, comments
+  and announcements open the post; parish-admin alerts include the parish.
+  Announcement taps used to go to a "Not found" page.
+- On iPhone Safari, the "Add to Home Screen" banner covered the sign-in form.
+  It now shows only to signed-in users, never on sign-in, sign-up or legal
+  screens, and stays compact until tapped.
+- Android: status-bar icons were invisible on older phones (fixed). "Near me"
+  location now falls back to GPS when there's no Wi-Fi or cell location.
+- The readings API's cached responses were blocked inside the apps (fixed).
+- Map tiles: OpenStreetMap works inside the apps (tested). Set
+  `VITE_MAPBOX_TOKEN` to switch to Mapbox automatically if traffic grows.
 
-1. **"Make a Gift" button (`src/pages/PremiumPage.jsx`) links to `#`** and
-   does nothing. Apple rejects dead buttons. Donations to a registered
-   nonprofit may open a website in Safari. Tips to the developer must use
-   in-app purchase. Point it at a real donation page, or hide it in the apps
-   (`isIOS` / `isNative` from `src/lib/platform.js`).
-2. **Shared post links go to `/post/:id`, a route that doesn't exist**
-   (`PostCard.jsx` share). Recipients land on "Not found".
-3. **Map tiles come from `tile.openstreetmap.org`.** OSM's usage policy limits
-   apps and may refuse requests without a normal browser `Referer`, which
-   apps don't send. Check the directory map in TestFlight. If tiles are blank,
-   switch `ParishMap.jsx` to a keyed provider (Mapbox is already referenced in
-   `.env.example`, or MapTiler).
-4. Parish-admin notification links point to `/parish-admin` without an ID
-   (in `send-push`). Tapping one shows Not found on web and in the apps.
+### After launch
+Set these in Vercel so the website's install banner sends phone visitors to
+the stores instead of "Add to Home Screen":
+`VITE_IOS_APP_STORE_URL`, `VITE_ANDROID_PLAY_STORE_URL`.
