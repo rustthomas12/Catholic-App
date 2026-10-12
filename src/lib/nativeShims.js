@@ -48,11 +48,21 @@ export function installNativeShims() {
             error?.(positionError(1, 'User denied Geolocation'))
             return
           }
-          const pos = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: !!options.enableHighAccuracy,
-            timeout: options.timeout ?? 10000,
-            maximumAge: options.maximumAge ?? 0,
-          })
+          const timeout = options.timeout ?? 10000
+          let pos
+          try {
+            // Quick network-based fix; a position from the last few minutes is
+            // plenty for "parishes near me"
+            pos = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: !!options.enableHighAccuracy,
+              timeout,
+              maximumAge: options.maximumAge ?? 5 * 60 * 1000,
+            })
+          } catch (err) {
+            // No network location (GPS-only device, no Wi-Fi/cell): try GPS once
+            if (options.enableHighAccuracy || !/time/i.test(String(err?.message || err))) throw err
+            pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout, maximumAge: 0 })
+          }
           success?.(pos)
         } catch (err) {
           const msg = String(err?.message || err)

@@ -173,7 +173,7 @@ async function fetchLiturgicalDay(yyyy, mm, dd) {
 
 // ── Handler ────────────────────────────────────────────────
 export default async function handler(req, res) {
-  if (applyNativeCors(req, res)) return
+  if (applyNativeCors(req, res, { publicData: true })) return
   const { date, lang, rite } = req.query
 
   // Route to sub-handlers based on query params

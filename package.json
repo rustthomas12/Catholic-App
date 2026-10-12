@@ -13,7 +13,8 @@
     "mobile:build": "vite build && cap sync",
     "mobile:ios": "vite build && cap sync ios && cap open ios",
     "mobile:android": "vite build && cap sync android && cap open android",
-    "mobile:assets": "node scripts/generate-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#1B2A4A\" --iconBackgroundColorDark \"#1B2A4A\" --splashBackgroundColor \"#1B2A4A\" --splashBackgroundColorDark \"#1B2A4A\""
+    "mobile:assets": "node scripts/generate-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#1B2A4A\" --iconBackgroundColorDark \"#1B2A4A\" --splashBackgroundColor \"#1B2A4A\" --splashBackgroundColorDark \"#1B2A4A\"",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.5.2",
@@ -59,6 +60,7 @@
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.3",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.64.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

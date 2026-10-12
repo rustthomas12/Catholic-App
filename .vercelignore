@@ -11,3 +11,5 @@ ios
 android
 assets
 tests
+scripts/data
+test-results

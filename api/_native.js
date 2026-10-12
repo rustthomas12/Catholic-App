@@ -25,12 +25,21 @@ export function isNativeRequest(req) {
 /**
  * Adds CORS headers for native-app origins and answers preflight requests.
  * Returns true when the request was a preflight that has been fully handled.
+ *
+ * Pass { publicData: true } for endpoints whose responses are public and
+ * CDN-cached (e.g. readings): they always send "*", because a cached copy
+ * made for a web visitor would otherwise lack the header the app needs.
  */
-export function applyNativeCors(req, res) {
+export function applyNativeCors(req, res, { publicData = false } = {}) {
   const origin = req.headers?.origin
-  if (NATIVE_ORIGINS.includes(origin)) {
+  res.setHeader('Vary', 'Origin')
+  if (publicData) {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    res.setHeader('Access-Control-Max-Age', '86400')
+  } else if (NATIVE_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     res.setHeader('Access-Control-Max-Age', '86400')

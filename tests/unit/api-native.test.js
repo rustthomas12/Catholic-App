@@ -88,3 +88,13 @@ describe('buildFcmMessage', () => {
     expect(buildFcmMessage('tok', { title: 't', body: 'b' }).data.url).toBe('/')
   })
 })
+
+describe('applyNativeCors for public cached data', () => {
+  it('always allows any origin so CDN-cached copies work in the apps', () => {
+    for (const origin of [undefined, 'https://app.getcommunio.app', 'capacitor://localhost']) {
+      const res = mockRes()
+      applyNativeCors({ method: 'GET', headers: { origin } }, res, { publicData: true })
+      expect(res.headers['Access-Control-Allow-Origin']).toBe('*')
+    }
+  })
+})
