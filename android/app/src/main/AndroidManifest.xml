@@ -37,6 +37,7 @@
                 <data android:scheme="https" android:host="app.getcommunio.app" />
                 <!-- In-app screens only: auth (/onboarding, /reset-password) and
                      /api/* must keep opening in the browser that started them -->
+                <data android:pathPrefix="/post/" />
                 <data android:pathPrefix="/join/" />
                 <data android:pathPrefix="/group/" />
                 <data android:pathPrefix="/groups" />

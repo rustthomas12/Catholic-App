@@ -133,11 +133,6 @@ export default function SettingsPage() {
             value={unreadCount > 0 ? `${unreadCount} unread` : undefined}
           />
 
-          {/* Support */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="Support" />
-          <SettingsRow icon={null} label="Support the Mission →" to="/premium" />
-
           {/* Privacy */}
           <div className="border-t border-gray-100" />
           <SectionHeader title="Privacy" />

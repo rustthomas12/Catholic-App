@@ -73,7 +73,7 @@ function _setStoredGraph(userId, parishIds, groupIds, parentOrgIds) {
 }
 
 // ── Post shape ─────────────────────────────────────────────
-const POST_SELECT = `
+export const POST_SELECT = `
   *,
   author:profiles!author_id(
     id, full_name, username, avatar_url,
@@ -86,7 +86,7 @@ const POST_SELECT = `
   comments(id)
 `
 
-function normalisePost(raw, currentUserId) {
+export function normalisePost(raw, currentUserId) {
   const likes    = raw.likes    ?? []
   const comments = raw.comments ?? []
   return {

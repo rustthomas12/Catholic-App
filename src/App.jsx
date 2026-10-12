@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 // Side-effect: initialize i18n
 import './utils/i18n'
@@ -35,10 +35,8 @@ const DirectoryPage            = lazy(() => import('./pages/DirectoryPage'))
 const ParishPage               = lazy(() => import('./pages/ParishPage'))
 const FaithPage                = lazy(() => import('./pages/FaithPage'))
 const PrayerRequestsPage       = lazy(() => import('./pages/PrayerRequestsPage'))
-const PremiumPage              = lazy(() => import('./pages/PremiumPage'))
 const ExaminationPage          = lazy(() => import('./pages/ExaminationPage'))
 const ConfessionTrackerPage    = lazy(() => import('./pages/ConfessionTrackerPage'))
-const PremiumSuccessPage       = lazy(() => import('./pages/PremiumSuccessPage'))
 const SaintsPage               = lazy(() => import('./pages/SaintsPage'))
 const SaintPage                = lazy(() => import('./pages/SaintPage'))
 const NotificationsPage        = lazy(() => import('./pages/NotificationsPage'))
@@ -70,6 +68,7 @@ const PastorOnboardingPage              = lazy(() => import('./pages/PastorOnboa
 const PastorVerificationPendingPage     = lazy(() => import('./pages/PastorVerificationPendingPage'))
 const AppContactPage                    = lazy(() => import('./pages/AppContactPage'))
 const BlockedUsersPage                  = lazy(() => import('./pages/BlockedUsersPage'))
+const PostPage                          = lazy(() => import('./pages/PostPage'))
 
 // ── Last-active updater ────────────────────────────────────
 // Fires once on mount (app opened) then every 10 minutes.
@@ -152,6 +151,7 @@ function AppInner() {
 
           {/* Protected */}
           <Route path="/"                          element={<ProtectedRoute><RouteErrorBoundary><HomePage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/post/:id"                  element={<ProtectedRoute><RouteErrorBoundary><PostPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/groups"                    element={<ProtectedRoute><RouteErrorBoundary><GroupsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/groups/new"                element={<ProtectedRoute><RouteErrorBoundary><CreateGroupPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/group/:id"                 element={<ProtectedRoute><RouteErrorBoundary><GroupPage /></RouteErrorBoundary></ProtectedRoute>} />
@@ -177,8 +177,9 @@ function AppInner() {
           <Route path="/settings/notifications"    element={<ProtectedRoute><RouteErrorBoundary><NotificationSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/blocked"          element={<ProtectedRoute><RouteErrorBoundary><BlockedUsersPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/notifications"             element={<ProtectedRoute><RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/premium"                   element={<RouteErrorBoundary><PremiumPage /></RouteErrorBoundary>} />
-          <Route path="/premium/success"           element={<ProtectedRoute><RouteErrorBoundary><PremiumSuccessPage /></RouteErrorBoundary></ProtectedRoute>} />
+          {/* Old "Support the Mission" links */}
+          <Route path="/premium"                   element={<Navigate to="/" replace />} />
+          <Route path="/premium/success"           element={<Navigate to="/" replace />} />
           <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />

@@ -254,15 +254,6 @@ export default function ProfilePage() {
             </Link>
           ) : null}
 
-          {/* Support nudge */}
-          {isOwnProfile && (
-            <div className="text-center">
-              <Link to="/premium" className="text-xs text-gray-400 hover:text-gold transition-colors">
-                Support the mission →
-              </Link>
-            </div>
-          )}
-
           {/* Stats row */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 grid grid-cols-3 divide-x divide-gray-100">
             <div className="text-center px-2">

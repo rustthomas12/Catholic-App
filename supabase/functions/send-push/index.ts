@@ -36,7 +36,45 @@ const TYPE_TO_PREF: Record<string, string> = {
 }
 
 // Map notification types to push-friendly titles and deep-link URLs
-function formatNotification(type: string, message: string | null, actorName?: string): {
+// Screen a notification opens when tapped — mirror of notificationPath() in
+// src/lib/notifications.js (keep in sync). reference_id is a post ID for
+// post-related types, otherwise the group / parish / organization ID.
+function notificationPath(type: string, ref: string | null): string {
+  switch (type) {
+    case 'like':
+    case 'comment':
+    case 'parish_post':
+    case 'group_post':
+      return ref ? `/post/${ref}` : '/'
+    case 'group_invite':
+    case 'group_request':
+    case 'group_request_response':
+    case 'new_group_member':
+      return ref ? `/group/${ref}` : '/groups'
+    case 'new_parish_member':
+      return ref ? `/parish-admin/${ref}` : '/'
+    case 'new_org_member':
+      return ref ? `/org-admin/${ref}` : '/organizations'
+    case 'chapter_request_resolved':
+      return ref ? `/organization/${ref}` : '/organizations'
+    case 'chapter_request':
+      return '/organizations'
+    case 'post_flagged':
+      return '/admin'
+    case 'prayer_response':
+      return '/faith/prayer'
+    case 'confession_reminder':
+      return '/premium/confession-tracker'
+    case 'direct_message':
+      return '/messages'
+    case 'event_reminder':
+      return '/notifications'
+    default:
+      return '/'
+  }
+}
+
+function formatNotification(type: string, message: string | null, actorName: string | undefined, referenceId: string | null): {
   title: string
   body: string
   url: string
@@ -45,32 +83,32 @@ function formatNotification(type: string, message: string | null, actorName?: st
   const actor = actorName || 'Someone'
   const body = message || ''
 
-  const formats: Record<string, { title: string; body: string; url: string }> = {
-    like:                   { title: 'New like',              body: `${actor} liked your post`,                url: '/notifications' },
-    comment:                { title: 'New comment',           body: `${actor} commented on your post`,        url: '/notifications' },
-    group_invite:           { title: 'Group invitation',      body: `${actor} invited you to a group`,        url: '/groups' },
-    group_request:          { title: 'Join request',          body: `${actor} wants to join your group`,      url: '/groups' },
-    group_request_response: { title: 'Group update',          body: body || `Your group request was reviewed`, url: '/groups' },
-    parish_post:            { title: '📢 Parish announcement', body: body || `New announcement from your parish`, url: '/' },
-    prayer_response:        { title: '🙏 Prayer response',     body: `${actor} prayed for your intention`,     url: '/faith/prayer' },
-    confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession`, url: '/premium/confession-tracker' },
-    direct_message:         { title: '💬 New message',         body: `${actor} sent you a message`,            url: '/messages' },
-    event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event`,     url: '/notifications' },
-    post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review`,              url: '/admin' },
-    new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish`,                  url: '/parish-admin' },
-    group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group`,              url: '/groups' },
-    new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group`,                 url: '/groups' },
-    new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization`,          url: '/organizations' },
-    chapter_request:          { title: '📋 Chapter request',         body: body || `${actor} requested a chapter`,               url: '/organizations' },
-    chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed`,          url: '/organizations' },
+  const formats: Record<string, { title: string; body: string }> = {
+    like:                   { title: 'New like',              body: `${actor} liked your post` },
+    comment:                { title: 'New comment',           body: `${actor} commented on your post` },
+    group_invite:           { title: 'Group invitation',      body: `${actor} invited you to a group` },
+    group_request:          { title: 'Join request',          body: `${actor} wants to join your group` },
+    group_request_response: { title: 'Group update',          body: body || `Your group request was reviewed` },
+    parish_post:            { title: '📢 Parish announcement', body: body || `New announcement from your parish` },
+    prayer_response:        { title: '🙏 Prayer response',     body: `${actor} prayed for your intention` },
+    confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession` },
+    direct_message:         { title: '💬 New message',         body: `${actor} sent you a message` },
+    event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event` },
+    post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review` },
+    new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
+    group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group` },
+    new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group` },
+    new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization` },
+    chapter_request:          { title: '📋 Chapter request',         body: body || `${actor} requested a chapter` },
+    chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed` },
   }
 
-  const format = formats[type] ?? { title: 'Communio', body: body, url: '/' }
+  const format = formats[type] ?? { title: 'Communio', body: body }
 
   return {
     title: format.title,
     body: format.body,
-    url: format.url,
+    url: notificationPath(type, referenceId),
     // Use type as tag base so same-type events can stack; add random suffix for uniqueness
     tag: `${type}-${Date.now()}`,
   }
@@ -95,7 +133,7 @@ serve(async (req) => {
     return new Response('No record in payload', { status: 400 })
   }
 
-  const { user_id, type, message, actor_id } = record
+  const { user_id, type, message, actor_id, reference_id } = record
 
   if (!user_id) {
     return new Response('No user_id in notification record', { status: 400 })
@@ -133,7 +171,7 @@ serve(async (req) => {
     .select('endpoint, p256dh, auth')
     .eq('user_id', user_id)
 
-  const notification = formatNotification(type, message, actorName)
+  const notification = formatNotification(type, message, actorName, reference_id ?? null)
 
   // iOS / Android app devices (Firebase Cloud Messaging)
   const native = await sendFcmToUsers(supabase, [user_id], notification)

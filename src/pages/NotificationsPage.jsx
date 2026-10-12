@@ -5,6 +5,7 @@ import { isToday, isYesterday, isThisWeek } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { useNotifications } from '../hooks/useNotifications'
 import NotificationItem from '../components/notifications/NotificationItem'
+import { notificationPath } from '../lib/notifications'
 
 // ── Skeleton row ─────────────────────────────────────────
 function NotificationSkeleton() {
@@ -43,25 +44,7 @@ function groupNotifications(notifications) {
 
 // ── Navigate by type ──────────────────────────────────────
 function getDestination(notification) {
-  const { type, reference_id } = notification
-  switch (type) {
-    case 'group_request':
-    case 'group_request_response':
-    case 'group_invite':
-      return reference_id ? `/group/${reference_id}` : '/'
-    case 'parish_post':
-      return reference_id ? `/parish/${reference_id}` : '/'
-    case 'prayer_response':
-      return '/faith/prayer'
-    case 'confession_reminder':
-      return '/premium/confession-tracker'
-    case 'like':
-    case 'comment':
-    case 'direct_message':
-    case 'event_reminder':
-    default:
-      return '/'
-  }
+  return notificationPath(notification.type, notification.reference_id)
 }
 
 // ── Page ─────────────────────────────────────────────────
