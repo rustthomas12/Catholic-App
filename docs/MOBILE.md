@@ -48,6 +48,15 @@ Google Play's UGC policy require it for social apps.
 
 ## 2. One-time setup checklist
 
+> **Status (2026-10-12):** done — database migrations 027/028, `send-push`
+> edge function deployed (v5), Android upload key created (in
+> `DocumentsCommunio-App-Keys`, also in GitHub secrets), GitHub secrets for
+> Supabase/Stripe public values and Android signing, signed release bundle
+> `communio-1.0.0-release.aab`, App Review demo account, store screenshots
+> and listing text (`docs/STORE_LISTING.md`, `store-assets/`).
+> **Still needed:** merge PR #1, Apple + Google accounts, Firebase, Apple
+> App Store Connect API key, Supabase redirect URL, store listings.
+
 Work through these in order. Items marked **(you)** need an account login or a
 decision.
 
