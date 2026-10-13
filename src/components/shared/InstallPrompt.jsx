@@ -11,7 +11,7 @@ const IOS_STORE_URL = import.meta.env.VITE_IOS_APP_STORE_URL
 const ANDROID_STORE_URL = import.meta.env.VITE_ANDROID_PLAY_STORE_URL
 
 // Never cover sign-in / sign-up forms or legal pages with the banner
-const QUIET_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/check-email', '/terms', '/privacy', '/policy', '/join']
+const QUIET_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/check-email', '/terms', '/privacy', '/policy', '/join', '/delete-account']
 
 export default function InstallPrompt() {
   const { user } = useAuth()

@@ -19,8 +19,10 @@ export default async function handler(req, res) {
   if (!userId) return res.status(401).json({ error: 'Could not identify user' })
 
   try {
-    // 1. Soft-delete the profile and free the username so it can be re-registered
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+    // 1. Soft-delete the profile and free the username so it can be re-registered.
+    //    A database trigger then hides the user's content immediately, and a
+    //    nightly job erases the account 90 days later (migration 029).
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
       method: 'PATCH',
       headers: {
         'apikey': SERVICE_KEY,
@@ -33,6 +35,10 @@ export default async function handler(req, res) {
         username: `deleted-${userId.slice(0, 8)}`,
       }),
     })
+    if (!profileRes.ok) {
+      const err = await profileRes.json().catch(() => ({}))
+      throw new Error(err.message || `Failed to delete profile (${profileRes.status})`)
+    }
 
     // 2. Ban the auth account and replace the email with a placeholder.
     //    - ban_duration prevents the user logging back in
