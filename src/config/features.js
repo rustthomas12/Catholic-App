@@ -1,5 +1,6 @@
 // ── Feature switches ───────────────────────────────────────
-// Features that are paused. Their code is kept intact; flip a switch to
+// Features that are paused. Why, and what to check before turning one back
+// on: docs/REVISIT_LATER.md Their code is kept intact; flip a switch to
 // true to bring the feature back (no other change needed). Existing data
 // in the database is untouched while a feature is off.
 //
