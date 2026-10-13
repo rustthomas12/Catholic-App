@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { usePushNotifications } from '../hooks/usePushNotifications'
+import { FEATURES } from '../config/features'
 import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 
@@ -246,12 +247,12 @@ export default function NotificationSettingsPage() {
       description: t('notifications.type_events_desc'),
       column: 'event_reminders',
     },
-    {
+    ...(FEATURES.directMessages ? [{
       icon: EnvelopeIcon,
       label: t('notifications.type_messages'),
       description: t('notifications.type_messages_desc'),
       column: 'direct_messages',
-    },
+    }] : []),
     {
       icon: ClipboardDocumentCheckIcon,
       label: t('notifications.type_confession'),

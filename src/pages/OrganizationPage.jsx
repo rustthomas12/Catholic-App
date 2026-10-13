@@ -15,6 +15,7 @@ import {
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
+import { FEATURES } from '../config/features'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
 
@@ -253,7 +254,7 @@ export default function OrganizationPage() {
               {joinLoading ? '…' : isMember ? 'Leave' : 'Join'}
             </button>
 
-            {(org.email || org.phone) && (
+            {FEATURES.directMessages && (org.email || org.phone) && (
               <button
                 onClick={() => setShowContact(true)}
                 className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"

@@ -52,8 +52,7 @@ Communio is the digital parish hall — a free, ad-free home for Catholic life, 
 YOUR PARISH, CLOSER
 • Find Catholic parishes near you on a map, with parish details and contact info
 • Follow your parish for announcements, events and RSVPs
-• Join parish groups and ministries — young adults, men's and women's groups, Bible studies and more — with group posts and chat
-• Message other parishioners directly
+• Join parish groups and ministries — young adults, men's and women's groups, Bible studies and more
 
 DAILY PRAYER
 • Today's Mass readings, in the Ordinary Form or the Traditional (1962) calendar
@@ -112,7 +111,7 @@ Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 ```
 Communio is a free Catholic community app. Sign in with the demo account above; it follows a parish in Worcester, MA so you can see the parish page, readings, directory and groups.
 
-User-generated content: every post has a "…" menu with "Report post" (reports go to our moderation queue and admins are notified) and "Block user". Profiles also have a Block button, and Settings > Blocked users lets people unblock. Blocked users' content is hidden and they cannot message the blocker. Our Content Policy is at https://app.getcommunio.app/policy and users agree to the Terms when signing up.
+User-generated content: every post has a "…" menu with "Report post" (reports go to our moderation queue and admins are notified) and "Block user". Profiles also have a Block button, and Settings > Blocked users lets people unblock. Blocked users' content is hidden from the blocker. Our Content Policy is at https://app.getcommunio.app/policy and users agree to the Terms when signing up.
 
 Payments: individual users never pay and there are no in-app purchases. Parishes and Catholic organizations can subscribe to administrative tools (B2B, guideline 3.1.3(c)); that checkout happens on our website.
 
@@ -131,7 +130,7 @@ Answer **"Yes, we collect data"**, then for each type below choose:
 | Category | Data type |
 |---|---|
 | Contact Info | Name, Email Address |
-| User Content | Photos or Videos, Emails or Text Messages (direct messages), Other User Content (posts, comments, prayer requests) |
+| User Content | Photos or Videos, Other User Content (posts, comments, prayer requests) |
 | Identifiers | User ID, Device ID (push notification token) |
 | Location | Coarse Location — **not linked**, App Functionality (only sent to find nearby parishes, not stored) |
 
@@ -140,7 +139,7 @@ purchases, diagnostics, advertising data.
 
 ## Apple — Age rating
 New questionnaire answers: no violence, sexual content, profanity, drugs,
-gambling or horror. **User-generated content: Yes. Messaging and chat: Yes.**
+gambling or horror. **User-generated content: Yes** (posts, comments). **Messaging and chat: No** (paused — see src/config/features.js; change this answer if you turn them back on).
 Expected rating: **13+**.
 
 ## Apple — Export compliance
@@ -163,7 +162,6 @@ Uses only standard encryption (HTTPS). Already declared in the app
 | User IDs | Yes | Required | App functionality, Account management |
 | Approximate location | Yes (not stored) | Optional | App functionality |
 | Photos | Yes | Optional | App functionality |
-| Messages (in-app) | Yes | Optional | App functionality |
 | Other user-generated content | Yes | Optional | App functionality |
 | Device or other IDs (push token) | Yes | Optional | App functionality |
 
