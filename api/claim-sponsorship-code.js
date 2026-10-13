@@ -1,4 +1,5 @@
 import { applyNativeCors } from './_native.js'
+import { FEATURES } from '../src/config/features.js'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -8,6 +9,8 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (applyNativeCors(req, res)) return
+  // Paused — see src/config/features.js
+  if (!FEATURES.sponsorshipCodes) return res.status(404).json({ error: 'Not available' })
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }

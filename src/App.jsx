@@ -16,6 +16,7 @@ import PushPrompt from './components/shared/PushPrompt'
 import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
 import { isNative } from './lib/platform'
+import { FEATURES } from './config/features'
 
 // iOS / Android only — deep links, push taps, back button
 const NativeBridge = isNative ? lazy(() => import('./components/shared/NativeBridge')) : null
@@ -148,7 +149,7 @@ function AppInner() {
           <Route path="/terms"           element={<TermsPage />} />
           <Route path="/privacy"         element={<PrivacyPage />} />
           <Route path="/policy"          element={<PolicyPage />} />
-          <Route path="/pitch"           element={<PitchDeckPage />} />
+          {FEATURES.pitchDeckInApp && <Route path="/pitch" element={<PitchDeckPage />} />}
           <Route path="/delete-account"  element={<DeleteAccountInfoPage />} />
 
           {/* Protected */}
@@ -189,10 +190,10 @@ function AppInner() {
           <Route path="/admin"                     element={<ProtectedRoute><RouteErrorBoundary><AdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/parish-admin/:parishId"    element={<ProtectedRoute><RouteErrorBoundary><ParishAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/organizations"             element={<ProtectedRoute><RouteErrorBoundary><OrganizationsPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/organizations/new"         element={<ProtectedRoute><RouteErrorBoundary><CreateOrganizationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/organizations/new"         element={FEATURES.createOrganizations ? <ProtectedRoute><RouteErrorBoundary><CreateOrganizationPage /></RouteErrorBoundary></ProtectedRoute> : <Navigate to="/organizations" replace />} />
           <Route path="/organization/:id"          element={<ProtectedRoute><RouteErrorBoundary><OrganizationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/org-admin/:orgId"          element={<ProtectedRoute><RouteErrorBoundary><OrgAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/messages"                  element={<ProtectedRoute><RouteErrorBoundary><MessagesPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/messages"                  element={FEATURES.directMessages ? <ProtectedRoute><RouteErrorBoundary><MessagesPage /></RouteErrorBoundary></ProtectedRoute> : <Navigate to="/" replace />} />
           <Route path="/join/:inviteCode"          element={<JoinPage />} />
 
           <Route path="*" element={<NotFoundPage />} />

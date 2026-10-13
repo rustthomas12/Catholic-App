@@ -306,7 +306,27 @@ In-app deletion exists (Settings), as Apple guideline 5.1.1(v) requires.
 
 ---
 
-## 7. Issues found and fixed during testing
+## 7. Paused features
+
+These are switched off in `src/config/features.js`. The code and existing
+data are kept, and the full pre-change app is tagged
+`archive/before-feature-blocking` on GitHub. To bring one back, set its
+switch to `true` and ship an update.
+
+| Switch | What it hides |
+|---|---|
+| `directMessages` | Messages screen and menu links, unread badge, organization "Contact" button, DM notification setting |
+| `groupChat` | Chat tab in groups |
+| `sponsorshipCodes` | Parish-sponsored premium tracking; `/api/claim-sponsorship-code` and `/api/track-return` return 404 |
+| `createOrganizations` | "New" organization button and `/organizations/new` (existing organizations keep working) |
+| `pitchDeckInApp` | `/pitch` inside the app (still at getcommunio.app/pitch) |
+
+**If you turn messaging or chat back on,** also update the store answers in
+`docs/STORE_LISTING.md` (age rating: messaging, Apple privacy: Emails or Text
+Messages, Google data safety: Messages) and restore that entry in
+`ios/App/App/PrivacyInfo.xcprivacy`.
+
+## 8. Issues found and fixed during testing
 
 - The "Make a Gift" / Support the Mission feature was removed entirely. Old
   `/premium` links redirect home.
