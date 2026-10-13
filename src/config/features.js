@@ -1,8 +1,9 @@
 // ── Feature switches ───────────────────────────────────────
 // Features that are paused. Why, and what to check before turning one back
-// on: docs/REVISIT_LATER.md Their code is kept intact; flip a switch to
-// true to bring the feature back (no other change needed). Existing data
-// in the database is untouched while a feature is off.
+// on: docs/REVISIT_LATER.md
+//
+// Their code is kept intact; flip a switch to true to bring the feature back.
+// Existing data in the database is untouched while a feature is off.
 //
 // Paused 2026-10 to focus the launch on the parish core:
 //   directMessages      — private 1:1 messages (safeguarding / moderation risk)
