@@ -295,16 +295,36 @@ function Navigation() {
   const [unreadDMs, setUnreadDMs] = useState(0)
   const [moreOpen, setMoreOpen] = useState(false)
 
+  // Unread DM badge: recount on navigation, when a thread is read,
+  // and when a new message arrives.
   useEffect(() => {
     if (!user) { setUnreadDMs(0); return }
-    supabase
-      .from('direct_messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('recipient_id', user.id)
-      .eq('is_read', false)
-      .then(({ count }) => setUnreadDMs(count ?? 0))
-      .catch(() => {})
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    let cancelled = false
+    const recount = () => {
+      supabase
+        .from('direct_messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
+        .eq('is_read', false)
+        .then(({ count }) => { if (!cancelled) setUnreadDMs(count ?? 0) })
+    }
+    recount()
+    window.addEventListener('infold:dms-read', recount)
+    const channel = supabase
+      .channel(`dm_badge_${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'direct_messages',
+        filter: `recipient_id=eq.${user.id}`,
+      }, recount)
+      .subscribe()
+    return () => {
+      cancelled = true
+      window.removeEventListener('infold:dms-read', recount)
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isPublic = PUBLIC_PATHS.some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')

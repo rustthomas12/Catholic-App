@@ -21,6 +21,9 @@ function formatTime(ts) {
 
 // ── useConversations ───────────────────────────────────────
 // Fetches the list of DM threads (one per conversation partner)
+// Tells the nav's unread-DM badge to recount after a thread is read.
+export const DMS_READ_EVENT = 'infold:dms-read'
+
 function useConversations(userId) {
   const [convos, setConvos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -65,10 +68,26 @@ function useConversations(userId) {
 
   useEffect(() => { load() }, [load])
 
+  // Refresh the list when a new message arrives from anyone
+  useEffect(() => {
+    if (!userId) return
+    const channel = supabase
+      .channel(`dm_list_${userId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'direct_messages',
+        filter: `recipient_id=eq.${userId}`,
+      }, () => { load() })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [userId, load])
+
   const markRead = useCallback((partnerId) => {
     setConvos(prev => prev.map(c =>
       c.partnerId === partnerId ? { ...c, unread: false } : c
     ))
+    window.dispatchEvent(new Event(DMS_READ_EVENT))
   }, [])
 
   return { convos, loading, reload: load, markRead }
@@ -110,7 +129,7 @@ function useMessages(userId, partnerId, onRead) {
 
     // Realtime subscription — new incoming messages
     const channel = supabase
-      .channel(`dm_${[userId, partnerId].sort().join('_')}`)
+      .channel(`dm_${userId}_${partnerId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -200,6 +219,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
         .from('profiles')
         .select('id, full_name, avatar_url')
         .in('id', [...connectedIds])
+        .is('deleted_at', null)
         .order('full_name')
         .limit(200)
 
@@ -260,7 +280,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
 }
 
 // ── ConversationView ───────────────────────────────────────
-function ConversationView({ userId, partner, onBack, onRead }) {
+function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   const { messages, loading, send } = useMessages(userId, partner.id, onRead)
   const [draft, setDraft] = useState('')
   const bottomRef = useRef(null)
@@ -275,6 +295,7 @@ function ConversationView({ userId, partner, onBack, onRead }) {
     const content = draft
     setDraft('')
     await send(content)
+    onSent?.()
   }
 
   return (
@@ -420,7 +441,8 @@ export default function MessagesPage() {
               userId={user.id}
               partner={activePartner}
               onBack={() => { setActivePartner(null); reload() }}
-              onRead={() => markRead(activePartner.id)}
+              onRead={() => { markRead(activePartner.id); reload() }}
+              onSent={reload}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-cream">
