@@ -222,6 +222,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     addComment,
     deleteComment,
     deletePost,
+    editPost,
     reportPost,
   } = usePost(initialPost.id, initialPost)
 
@@ -236,6 +237,9 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const [commentInput, setCommentInput] = useState('')
   const [commentSending, setCommentSending] = useState(false)
   const [likeAnimating, setLikeAnimating] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editDraft, setEditDraft] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
   const commentInputRef = useRef(null)
   const menuRef = useRef(null)
 
@@ -308,6 +312,18 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
       setShowDeleteModal(false)
       toast.success(t('post.deleted'))
       onDelete?.(post.id)
+    }
+  }
+
+  async function handleSaveEdit() {
+    setEditSaving(true)
+    const { error } = await editPost(editDraft)
+    setEditSaving(false)
+    if (error) {
+      toast.error(t('common:status.error'))
+    } else {
+      setEditing(false)
+      toast.success(t('post.edited'))
     }
   }
 
@@ -441,7 +457,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   {isOwnPost ? (
                     <>
                       <button
-                        onClick={() => { setMenuOpen(false); toast.info(t('post.edit_coming_soon')) }}
+                        onClick={() => { setMenuOpen(false); setEditDraft(post.content); setEditing(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
                       >
                         ✏️ {t('post.edit')}
@@ -480,6 +496,37 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
           </div>
 
           {/* Content */}
+          {editing ? (
+            <div className="mb-2">
+              <textarea
+                value={editDraft}
+                onChange={(e) => setEditDraft(e.target.value.slice(0, 500))}
+                rows={4}
+                autoFocus
+                aria-label={t('post.edit')}
+                className="w-full text-sm text-gray-800 leading-relaxed border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-navy resize-y"
+              />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-gray-400">{editDraft.length}/500</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditing(false)}
+                    disabled={editSaving}
+                    className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-navy min-h-[40px]"
+                  >
+                    {t('common:actions.cancel')}
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={editSaving || !editDraft.trim() || editDraft.trim() === post.content}
+                    className="px-4 py-2 text-sm font-semibold bg-navy text-white rounded-lg disabled:opacity-40 min-h-[40px]"
+                  >
+                    {t('common:actions.save')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="mb-2">
             {announcementTitle && (
               <p className="text-base font-bold text-navy mb-1">{announcementTitle}</p>
@@ -497,6 +544,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               </button>
             )}
           </div>
+          )}
 
           {/* Post image */}
           {post.image_url && (

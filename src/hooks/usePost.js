@@ -262,6 +262,23 @@ export function usePost(postId, initialPost) {
     return { error: null }
   }, [user, postId])
 
+  // ── editPost ───────────────────────────────────────────────
+  const editPost = useCallback(async (content) => {
+    if (!user) return { error: 'Not authenticated' }
+    const trimmed = content.trim()
+    if (!trimmed) return { error: 'Post cannot be empty' }
+
+    const { error } = await supabase
+      .from('posts')
+      .update({ content: trimmed, updated_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('author_id', user.id) // security: own only
+
+    if (error) return { error: error.message }
+    setPost((p) => ({ ...p, content: trimmed }))
+    return { error: null }
+  }, [user, postId])
+
   // ── reportPost ─────────────────────────────────────────────
   const reportPost = useCallback(
     async (reason, notes) => {
@@ -312,6 +329,7 @@ export function usePost(postId, initialPost) {
     addComment,
     deleteComment,
     deletePost,
+    editPost,
     reportPost,
   }
 }

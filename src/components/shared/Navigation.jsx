@@ -74,7 +74,7 @@ const desktopTabs = [
     label: 'Profile',
     Icon: null,
     IconSolid: null,
-    active: (p) => p.startsWith('/profile') || p.startsWith('/settings'),
+    active: (p) => p.startsWith('/profile') || p === '/settings/profile',
     to: '/profile',
     isProfile: true,
   },
@@ -507,7 +507,7 @@ function Navigation() {
           {/* Settings */}
           <Link to="/settings"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              location.pathname.startsWith('/settings') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              location.pathname.startsWith('/settings') && location.pathname !== '/settings/profile' ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}>
             <Cog6ToothIcon className="w-5 h-5" />
             <span className="text-sm font-medium">Settings</span>
