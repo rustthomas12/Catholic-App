@@ -35,7 +35,7 @@ export default function CreateOrganizationPage() {
   const [chapterMessage, setChapterMessage] = useState('')
   const searchTimeoutRef = useRef(null)
 
-  useEffect(() => { document.title = 'New Organization | Communio' }, [])
+  useEffect(() => { document.title = 'New Organization | inFold' }, [])
 
   function handleChange(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))

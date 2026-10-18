@@ -6,11 +6,11 @@
 	     build is signed for TestFlight / App Store distribution. -->
 	<key>aps-environment</key>
 	<string>development</string>
-	<!-- Universal links: https://app.getcommunio.app/... opens the app.
+	<!-- Universal links: https://app.getinfold.app/... opens the app.
 	     Requires public/.well-known/apple-app-site-association on the site. -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:app.getcommunio.app</string>
+		<string>applinks:app.getinfold.app</string>
 	</array>
 </dict>
 </plist>

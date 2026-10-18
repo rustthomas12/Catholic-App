@@ -15,7 +15,7 @@ export default function PostPage() {
   const [post, setPost] = useState(null)
   const [status, setStatus] = useState('loading') // loading | ready | missing
 
-  useEffect(() => { document.title = 'Post | Communio' }, [])
+  useEffect(() => { document.title = 'Post | inFold' }, [])
 
   useEffect(() => {
     let cancelled = false

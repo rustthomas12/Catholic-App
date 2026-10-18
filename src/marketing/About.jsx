@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
 
 export default function AboutPage() {
-  useEffect(() => { document.title = 'About Us — Communio' }, [])
+  useEffect(() => { document.title = 'About Us — inFold' }, [])
 
   return (
     <MarketingLayout>
@@ -16,7 +16,7 @@ export default function AboutPage() {
             Built by a Catholic.<br /><span className="text-gold">For the Church.</span>
           </h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            Communio started with one simple observation: Catholics leave Mass on Sunday and disappear
+            inFold started with one simple observation: Catholics leave Mass on Sunday and disappear
             into the same apps that have nothing to do with their faith for the rest of the week.
             We built the alternative.
           </p>
@@ -33,13 +33,13 @@ export default function AboutPage() {
             </h2>
             <p className="text-gray-500 leading-relaxed mb-5">
               The Church is the most important community in a Catholic's life — but for most people,
-              that community only exists for one hour on Sunday. Communio exists to extend it
+              that community only exists for one hour on Sunday. inFold exists to extend it
               into the rest of the week.
             </p>
             <p className="text-gray-500 leading-relaxed">
               We believe that when Catholics are genuinely connected to their parish — reading the same
               readings, praying for each other's intentions, attending the same events — they stay.
-              Communio is that connection.
+              inFold is that connection.
             </p>
           </div>
           <div className="space-y-5">
@@ -75,7 +75,7 @@ export default function AboutPage() {
                   { icon: '✝️', text: 'Practicing Catholic, Central Massachusetts' },
                   { icon: '👨‍👧‍👦', text: 'Father of twins' },
                   { icon: '💼', text: 'Independent insurance professional' },
-                  { icon: '💻', text: 'Built Communio solo using Claude Code' },
+                  { icon: '💻', text: 'Built inFold solo using Claude Code' },
                   { icon: '📍', text: 'Parishioner — felt the isolation firsthand' },
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
@@ -89,7 +89,7 @@ export default function AboutPage() {
               <blockquote className="bg-gold/10 border border-gold/30 rounded-2xl p-8">
                 <p className="text-amber-100/90 text-lg leading-relaxed italic">
                   "Right now, people leave Mass and disappear into their phones.
-                  Communio flips that — so the same device actually brings them
+                  inFold flips that — so the same device actually brings them
                   back into parish life during the week."
                 </p>
                 <p className="text-gold text-sm font-semibold mt-4">— Thomas Rust</p>
@@ -126,15 +126,15 @@ export default function AboutPage() {
               },
               {
                 title: 'Free means free',
-                body: "When we say Communio is free for individuals, we mean it. No premium tier, no paywalled rosary, no upsell on your confession tracker. Your faith is not a revenue stream.",
+                body: "When we say inFold is free for individuals, we mean it. No premium tier, no paywalled rosary, no upsell on your confession tracker. Your faith is not a revenue stream.",
               },
               {
                 title: 'Privacy is non-negotiable',
-                body: "Your prayer journal is private. Your confession dates are private. Your messages are private. We built Communio so that a Catholic can share their spiritual life without fear.",
+                body: "Your prayer journal is private. Your confession dates are private. Your messages are private. We built inFold so that a Catholic can share their spiritual life without fear.",
               },
               {
                 title: 'Parish first, platform second',
-                body: "Communio exists to strengthen the parish — not to replace it or compete with it. We measure success by how many Catholics are more connected to their local church.",
+                body: "inFold exists to strengthen the parish — not to replace it or compete with it. We measure success by how many Catholics are more connected to their local church.",
               },
             ].map((v, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
@@ -153,7 +153,7 @@ export default function AboutPage() {
           <h2 className="text-3xl md:text-4xl font-black text-white mb-6">Join us.</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href={APP_URL} className="bg-gold text-navy font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors">
-              Open Communio Free
+              Open inFold Free
             </a>
             <Link to="/contact" className="border border-white/20 text-white font-semibold px-8 py-4 rounded-2xl hover:bg-white/5 transition-colors">
               Get in Touch

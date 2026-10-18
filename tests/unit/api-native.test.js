@@ -38,29 +38,29 @@ describe('applyNativeCors', () => {
 
 describe('returnUrl', () => {
   it('is unchanged for web requests', () => {
-    expect(returnUrl({ headers: {} }, '/settings')).toBe('https://app.getcommunio.app/settings')
+    expect(returnUrl({ headers: {} }, '/settings')).toBe('https://app.getinfold.app/settings')
   })
 
   it('uses the bounce page for app requests', () => {
     const req = { headers: { origin: 'capacitor://localhost' } }
     expect(isNativeRequest(req)).toBe(true)
     expect(returnUrl(req, '/org-admin/1?tab=billing'))
-      .toBe('https://app.getcommunio.app/api/native-return?to=%2Forg-admin%2F1%3Ftab%3Dbilling')
+      .toBe('https://app.getinfold.app/api/native-return?to=%2Forg-admin%2F1%3Ftab%3Dbilling')
   })
 })
 
 describe('native-return page', () => {
-  it('redirects to the communio:// scheme', () => {
+  it('redirects to the infold:// scheme', () => {
     const res = mockRes()
     nativeReturn({ query: { to: '/settings' } }, res)
-    expect(res.body).toContain('"communio://settings"')
+    expect(res.body).toContain('"infold://settings"')
   })
 
   it('refuses absolute and protocol-relative targets', () => {
     for (const to of ['//evil.example.com', 'https://evil.example.com', 'javascript:alert(1)']) {
       const res = mockRes()
       nativeReturn({ query: { to } }, res)
-      expect(res.body).toContain('"communio://"')
+      expect(res.body).toContain('"infold://"')
       expect(res.body).not.toContain('evil')
       expect(res.body).not.toContain('alert(1)')
     }
@@ -91,7 +91,7 @@ describe('buildFcmMessage', () => {
 
 describe('applyNativeCors for public cached data', () => {
   it('always allows any origin so CDN-cached copies work in the apps', () => {
-    for (const origin of [undefined, 'https://app.getcommunio.app', 'capacitor://localhost']) {
+    for (const origin of [undefined, 'https://app.getinfold.app', 'capacitor://localhost']) {
       const res = mockRes()
       applyNativeCors({ method: 'GET', headers: { origin } }, res, { publicData: true })
       expect(res.headers['Access-Control-Allow-Origin']).toBe('*')

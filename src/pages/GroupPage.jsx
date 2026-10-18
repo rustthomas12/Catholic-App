@@ -105,7 +105,7 @@ export default function GroupPage() {
   }, [group?.id, group?.parish_id, group?.org_id, isMember, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (group?.name) document.title = `${group.name} | Communio`
+    if (group?.name) document.title = `${group.name} | inFold`
   }, [group?.name])
 
   // Load pending requests when admin views members tab

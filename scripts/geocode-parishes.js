@@ -1,5 +1,5 @@
 // ============================================================
-// COMMUNIO — Phase 13: Geocode Catholic Parishes
+// INFOLD — Phase 13: Geocode Catholic Parishes
 // Service: US Census Bureau Geocoder (free, no API key)
 // https://geocoding.geo.census.gov/geocoder/locations/address
 //

@@ -34,7 +34,7 @@ function SectionHeader({ title }) {
 }
 
 export default function SettingsPage() {
-  useEffect(() => { document.title = 'Settings | Communio' }, [])
+  useEffect(() => { document.title = 'Settings | inFold' }, [])
   const { user, profile, isAdmin, signOut, updateProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()

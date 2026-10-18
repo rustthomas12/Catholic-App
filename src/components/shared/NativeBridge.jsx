@@ -9,7 +9,7 @@ import { toast } from './Toast'
 // ── Native app glue (iOS / Android only) ──────────────────
 // Rendered only when running inside Capacitor. Handles what the browser
 // used to do for us on the web:
-//  • links into the app (universal / app links and communio://), including
+//  • links into the app (universal / app links and infold://), including
 //    Supabase email-confirmation and password-reset links
 //  • results handed back from the in-app browser (Stripe, Facebook OAuth)
 //  • taps on push notifications (the service worker did this on the web)

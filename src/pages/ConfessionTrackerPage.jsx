@@ -13,7 +13,7 @@ const REMINDER_OPTIONS = [7, 14, 30, 45, 90, null]
 const REMINDER_LABELS = { 7: '7d', 14: '14d', 30: '30d', 45: '45d', 90: '90d', null: 'Off' }
 
 export default function ConfessionTrackerPage() {
-  useEffect(() => { document.title = 'Confession Tracker | Communio' }, [])
+  useEffect(() => { document.title = 'Confession Tracker | inFold' }, [])
 
   const { t } = useTranslation('premium')
   const navigate = useNavigate()

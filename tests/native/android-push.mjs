@@ -30,7 +30,7 @@ function tapText(text) {
 }
 
 const [device] = await _android.devices()
-const page = await (await device.webView({ pkg: 'app.getcommunio' })).page()
+const page = await (await device.webView({ pkg: 'app.getinfold' })).page()
 const go = async (p) => {
   await page.evaluate((x) => { history.pushState({}, '', x); dispatchEvent(new PopStateEvent('popstate')) }, p)
   await sleep(2000)
@@ -66,7 +66,7 @@ await admin.from('notifications').insert({ user_id: userId, type: 'prayer_respon
 await sleep(12000)
 
 const notes = adb('shell', 'dumpsys', 'notification', '--noredact').toString()
-const got = notes.includes('app.getcommunio') && /Prayer response/i.test(notes)
+const got = notes.includes('app.getinfold') && /Prayer response/i.test(notes)
 console.log(got ? '✓ push notification received on the device' : '✗ no notification arrived')
 adb('shell', 'cmd', 'statusbar', 'expand-notifications')
 await sleep(1500)

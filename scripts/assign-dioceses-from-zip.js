@@ -1,5 +1,5 @@
 // ============================================================
-// COMMUNIO — Phase 13: Assign Dioceses to National Parishes
+// INFOLD — Phase 13: Assign Dioceses to National Parishes
 //
 // Usage: node scripts/assign-dioceses-from-zip.js
 // Prerequisites: scripts/data/catholic-parishes-geocoded.json

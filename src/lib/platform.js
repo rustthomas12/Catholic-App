@@ -15,7 +15,7 @@ export const isAndroid = platform === 'android'
 // Public origin of the hosted web app. Used for API calls from native
 // builds and for any URL that leaves the device (emails, share links).
 export const APP_ORIGIN = (
-  import.meta.env.VITE_PUBLIC_APP_ORIGIN || 'https://app.getcommunio.app'
+  import.meta.env.VITE_PUBLIC_APP_ORIGIN || 'https://app.getinfold.app'
 ).replace(/\/$/, '')
 
 /**
@@ -38,7 +38,7 @@ export function publicOrigin() {
 /**
  * Redirect URL for Supabase auth emails (signup confirmation, password reset).
  * Web: unchanged (this origin + path).
- * Native: a bounce page that reopens the app via communio:// with the
+ * Native: a bounce page that reopens the app via infold:// with the
  * session tokens, so the link lands in the app where signup data was saved.
  * Must be allow-listed in Supabase → Auth → URL Configuration.
  * @param {string} path e.g. '/onboarding'
@@ -65,7 +65,7 @@ const pendingExternal = new Set()
  * is a normal navigation, exactly as before. In native builds it opens the
  * in-app browser sheet (SFSafariViewController / Chrome Custom Tab) so the
  * app's WebView is not replaced by a third-party page. Server return pages
- * bounce back into the app via the communio:// scheme (see
+ * bounce back into the app via the infold:// scheme (see
  * api/native-return.js), which closes the sheet.
  *
  * On native the promise resolves once the browser sheet is closed, whether
@@ -108,7 +108,7 @@ export async function closeExternal() {
 /**
  * Converts an incoming deep link / universal link into an in-app route,
  * or null if it does not belong to this app.
- * Accepts https://app.getcommunio.app/... and communio://...
+ * Accepts https://app.getinfold.app/... and infold://...
  * @param {string} url
  * @returns {string|null} path + search + hash
  */
@@ -117,8 +117,8 @@ export function deepLinkToPath(url) {
   let parsed
   try { parsed = new URL(url) } catch { return null }
 
-  if (parsed.protocol === 'communio:') {
-    // communio://group/123 → host "group", pathname "/123"
+  if (parsed.protocol === 'infold:') {
+    // infold://group/123 → host "group", pathname "/123"
     const path = '/' + [parsed.host, parsed.pathname.replace(/^\/+|\/+$/g, '')].filter(Boolean).join('/')
     return `${path}${parsed.search}${parsed.hash}`
   }

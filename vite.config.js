@@ -22,8 +22,8 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: 'Communio',
-        short_name: 'Communio',
+        name: 'inFold',
+        short_name: 'inFold',
         description: 'The Catholic parish and community platform',
         theme_color: '#1B2A4A',
         background_color: '#FAF7F2',

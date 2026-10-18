@@ -61,7 +61,7 @@ export default function ParishAdminPage() {
   const [subscription, setSubscription] = useState(null)
   const [subLoading, setSubLoading] = useState(true)
 
-  useEffect(() => { document.title = 'Parish Admin | Communio' }, [])
+  useEffect(() => { document.title = 'Parish Admin | inFold' }, [])
 
   useEffect(() => {
     if (!user) return

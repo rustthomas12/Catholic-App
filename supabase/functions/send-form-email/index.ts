@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 
-const TO_EMAIL = 'info@getcommunio.app'
+const TO_EMAIL = 'info@getinfold.app'
 
 serve(async (req) => {
   try {
@@ -11,7 +11,7 @@ serve(async (req) => {
     let body = ''
 
     if (type === 'contact') {
-      subject = `[Communio] New contact message${payload.reason ? ` — ${payload.reason}` : ''}`
+      subject = `[inFold] New contact message${payload.reason ? ` — ${payload.reason}` : ''}`
       body = `
 <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#333">
   <div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">
@@ -29,7 +29,7 @@ serve(async (req) => {
   </div>
 </div>`
     } else if (type === 'parish_application') {
-      subject = `[Communio] Parish Application — ${payload.parish_name}`
+      subject = `[inFold] Parish Application — ${payload.parish_name}`
       body = `
 <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#333">
   <div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">
@@ -66,7 +66,7 @@ serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Communio <noreply@getcommunio.app>',
+        from: 'inFold <noreply@getinfold.app>',
         to: [TO_EMAIL],
         subject,
         html: body,

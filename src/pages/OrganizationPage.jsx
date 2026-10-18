@@ -136,8 +136,8 @@ export default function OrganizationPage() {
   const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters } = useOrganization(id)
 
   useEffect(() => {
-    if (org) document.title = `${org.name} | Communio`
-    else document.title = 'Organization | Communio'
+    if (org) document.title = `${org.name} | inFold`
+    else document.title = 'Organization | inFold'
   }, [org?.name])
 
   const tabs = org ? [
@@ -209,7 +209,7 @@ export default function OrganizationPage() {
               <div className="flex flex-wrap items-center gap-1.5 mt-1">
                 {isSubscribed && (
                   <span className="inline-flex items-center gap-1 text-xs bg-gold/20 text-gold border border-gold/30 rounded-full px-2 py-0.5 font-semibold">
-                    ✓ Communio Member
+                    ✓ inFold Member
                   </span>
                 )}
                 {org.org_type === 'national' && (

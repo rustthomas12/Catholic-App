@@ -22,7 +22,7 @@ const MONTHS = [
 ]
 
 export default function SaintsPage() {
-  useEffect(() => { document.title = 'Saints | Communio' }, [])
+  useEffect(() => { document.title = 'Saints | inFold' }, [])
 
   const { t } = useTranslation('faith')
   const navigate = useNavigate()

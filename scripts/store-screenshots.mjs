@@ -50,7 +50,7 @@ for (const [name, device] of Object.entries(DEVICES)) {
   await context.addInitScript(() => {
     try {
       sessionStorage.setItem('pwa_install_dismissed', '1')
-      localStorage.setItem('communio-push-dismissed', 'true')
+      localStorage.setItem('infold-push-dismissed', 'true')
     } catch { /* ignore */ }
   })
   const page = await context.newPage()

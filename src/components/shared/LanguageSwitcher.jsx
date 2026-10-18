@@ -17,7 +17,7 @@ export default function LanguageSwitcher({ variant = 'full' }) {
     i18n.changeLanguage(lang)
 
     // 2. Persist to localStorage (instant, no network)
-    try { localStorage.setItem('communio-language', lang) } catch {}
+    try { localStorage.setItem('infold-language', lang) } catch {}
 
     // 3. Persist to DB (fire-and-forget)
     if (user) {

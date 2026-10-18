@@ -17,7 +17,7 @@ export default function PrayerRequestsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  useEffect(() => { document.title = `${t('prayer.title')} | Communio` }, [t])
+  useEffect(() => { document.title = `${t('prayer.title')} | inFold` }, [t])
 
   const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
 

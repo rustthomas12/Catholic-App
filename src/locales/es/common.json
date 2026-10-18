@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Communio",
+    "name": "inFold",
     "tagline": "La plataforma parroquial y comunitaria católica"
   },
   "nav": {
@@ -66,7 +66,7 @@
     "message_placeholder": "Mensaje…",
     "search_placeholder": "Buscar por nombre…",
     "premium_title": "Desbloquear mensajes directos",
-    "premium_body": "Envía mensajes privados a cualquier miembro de Communio. Disponible para quienes apoyan la misión.",
+    "premium_body": "Envía mensajes privados a cualquier miembro de inFold. Disponible para quienes apoyan la misión.",
     "you": "Tú"
   },
   "chat": {

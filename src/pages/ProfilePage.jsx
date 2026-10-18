@@ -59,7 +59,7 @@ export default function ProfilePage() {
       return
     }
 
-    document.title = 'Profile | Communio'
+    document.title = 'Profile | inFold'
     setLoading(true)
 
     async function load() {
@@ -73,7 +73,7 @@ export default function ProfilePage() {
         if (error || !p) { setNotFound(true); return }
 
         setProfile(p)
-        document.title = `${p.full_name || 'Profile'} | Communio`
+        document.title = `${p.full_name || 'Profile'} | inFold`
 
         // Load parish and post count in parallel
         const [parRes, countRes] = await Promise.all([

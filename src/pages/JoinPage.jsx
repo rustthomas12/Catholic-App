@@ -16,7 +16,7 @@ export default function JoinPage() {
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    document.title = 'Join Organization | Communio'
+    document.title = 'Join Organization | inFold'
   }, [])
 
   useEffect(() => {

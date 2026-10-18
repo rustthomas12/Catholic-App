@@ -13,7 +13,7 @@ const MYSTERY_COLORS = {
 }
 
 export default function RosaryTrackerPage() {
-  useEffect(() => { document.title = 'Rosary Tracker | Communio' }, [])
+  useEffect(() => { document.title = 'Rosary Tracker | inFold' }, [])
 
   const navigate = useNavigate()
   const {

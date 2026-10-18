@@ -47,7 +47,7 @@ function ParishApplicationForm() {
       notes: form.notes || null,
     })
     if (error) {
-      toast.error('Something went wrong. Please email us at info@getcommunio.app')
+      toast.error('Something went wrong. Please email us at info@getinfold.app')
     } else {
       setSubmitted(true)
     }
@@ -60,7 +60,7 @@ function ParishApplicationForm() {
         <div className="text-5xl mb-4">✝</div>
         <h3 className="text-2xl font-black text-navy mb-2">Thank you!</h3>
         <p className="text-gray-500 max-w-sm mx-auto">
-          We'll be in touch within 1–2 business days to get your parish set up on Communio.
+          We'll be in touch within 1–2 business days to get your parish set up on inFold.
         </p>
       </div>
     )
@@ -139,7 +139,7 @@ function ParishApplicationForm() {
 }
 
 export default function ForParishesPage() {
-  useEffect(() => { document.title = 'For Parishes — Communio' }, [])
+  useEffect(() => { document.title = 'For Parishes — inFold' }, [])
 
   return (
     <MarketingLayout>
@@ -224,7 +224,7 @@ export default function ForParishesPage() {
           </div>
           <p className="text-center text-gray-400 text-sm mt-6">
             Prefer email? Write us at{' '}
-            <a href="mailto:info@getcommunio.app" className="text-navy font-semibold hover:underline">info@getcommunio.app</a>
+            <a href="mailto:info@getinfold.app" className="text-navy font-semibold hover:underline">info@getinfold.app</a>
           </p>
         </div>
       </section>

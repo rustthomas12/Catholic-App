@@ -10,7 +10,7 @@
 
 // APP_URL must always point to the app subdomain, not the marketing site.
 // VITE_APP_URL in Vercel is often set to the marketing domain — don't use it here.
-const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
+const APP_URL = process.env.APP_URL || 'https://app.getinfold.app'
 
 export const NATIVE_ORIGINS = [
   'capacitor://localhost', // iOS
@@ -55,7 +55,7 @@ export function applyNativeCors(req, res, { publicData = false } = {}) {
  * URL that Stripe (or any other hosted flow) should send the user back to.
  * Web: the normal app URL, unchanged.
  * Native: a small bounce page that reopens the app at the same path via the
- * communio:// scheme and closes the in-app browser sheet.
+ * infold:// scheme and closes the in-app browser sheet.
  * @param {object} req
  * @param {string} path  e.g. '/settings' or '/org-admin/123?tab=billing'
  */
