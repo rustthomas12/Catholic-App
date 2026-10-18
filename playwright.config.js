@@ -28,7 +28,7 @@ export default defineConfig({
     port: PORT,
     reuseExistingServer: true,
     env: {
-      API_PROXY_TARGET: process.env.API_PROXY_TARGET || 'https://app.getcommunio.app',
+      API_PROXY_TARGET: process.env.API_PROXY_TARGET || 'https://app.getinfold.app',
     },
   },
 })

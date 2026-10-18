@@ -18,7 +18,7 @@ export default function NearbyEventSuggestions({ userLocation }) {
   const displayEvents = localEvents !== null ? localEvents : events
 
   const handleDismiss = useCallback((eventId) => {
-    const key = `communio-dismissed-events-${user?.id}`
+    const key = `infold-dismissed-events-${user?.id}`
     try {
       const dismissed = JSON.parse(localStorage.getItem(key) || '[]')
       dismissed.push(eventId)

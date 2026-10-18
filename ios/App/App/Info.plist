@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Communio</string>
+        <string>inFold</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,21 +28,21 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>app.getcommunio</string>
+			<string>app.getinfold</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>communio</string>
+				<string>infold</string>
 			</array>
 		</dict>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Communio uses your camera so you can take photos for your profile, posts and groups.</string>
+	<string>inFold uses your camera so you can take photos for your profile, posts and groups.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Communio needs access to your photos so you can add images to your profile, posts and groups.</string>
+	<string>inFold needs access to your photos so you can add images to your profile, posts and groups.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Communio uses your location to show Catholic parishes near you. Your location is not stored.</string>
+	<string>inFold uses your location to show Catholic parishes near you. Your location is not stored.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

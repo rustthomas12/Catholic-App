@@ -15,7 +15,7 @@ const REASONS = [
 ]
 
 export default function AppContactPage() {
-  useEffect(() => { document.title = 'Contact Us | Communio' }, [])
+  useEffect(() => { document.title = 'Contact Us | inFold' }, [])
 
   const navigate = useNavigate()
   const { user, profile } = useAuth()
@@ -38,7 +38,7 @@ export default function AppContactPage() {
     })
 
     if (error) {
-      toast.error('Could not send message. Please email us directly at info@getcommunio.app')
+      toast.error('Could not send message. Please email us directly at info@getinfold.app')
     } else {
       setSubmitted(true)
     }
@@ -82,7 +82,7 @@ export default function AppContactPage() {
             <>
               {/* Email contact card */}
               <a
-                href="mailto:info@getcommunio.app"
+                href="mailto:info@getinfold.app"
                 className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
               >
                 <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -90,7 +90,7 @@ export default function AppContactPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-navy text-sm">Email us directly</p>
-                  <p className="text-gold text-sm font-medium">info@getcommunio.app</p>
+                  <p className="text-gold text-sm font-medium">info@getinfold.app</p>
                 </div>
               </a>
 

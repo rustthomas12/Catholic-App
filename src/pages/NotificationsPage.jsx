@@ -49,7 +49,7 @@ function getDestination(notification) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationsPage() {
-  useEffect(() => { document.title = 'Notifications | Communio' }, [])
+  useEffect(() => { document.title = 'Notifications | inFold' }, [])
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()

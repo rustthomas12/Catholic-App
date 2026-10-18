@@ -21,7 +21,7 @@ const cross = (x, y, s) => `
 const feature = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
   <rect width="1024" height="500" fill="${NAVY}"/>
   ${cross(70, 120, 0.5)}
-  <text x="370" y="225" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="${CREAM}">Communio</text>
+  <text x="370" y="225" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="${CREAM}">inFold</text>
   <text x="372" y="292" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" fill="${GOLD}">The digital parish hall</text>
   <text x="372" y="345" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="${CREAM}" fill-opacity="0.75">Your parish, daily readings, prayer and community</text>
 </svg>`

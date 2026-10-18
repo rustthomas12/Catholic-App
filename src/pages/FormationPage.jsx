@@ -37,9 +37,9 @@ export default function FormationPage() {
 
   useEffect(() => {
     if (data) {
-      document.title = `${data.title} | Communio`
+      document.title = `${data.title} | inFold`
     } else {
-      document.title = 'Formation | Communio'
+      document.title = 'Formation | inFold'
     }
   }, [data])
 

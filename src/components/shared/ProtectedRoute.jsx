@@ -33,8 +33,8 @@ export default function ProtectedRoute({ children }) {
           <h2 className="font-bold text-navy text-lg mb-2">Account under review</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
             Your account is temporarily suspended. Please contact{' '}
-            <a href="mailto:hello@communio.app" className="text-navy font-semibold hover:underline">
-              hello@communio.app
+            <a href="mailto:hello@getinfold.app" className="text-navy font-semibold hover:underline">
+              hello@getinfold.app
             </a>{' '}
             if you believe this is an error.
           </p>

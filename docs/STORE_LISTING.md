@@ -11,19 +11,19 @@ password is **not** in this repo — it's in
 
 | Field | Value |
 |---|---|
-| App name (App Store, max 30) | `Communio: Catholic Community` |
-| App name (Google Play, max 30) | `Communio: Catholic Community` |
-| Bundle ID / package | `app.getcommunio` |
+| App name (App Store, max 30) | `inFold: Catholic Community` |
+| App name (Google Play, max 30) | `inFold: Catholic Community` |
+| Bundle ID / package | `app.getinfold` |
 | Version | `1.0.0` |
 | Primary category | **Lifestyle** |
 | Secondary category (Apple) | **Social Networking** |
 | Price | Free (no in-app purchases) |
-| Privacy Policy URL | `https://app.getcommunio.app/privacy` |
-| Terms of Use URL | `https://app.getcommunio.app/terms` |
-| Support URL | `https://getcommunio.app/contact` |
-| Marketing URL | `https://getcommunio.app` |
-| Support email | `info@getcommunio.app` |
-| Copyright (Apple) | `2026 Communio` |
+| Privacy Policy URL | `https://app.getinfold.app/privacy` |
+| Terms of Use URL | `https://app.getinfold.app/terms` |
+| Support URL | `https://getinfold.app/contact` |
+| Marketing URL | `https://getinfold.app` |
+| Support email | `info@getinfold.app` |
+| Copyright (Apple) | `2026 inFold` |
 
 ## Subtitle (Apple, max 30)
 ```
@@ -47,7 +47,7 @@ catholic,parish,mass readings,rosary,liturgy of the hours,confession,saints,pray
 
 ## Description (both stores)
 ```
-Communio is the digital parish hall — a free, ad-free home for Catholic life, built to connect you with your parish, your faith and each other.
+inFold is the digital parish hall — a free, ad-free home for Catholic life, built to connect you with your parish, your faith and each other.
 
 YOUR PARISH, CLOSER
 • Find Catholic parishes near you on a map, with parish details and contact info
@@ -76,12 +76,12 @@ BUILT DIFFERENTLY
 • Report any post and block any user at any time
 • English and Spanish
 
-For parishes and Catholic organizations: Communio gives pastors and staff tools to share announcements, organize groups and grow their community. Learn more at getcommunio.app.
+For parishes and Catholic organizations: inFold gives pastors and staff tools to share announcements, organize groups and grow their community. Learn more at getinfold.app.
 ```
 
 ## What's new (version 1.0.0)
 ```
-Welcome to Communio on iPhone and Android! Push notifications for parish announcements, messages and prayer responses, plus everything from the web app.
+Welcome to inFold on iPhone and Android! Push notifications for parish announcements, messages and prayer responses, plus everything from the web app.
 ```
 
 ---
@@ -107,16 +107,16 @@ Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 ## App Review information (Apple) / App access (Google)
 
 - **Sign-in required:** yes
-- **Demo account:** `appreview@getcommunio.app` — password in `KEEP-SAFE.txt`
+- **Demo account:** `appreview@getinfold.app` — password in `KEEP-SAFE.txt`
 - **Notes for the reviewer** (paste):
 ```
-Communio is a free Catholic community app. Sign in with the demo account above; it follows a parish in Worcester, MA so you can see the parish page, readings, directory and groups.
+inFold is a free Catholic community app. Sign in with the demo account above; it follows a parish in Worcester, MA so you can see the parish page, readings, directory and groups.
 
-User-generated content: every post has a "…" menu with "Report post" (reports go to our moderation queue and admins are notified) and "Block user". Profiles also have a Block button, and Settings > Blocked users lets people unblock. Blocked users' content is hidden and they cannot message the blocker. Our Content Policy is at https://app.getcommunio.app/policy and users agree to the Terms when signing up.
+User-generated content: every post has a "…" menu with "Report post" (reports go to our moderation queue and admins are notified) and "Block user". Profiles also have a Block button, and Settings > Blocked users lets people unblock. Blocked users' content is hidden and they cannot message the blocker. Our Content Policy is at https://app.getinfold.app/policy and users agree to the Terms when signing up.
 
 Payments: individual users never pay and there are no in-app purchases. Parishes and Catholic organizations can subscribe to administrative tools (B2B, guideline 3.1.3(c)); that checkout happens on our website.
 
-Account deletion: Settings > Delete my account (content is hidden immediately; the account is permanently erased after 90 days). Details: https://app.getcommunio.app/delete-account
+Account deletion: Settings > Delete my account (content is hidden immediately; the account is permanently erased after 90 days). Details: https://app.getinfold.app/delete-account
 
 Location is used only when the user taps "Near me" in the parish directory, to show nearby parishes.
 ```
@@ -154,7 +154,7 @@ Uses only standard encryption (HTTPS). Already declared in the app
 - Collects data: **Yes**. Shares data with third parties: **No**.
 - Encrypted in transit: **Yes**.
 - Users can request deletion: **Yes** — in-app (Settings → Delete my account);
-  web link: `https://app.getcommunio.app/delete-account`.
+  web link: `https://app.getinfold.app/delete-account`.
 
 | Data type | Collected | Optional? | Purpose |
 |---|---|---|---|

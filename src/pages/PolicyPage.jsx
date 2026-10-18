@@ -12,7 +12,7 @@ function Section({ title, children }) {
 }
 
 export default function PolicyPage() {
-  useEffect(() => { document.title = 'Content Policy | Communio' }, [])
+  useEffect(() => { document.title = 'Content Policy | inFold' }, [])
   const navigate = useNavigate()
 
   return (
@@ -28,7 +28,7 @@ export default function PolicyPage() {
           <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="Our Mission">
-            <p>Communio exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>
+            <p>inFold exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>
           </Section>
 
           <Section title="The Standard We Hold Ourselves To">

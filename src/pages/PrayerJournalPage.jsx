@@ -8,7 +8,7 @@ import { toast } from '../components/shared/Toast'
 const MOODS = ['😔', '😐', '🙂', '😊', '🙏']
 
 export default function PrayerJournalPage() {
-  useEffect(() => { document.title = 'Prayer Journal | Communio' }, [])
+  useEffect(() => { document.title = 'Prayer Journal | inFold' }, [])
 
   const navigate = useNavigate()
   const { entries, loading, createEntry, updateEntry, deleteEntry } = usePrayerJournal()

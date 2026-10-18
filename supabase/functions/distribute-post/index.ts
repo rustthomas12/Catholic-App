@@ -204,7 +204,7 @@ async function distributeToWebhook(post: any, integration: any): Promise<void> {
       { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
     )
     const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(JSON.stringify(payload)))
-    headers['X-Communio-Signature'] = btoa(String.fromCharCode(...new Uint8Array(sig)))
+    headers['X-inFold-Signature'] = btoa(String.fromCharCode(...new Uint8Array(sig)))
   }
 
   const res = await fetch(webhook_url, {
@@ -293,7 +293,7 @@ function buildEmailBody(post: any, parishName: string): string {
     ${post.image_url ? `<img src="${post.image_url}" style="max-width:100%;border-radius:8px;margin-top:16px" alt=""/>` : ''}
     <hr style="border:none;border-top:1px solid #C9A84C;margin:24px 0"/>
     <p style="font-size:12px;color:#888">
-      Sent via <a href="https://getcommunio.app" style="color:#1B2A4A">Communio</a> · The Digital Parish Hall
+      Sent via <a href="https://getinfold.app" style="color:#1B2A4A">inFold</a> · The Digital Parish Hall
     </p>
   </div>
 </div>`

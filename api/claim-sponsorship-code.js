@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     .single()
 
   if (!parishSub || !['trialing', 'active'].includes(parishSub.status)) {
-    return res.status(400).json({ error: 'This parish does not have an active Communio subscription.' })
+    return res.status(400).json({ error: 'This parish does not have an active inFold subscription.' })
   }
 
   // Check if user already has an activation
@@ -101,6 +101,6 @@ export default async function handler(req, res) {
   return res.status(200).json({
     success: true,
     parishName: codeRow.parishes?.name || 'Your parish',
-    message: 'Premium activated! Welcome to the full Communio experience.',
+    message: 'Premium activated! Welcome to the full inFold experience.',
   })
 }

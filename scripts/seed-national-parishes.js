@@ -1,5 +1,5 @@
 // ============================================================
-// COMMUNIO — Phase 13: Seed National Parish Data
+// INFOLD — Phase 13: Seed National Parish Data
 // Source: IRS EO BMF (filtered → geocoded → diocese-assigned)
 //
 // Usage: node scripts/seed-national-parishes.js
@@ -51,7 +51,7 @@ async function main() {
   }
 
   const raw = JSON.parse(fs.readFileSync(inputPath, 'utf8'))
-  console.log(`\n🕊️  Communio National Parish Seeder`)
+  console.log(`\n🕊️  inFold National Parish Seeder`)
   console.log(`   Input file: ${raw.length.toLocaleString()} total parishes`)
 
   // Safety check — verify MA parishes are NOT in the import file

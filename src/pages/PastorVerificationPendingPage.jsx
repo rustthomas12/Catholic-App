@@ -24,7 +24,7 @@ const STEPS = [
 ]
 
 export default function PastorVerificationPendingPage() {
-  useEffect(() => { document.title = 'Application Submitted | Communio' }, [])
+  useEffect(() => { document.title = 'Application Submitted | inFold' }, [])
   const [params] = useSearchParams()
   const parishId = params.get('parish_id')
 
@@ -41,7 +41,7 @@ export default function PastorVerificationPendingPage() {
             Application received!
           </h1>
           <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-xs">
-            Thank you for registering your parish on Communio. Here&rsquo;s what happens next.
+            Thank you for registering your parish on inFold. Here&rsquo;s what happens next.
           </p>
         </div>
 

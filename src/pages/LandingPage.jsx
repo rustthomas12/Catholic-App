@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-const APP_URL = 'https://app.getcommunio.app'
+const APP_URL = 'https://app.getinfold.app'
 
 // ── Nav ────────────────────────────────────────────────────
 function LandingNav() {
@@ -18,7 +18,7 @@ function LandingNav() {
     }`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="text-white font-black text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
-          Communio
+          inFold
         </div>
         <div className="flex items-center gap-3">
           <a
@@ -61,7 +61,7 @@ function Hero() {
           <span className="text-gold">Parish Hall.</span>
         </h1>
         <p className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-          Communio connects Catholics with their parish, their faith, and each other —
+          inFold connects Catholics with their parish, their faith, and each other —
           without algorithms, ads, or noise. Your parish community, finally in one place.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -181,7 +181,7 @@ function Features() {
     {
       icon: '🙏',
       title: 'Prayer Intentions',
-      desc: "Share and pray for intentions within your community. The 'I'll pray' button is the heart of Communio.",
+      desc: "Share and pray for intentions within your community. The 'I'll pray' button is the heart of inFold.",
     },
     {
       icon: '📱',
@@ -346,7 +346,7 @@ function ForParishes() {
             </div>
             <p className="text-gray-400 text-xs mt-4 text-center">All plans include a 90-day free trial</p>
             <a
-              href="mailto:info@getcommunio.app?subject=Parish inquiry"
+              href="mailto:info@getinfold.app?subject=Parish inquiry"
               className="mt-6 block text-center bg-gold text-navy font-bold px-6 py-3 rounded-2xl hover:bg-gold/90 transition-colors"
             >
               Contact Us to Get Started
@@ -409,7 +409,7 @@ function NoAlgorithm() {
           <span className="text-gold">No ads. No data sold.</span>
         </h2>
         <p className="text-white/60 text-lg leading-relaxed max-w-2xl mx-auto mb-10">
-          Communio is not a social media platform. There is no feed ranking, no
+          inFold is not a social media platform. There is no feed ranking, no
           ad targeting, and no selling your attention to the highest bidder.
           Revenue comes from parishes — not from you.
         </p>
@@ -447,10 +447,10 @@ function CTA() {
             href={APP_URL}
             className="w-full sm:w-auto bg-navy text-white font-bold px-8 py-4 rounded-2xl hover:bg-navy/90 transition-colors shadow-lg"
           >
-            Open Communio — Free
+            Open inFold — Free
           </a>
           <a
-            href="mailto:info@getcommunio.app?subject=Parish inquiry"
+            href="mailto:info@getinfold.app?subject=Parish inquiry"
             className="w-full sm:w-auto border-2 border-navy text-navy font-bold px-8 py-4 rounded-2xl hover:bg-navy/5 transition-colors"
           >
             Get Your Parish Set Up
@@ -472,7 +472,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           <div className="md:col-span-2">
             <div className="text-white font-black text-xl mb-3" style={{ fontFamily: 'Georgia, serif' }}>
-              Communio
+              inFold
             </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
@@ -498,7 +498,7 @@ function Footer() {
             <div className="space-y-2">
               {[
                 { label: 'For Parishes', href: '#for-parishes' },
-                { label: 'Contact', href: 'mailto:info@getcommunio.app' },
+                { label: 'Contact', href: 'mailto:info@getinfold.app' },
                 { label: 'Privacy Policy', href: `${APP_URL}/privacy` },
                 { label: 'Terms of Service', href: `${APP_URL}/terms` },
                 { label: 'Content Policy', href: `${APP_URL}/policy` },
@@ -511,7 +511,7 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-white/20 text-xs">© {new Date().getFullYear()} Communio · getcommunio.app</p>
+          <p className="text-white/20 text-xs">© {new Date().getFullYear()} inFold · getinfold.app</p>
           <p className="text-white/20 text-xs">Built with ✝ in Massachusetts</p>
         </div>
       </div>
@@ -521,7 +521,7 @@ function Footer() {
 
 // ── LandingPage ────────────────────────────────────────────
 export default function LandingPage() {
-  useEffect(() => { document.title = 'Communio — The Digital Parish Hall' }, [])
+  useEffect(() => { document.title = 'inFold — The Digital Parish Hall' }, [])
 
   return (
     <div className="font-sans">

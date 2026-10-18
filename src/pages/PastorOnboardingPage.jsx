@@ -60,7 +60,7 @@ function StepAsk({ onYes, onSkip }) {
       </div>
       <h1 className="text-2xl font-black text-navy mb-2">Are you the pastor of a parish?</h1>
       <p className="text-gray-500 text-sm mb-8 max-w-xs mx-auto">
-        As a priest, you can set up your parish on Communio — giving your parishioners
+        As a priest, you can set up your parish on inFold — giving your parishioners
         a home between Masses.
       </p>
       <div className="space-y-3">
@@ -383,7 +383,7 @@ function StepTrial({ parish, tier, user, onBack }) {
 
 // ── Main page ───────────────────────────────────────────────
 export default function PastorOnboardingPage() {
-  useEffect(() => { document.title = 'Set Up Your Parish | Communio' }, [])
+  useEffect(() => { document.title = 'Set Up Your Parish | inFold' }, [])
 
   const navigate = useNavigate()
   const { user, profile } = useAuth()

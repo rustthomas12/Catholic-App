@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
 
 export default function MarketingHome() {
-  useEffect(() => { document.title = 'Communio — The Digital Parish Hall' }, [])
+  useEffect(() => { document.title = 'inFold — The Digital Parish Hall' }, [])
 
   return (
     <MarketingLayout>
@@ -21,7 +21,7 @@ export default function MarketingHome() {
             The Digital<br /><span className="text-gold">Parish Hall.</span>
           </h1>
           <p className="text-white/65 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            Communio connects Catholics with their parish, their faith, and each other 
+            inFold connects Catholics with their parish, their faith, and each other 
             without algorithms, ads, or noise.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -117,7 +117,7 @@ export default function MarketingHome() {
             {[
               { icon: '🛡', title: 'Your Data Is Yours', desc: "We don't sell your information. Your prayer journal, confessions, and messages are private." },
               { icon: '✝', title: 'Mission First', desc: 'Built by a practicing Catholic, for the Church. Revenue comes from parishes rather than from your attention.' },
-              { icon: '📱', title: 'Always Free for Individuals', desc: "Every Catholic can use Communio forever, at no cost. No premium tier, no paywalled prayers." },
+              { icon: '📱', title: 'Always Free for Individuals', desc: "Every Catholic can use inFold forever, at no cost. No premium tier, no paywalled prayers." },
             ].map((v, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
                 <div className="text-4xl mb-4">{v.icon}</div>

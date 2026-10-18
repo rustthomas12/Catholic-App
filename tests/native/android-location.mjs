@@ -16,15 +16,15 @@ const shot = (name) => writeFileSync(`${OUT}/${name}.png`, execFileSync(ADB, ['e
 // Give the emulator a location (Worcester, MA) and reset the permission
 // The emulator only reports GPS while fixes keep arriving
 const feeder = setInterval(() => { try { execFileSync(ADB, ['emu', 'geo', 'fix', '-71.8023', '42.2626']) } catch { /* ignore */ } }, 1000)
-try { execFileSync(ADB, ['shell', 'pm', 'revoke', 'app.getcommunio', 'android.permission.ACCESS_FINE_LOCATION']) } catch { /* not granted yet */ }
-try { execFileSync(ADB, ['shell', 'pm', 'revoke', 'app.getcommunio', 'android.permission.ACCESS_COARSE_LOCATION']) } catch { /* not granted yet */ }
+try { execFileSync(ADB, ['shell', 'pm', 'revoke', 'app.getinfold', 'android.permission.ACCESS_FINE_LOCATION']) } catch { /* not granted yet */ }
+try { execFileSync(ADB, ['shell', 'pm', 'revoke', 'app.getinfold', 'android.permission.ACCESS_COARSE_LOCATION']) } catch { /* not granted yet */ }
 
 // Revoking a permission kills the app — start it again
-execFileSync(ADB, ['shell', 'monkey', '-p', 'app.getcommunio', '-c', 'android.intent.category.LAUNCHER', '1'])
+execFileSync(ADB, ['shell', 'monkey', '-p', 'app.getinfold', '-c', 'android.intent.category.LAUNCHER', '1'])
 await new Promise((r) => setTimeout(r, 8000))
 
 const [device] = await _android.devices()
-const page = await (await device.webView({ pkg: 'app.getcommunio' })).page()
+const page = await (await device.webView({ pkg: 'app.getinfold' })).page()
 await page.evaluate(() => { window.history.pushState({}, '', '/directory'); window.dispatchEvent(new PopStateEvent('popstate')) })
 await page.waitForTimeout(2000)
 await page.getByRole('button', { name: 'Use my location' }).click()

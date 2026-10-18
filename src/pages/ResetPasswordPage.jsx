@@ -14,7 +14,7 @@ function passwordStrength(pw) {
 }
 
 export default function ResetPasswordPage() {
-  useEffect(() => { document.title = 'Reset Password | Communio' }, [])
+  useEffect(() => { document.title = 'Reset Password | inFold' }, [])
   const { t } = useTranslation('auth')
   const { updatePassword } = useAuth()
   const navigate = useNavigate()

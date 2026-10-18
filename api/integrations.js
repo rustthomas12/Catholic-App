@@ -15,7 +15,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
+const APP_URL = process.env.APP_URL || 'https://app.getinfold.app'
 
 export default async function handler(req, res) {
   if (applyNativeCors(req, res)) return
@@ -193,7 +193,7 @@ async function webhookConnect(req, res) {
   try {
     const pingRes = await fetch(webhook_url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Communio-Event': 'ping' },
+      headers: { 'Content-Type': 'application/json', 'X-inFold-Event': 'ping' },
       body: JSON.stringify({ event: 'ping', timestamp: new Date().toISOString() }),
       signal: AbortSignal.timeout(8000),
     })
@@ -222,11 +222,11 @@ async function webhookConnect(req, res) {
 function closePopup(platform, result, nativeFlow = false) {
   if (nativeFlow) {
     // Started from the iOS / Android app in an in-app browser sheet: hand the
-    // result back through the communio:// scheme (the app closes the sheet).
-    const appLink = `communio://oauth-complete?platform=${encodeURIComponent(platform)}&result=${encodeURIComponent(result)}`
+    // result back through the infold:// scheme (the app closes the sheet).
+    const appLink = `infold://oauth-complete?platform=${encodeURIComponent(platform)}&result=${encodeURIComponent(result)}`
     return `<!DOCTYPE html><html><body>
     <script>window.location.replace('${appLink}');</script>
-    <p>You can close this window and return to Communio.</p>
+    <p>You can close this window and return to inFold.</p>
     </body></html>`
   }
   return `<!DOCTYPE html><html><body>

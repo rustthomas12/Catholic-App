@@ -89,7 +89,7 @@ export default function InstallPrompt() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">Get the Communio app</p>
+            <p className="text-white font-bold text-sm">Get the inFold app</p>
             <p className="text-white/60 text-xs">Faster, with notifications</p>
           </div>
           <a
@@ -132,7 +132,7 @@ export default function InstallPrompt() {
             <div>
               <p className="text-white font-bold text-sm">Add to Home Screen</p>
               <p className="text-white/60 text-xs">
-                {iosExpanded ? 'Install Communio like an app' : 'Install Communio like an app — tap to see how'}
+                {iosExpanded ? 'Install inFold like an app' : 'Install inFold like an app — tap to see how'}
               </p>
             </div>
           </button>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Toaster } from '../components/shared/Toast'
 
-export const APP_URL = 'https://app.getcommunio.app'
+export const APP_URL = 'https://app.getinfold.app'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -32,9 +32,9 @@ export function MarketingNav() {
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <img src="/icons/icon-192.png" alt="Communio" className="w-8 h-8 rounded-xl" />
+          <img src="/icons/icon-192.png" alt="inFold" className="w-8 h-8 rounded-xl" />
           <span className="text-white font-black text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
-            Communio
+            inFold
           </span>
         </Link>
 
@@ -108,8 +108,8 @@ export function MarketingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-3">
-              <img src="/icons/icon-192.png" alt="Communio" className="w-8 h-8 rounded-xl" />
-              <span className="text-white font-black text-xl" style={{ fontFamily: 'Georgia, serif' }}>Communio</span>
+              <img src="/icons/icon-192.png" alt="inFold" className="w-8 h-8 rounded-xl" />
+              <span className="text-white font-black text-xl" style={{ fontFamily: 'Georgia, serif' }}>inFold</span>
             </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
@@ -144,9 +144,9 @@ export function MarketingFooter() {
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-white/20 text-xs">© {new Date().getFullYear()} Communio · getcommunio.app</p>
+          <p className="text-white/20 text-xs">© {new Date().getFullYear()} inFold · getinfold.app</p>
           <div className="flex items-center gap-4">
-            <a href="mailto:info@getcommunio.app" className="text-white/30 hover:text-white/60 text-xs transition-colors">info@getcommunio.app</a>
+            <a href="mailto:info@getinfold.app" className="text-white/30 hover:text-white/60 text-xs transition-colors">info@getinfold.app</a>
             <span className="text-white/10">·</span>
             <p className="text-white/20 text-xs">Built in Massachusetts</p>
           </div>

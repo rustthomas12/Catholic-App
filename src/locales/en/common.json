@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Communio",
+    "name": "inFold",
     "tagline": "The Catholic parish and community platform"
   },
   "nav": {
@@ -66,7 +66,7 @@
     "message_placeholder": "Message…",
     "search_placeholder": "Search by name…",
     "premium_title": "Unlock direct messages",
-    "premium_body": "Send private messages to any Communio member. Available to supporters of the mission.",
+    "premium_body": "Send private messages to any inFold member. Available to supporters of the mission.",
     "you": "You"
   },
   "chat": {

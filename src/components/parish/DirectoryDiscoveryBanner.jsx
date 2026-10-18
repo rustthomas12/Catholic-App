@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
-const DISMISSED_KEY = 'communio-directory-banner-dismissed'
+const DISMISSED_KEY = 'infold-directory-banner-dismissed'
 
 export default function DirectoryDiscoveryBanner({ followedCount }) {
   const [dismissed, setDismissed] = useState(false)

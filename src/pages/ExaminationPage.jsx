@@ -151,7 +151,7 @@ function Section({ section, isOpen, onToggle }) {
 }
 
 export default function ExaminationPage() {
-  useEffect(() => { document.title = 'Examination of Conscience | Communio' }, [])
+  useEffect(() => { document.title = 'Examination of Conscience | inFold' }, [])
   const navigate = useNavigate()
   const [openSection, setOpenSection] = useState(null)
   const [expandAll, setExpandAll] = useState(false)

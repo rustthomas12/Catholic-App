@@ -29,7 +29,7 @@ const PRAYERS = [
 ]
 
 export default function MorningOfferingPage() {
-  useEffect(() => { document.title = 'Morning Offering | Communio' }, [])
+  useEffect(() => { document.title = 'Morning Offering | inFold' }, [])
 
   const navigate = useNavigate()
   const [prayedToday, setPrayedToday] = useState(() => !!localStorage.getItem(TODAY_KEY()))

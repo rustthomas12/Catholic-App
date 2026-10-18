@@ -1,6 +1,6 @@
 /**
  * Builds the source images for the iOS / Android app icons and splash
- * screens from the Communio brand mark (public/icons/icon-512.svg), then
+ * screens from the inFold brand mark (public/icons/icon-512.svg), then
  * `npm run mobile:assets` turns them into every size the stores need.
  *
  *   node scripts/generate-app-assets.mjs

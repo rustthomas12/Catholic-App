@@ -1,4 +1,4 @@
-package app.getcommunio;
+package app.getinfold;
 
 import com.getcapacitor.BridgeActivity;
 

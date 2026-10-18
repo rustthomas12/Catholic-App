@@ -49,7 +49,7 @@ export default function SaintPage() {
 
   // Set document title when saint loads
   useEffect(() => {
-    document.title = saint ? `${saint.name} | Communio` : 'Saint | Communio'
+    document.title = saint ? `${saint.name} | inFold` : 'Saint | inFold'
   }, [saint?.name])
 
   // Fetch related saints in same month
@@ -75,7 +75,7 @@ export default function SaintPage() {
 
   const handleShare = async () => {
     const url = currentPublicUrl()
-    const text = saint ? `Learn about ${saint.name} on Communio` : 'Communio'
+    const text = saint ? `Learn about ${saint.name} on inFold` : 'inFold'
     if (navigator.share) {
       try {
         await navigator.share({ title: saint?.name ?? 'Saint', text, url })

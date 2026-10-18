@@ -118,7 +118,7 @@ export default function IntegrationsTab({ parishId }) {
       const authUrl = apiUrl(`/api/integrations?action=facebook-auth&${params}`)
       const popup = isNative ? null : window.open(
         authUrl,
-        'communio_oauth',
+        'infold_oauth',
         'width=600,height=700,left=200,top=100'
       )
 
@@ -223,7 +223,7 @@ export default function IntegrationsTab({ parishId }) {
           <h2 className="text-white font-bold text-lg">Integrations</h2>
         </div>
         <p className="text-white/60 text-sm leading-relaxed">
-          Connect your parish to other platforms. When you publish an announcement in Communio,
+          Connect your parish to other platforms. When you publish an announcement in inFold,
           it automatically distributes to every connected platform — no extra work required.
         </p>
       </div>

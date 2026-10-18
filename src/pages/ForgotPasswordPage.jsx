@@ -7,7 +7,7 @@ import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
 export default function ForgotPasswordPage() {
-  useEffect(() => { document.title = 'Forgot Password | Communio' }, [])
+  useEffect(() => { document.title = 'Forgot Password | inFold' }, [])
   const { t } = useTranslation('auth')
   const { resetPassword } = useAuth()
 

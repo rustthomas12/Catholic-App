@@ -320,7 +320,7 @@ export default function AdminPage() {
   const [banModalOpen, setBanModalOpen] = useState(false);
 
   useEffect(() => {
-    document.title = 'Platform Admin | Communio';
+    document.title = 'Platform Admin | inFold';
   }, []);
 
   useEffect(() => {

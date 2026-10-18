@@ -69,7 +69,7 @@ const FEATURES = [
 ]
 
 export default function FeaturesPage() {
-  useEffect(() => { document.title = 'Features — Communio' }, [])
+  useEffect(() => { document.title = 'Features — inFold' }, [])
 
   return (
     <MarketingLayout>
@@ -79,7 +79,7 @@ export default function FeaturesPage() {
         <div className="max-w-3xl mx-auto">
           <p className="text-gold text-xs font-bold tracking-widest uppercase mb-4">Everything in One App</p>
           <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Communio has everything you need<br />to keep your parish connected through the week.
+            inFold has everything you need<br />to keep your parish connected through the week.
           </h1>
           <p className="text-white/60 text-lg mb-8">
             Every feature is free for individual Catholics. Parishes subscribe to unlock admin tools.

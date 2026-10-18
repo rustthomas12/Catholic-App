@@ -33,7 +33,7 @@ export default function GroupSettingsPage() {
     }
   }, [group, initialized])
 
-  useEffect(() => { document.title = `${t('settings')} | Communio` }, [t])
+  useEffect(() => { document.title = `${t('settings')} | inFold` }, [t])
 
   if (loading) return <GroupPageSkeleton />
 

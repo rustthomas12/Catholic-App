@@ -10,7 +10,7 @@ import { getLiturgicalSeason } from '../utils/liturgical'
 import { format } from 'date-fns'
 
 export default function OnboardingPage() {
-  useEffect(() => { document.title = 'Welcome | Communio' }, [])
+  useEffect(() => { document.title = 'Welcome | inFold' }, [])
   const { t } = useTranslation('auth')
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
@@ -311,7 +311,7 @@ export default function OnboardingPage() {
                 <p className="text-gold text-xs font-bold tracking-widest uppercase mb-1">For Priests</p>
                 <h1 className="text-2xl font-bold text-navy leading-tight">Are you the pastor of a parish?</h1>
                 <p className="text-gray-500 mt-2 text-sm leading-relaxed">
-                  Set up your parish on Communio — reach your parishioners with announcements, events, and a community feed.
+                  Set up your parish on inFold — reach your parishioners with announcements, events, and a community feed.
                 </p>
               </div>
               <div className="w-full bg-gold/10 border border-gold/20 rounded-2xl px-4 py-3 text-left">

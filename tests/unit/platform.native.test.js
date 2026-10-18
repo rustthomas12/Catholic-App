@@ -14,7 +14,7 @@ describe('platform helpers inside the iOS / Android app', () => {
   })
 
   it('sends API calls to the hosted app', () => {
-    expect(APP_ORIGIN).toBe('https://app.getcommunio.app')
+    expect(APP_ORIGIN).toBe('https://app.getinfold.app')
     expect(apiUrl('/api/delete-account')).toBe(`${APP_ORIGIN}/api/delete-account`)
   })
 

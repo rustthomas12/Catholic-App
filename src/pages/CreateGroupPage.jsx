@@ -48,7 +48,7 @@ export default function CreateGroupPage() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
 
-  useEffect(() => { document.title = `${t('create')} | Communio` }, [t])
+  useEffect(() => { document.title = `${t('create')} | inFold` }, [t])
 
   // Revoke preview object URL on unmount
   useEffect(() => {

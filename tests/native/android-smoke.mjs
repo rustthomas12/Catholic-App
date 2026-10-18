@@ -32,7 +32,7 @@ function screenshot(name) {
 
 const [device] = await _android.devices()
 if (!device) { console.error('No Android device found (adb devices)'); process.exit(1) }
-const webview = await device.webView({ pkg: 'app.getcommunio' })
+const webview = await device.webView({ pkg: 'app.getinfold' })
 const page = await webview.page()
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
 page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
@@ -55,7 +55,7 @@ check('no service worker controls the app', env.sw === false)
 check('native share shim installed', env.share)
 
 // 2. API reachable cross-origin (CORS for https://localhost)
-const API_ORIGIN = process.env.API_ORIGIN || 'https://app.getcommunio.app'
+const API_ORIGIN = process.env.API_ORIGIN || 'https://app.getinfold.app'
 const api = await page.evaluate(async (origin) => {
   try {
     const d = new Date().toISOString().slice(0, 10)
@@ -91,7 +91,7 @@ if (process.env.E2E_EMAIL) {
 
   // Native clipboard shim (used by "copy link" buttons)
   const clip = await page.evaluate(async () => {
-    try { await navigator.clipboard.writeText('communio-test'); return 'ok' } catch (e) { return String(e) }
+    try { await navigator.clipboard.writeText('infold-test'); return 'ok' } catch (e) { return String(e) }
   })
   check('clipboard works', clip === 'ok', clip)
 

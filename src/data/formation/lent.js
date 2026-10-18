@@ -2,7 +2,7 @@
 // Remaining 33 days to be added before Lent 2027
 
 export const LENT_PROGRAM = {
-  title: 'Lent with Communio',
+  title: 'Lent with inFold',
   subtitle: 'A 40-day journey toward Easter',
   totalDays: 40,
   programKey: 'lent_2027',

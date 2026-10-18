@@ -168,7 +168,7 @@ function PushSection({ userId }) {
 
 // ── Page ─────────────────────────────────────────────────
 export default function NotificationSettingsPage() {
-  useEffect(() => { document.title = 'Notification Settings | Communio' }, [])
+  useEffect(() => { document.title = 'Notification Settings | inFold' }, [])
 
   const { t } = useTranslation('common')
   const navigate = useNavigate()

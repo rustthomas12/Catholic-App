@@ -4,7 +4,7 @@ import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 
 export default function CheckEmailPage() {
-  useEffect(() => { document.title = 'Check your email | Communio' }, [])
+  useEffect(() => { document.title = 'Check your email | inFold' }, [])
 
   const { state } = useLocation()
   const { resendVerification } = useAuth()
