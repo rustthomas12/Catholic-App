@@ -164,7 +164,7 @@ export function usePost(postId, initialPost) {
     }
 
     return { error: null }
-  }, [user, post, postId])
+  }, [user, profile?.full_name, profile?.suspended_at, post, postId])
 
   // ── addComment ─────────────────────────────────────────────
   const addComment = useCallback(
@@ -218,7 +218,7 @@ export function usePost(postId, initialPost) {
 
       return { error: null }
     },
-    [user, postId, post]
+    [user, profile?.full_name, profile?.suspended_at, postId, post]
   )
 
   // ── deleteComment ──────────────────────────────────────────

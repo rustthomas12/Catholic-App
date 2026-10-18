@@ -391,7 +391,7 @@ export function useParish(parishId) {
     }
 
     setFollowLoading(false)
-  }, [userId, parishId, isFollowing, isMyParish, followLoading, updateProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, parishId, isFollowing, isMyParish, followLoading, updateProfile, profile?.full_name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const setAsMyParish = useCallback(async () => {
     if (!userId) return { error: 'Not authenticated' }

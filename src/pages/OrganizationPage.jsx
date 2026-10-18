@@ -123,7 +123,7 @@ function useOrganization(orgId) {
       }
     }
     setJoinLoading(false)
-  }, [user?.id, orgId, isMember, joinLoading])
+  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading])
 
   return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters }
 }

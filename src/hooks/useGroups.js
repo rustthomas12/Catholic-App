@@ -392,7 +392,7 @@ export function useGroupJoin() {
     })()
 
     return { error: null }
-  }, [user])
+  }, [user, profile?.full_name])
 
   const leaveGroup = useCallback(async (groupId, adminGroupIds, onSuccess) => {
     if (!user) return
