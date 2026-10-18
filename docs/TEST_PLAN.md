@@ -4,9 +4,13 @@ Three accounts, each signed in on its own local copy of the app (separate origin
 
 | Account | Origin | Role during testing |
 |---|---|---|
-| **A** — Admin | http://localhost:5173 | Site admin **and** parish admin of a test parish. Owns test org + group. |
-| **B** — Parishioner | http://localhost:5174 | Regular user who follows A's parish. Main "other person" for social features. |
-| **C** — Newcomer | http://localhost:5175 | Fresh account. Covers signup/onboarding, pastor onboarding, org chapter requests, blocking, and (last) account deletion. |
+| **A** — Thomas Rust | http://localhost:5173 | Platform admin; admin of 4 Civitas Dei organizations. Home parish St. Mary. |
+| **B** — Beta | http://localhost:5174 | Parish admin of St. Joseph Parish (North Brookfield). Main "other person" for social features. |
+| **C** — Fr. Michael | http://localhost:5175 | Verified clergy; admin of Cathedral of St. Paul + St. Mary, staff at Our Lady of the Sacred Heart. |
+
+Sign-up / onboarding of a brand-new account and account deletion can't be run with these three
+(no new account; we don't delete real accounts) — marked ⏭ below.
+There is no "create a parish" feature in the app — parishes come from the imported directory (558).
 
 All three local copies use the production database and forward `/api/*` to `https://app.getinfold.app`.
 Test content is prefixed **`[TEST]`** so it is easy to find and remove afterwards.
@@ -30,45 +34,45 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | P1 | /terms, /privacy, /policy, /delete-account render with inFold name + correct emails | – | ⬜ |
-| P2 | Protected route (e.g. /groups) redirects to /login when signed out | – | ⬜ |
+| P2 | Protected route (e.g. /groups) redirects to /login when signed out | – | ✅ |
 | P3 | 404 page for unknown route | – | ⬜ |
 | P4 | PWA manifest/icons load; install prompt doesn't error | – | ⬜ |
 
 ## 3. Authentication
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| AU1 | Sign up (email + password) → /check-email | C | ⬜ |
-| AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⬜ |
-| AU3 | Log in / log out | A,B | ⬜ |
+| AU1 | Sign up (email + password) → /check-email | C | ⏭ |
+| AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⏭ |
+| AU3 | Log in / log out | A,B | ✅ |
 | AU4 | Wrong password shows friendly error | B | ⬜ |
 | AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⬜ |
-| AU6 | Session persists across reload | A | ⬜ |
+| AU6 | Session persists across reload | A | ✅ |
 | AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ⬜ |
 
 ## 4. Onboarding
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| ON1 | New user lands on /onboarding; can search & follow a parish | C | ⬜ |
-| ON2 | Onboarding group suggestions — join a group | C | ⬜ |
-| ON3 | Finishing onboarding lands on home feed | C | ⬜ |
-| ON4 | Location-based parish suggestion (allow/deny browser location) | C | ⬜ |
+| ON1 | New user lands on /onboarding; can search & follow a parish | C | ⏭ |
+| ON2 | Onboarding group suggestions — join a group | C | ⏭ |
+| ON3 | Finishing onboarding lands on home feed | C | ⏭ |
+| ON4 | Location-based parish suggestion (allow/deny browser location) | C | ⏭ |
 
 ## 5. Home feed & posts
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| F1 | Feed loads posts from followed parish + groups | B | ⬜ |
-| F2 | Feed filters work | B | ⬜ |
-| F3 | Create text post (destination: parish / group) | B | ⬜ |
-| F4 | Create post with image (≤5 MB); >5 MB rejected | B | ⬜ |
-| F5 | Prayer-request toggle on post | B | ⬜ |
-| F6 | Character counter / max length | B | ⬜ |
-| F7 | Like / react to post; count updates for other user | A,B | ⬜ |
-| F8 | Comment on post; other user sees it + gets notification | A,B | ⬜ |
-| F9 | Open /post/:id direct link; unavailable post shows message | A | ⬜ |
-| F10 | Delete own post | B | ⬜ |
-| F11 | Report post → appears in admin moderation queue | B→A | ⬜ |
-| F12 | Block user from post menu → their posts hidden | C | ⬜ |
-| F13 | Clergy badge shows on verified clergy posts | A | ⬜ |
+| F1 | Feed loads posts from followed parish + groups | B | ✅ |
+| F2 | Feed filters work | B | ✅ |
+| F3 | Create text post (destination: parish / group) | B | ✅ |
+| F4 | Create post with image (≤5 MB); >5 MB rejected | B | ✅ |
+| F5 | Prayer-request toggle on post | B | 🔧 |
+| F6 | Character counter / max length | B | ✅ |
+| F7 | Like / react to post; count updates for other user | A,B | 🔧 |
+| F8 | Comment on post; other user sees it + gets notification | A,B | 🔧 |
+| F9 | Open /post/:id direct link; unavailable post shows message | A | ✅ |
+| F10 | Delete own post | B | ✅ |
+| F11 | Report post → appears in admin moderation queue | B→A | ✅ |
+| F12 | Block user from post menu → their posts hidden | C | ✅ |
+| F13 | Clergy badge shows on verified clergy posts | A | ✅ |
 | F14 | Parish announcement post styling | A | ⬜ |
 
 ## 6. Directory & parishes
@@ -110,10 +114,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 9. Direct messages
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| DM1 | Start conversation, send message | A→B | ⬜ |
-| DM2 | Recipient sees message + notification; reply | B | ⬜ |
-| DM3 | Blocked user cannot message | C | ⬜ |
-| DM4 | Empty states ("No connections yet") | C | ⬜ |
+| DM1 | Start conversation, send message | A→B | 🔧 |
+| DM2 | Recipient sees message + notification; reply | B | 🔧 |
+| DM3 | Blocked user cannot message | C | ✅ |
+| DM4 | Empty states ("No connections yet") | C | ✅ |
 
 ## 10. Faith tools
 | ID | Test | Acct | Status |
@@ -133,21 +137,21 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 11. Profile & settings
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| S1 | View own profile; view another user's profile | B | ⬜ |
-| S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ⬜ |
-| S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ⬜ |
+| S1 | View own profile; view another user's profile | B | ✅ |
+| S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
+| S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
 | S4 | Profile visibility (Public / Members only) respected by other user | B,C | ⬜ |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | ⬜ |
 | S6 | Notification settings toggles save | B | ⬜ |
-| S7 | Blocked users list → unblock | C | ⬜ |
+| S7 | Blocked users list → unblock | C | 🔧 |
 | S8 | Sign out from settings | B | ⬜ |
 | S9 | Contact page (/contact) form submits | B | ⬜ |
 
 ## 12. Notifications
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| N1 | In-app notifications list; mark read; tap opens target | B | ⬜ |
-| N2 | Unread badge in navigation updates | B | ⬜ |
+| N1 | In-app notifications list; mark read; tap opens target | B | 🔧 |
+| N2 | Unread badge in navigation updates | B | 🔧 |
 | N3 | Browser push: enable prompt, receive push from another user's action | B | ⬜ |
 | N4 | Push dismissed state persists | B | ⬜ |
 
@@ -188,12 +192,12 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 16. Site admin (/admin)
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| AD1 | Only admins can open /admin (B is refused) | A,B | ⬜ |
-| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | ⬜ |
+| AD1 | Only admins can open /admin (B is refused) | A,B | ✅ |
+| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | 🔧 |
 | AD3 | Suspend / unsuspend user | A | ⬜ |
 | AD4 | Grant parish admin / org membership | A | ⬜ |
 | AD5 | Parish clusters create / delete | A | ⬜ |
-| AD6 | Moderation queue: reported post review | A | ⬜ |
+| AD6 | Moderation queue: reported post review | A | ✅ |
 
 ## 17. Background jobs & server
 | ID | Test | Acct | Status |
@@ -206,7 +210,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 18. Cross-cutting
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| X1 | No console errors on each page visited | all | ⬜ |
+| X1 | No console errors on each page visited | all | ✅ |
 | X2 | No leftover "Communio" text anywhere in the UI | all | ⬜ |
 | X3 | Mobile width layout of main screens | B | ⬜ |
 | X4 | Loading / error / empty states | all | ⬜ |
@@ -215,7 +219,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 19. Last — destructive
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| Z1 | Delete account (type DELETE) → signed out, data removed | C | ⬜ |
+| Z1 | Delete account (type DELETE) → signed out, data removed | C | ⏭ |
 | Z2 | Clean up all `[TEST]` content | A | ⬜ |
 
 ---
@@ -227,3 +231,20 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## Issues found
 | # | Test ID | Problem | Fix | Status |
 |---|---|---|---|---|
+| 1 | F7/F8/N1 | Like/comment notifications said "Someone …" (name read from auth metadata, not profile); group/parish/org join notices always "Someone" | Use profile full_name | 🔧 |
+| 2 | N2 | Nav unread badge didn't drop when notifications were read | Hook instances re-sync via a window event | 🔧 |
+| 3 | F7 | "1 likes" / "1 comments" | i18next plural keys | 🔧 |
+| 4 | F8 | Comment box avatar showed "M" | Use profile name/avatar | 🔧 |
+| 5 | – | Admin chips stripped "St." ("Mary Parish") and cut at 20 chars | Full name + CSS truncation | 🔧 |
+| 6 | – | Sidebar said "Parish member" for admins/clergy | Role-aware label | 🔧 |
+| 7 | F5 | Prayer requests showed "Like"; notification said "liked your post" | "I will pray" / "N prayers"; "is praying for your intention" | 🔧 |
+| 8 | AD2 | Deleted accounts listed in admin users, counted in Total Users, offered in role search | Filter deleted_at | 🔧 |
+| 9 | DM1 | Deleted accounts in new-message picker (5× "Beta") | Filter deleted_at | 🔧 |
+| 10 | DM1/DM2/G6 | **Realtime never fired for DMs, group chat, comments, prayer requests** — only `notifications` was in the realtime publication | Migration 030 adds them (applied) | 🔧 |
+| 11 | DM1 | New conversation missing from sender's list; unread-DM badge never refreshed | List reloads on send/receive; badge recounts on navigation/read/new message | 🔧 |
+| 12 | F10 | "Edit post" menu item only said "coming soon" | Implemented inline editing | 🔧 |
+| 13 | S7 | Sidebar highlighted Profile and Settings together on settings pages | Fixed active rules | 🔧 |
+| 14 | – | Dev only: PWA service worker booted the app twice → crash on reload | Disabled SW in dev | 🔧 |
+| 15 | – | Report-post sheet stretches full width on desktop | Cosmetic, not changed | open |
+| 16 | – | `posts.like_count` / `comment_count` columns drift (non-authors can't update them under RLS); feed computes counts from rows so UI is correct | Not changed — consider DB triggers | open |
+| 17 | – | Profiles have no "Message" button | Suggestion | open |
