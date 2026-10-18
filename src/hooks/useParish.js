@@ -380,7 +380,7 @@ export function useParish(parishId) {
                 user_id: a.user_id,
                 type: 'new_parish_member',
                 reference_id: parishId,
-                message: `Someone is now following your parish`,
+                message: `${profile?.full_name || 'Someone'} is now following your parish`,
                 actor_id: userId,
                 is_read: false,
               }))

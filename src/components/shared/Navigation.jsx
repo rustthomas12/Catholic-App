@@ -573,9 +573,14 @@ function Navigation() {
               isVerifiedClergy={profile?.is_verified_clergy} />
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">{profile?.full_name || 'Parish Member'}</p>
-              {profile?.parish_id && (
-                <p className="text-gray-400 text-xs truncate">Parish member</p>
-              )}
+              <p className="text-gray-400 text-xs truncate">
+                {isPlatformAdmin ? 'Platform admin'
+                  : profile?.is_verified_clergy ? 'Clergy'
+                  : parishAdminRecords.length > 0 ? 'Parish admin'
+                  : orgAdminRecords.length > 0 ? 'Organization admin'
+                  : profile?.parish_id ? 'Parish member'
+                  : 'Member'}
+              </p>
             </div>
           </div>
           <div className="px-1 py-1 mb-1">

@@ -383,7 +383,7 @@ export function useGroupJoin() {
             user_id: a.user_id,
             type: 'new_group_member',
             reference_id: groupId,
-            message: `Someone joined ${grp?.name || 'your group'}`,
+            message: `${profile?.full_name || 'Someone'} joined ${grp?.name || 'your group'}`,
             actor_id: user.id,
             is_read: false,
           }))

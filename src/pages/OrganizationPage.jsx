@@ -20,7 +20,7 @@ import Feed from '../components/feed/Feed'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -113,7 +113,7 @@ function useOrganization(orgId) {
                 user_id: a.user_id,
                 type: 'new_org_member',
                 reference_id: orgId,
-                message: `Someone joined your organization`,
+                message: `${profile?.full_name || 'Someone'} joined your organization`,
                 actor_id: user.id,
                 is_read: false,
               }))

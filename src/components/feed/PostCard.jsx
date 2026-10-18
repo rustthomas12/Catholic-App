@@ -209,7 +209,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
 // ── Main PostCard ──────────────────────────────────────────
 const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSource = true }) {
   const { t } = useTranslation(['feed', 'common'])
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const {
@@ -520,7 +520,9 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             <button
               onClick={handleLike}
               className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] rounded-lg hover:bg-lightbg transition-colors group"
-              aria-label={post.is_liked_by_me ? 'Unlike' : 'Like'}
+              aria-label={post.is_prayer_request
+                ? (post.is_liked_by_me ? t('prayer.praying') : t('prayer.pray'))
+                : (post.is_liked_by_me ? 'Unlike' : 'Like')}
             >
               {post.is_liked_by_me ? (
                 <HeartIconSolid
@@ -530,9 +532,13 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 <HeartIcon className="w-5 h-5 text-gray-400 group-hover:text-gold transition-colors" />
               )}
               <span className={`text-xs font-medium ${post.is_liked_by_me ? 'text-gold' : 'text-gray-500'}`}>
-                {post.like_count > 0
-                  ? t('like.count_other', { count: post.like_count })
-                  : t('like.like')}
+                {post.is_prayer_request
+                  ? (post.like_count > 0
+                      ? t('prayer.count', { count: post.like_count })
+                      : t('prayer.pray'))
+                  : (post.like_count > 0
+                      ? t('like.count', { count: post.like_count })
+                      : t('like.like'))}
               </span>
             </button>
 
@@ -545,7 +551,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               <ChatBubbleLeftIcon className="w-5 h-5 text-gray-400 group-hover:text-navy transition-colors" />
               <span className="text-xs font-medium text-gray-500">
                 {post.comment_count > 0
-                  ? t('comment.count_other', { count: post.comment_count })
+                  ? t('comment.count', { count: post.comment_count })
                   : 'Comment'}
               </span>
             </button>
@@ -586,8 +592,8 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             {/* Comment input */}
             <div className="flex items-center gap-2 border-t border-gray-100 pt-3 mt-2">
               <Avatar
-                src={null}
-                name={user?.user_metadata?.full_name || 'Me'}
+                src={profile?.avatar_url || null}
+                name={profile?.full_name || user?.user_metadata?.full_name || 'Me'}
                 size="xs"
               />
               <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 gap-2">

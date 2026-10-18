@@ -151,12 +151,14 @@ export function usePost(postId, initialPost) {
 
     // Notify post author (not self)
     if (!wasLiked && post.author?.id && post.author.id !== user.id) {
-      const actorName = user.user_metadata?.full_name || 'Someone'
+      const actorName = profile?.full_name || user.user_metadata?.full_name || 'Someone'
       createNotification({
         userId: post.author.id,
         type: 'like',
         referenceId: postId,
-        message: `${actorName} liked your post`,
+        message: post.is_prayer_request
+          ? `${actorName} is praying for your intention`
+          : `${actorName} liked your post`,
         actorId: user.id,
       })
     }
@@ -203,7 +205,7 @@ export function usePost(postId, initialPost) {
 
       // Notify post author (not self)
       if (post.author?.id && post.author.id !== user.id) {
-        const actorName = user.user_metadata?.full_name || 'Someone'
+        const actorName = profile?.full_name || user.user_metadata?.full_name || 'Someone'
         const preview = trimmed.slice(0, 50)
         createNotification({
           userId: post.author.id,

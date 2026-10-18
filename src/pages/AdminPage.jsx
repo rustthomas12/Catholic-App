@@ -141,6 +141,7 @@ function AssignOrgAdmin() {
     const { data } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
+      .is('deleted_at', null)
       .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
       .limit(8)
     return data || []
@@ -224,6 +225,7 @@ function AssignParishPastor() {
     const { data } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
+      .is('deleted_at', null)
       .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
       .limit(8)
     return data || []
@@ -351,7 +353,7 @@ export default function AdminPage() {
       const todayIso = today.toISOString();
 
       const [usersRes, postsRes, flagsRes, parishesRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso),
         supabase.from('post_flags').select('id', { count: 'exact', head: true }).neq('is_resolved', true),
         supabase.from('parishes').select('id', { count: 'exact', head: true }),
@@ -394,6 +396,7 @@ export default function AdminPage() {
       let query = supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, suspended_at, created_at, is_verified_clergy, is_admin, vocation_state')
+        .is('deleted_at', null)
         .order('suspended_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 

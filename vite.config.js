@@ -19,7 +19,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'public/icons/*.svg'],
       devOptions: {
-        enabled: true,
+        // Off: the dev SW served stale /src/main.jsx and booted the app twice.
+        enabled: false,
       },
       manifest: {
         name: 'inFold',

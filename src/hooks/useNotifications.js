@@ -9,6 +9,10 @@ const NOTIFICATION_SELECT = `
   actor:profiles!actor_id(id, full_name, avatar_url)
 `
 
+// Fired after this tab marks notifications read so every mounted
+// useNotifications() instance (page list, nav badge) re-syncs its count.
+const READ_EVENT = 'infold:notifications-read'
+
 export function useNotifications() {
   const { user } = useAuth()
 
@@ -152,6 +156,7 @@ export function useNotifications() {
       .update({ is_read: true })
       .eq('id', notificationId)
       .eq('user_id', user.id)
+    window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: channelSuffix.current }))
   }, [user])
 
   // ── Mark all as read ─────────────────────────────────────
@@ -166,6 +171,7 @@ export function useNotifications() {
       .update({ is_read: true })
       .eq('user_id', user.id)
       .eq('is_read', false)
+    window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: channelSuffix.current }))
   }, [user])
 
   // ── Load more ────────────────────────────────────────────
@@ -178,6 +184,14 @@ export function useNotifications() {
     offsetRef.current = 0
     fetchNotifications(true)
   }, [fetchNotifications])
+
+  // ── Keep other hook instances (e.g. the nav badge) in sync ──
+  useEffect(() => {
+    if (!user) return
+    const handleRead = (e) => { if (e.detail !== channelSuffix.current) refresh() }
+    window.addEventListener(READ_EVENT, handleRead)
+    return () => window.removeEventListener(READ_EVENT, handleRead)
+  }, [user, refresh])
 
   // ── Foreground refresh (iOS / PWA background→foreground) ──
   useEffect(() => {
