@@ -20,7 +20,7 @@ const VOCATIONS = [
 ]
 
 export default function EditProfilePage() {
-  useEffect(() => { document.title = 'Edit Profile | Communio' }, [])
+  useEffect(() => { document.title = 'Edit Profile | inFold' }, [])
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
   const fileRef = useRef(null)

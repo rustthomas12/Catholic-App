@@ -20,7 +20,7 @@ let _homeParishCache = null  // { parishId, data }
 let _homeGroupsCache = null  // { userId, data }
 
 export default function HomePage() {
-  useEffect(() => { document.title = 'Home | Communio' }, [])
+  useEffect(() => { document.title = 'Home | inFold' }, [])
   const { i18n } = useTranslation()
   const { profile } = useAuth()
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
@@ -118,7 +118,7 @@ export default function HomePage() {
               className="absolute top-3 right-3 text-white/50 hover:text-white p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
               <XMarkIcon className="w-5 h-5" />
             </button>
-            <p className="text-gold text-sm font-semibold mb-1">Welcome to Communio</p>
+            <p className="text-gold text-sm font-semibold mb-1">Welcome to inFold</p>
             <p className="text-white font-bold text-lg mb-3">Welcome, {firstName}! Your parish community is waiting.</p>
             <div className="flex gap-2 flex-wrap">
               <Link to="/directory"

@@ -250,7 +250,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-lightbg transition-colors text-left"
             >
               <Avatar src={p.avatar_url} name={p.full_name || 'U'} size="sm" />
-              <span className="text-sm font-medium text-navy">{p.full_name || 'Communio Member'}</span>
+              <span className="text-sm font-medium text-navy">{p.full_name || 'inFold Member'}</span>
             </button>
           ))}
         </div>
@@ -285,7 +285,7 @@ function ConversationView({ userId, partner, onBack, onRead }) {
           <ArrowLeftIcon className="w-5 h-5" />
         </button>
         <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
-        <p className="font-semibold text-navy text-sm">{partner.full_name || 'Communio Member'}</p>
+        <p className="font-semibold text-navy text-sm">{partner.full_name || 'inFold Member'}</p>
       </div>
 
       {/* Messages */}
@@ -338,7 +338,7 @@ function ConversationView({ userId, partner, onBack, onRead }) {
 
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
-  useEffect(() => { document.title = 'Messages | Communio' }, [])
+  useEffect(() => { document.title = 'Messages | inFold' }, [])
   const { user } = useAuth()
   const { convos, loading, reload, markRead } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
@@ -398,7 +398,7 @@ export default function MessagesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between">
                     <p className={`text-sm truncate ${unread ? 'font-bold text-navy' : 'font-medium text-navy'}`}>
-                      {partner.full_name || 'Communio Member'}
+                      {partner.full_name || 'inFold Member'}
                     </p>
                     <p className="text-[10px] text-gray-400 flex-shrink-0 ml-2">
                       {lastMessage?.created_at ? formatTime(lastMessage.created_at) : ''}

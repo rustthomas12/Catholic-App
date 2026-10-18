@@ -14,7 +14,7 @@ reasoning, so these decisions can be revisited with real usage data.
 
 ## 1. Why we paused features
 
-At launch Communio had a handful of real users and no paying parishes yet.
+At launch inFold had a handful of real users and no paying parishes yet.
 The business depends on one thing: **parishes paying because their
 parishioners actually use the app**. Everything that didn't serve that, or
 that added risk for app-store review or diocese sales, was paused so the
@@ -33,7 +33,7 @@ Nothing was deleted. Database tables and existing data are untouched.
 - Only 2 messages had ever been sent.
 - It's the highest-risk feature for a Catholic app. Dioceses have
   safe-environment policies (e.g. VIRTUS) about private adult–minor
-  communication, and a diocese reviewing Communio may refuse a contract
+  communication, and a diocese reviewing inFold may refuse a contract
   because of open 1:1 messaging.
 - Apple and Google look hard at private messaging during review (abuse
   reporting, moderation, minors).
@@ -58,7 +58,7 @@ Moderation (report, block, admin delete) must be in place first.
 
 ### Parish-sponsored "premium" codes (`sponsorshipCodes`)
 **Why paused:** left over from an old individual "premium" tier that no
-longer exists. Communio is free for every Catholic. The redeem screen was
+longer exists. inFold is free for every Catholic. The redeem screen was
 already gone, and only a background "return visit" tracker still ran.
 **What's hidden:** that tracker. `/api/claim-sponsorship-code` and
 `/api/track-return` return 404.
@@ -84,8 +84,8 @@ Knights of Columbus council) asks to join.
 ### Pitch deck inside the app (`pitchDeckInApp`)
 **Why paused:** the investor deck was a public page inside the live app,
 reachable by parishioners and app reviewers.
-**What's hidden:** `app.getcommunio.app/pitch` and the same path in the phone
-apps. It still lives at **getcommunio.app/pitch** (marketing site).
+**What's hidden:** `app.getinfold.app/pitch` and the same path in the phone
+apps. It still lives at **getinfold.app/pitch** (marketing site).
 **Revisit:** no need. Keep investor material on the marketing site.
 
 ---
@@ -167,7 +167,7 @@ active subscription.
 | Strong (several dioceses) | 200–400 by Year 4–5 | $240K–$480K |
 
 Replacing a salary takes about 40 paying parishes. The main number to watch
-is **the share of a parish's households using Communio**; pastors renew when
+is **the share of a parish's households using inFold**; pastors renew when
 their people are on it.
 
 **When to revisit this document:** after the first 10 paying parishes, after

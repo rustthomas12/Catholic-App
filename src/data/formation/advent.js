@@ -2,7 +2,7 @@
 // Advent has 4 weeks (≈28 days): Hope, Peace, Joy, Love
 
 export const ADVENT_PROGRAM = {
-  title: 'Advent with Communio',
+  title: 'Advent with inFold',
   subtitle: 'Four weeks of waiting, watching, and wonder',
   totalDays: 28,
   programKey: 'advent_2026',

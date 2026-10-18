@@ -434,7 +434,7 @@ function Navigation() {
               <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
             </svg>
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">Communio</span>
+          <span className="text-white font-bold text-lg tracking-tight">inFold</span>
         </Link>
 
         {/* Main navigation */}

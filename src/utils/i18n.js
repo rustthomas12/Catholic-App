@@ -24,7 +24,7 @@ import adminEs   from '../locales/es/admin.json'
 // Detect saved preference → browser language → 'en'
 function detectLanguage() {
   try {
-    const saved = localStorage.getItem('communio-language')
+    const saved = localStorage.getItem('infold-language')
     if (saved === 'es' || saved === 'en') return saved
     const browser = navigator.language?.slice(0, 2).toLowerCase()
     if (browser === 'es') return 'es'

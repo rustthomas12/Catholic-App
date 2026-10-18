@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
 
 export default function BlockedUsersPage() {
-  useEffect(() => { document.title = 'Blocked Users | Communio' }, [])
+  useEffect(() => { document.title = 'Blocked Users | inFold' }, [])
   const navigate = useNavigate()
   const { blockedIds, loaded, unblock } = useBlockedUsers()
   const [fetched, setFetched] = useState(null) // profiles of blocked users, null until loaded

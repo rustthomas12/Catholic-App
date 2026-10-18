@@ -1,7 +1,7 @@
-# Communio iOS & Android apps
+# inFold iOS & Android apps
 
 The App Store and Google Play apps are the **same React app** as
-app.getcommunio.app, wrapped with [Capacitor 8](https://capacitorjs.com).
+app.getinfold.app, wrapped with [Capacitor 8](https://capacitorjs.com).
 One codebase covers the web, iOS and Android. Supabase, the Vercel `/api`
 routes and the Supabase edge functions serve all three.
 
@@ -22,13 +22,13 @@ iOS or Android app.
 
 | Area | Web (unchanged) | Inside the apps |
 |---|---|---|
-| `/api/*` calls | relative URLs | `https://app.getcommunio.app/api/*` (`src/lib/platform.js → apiUrl`); the API routes allow the app origins via CORS (`api/_native.js`) |
+| `/api/*` calls | relative URLs | `https://app.getinfold.app/api/*` (`src/lib/platform.js → apiUrl`); the API routes allow the app origins via CORS (`api/_native.js`) |
 | Push notifications | Web Push (VAPID) + service worker | Firebase Cloud Messaging → APNs / Android (`useNativePushNotifications.js`, table `native_push_tokens`). `send-push` and both reminder crons deliver to both |
 | Tapping a notification | service worker opens the URL | `NativeBridge.jsx` navigates to the same URL |
-| Stripe checkout and billing portal | full-page redirect | opens the in-app browser sheet; Stripe returns via `communio://` (`api/native-return.js`) |
-| Facebook page connection | popup window | in-app browser sheet, result passed back via `communio://oauth-complete` |
+| Stripe checkout and billing portal | full-page redirect | opens the in-app browser sheet; Stripe returns via `infold://` (`api/native-return.js`) |
+| Facebook page connection | popup window | in-app browser sheet, result passed back via `infold://oauth-complete` |
 | Signup confirmation and password-reset emails | link back to the site | link goes to a bounce page that reopens the **app** with the session, so signup details saved on the phone aren't lost |
-| Share buttons and copy link | Web Share / clipboard | native share sheet / clipboard, sharing `https://app.getcommunio.app/...` links (never `capacitor://`) |
+| Share buttons and copy link | Web Share / clipboard | native share sheet / clipboard, sharing `https://app.getinfold.app/...` links (never `capacitor://`) |
 | "Near me" in the parish directory | browser geolocation | native location permission (`src/lib/nativeShims.js`) |
 | Links that open in a new tab (Terms, parish websites) | new tab | in-app browser sheet, so forms aren't lost |
 | "Add to Home Screen" prompt, service worker and update banner | as before | not used. The app is updated through the stores |
@@ -52,7 +52,7 @@ Google Play's UGC policy require it for social apps.
 > edge function (v5), Firebase project `communio-d2e19` with iOS + Android
 > apps, Firebase server key on Vercel + Supabase, Firebase configs in the
 > native projects and GitHub secrets, Android upload key + GitHub secrets,
-> signed `communio-1.0.0-release.aab`, App Review demo account, store
+> signed `infold-1.0.0-release.aab`, App Review demo account, store
 > screenshots and listing text. **Push notifications verified end to end on
 > Android** (`tests/native/android-push.mjs`).
 > **Still needed:** merge PR #2, Supabase redirect URL, Apple + Google
@@ -64,7 +64,7 @@ decision.
 
 ### 2.1 Accounts (you)
 - [ ] **Apple Developer Program**: developer.apple.com, $99/yr. Enroll as an
-      organization if Communio has a legal entity (needs a D-U-N-S number).
+      organization if inFold has a legal entity (needs a D-U-N-S number).
       The store listing then shows the organization's name.
 - [ ] **Google Play Console**: play.google.com/console, $25 one-time.
       New *personal* accounts must run a closed test with **12+ testers for
@@ -72,15 +72,15 @@ decision.
 - [ ] **Firebase project** (free): console.firebase.google.com → Add project.
 
 ### 2.2 App identifiers
-The bundle ID / package name is **`app.getcommunio`** (set in
+The bundle ID / package name is **`app.getinfold`** (set in
 `capacitor.config.json`, the Xcode project and `android/app/build.gradle`).
 It **can't be changed after the first store upload**. If you want a different
 one, change it in all three places before uploading.
 
 ### 2.3 Firebase (push notifications)
-1. Firebase → Project settings → **Add app → iOS**, bundle ID `app.getcommunio`.
+1. Firebase → Project settings → **Add app → iOS**, bundle ID `app.getinfold`.
    Download **GoogleService-Info.plist**.
-2. **Add app → Android**, package `app.getcommunio`. Download **google-services.json**.
+2. **Add app → Android**, package `app.getinfold`. Download **google-services.json**.
 3. Apple Developer → Keys → **+** → enable *Apple Push Notifications service
    (APNs)* → download the `.p8`. Firebase → Project settings → Cloud Messaging →
    Apple app → upload that APNs key (with its Key ID and your Team ID).
@@ -99,14 +99,14 @@ The app still runs without Firebase config, but push notifications stay off.
 ### 2.4 Supabase
 - [x] New migrations `027_native_push_tokens.sql` and `028_user_blocks.sql`: **applied to production on 2026-10-12**
 - [ ] Auth → URL Configuration → **Redirect URLs**: add
-      `https://app.getcommunio.app/api/native-return**`
+      `https://app.getinfold.app/api/native-return**`
       Without it, confirmation and reset emails from the app fall back to the
       site URL.
 
 ### 2.5 Vercel
 - [ ] `FIREBASE_SERVICE_ACCOUNT` (see §2.3).
 - [ ] After your first iOS / Android builds, fill in the two placeholder files
-      under `public/.well-known/` so `https://app.getcommunio.app/...` links
+      under `public/.well-known/` so `https://app.getinfold.app/...` links
       open the app:
   - `apple-app-site-association`: replace `APPLE_TEAM_ID` with your 10-character
     Team ID (Apple Developer → Membership).
@@ -124,7 +124,7 @@ local release builds, create `android/keystore.properties` (git-ignored):
 ```
 storeFile=/absolute/path/to/communio-upload.jks
 storePassword=...
-keyAlias=communio
+keyAlias=infold
 keyPassword=...
 ```
 Turn on **Play App Signing** when you create the app in Play Console. Google
@@ -149,8 +149,8 @@ release run and upload it in Play Console → Testing → Internal testing. Afte
 that, CI can upload automatically.
 
 ### 2.8 Create the store listings (you)
-- **App Store Connect** → Apps → **+** → bundle ID `app.getcommunio`, SKU `communio`.
-- **Play Console** → Create app → "Communio", free, App.
+- **App Store Connect** → Apps → **+** → bundle ID `app.getinfold`, SKU `infold`.
+- **Play Console** → Create app → "inFold", free, App.
 
 ---
 
@@ -159,7 +159,7 @@ that, CI can upload automatically.
 ### Without a Mac (recommended for you): GitHub Actions
 - Every push builds and tests everything (`.github/workflows/mobile.yml`).
 - **Android test build:** open the workflow run → Artifacts →
-  `communio-android-debug-apk`. Install it on any Android phone (allow
+  `infold-android-debug-apk`. Install it on any Android phone (allow
   "install unknown apps").
 - **Store builds:** Actions → *Mobile apps* → **Run workflow** → tick
   **release**. iOS goes to TestFlight. Android goes to Play internal testing,
@@ -258,7 +258,7 @@ visual emulator and one-click runs; it reuses the same SDK.
 ### App review notes (paste into App Store Connect / Play Console)
 Reviewers need a **demo account** with content: a user who follows a parish,
 belongs to a group and has a few posts. Also explain:
-> Communio is a free Catholic community app. Parish and organization
+> inFold is a free Catholic community app. Parish and organization
 > subscriptions are B2B services sold to parishes and organizations and
 > completed on our website (guideline 3.1.3(c)); individual users never pay.
 > Users can report posts and block other users; reports go to our moderation
@@ -296,7 +296,7 @@ Device ID (push token). Coarse Location is not linked and not stored.
 ### Google Play "Data safety"
 The same data types; data is encrypted in transit; users can delete their
 account in-app (Settings → Delete account). Provide a web deletion URL too
-(Play requires one): e.g. `https://app.getcommunio.app/contact`.
+(Play requires one): e.g. `https://app.getinfold.app/contact`.
 
 ### Content rating
 User-generated content and user-to-user messaging: answer **yes** to both.
@@ -319,7 +319,7 @@ switch to `true` and ship an update.
 | `groupChat` | Chat tab in groups |
 | `sponsorshipCodes` | Parish-sponsored premium tracking; `/api/claim-sponsorship-code` and `/api/track-return` return 404 |
 | `createOrganizations` | "New" organization button and `/organizations/new` (existing organizations keep working) |
-| `pitchDeckInApp` | `/pitch` inside the app (still at getcommunio.app/pitch) |
+| `pitchDeckInApp` | `/pitch` inside the app (still at getinfold.app/pitch) |
 
 **If you turn messaging or chat back on,** also update the store answers in
 `docs/STORE_LISTING.md` (age rating: messaging, Apple privacy: Emails or Text

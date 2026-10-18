@@ -20,21 +20,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- communio:// — return from Stripe / Facebook / auth emails -->
+            <!-- infold:// — return from Stripe / Facebook / auth emails -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="communio" />
+                <data android:scheme="infold" />
             </intent-filter>
 
-            <!-- App Links: https://app.getcommunio.app/<screen> opens the app.
+            <!-- App Links: https://app.getinfold.app/<screen> opens the app.
                  Verified via public/.well-known/assetlinks.json on the site. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.getcommunio.app" />
+                <data android:scheme="https" android:host="app.getinfold.app" />
                 <!-- In-app screens only: auth (/onboarding, /reset-password) and
                      /api/* must keep opening in the browser that started them -->
                 <data android:pathPrefix="/post/" />
@@ -57,11 +57,11 @@
         <!-- Push notifications (Firebase Cloud Messaging) -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_stat_communio"
+            android:resource="@drawable/ic_stat_infold"
         />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/communio_navy"
+            android:resource="@color/infold_navy"
         />
 
         <provider

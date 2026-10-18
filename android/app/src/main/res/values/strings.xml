@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Communio</string>
-    <string name="title_activity_main">Communio</string>
-    <string name="package_name">app.getcommunio</string>
-    <string name="custom_url_scheme">app.getcommunio</string>
+    <string name="app_name">inFold</string>
+    <string name="title_activity_main">inFold</string>
+    <string name="package_name">app.getinfold</string>
+    <string name="custom_url_scheme">app.getinfold</string>
 </resources>

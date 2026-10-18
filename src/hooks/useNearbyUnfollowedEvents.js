@@ -84,7 +84,7 @@ export function useNearbyUnfollowedEvents(userLocation, radiusMiles = 25) {
       if (cancelled) return
 
       // 5. Merge with parish info, filter dismissed
-      const dismissedKey = `communio-dismissed-events-${user.id}`
+      const dismissedKey = `infold-dismissed-events-${user.id}`
       let dismissed = []
       try {
         dismissed = JSON.parse(localStorage.getItem(dismissedKey) || '[]')

@@ -20,7 +20,7 @@ const STATUS_LABELS = {
 }
 
 export default function PrivateIntentionsPage() {
-  useEffect(() => { document.title = 'Prayer Intentions | Communio' }, [])
+  useEffect(() => { document.title = 'Prayer Intentions | inFold' }, [])
 
   const navigate = useNavigate()
   const { user } = useAuth()

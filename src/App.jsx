@@ -205,8 +205,8 @@ function AppInner() {
 
 // Serve the marketing site when accessed from the main domain
 const isMarketingDomain =
-  window.location.hostname === 'getcommunio.app' ||
-  window.location.hostname === 'www.getcommunio.app'
+  window.location.hostname === 'getinfold.app' ||
+  window.location.hostname === 'www.getinfold.app'
 
 export default function App() {
   if (isMarketingDomain) {

@@ -1,5 +1,5 @@
 // ============================================================
-// COMMUNIO — Real MA Parish Seed Script (Clean)
+// INFOLD — Real MA Parish Seed Script (Clean)
 // Source: MassGIS Places of Worship (Nov 2023 - Dec 2024)
 // Strictly filtered: Roman Catholic only (ORG + SOURCE match)
 // 559 verified Roman Catholic parishes across 4 MA dioceses
@@ -596,7 +596,7 @@ const B2B_DEMO_NAMES = [
 ]
 
 async function seed() {
-  console.log(`\n🕊️  Communio Parish Seeder`)
+  console.log(`\n🕊️  inFold Parish Seeder`)
   console.log(`   Seeding ${parishes.length} verified Roman Catholic parishes...\n`)
   let inserted = 0, skipped = 0, errors = 0
 

@@ -1,11 +1,11 @@
 {
-  "appId": "app.getcommunio",
-  "appName": "Communio",
+  "appId": "app.getinfold",
+  "appName": "inFold",
   "webDir": "dist",
   "backgroundColor": "#FAF7F2",
   "ios": {
     "contentInset": "never",
-    "scheme": "Communio"
+    "scheme": "inFold"
   },
   "android": {
     "allowMixedContent": false

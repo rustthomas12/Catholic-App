@@ -61,7 +61,7 @@ function SlideCover() {
         </div>
         <div className="mb-6">
           <div className="text-7xl md:text-9xl font-black tracking-tight text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-            Communio
+            inFold
           </div>
           <div className="text-2xl md:text-3xl text-amber-400 font-light tracking-wide">
             The Digital Parish Hall
@@ -72,7 +72,7 @@ function SlideCover() {
           Thomas Rust · Founder &amp; Builder
         </p>
         <p className="text-white/30 text-sm mt-2 tracking-wide">
-          getcommunio.app
+          getinfold.app
         </p>
       </div>
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30">
@@ -143,7 +143,7 @@ function SlideSolution() {
       <div className="max-w-5xl mx-auto w-full">
         <Tag color="green">02 · Solution</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-2">
-          Communio is the<br />
+          inFold is the<br />
           <span className="text-amber-400">digital parish hall.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-10" />
@@ -172,7 +172,7 @@ function SlideSolution() {
 
 function SlideProduct() {
   const forParish = [
-    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to Communio, Facebook, and Flocknote!' },
+    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to inFold, Facebook, and Flocknote!' },
     { icon: '📊', title: 'Full parish admin dashboard', body: 'Manage parishioners, events, Mass times, RSVP tracking, and a direct inbox — all in one place.' },
     { icon: '🔔', title: 'Push notifications that land', body: 'OS-level alerts that bypass email spam filters and Facebook algorithms entirely.' },
     { icon: '🏘', title: 'Built for how parishes actually work', body: 'Multi-parish clergy support, parish clusters, and a 90-day free trial with no per-seat fees.' },
@@ -197,7 +197,7 @@ function SlideProduct() {
             <span className="text-amber-400">pastor and parishioner together.</span>
           </h2>
           <p className="text-white/60 text-lg max-w-3xl leading-relaxed">
-            Communio gives every pastor a single hub to communicate, manage, and grow their parish — and gives every Catholic a free, private, algorithm-free home for their faith and community life.
+            inFold gives every pastor a single hub to communicate, manage, and grow their parish — and gives every Catholic a free, private, algorithm-free home for their faith and community life.
           </p>
         </div>
 
@@ -242,9 +242,9 @@ function SlideProduct() {
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
           <div className="text-3xl flex-shrink-0">🔗</div>
           <div>
-            <p className="text-amber-400 font-bold text-sm mb-1">Communio is the Parish OS.</p>
+            <p className="text-amber-400 font-bold text-sm mb-1">inFold is the Parish OS.</p>
             <p className="text-white/60 text-sm leading-relaxed">
-              Every tool a parish touches — Facebook, Flocknote, email lists, the bulletin, the website — flows through Communio. One publish reaches every platform simultaneously. No pastor should need six tools to talk to their own parishioners.
+              Every tool a parish touches — Facebook, Flocknote, email lists, the bulletin, the website — flows through inFold. One publish reaches every platform simultaneously. No pastor should need six tools to talk to their own parishioners.
             </p>
           </div>
         </div>
@@ -268,7 +268,7 @@ function SlideWhyNow() {
     {
       n: '3',
       title: 'Push notifications changed the game',
-      body: 'iOS 16.4 (2023) added web push for PWAs. For the first time, a web app can send OS-level alerts without a $100K+ native app build. Communio exists because of this.',
+      body: 'iOS 16.4 (2023) added web push for PWAs. For the first time, a web app can send OS-level alerts without a $100K+ native app build. inFold exists because of this.',
     },
     {
       n: '4',
@@ -345,14 +345,14 @@ function SlideMarket() {
 
 function SlideCompetition() {
   const rows = [
-    { feature: 'Parish announcements & feed', communio: true, flocknote: true, hallow: false, parishsoft: 'partial', facebook: true },
-    { feature: 'Parishioner-facing community', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: true },
-    { feature: 'Daily faith content', communio: true, flocknote: false, hallow: true, parishsoft: false, facebook: false },
-    { feature: 'Private confession tracker', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
-    { feature: 'Platform integrations (FB, Flocknote…)', communio: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
-    { feature: 'No algorithm / no ads', communio: true, flocknote: true, hallow: true, parishsoft: true, facebook: false },
-    { feature: 'Free for individuals', communio: true, flocknote: false, hallow: false, parishsoft: true, facebook: true },
-    { feature: 'Parish admin dashboard', communio: true, flocknote: true, hallow: false, parishsoft: true, facebook: false },
+    { feature: 'Parish announcements & feed', infold: true, flocknote: true, hallow: false, parishsoft: 'partial', facebook: true },
+    { feature: 'Parishioner-facing community', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: true },
+    { feature: 'Daily faith content', infold: true, flocknote: false, hallow: true, parishsoft: false, facebook: false },
+    { feature: 'Private confession tracker', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
+    { feature: 'Platform integrations (FB, Flocknote…)', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
+    { feature: 'No algorithm / no ads', infold: true, flocknote: true, hallow: true, parishsoft: true, facebook: false },
+    { feature: 'Free for individuals', infold: true, flocknote: false, hallow: false, parishsoft: true, facebook: true },
+    { feature: 'Parish admin dashboard', infold: true, flocknote: true, hallow: false, parishsoft: true, facebook: false },
   ]
 
   function Cell({ val }) {
@@ -361,8 +361,8 @@ function SlideCompetition() {
     return <span className="text-amber-400 text-xs">Partial</span>
   }
 
-  const cols = ['Communio', 'Flocknote', 'Hallow', 'ParishSOFT', 'Facebook']
-  const vals = ['communio', 'flocknote', 'hallow', 'parishsoft', 'facebook']
+  const cols = ['inFold', 'Flocknote', 'Hallow', 'ParishSOFT', 'Facebook']
+  const vals = ['infold', 'flocknote', 'hallow', 'parishsoft', 'facebook']
 
   return (
     <SlideWrapper id={7}>
@@ -475,7 +475,7 @@ function SlideBusinessModel() {
             <p className="text-white/60 text-sm leading-relaxed">
               Done-for-you digital setup and automation for parishes.
               One-time setup fee ($499–$1,999) + optional monthly retainer ($79–$129/mo).
-              Every Parish OS client is also a Communio subscriber.
+              Every Parish OS client is also a inFold subscriber.
               Combined Year 3 revenue: <span className="text-amber-400 font-semibold">$489K</span>.
             </p>
           </div>
@@ -649,8 +649,8 @@ function SlideTraction() {
         </div>
 
         <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-wrap items-center gap-4 justify-between">
-          <a href="https://getcommunio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">
-            getcommunio.app
+          <a href="https://getinfold.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">
+            getinfold.app
           </a>
           <div className="flex flex-wrap gap-3">
             {['React', 'Supabase', 'Vercel'].map((t, i) => (
@@ -669,7 +669,7 @@ function SlideFounder() {
     { icon: '✝️', label: 'Practicing Catholic, Central Massachusetts' },
     { icon: '👨‍👧‍👦', label: 'Father of twins' },
     { icon: '💼', label: 'Independent insurance professional' },
-    { icon: '💻', label: 'Built Communio solo using Claude Code' },
+    { icon: '💻', label: 'Built inFold solo using Claude Code' },
     { icon: '📍', label: 'Parishioner — felt the isolation firsthand' },
     { icon: '🎓', label: 'Philosophically & analytically educated' },
   ]
@@ -696,7 +696,7 @@ function SlideFounder() {
           <div className="flex flex-col gap-6">
             <blockquote className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-8">
               <p className="text-amber-100/90 text-lg leading-relaxed italic">
-                "Right now, people leave Mass and disappear into their phones. Communio flips that, so that the same device actually brings them back into parish life during the week."
+                "Right now, people leave Mass and disappear into their phones. inFold flips that, so that the same device actually brings them back into parish life during the week."
               </p>
             </blockquote>
             <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
@@ -743,8 +743,8 @@ function SlideFounder() {
 function SlideFinancials() {
   const years = [
     { year: 'Year 1', arr: '$0', label: 'Building traction', parishes: '—', color: 'text-white/40' },
-    { year: 'Year 2', arr: '$124K', label: 'Communio SaaS only', parishes: '80 parishes · 8% churn', color: 'text-blue-400' },
-    { year: 'Year 3', arr: '$489K', label: 'Communio + Parish OS', parishes: '141 parishes · 1 diocese partner', color: 'text-amber-400' },
+    { year: 'Year 2', arr: '$124K', label: 'inFold SaaS only', parishes: '80 parishes · 8% churn', color: 'text-blue-400' },
+    { year: 'Year 3', arr: '$489K', label: 'inFold + Parish OS', parishes: '141 parishes · 1 diocese partner', color: 'text-amber-400' },
   ]
   return (
     <SlideWrapper id={12}>
@@ -802,7 +802,7 @@ function SlideFinancials() {
 
 function SlideAsk() {
   const items = [
-    { icon: '⏱', title: 'Founder time', body: 'Reduce insurance hours. 20+ hours/week on Communio full-time.' },
+    { icon: '⏱', title: 'Founder time', body: 'Reduce insurance hours. 20+ hours/week on inFold full-time.' },
     { icon: '🤝', title: 'Parish onboarding', body: 'Part-time community manager.' },
     { icon: '🎨', title: 'UX design pass', body: 'Professional design on the app before national launch.' },
     { icon: '📱', title: 'Native mobile apps', body: 'iOS and Android wrappers to reach parishioners through the App Store and Google Play.' },
@@ -862,7 +862,7 @@ function SlideVision() {
     { icon: '🌱', period: 'Year 1–2', label: 'Massachusetts', body: '50–175 parishes. Proof of model. First diocese relationship. Lent campaign proves adoption playbook.' },
     { icon: '🇺🇸', period: 'Year 3–5', label: 'National', body: '500–1,750 parishes across all 196 US dioceses. Spanish language. Organization network. $1M+ ARR.' },
     { icon: '✝️', period: 'Year 5–7', label: 'The Church', body: 'International expansion. Diocese dashboard product. 200,000+ active parishes worldwide.' },
-    { icon: '⛪', period: 'Year 10', label: 'Infrastructure', body: 'Communio is infrastructure for the Church — like the bulletin, but alive. 1B+ Catholics with a digital home.' },
+    { icon: '⛪', period: 'Year 10', label: 'Infrastructure', body: 'inFold is infrastructure for the Church — like the bulletin, but alive. 1B+ Catholics with a digital home.' },
   ]
   return (
     <SlideWrapper id={14}>
@@ -870,7 +870,7 @@ function SlideVision() {
       <div className="max-w-5xl mx-auto w-full">
         <Tag color="gold">13 · The Vision</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
-          Where Communio is<br />
+          Where inFold is<br />
           <span className="text-amber-400">in 10 years.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-8" />
@@ -913,7 +913,7 @@ function SlideClosing() {
       <SlideNumber n={14} />
       <div className="max-w-3xl mx-auto">
         <div className="text-7xl md:text-9xl font-black tracking-tight text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-          Communio
+          inFold
         </div>
         <div className="text-xl md:text-2xl text-amber-400 font-light tracking-wide mb-12">
           "Every Catholic. Every parish. Every day."
@@ -924,8 +924,8 @@ function SlideClosing() {
           It's whether you think this is something the Church needs."
         </blockquote>
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-white/40 text-sm">
-          <a href="https://getcommunio.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
-            getcommunio.app
+          <a href="https://getinfold.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
+            getinfold.app
           </a>
           <span className="hidden md:block">·</span>
           <span>Thomas Rust</span>
@@ -1044,7 +1044,7 @@ export default function PitchDeckPage() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-white/20 text-xs border-t border-white/5">
-        Communio · getcommunio.app · Pro Ecclesia. Pro Fide.
+        inFold · getinfold.app · Pro Ecclesia. Pro Fide.
       </footer>
     </div>
   )

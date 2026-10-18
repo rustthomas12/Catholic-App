@@ -89,7 +89,7 @@ export default async function handler(req, res) {
               .eq('id', adminUserId)
           }
 
-          // Send verification email to info@getcommunio.app for review.
+          // Send verification email to info@getinfold.app for review.
           if (adminUserId) {
             try {
               const [profileRes, parishRes] = await Promise.all([
@@ -109,8 +109,8 @@ export default async function handler(req, res) {
                   method: 'POST',
                   headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    from: 'Communio <noreply@getcommunio.app>',
-                    to: ['info@getcommunio.app'],
+                    from: 'inFold <noreply@getinfold.app>',
+                    to: ['info@getinfold.app'],
                     subject: '[Verification Needed] Pastor Application — ' + (parish?.name || parishId),
                     html:
                       '<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto">' +

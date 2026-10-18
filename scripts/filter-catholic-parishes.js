@@ -1,5 +1,5 @@
 // ============================================================
-// COMMUNIO — Phase 13: Filter Catholic Parishes from IRS EO BMF
+// INFOLD — Phase 13: Filter Catholic Parishes from IRS EO BMF
 // Source: IRS Exempt Organizations Business Master File (EO BMF)
 //         https://www.irs.gov/pub/irs-soi/eo1.csv (etc.)
 //

@@ -1,20 +1,20 @@
 /**
  * Bounce page used as the Stripe success/cancel/return URL for checkouts
  * started from the iOS / Android apps. It hands control back to the app via
- * the communio:// URL scheme; the app then closes the browser sheet and
+ * the infold:// URL scheme; the app then closes the browser sheet and
  * navigates to `to`.
  *
  * GET /api/native-return?to=/settings
  */
 
-const APP_URL = process.env.APP_URL || 'https://app.getcommunio.app'
+const APP_URL = process.env.APP_URL || 'https://app.getinfold.app'
 
 export default function handler(req, res) {
   const raw = typeof req.query.to === 'string' ? req.query.to : '/'
   // Only allow in-app relative paths (no protocol-relative or absolute URLs)
   const to = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
 
-  const appLink = `communio:/${to}`
+  const appLink = `infold:/${to}`
   const webLink = `${APP_URL}${to}`
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
@@ -24,7 +24,7 @@ export default function handler(req, res) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Returning to Communio…</title>
+  <title>Returning to inFold…</title>
   <style>
     body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -37,8 +37,8 @@ export default function handler(req, res) {
 <body>
   <div>
     <h1 style="font-size:20px;margin:0 0 8px">All set!</h1>
-    <p>Returning you to the Communio app…</p>
-    <a class="btn" href="${escapeHtml(appLink)}">Open Communio</a>
+    <p>Returning you to the inFold app…</p>
+    <a class="btn" href="${escapeHtml(appLink)}">Open inFold</a>
     <p style="margin-top:24px"><a href="${escapeHtml(webLink)}" style="color:#1B2A4A">Continue on the web instead</a></p>
   </div>
   <script>

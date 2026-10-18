@@ -1,5 +1,5 @@
 /**
- * sw-push.js — Push notification handler for Communio
+ * sw-push.js — Push notification handler for inFold
  *
  * Loaded by the Workbox-generated service worker via importScripts.
  * Handles push events, notification clicks, and subscription rotation.
@@ -29,11 +29,11 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data.json()
   } catch {
-    data = { title: 'Communio', body: event.data.text() }
+    data = { title: 'inFold', body: event.data.text() }
   }
 
   const {
-    title = 'Communio',
+    title = 'inFold',
     body = '',
     icon = '/icons/icon-192.svg',
     badge = '/icons/icon-72.svg',
@@ -47,7 +47,7 @@ self.addEventListener('push', (event) => {
       body,
       icon,
       badge,
-      tag: tag || `communio-${Date.now()}`,
+      tag: tag || `infold-${Date.now()}`,
       requireInteraction,
       data: { url },
       vibrate: [200, 100, 200],

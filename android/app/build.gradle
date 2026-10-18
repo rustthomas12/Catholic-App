@@ -11,10 +11,10 @@ def signingValue = { String prop, String env -> keystoreProps.getProperty(prop) 
 def releaseStoreFile = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
 
 android {
-    namespace = "app.getcommunio"
+    namespace = "app.getinfold"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.getcommunio"
+        applicationId "app.getinfold"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Bump versionCode for every Play upload (CI can override with

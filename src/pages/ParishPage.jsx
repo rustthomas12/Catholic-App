@@ -58,7 +58,7 @@ export default function ParishPage() {
 
   // Must be before early returns — hooks cannot come after conditional returns
   useEffect(() => {
-    if (parish?.name) document.title = `${parish.name} | Communio`
+    if (parish?.name) document.title = `${parish.name} | inFold`
   }, [parish?.name])
 
   if (loading) return <ParishPageSkeleton />
@@ -340,7 +340,7 @@ function ParishAbout({ parish, cluster }) {
             </p>
             {!parish.website && !parish.phone && (
               <p className="text-amber-700 text-xs mt-0.5">
-                Help us improve — <a href="mailto:hello@communio.app" className="underline font-semibold">send a correction</a>.
+                Help us improve — <a href="mailto:hello@getinfold.app" className="underline font-semibold">send a correction</a>.
               </p>
             )}
           </div>

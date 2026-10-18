@@ -22,7 +22,7 @@ const INTENTIONS_TTL  = 5 * 60 * 1000  // 5 minutes
 const CONFESSION_TTL  = 5 * 60 * 1000  // 5 minutes
 
 export default function FaithPage() {
-  useEffect(() => { document.title = 'Faith | Communio' }, [])
+  useEffect(() => { document.title = 'Faith | inFold' }, [])
 
   const { t, i18n } = useTranslation('faith')
   const { user } = useAuth()

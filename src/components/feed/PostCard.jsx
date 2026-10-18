@@ -274,7 +274,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     const url = `${publicOrigin()}/post/${post.id}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Communio', url })
+        await navigator.share({ title: 'inFold', url })
       } catch (_) { /* user cancelled */ }
     } else {
       try {

@@ -9,7 +9,7 @@ const PUBLIC_PAGES = [
   ['/terms', /terms/i],
   ['/privacy', /privacy/i],
   ['/policy', /policy|community/i],
-  ['/delete-account', /delete your communio account/i],
+  ['/delete-account', /delete your infold account/i],
 ]
 
 for (const [path, heading] of PUBLIC_PAGES) {
@@ -52,7 +52,7 @@ test('login shows an error for wrong credentials', async ({ page }) => {
 test('universal / app link files are served as JSON', async ({ request }) => {
   const aasa = await request.get('/.well-known/apple-app-site-association')
   expect(aasa.ok()).toBeTruthy()
-  expect((await aasa.json()).applinks.details[0].appIDs[0]).toMatch(/\.app\.getcommunio$/)
+  expect((await aasa.json()).applinks.details[0].appIDs[0]).toMatch(/\.app\.getinfold$/)
   const assetlinks = await request.get('/.well-known/assetlinks.json')
-  expect((await assetlinks.json())[0].target.package_name).toBe('app.getcommunio')
+  expect((await assetlinks.json())[0].target.package_name).toBe('app.getinfold')
 })

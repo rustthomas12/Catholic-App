@@ -164,7 +164,7 @@ function OrgCard({ org, isSubscribed = false }) {
 
 // ── OrganizationsPage ──────────────────────────────────────
 export default function OrganizationsPage() {
-  useEffect(() => { document.title = 'Organizations | Communio' }, [])
+  useEffect(() => { document.title = 'Organizations | inFold' }, [])
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')

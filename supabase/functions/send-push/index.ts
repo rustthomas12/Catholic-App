@@ -9,7 +9,7 @@ const supabase = createClient(
 )
 
 webpush.setVapidDetails(
-  Deno.env.get('VAPID_SUBJECT')!,      // e.g. mailto:hello@communio.app
+  Deno.env.get('VAPID_SUBJECT')!,      // e.g. mailto:hello@getinfold.app
   Deno.env.get('VAPID_PUBLIC_KEY')!,
   Deno.env.get('VAPID_PRIVATE_KEY')!
 )
@@ -103,7 +103,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed` },
   }
 
-  const format = formats[type] ?? { title: 'Communio', body: body }
+  const format = formats[type] ?? { title: 'inFold', body: body }
 
   return {
     title: format.title,

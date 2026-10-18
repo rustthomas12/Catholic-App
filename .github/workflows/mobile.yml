@@ -83,7 +83,7 @@ jobs:
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: communio-android-debug-apk
+          name: infold-android-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Signed release bundle
@@ -101,7 +101,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: inputs.release && env.HAS_KEYSTORE == 'true'
         with:
-          name: communio-android-release-aab
+          name: infold-android-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload to Google Play (internal testing)
@@ -109,7 +109,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: app.getcommunio
+          packageName: app.getinfold
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: internal
           status: completed
@@ -164,11 +164,11 @@ jobs:
           AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY_PATH -authenticationKeyID $API_KEY_ID -authenticationKeyIssuerID $API_ISSUER_ID"
 
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
-            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Communio.xcarchive" \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/inFold.xcarchive" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             $AUTH archive
 
           sed "s/APPLE_TEAM_ID/$APPLE_TEAM_ID/" ../ExportOptions.plist > "$RUNNER_TEMP/ExportOptions.plist"
-          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Communio.xcarchive" \
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/inFold.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
             $AUTH

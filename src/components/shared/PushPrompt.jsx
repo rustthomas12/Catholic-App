@@ -3,8 +3,8 @@ import { BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useAuth } from '../../hooks/useAuth.jsx'
 
-const SESSION_COUNT_KEY = 'communio-session-count'
-const DISMISSED_KEY = 'communio-push-dismissed'
+const SESSION_COUNT_KEY = 'infold-session-count'
+const DISMISSED_KEY = 'infold-push-dismissed'
 const MIN_SESSIONS = 3
 
 export default function PushPrompt() {

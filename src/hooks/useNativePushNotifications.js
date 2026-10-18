@@ -9,7 +9,7 @@ import { platform } from '../lib/platform'
 
 // Set when the user turns notifications off in-app, so the mount-time
 // auto-recovery below doesn't silently re-register them.
-const DISABLED_KEY = 'communio-native-push-disabled'
+const DISABLED_KEY = 'infold-native-push-disabled'
 
 function mapPermission(receive) {
   if (receive === 'granted') return 'granted'
@@ -100,7 +100,7 @@ export function useNativePushNotifications(userId) {
       setPermission(perm)
 
       if (perm !== 'granted') {
-        setError('Permission denied. Enable notifications for Communio in your device settings.')
+        setError('Permission denied. Enable notifications for inFold in your device settings.')
         return
       }
 

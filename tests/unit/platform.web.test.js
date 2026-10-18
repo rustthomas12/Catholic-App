@@ -26,13 +26,13 @@ describe('deepLinkToPath', () => {
     expect(deepLinkToPath(`${APP_ORIGIN}/org-admin/9?tab=billing#x`)).toBe('/org-admin/9?tab=billing#x')
   })
 
-  it('maps communio:// links', () => {
-    expect(deepLinkToPath('communio://settings')).toBe('/settings')
-    expect(deepLinkToPath('communio://org-admin/123?tab=billing&subscribed=true'))
+  it('maps infold:// links', () => {
+    expect(deepLinkToPath('infold://settings')).toBe('/settings')
+    expect(deepLinkToPath('infold://org-admin/123?tab=billing&subscribed=true'))
       .toBe('/org-admin/123?tab=billing&subscribed=true')
-    expect(deepLinkToPath('communio://onboarding#access_token=a&refresh_token=b'))
+    expect(deepLinkToPath('infold://onboarding#access_token=a&refresh_token=b'))
       .toBe('/onboarding#access_token=a&refresh_token=b')
-    expect(deepLinkToPath('communio://')).toBe('/')
+    expect(deepLinkToPath('infold://')).toBe('/')
   })
 
   it('ignores other hosts, API routes and junk', () => {
@@ -45,12 +45,12 @@ describe('deepLinkToPath', () => {
 
 describe('parseAuthTokens', () => {
   it('reads Supabase implicit-flow tokens from the fragment', () => {
-    expect(parseAuthTokens('communio://reset-password#access_token=AT&refresh_token=RT&type=recovery'))
+    expect(parseAuthTokens('infold://reset-password#access_token=AT&refresh_token=RT&type=recovery'))
       .toEqual({ access_token: 'AT', refresh_token: 'RT', type: 'recovery' })
   })
 
   it('returns null without both tokens', () => {
-    expect(parseAuthTokens('communio://onboarding')).toBeNull()
-    expect(parseAuthTokens('communio://onboarding#access_token=AT')).toBeNull()
+    expect(parseAuthTokens('infold://onboarding')).toBeNull()
+    expect(parseAuthTokens('infold://onboarding#access_token=AT')).toBeNull()
   })
 })

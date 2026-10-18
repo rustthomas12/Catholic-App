@@ -90,7 +90,7 @@ export function AuthProvider({ children }) {
     // Apply pending signup data stored before email verification.
     // signUp() runs before any session exists so DB writes fail RLS — we defer
     // them to here, which runs with a valid JWT after email confirmation.
-    const pendingKey = `communio-pending-${userId}`
+    const pendingKey = `infold-pending-${userId}`
     const pendingRaw = localStorage.getItem(pendingKey)
     if (pendingRaw) {
       try {
@@ -123,10 +123,10 @@ export function AuthProvider({ children }) {
     // Sync language preference from profile to local state
     if (profileData?.language && (profileData.language === 'en' || profileData.language === 'es')) {
       try {
-        const stored = localStorage.getItem('communio-language')
+        const stored = localStorage.getItem('infold-language')
         if (stored !== profileData.language) {
           i18n.changeLanguage(profileData.language)
-          localStorage.setItem('communio-language', profileData.language)
+          localStorage.setItem('infold-language', profileData.language)
         }
       } catch {}
     }
@@ -135,9 +135,9 @@ export function AuthProvider({ children }) {
     if (
       FEATURES.sponsorshipCodes &&
       profileData?.premium_source === 'parish_sponsored' &&
-      !sessionStorage.getItem('communio-return-tracked')
+      !sessionStorage.getItem('infold-return-tracked')
     ) {
-      sessionStorage.setItem('communio-return-tracked', 'true')
+      sessionStorage.setItem('infold-return-tracked', 'true')
       fetch(apiUrl('/api/track-return'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -289,7 +289,7 @@ export function AuthProvider({ children }) {
       // are blocked by RLS. Store the data in localStorage and apply it in
       // fetchProfile() after the user verifies their email and a session exists.
       try {
-        localStorage.setItem(`communio-pending-${newUser.id}`, JSON.stringify({
+        localStorage.setItem(`infold-pending-${newUser.id}`, JSON.stringify({
           full_name: fullName,
           username: username || null,
           parish_id: parishId || null,

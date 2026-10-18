@@ -11,8 +11,8 @@
 //   sponsorshipCodes    — parish-sponsored "premium" codes (premium no longer exists)
 //   createOrganizations — creating new organizations / chapter requests
 //                         (existing organizations keep working)
-//   pitchDeckInApp      — investor pitch deck at app.getcommunio.app/pitch
-//                         (still available at getcommunio.app/pitch)
+//   pitchDeckInApp      — investor pitch deck at app.getinfold.app/pitch
+//                         (still available at getinfold.app/pitch)
 
 export const FEATURES = {
   directMessages: false,

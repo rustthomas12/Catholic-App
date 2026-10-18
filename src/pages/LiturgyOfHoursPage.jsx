@@ -22,7 +22,7 @@ function Section({ title, children, accent = false }) {
 }
 
 export default function LiturgyOfHoursPage() {
-  useEffect(() => { document.title = 'Liturgy of the Hours | Communio' }, [])
+  useEffect(() => { document.title = 'Liturgy of the Hours | inFold' }, [])
 
   const navigate = useNavigate()
   const [activeId, setActiveId] = useState(getCurrentHourId)

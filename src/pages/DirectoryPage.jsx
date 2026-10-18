@@ -24,7 +24,7 @@ const US_STATES = [
 ]
 
 export default function DirectoryPage() {
-  useEffect(() => { document.title = 'Parish Directory | Communio' }, [])
+  useEffect(() => { document.title = 'Parish Directory | inFold' }, [])
 
   const { user, profile } = useAuth()
   const { results, loading: searchLoading, search, clear } = useParishSearch()
@@ -61,7 +61,7 @@ export default function DirectoryPage() {
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us`,
-          { headers: { 'Accept-Language': 'en', 'User-Agent': 'Communio/1.0' } }
+          { headers: { 'Accept-Language': 'en', 'User-Agent': 'inFold/1.0' } }
         )
         const json = await res.json()
         if (json?.[0]) {
