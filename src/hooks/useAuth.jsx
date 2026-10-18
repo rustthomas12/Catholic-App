@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase, supabaseAuth } from '../lib/supabase'
 import { apiUrl, authRedirectUrl } from '../lib/platform'
+import { FEATURES } from '../config/features'
 import i18n from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
 import { clearFeedCaches } from './useFeed.js'
@@ -132,6 +133,7 @@ export function AuthProvider({ children }) {
 
     // Fire-and-forget: track return visit for parish-sponsored users (once per session)
     if (
+      FEATURES.sponsorshipCodes &&
       profileData?.premium_source === 'parish_sponsored' &&
       !sessionStorage.getItem('infold-return-tracked')
     ) {

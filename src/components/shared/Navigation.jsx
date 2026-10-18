@@ -21,6 +21,7 @@ import { getLiturgicalSeason } from '../../utils/liturgical'
 import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { supabase } from '../../lib/supabase'
+import { FEATURES } from '../../config/features'
 
 const PUBLIC_PATHS = [
   '/login', '/signup', '/onboarding',
@@ -190,7 +191,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
 
         {/* Nav links */}
         <div className="py-2">
-          <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label="Messages"      badge={unreadDMs} active={isActive('/messages')} />
+          {FEATURES.directMessages && <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label="Messages"      badge={unreadDMs} active={isActive('/messages')} />}
           <SheetRow to="/directory"     Icon={MapIcon}                 label="Directory"     active={isActive('/directory') || isActive('/parish/')} />
           <SheetRow to="/organizations" Icon={BuildingOffice2Icon}     label="Organizations" active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')} />
           <SheetRow to="/settings"      Icon={Cog6ToothIcon}           label="Settings"      active={isActive('/settings')} />
@@ -296,7 +297,7 @@ function Navigation() {
   const [moreOpen, setMoreOpen] = useState(false)
 
   useEffect(() => {
-    if (!user) { setUnreadDMs(0); return }
+    if (!user || !FEATURES.directMessages) { setUnreadDMs(0); return }
     supabase
       .from('direct_messages')
       .select('id', { count: 'exact', head: true })
@@ -504,6 +505,7 @@ function Navigation() {
           </Link>
 
           {/* Messages */}
+          {FEATURES.directMessages && (
           <Link to="/messages"
             className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
               location.pathname === '/messages' ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
@@ -520,6 +522,7 @@ function Navigation() {
             </div>
             <span className="text-sm font-medium">Messages</span>
           </Link>
+          )}
 
           {/* Admin section */}
           {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (

@@ -25,6 +25,9 @@ Setup, building without a Mac, testing and releasing: [docs/MOBILE.md](docs/MOBI
 - `npm run mobile:android` — open in Android Studio
 - `npm run mobile:ios` — open in Xcode (Mac only)
 
+## Paused features & deferred ideas
+Some features are switched off in `src/config/features.js` (code kept). Why, how to turn them back on, and ideas we chose not to build yet: [docs/REVISIT_LATER.md](docs/REVISIT_LATER.md).
+
 ## Build Phases
 - Phase 1: Foundation ✓
 - Phase 2: Auth & Profiles

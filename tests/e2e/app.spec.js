@@ -25,7 +25,7 @@ async function userId(email) {
 const ROUTES = [
   '/', '/groups', '/directory', '/faith', '/faith/prayer', '/faith/journal', '/faith/rosary',
   '/faith/hours', '/faith/morning-offering', '/faith/intentions', '/faith/examination',
-  '/premium/confession-tracker', '/saints', '/notifications', '/messages', '/organizations',
+  '/premium/confession-tracker', '/saints', '/notifications', '/organizations',
   '/profile', '/settings', '/settings/profile', '/settings/notifications', '/settings/blocked',
   '/contact',
 ]
@@ -40,6 +40,17 @@ test('every main screen loads without errors', async ({ page }) => {
     await expect(page, `redirected away from ${path}`).toHaveURL(new RegExp(`${path.replace(/\//g, '\\/')}(\\?|$)`))
   }
   watch.assertClean()
+})
+
+test('paused features are hidden (src/config/features.js)', async ({ page }) => {
+  await login(page, A.email, A.password)
+  await page.goto('/messages')
+  await expect(page).toHaveURL(//$/)
+  await page.goto('/organizations/new')
+  await expect(page).toHaveURL(//organizations$/)
+  await expect(page.getByRole('link', { name: 'New' })).toHaveCount(0)
+  await page.goto('/settings/notifications')
+  await expect(page.getByText(/direct messages/i)).toHaveCount(0)
 })
 
 test('post lifecycle: create, open link, like, comment, delete', async ({ page }) => {

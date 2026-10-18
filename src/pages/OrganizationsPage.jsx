@@ -9,6 +9,7 @@ import {
   FunnelIcon,
 } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
+import { FEATURES } from '../config/features'
 import { useAuth } from '../hooks/useAuth.jsx'
 
 const CATEGORIES = [
@@ -218,6 +219,7 @@ export default function OrganizationsPage() {
         <div className="bg-navy px-4 pt-6 pb-5 md:pt-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-white font-bold text-xl">Organizations</h1>
+            {FEATURES.createOrganizations && (
             <Link
               to="/organizations/new"
               className="flex items-center gap-1.5 text-xs font-semibold bg-gold text-navy px-3 py-2 rounded-full"
@@ -225,6 +227,7 @@ export default function OrganizationsPage() {
               <PlusIcon className="w-3.5 h-3.5" />
               New
             </Link>
+            )}
           </div>
 
           {/* Name search */}

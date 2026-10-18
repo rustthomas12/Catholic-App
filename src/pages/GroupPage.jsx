@@ -27,10 +27,11 @@ import { GroupPageSkeleton } from '../components/shared/skeletons'
 import Feed from '../components/feed/Feed'
 import Modal from '../components/shared/Modal'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
+import { FEATURES } from '../config/features'
 
 const TABS = [
   { id: 'feed',    label: 'tab_feed' },
-  { id: 'chat',    label: 'Chat' },
+  ...(FEATURES.groupChat ? [{ id: 'chat', label: 'Chat' }] : []),
   { id: 'events',  label: 'tab_events' },
   { id: 'members', label: 'tab_members' },
   { id: 'about',   label: 'tab_about' },
