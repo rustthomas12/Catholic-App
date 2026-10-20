@@ -1,5 +1,7 @@
 # inFold — Full Feature Test Plan
 
+**Resume point:** O5 re-test (create invite as A → B opens /join/CODE), then O8–O10, AD3–AD5, PO1–PO3, S5/S6/S8/S9, N3/N4, M3/M7/X3, PA* (after Stripe checkout), Z2 cleanup. Tabs: A=:5173, B=:5174, C=:5175.
+
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
 | Account | Origin | Role during testing |
@@ -78,13 +80,13 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 6. Directory & parishes
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| D1 | Directory search by name / city / zip | B | ⬜ |
-| D2 | Map view loads, pins clickable | B | ⬜ |
-| D3 | "Near me" uses location | B | ⬜ |
+| D1 | Directory search by name / city / zip | B | 🔧 |
+| D2 | Map view loads, pins clickable | B | ✅ |
+| D3 | "Near me" uses location | B | ⏭ |
 | D4 | Discovery banner dismiss persists | B | ⬜ |
 | D5 | Parish page tabs: Feed, About, Events, Groups | B | ✅ |
 | D6 | Follow / unfollow parish | B | 🔧 |
-| D7 | Mass times / contact info display | B | ⬜ |
+| D7 | Mass times / contact info display | B | ✅ |
 | D8 | Send message to parish office | B | 🔧 |
 | D9 | "Send a correction" mailto link uses hello@getinfold.app | B | ⬜ |
 | D10 | Nearby event suggestions from unfollowed parishes | B | ⬜ |
@@ -178,13 +180,13 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 15. Organizations
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| O1 | Organizations list / search | B | ⬜ |
+| O1 | Organizations list / search | B | ✅ |
 | O2 | Create organization / chapter request | C | ⬜ |
 | O3 | Org page tabs: Feed, About, Chapters; contact org | B | ⬜ |
-| O4 | Org admin: overview, members (add / role / remove) | A | ⬜ |
-| O5 | Org admin: invites → /join/:code link joins | A→B | ⬜ |
-| O6 | Org admin: announcements create / delete | A | ⬜ |
-| O7 | Org admin: events | A | ⬜ |
+| O4 | Org admin: overview, members (add / role / remove) | A | ✅ |
+| O5 | Org admin: invites → /join/:code link joins | A→B | 🔧 |
+| O6 | Org admin: announcements create / delete | A | ✅ |
+| O7 | Org admin: events | A | 🔧 |
 | O8 | Org admin: chapter requests approve | A | ⬜ |
 | O9 | Org admin: settings save | A | ⬜ |
 | O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ⬜ |
@@ -225,6 +227,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ---
 
 ## Your to-do (blocking items)
+- Finish the Stripe **test** checkout in the St. Joseph tab (`checkout.stripe.com`, test card 4242 4242 4242 4242, any future date/CVC) — or allow the Claude extension on checkout.stripe.com — so the parish admin dashboard unlocks for PA1–PA9.
+- Stripe → Settings → Public details: change "Communio sandbox" business name to inFold.
 - Optional: in Vercel production env add `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (same keys as the Supabase `send-push` function) for web-push reminders.
 - Deploy the `test-fixes` branch (merge to main) so the code fixes go live.
 
@@ -278,3 +282,9 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 41 | FA3 | Two separate prayer systems (feed prayer-request posts vs /faith/prayer intentions) — confusing | Design note | open |
 | 42 | FA6 | Liturgy of the Hours is fixed text (not the day's office); Benedictus is cut off | Content note | open |
 | 43 | FA11 | Confession reminders say "notifications coming soon" | Not built | open |
+| 44 | D1 | **Directory search "St Joseph" (no period) found nothing**; same in onboarding & edit-profile parish pickers | Shared punctuation/“Saint”-tolerant search | 🔧 |
+| 45 | D7 | "Is this your parish? Contact us to set up…" still shown on parishes that already have an admin | Not changed | open |
+| 46 | D3 | "Near me" needs a browser location prompt Claude can't answer | Test manually | ⏭ |
+| 47 | O7/E1 | **Event times saved 4–5 h off** (local time stored as UTC) in parish + org admin event forms and scheduled org announcements | Convert to ISO on save | 🔧 |
+| 48 | O5 | **Org invite links never worked** — `hasActiveSub` wasn't passed to the Invites tab, button always disabled | Pass prop | 🔧 (re-test pending) |
+| 49 | O6 | Deleting an org announcement has no confirmation | Not changed | open |
