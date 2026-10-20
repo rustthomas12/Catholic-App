@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** O5 re-test (create invite as A → B opens /join/CODE), then O8–O10, AD3–AD5, PO1–PO3, S5/S6/S8/S9, N3/N4, M3/M7/X3, PA* (after Stripe checkout), Z2 cleanup. Tabs: A=:5173, B=:5174, C=:5175.
+**Resume point:** S6, S9, M3, M7/X3, N3/N4, PO1–PO3 (needs C signed back in), S8 last, PA* (after Stripe checkout), Z2 cleanup. Migrations 035–039 applied to prod., Z2 cleanup. Tabs: A=:5173, B=:5174, C=:5175.
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -143,7 +143,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
 | S4 | Profile visibility (Public / Members only) respected by other user | B,C | ⬜ |
-| S5 | Language switcher (English / Spanish) — UI translates, persists | B | ⬜ |
+| S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | ⬜ |
 | S7 | Blocked users list → unblock | C | 🔧 |
 | S8 | Sign out from settings | B | ⬜ |
@@ -181,24 +181,24 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | O1 | Organizations list / search | B | ✅ |
-| O2 | Create organization / chapter request | C | ⬜ |
-| O3 | Org page tabs: Feed, About, Chapters; contact org | B | ⬜ |
+| O2 | Create organization / chapter request | C | ✅ |
+| O3 | Org page tabs: Feed, About, Chapters; contact org | B | ✅ |
 | O4 | Org admin: overview, members (add / role / remove) | A | ✅ |
-| O5 | Org admin: invites → /join/:code link joins | A→B | 🔧 |
+| O5 | Org admin: invites → /join/:code link joins | A→B | ✅ |
 | O6 | Org admin: announcements create / delete | A | ✅ |
 | O7 | Org admin: events | A | 🔧 |
-| O8 | Org admin: chapter requests approve | A | ⬜ |
-| O9 | Org admin: settings save | A | ⬜ |
-| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ⬜ |
+| O8 | Org admin: chapter requests approve | A | 🔧 |
+| O9 | Org admin: settings save | A | ✅ |
+| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ⏭ |
 
 ## 16. Site admin (/admin)
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | AD1 | Only admins can open /admin (B is refused) | A,B | ✅ |
 | AD2 | User list / search; filters (all, clergy, suspended, admin) | A | 🔧 |
-| AD3 | Suspend / unsuspend user | A | ⬜ |
-| AD4 | Grant parish admin / org membership | A | ⬜ |
-| AD5 | Parish clusters create / delete | A | ⬜ |
+| AD3 | Suspend / unsuspend user | A | ✅ |
+| AD4 | Grant parish admin / org membership | A | 🔧 |
+| AD5 | Parish clusters create / delete | A | 🔧 |
 | AD6 | Moderation queue: reported post review | A | ✅ |
 
 ## 17. Background jobs & server
@@ -286,5 +286,19 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 45 | D7 | "Is this your parish? Contact us to set up…" still shown on parishes that already have an admin | Not changed | open |
 | 46 | D3 | "Near me" needs a browser location prompt Claude can't answer | Test manually | ⏭ |
 | 47 | O7/E1 | **Event times saved 4–5 h off** (local time stored as UTC) in parish + org admin event forms and scheduled org announcements | Convert to ISO on save | 🔧 |
-| 48 | O5 | **Org invite links never worked** — `hasActiveSub` wasn't passed to the Invites tab, button always disabled | Pass prop | 🔧 (re-test pending) |
+| 48 | O5 | **Org invite links never worked** — `hasActiveSub` wasn't passed to the Invites tab, button always disabled | Pass prop | ✅ re-tested (B joined via /join/2U3K0U1N) |
 | 49 | O6 | Deleting an org announcement has no confirmation | Not changed | open |
+| 50 | — | Admin sidebar links vanished after a long idle (failed lookup with expired token wiped them) | Keep previous result on error; re-check on tab focus | 🔧 |
+| 51 | O2/O8 | **Anyone could link their org as a chapter of any national org** (free dashboard); approval never actually linked the chapter (RLS); chapter-request notification never sent; approval notification had no recipient | Mig. 035/036, `approve_chapter_request()` RPC, trigger notification | ✅ |
+| 52 | O8 | `.catch()` on Supabase query builders throws (they have no `.catch`) → rest of handler aborted | `.then(ok, err)` | 🔧 |
+| 53 | — | **Anyone could insert themselves as ADMIN of any organization** | Mig. 036: self-join = member only | ✅ |
+| 54 | AD3 | App shell crashed ("Something went wrong") — realtime channel name re-used after subscribe | Unique channel names (Nav, DMs, comments, group chat) | 🔧 |
+| 55 | AD5 | Cluster parish search showed wrong parishes (stale out-of-order results) | Drop stale responses; fuzzy match | ✅ |
+| 56 | AD4 | **CRITICAL: any user could make themselves platform admin / verified clergy / premium / unsuspend** by updating own profile | Mig. 037 guard trigger; admin "Assign Pastor" clergy badge now works (was silently failing) | ✅ |
+| 57 | — | **Anyone could post into private groups, publish parish announcements anywhere (pushes to whole parish), read private-group posts; authors could un-remove moderated posts; parish admins could grant themselves a paid subscription; DM recipients could rewrite messages** | Mig. 038 | ✅ |
+| 58 | F* | like_count / comment_count drift (client-side counters) | DB triggers + recount (mig. 038) | ✅ |
+| 59 | PA | **Parish settings save always failed** — `parishes.description` column missing | Added column; shown on About tab | ✅ (DB-verified; UI blocked by trial) |
+| 60 | F* | **Deleting your own comment silently did nothing** (no UPDATE policy); comments on private-group posts visible to all | Mig. 039 | ✅ |
+| 61 | S5 | Spanish: sidebar, roles, "Sign out", "X days ago", months, post labels stayed English; `<html lang>` never changed | Translated | 🔧 |
+| 62 | — | `trigger_distribute_post` has an API token hard-coded in the function body — check which key it is and move it to Vault/secret | **You** | open |
+| 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
