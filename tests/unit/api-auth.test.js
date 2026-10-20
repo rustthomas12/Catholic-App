@@ -22,6 +22,7 @@ vi.mock('@supabase/supabase-js', () => ({
         select: () => q, eq: (col, val) => { filters.push([col, val]); q._eq = { ...(q._eq || {}), [col]: val }; return q },
         single: async () => ({ data: { id: 'act1', activated_at: '2020-01-01T00:00:00Z', returned_at: null, is_active: true, user_id: q._eq?.user_id } }),
         update: (v) => { updates.push({ v, where: () => q._eq }); return q },
+        upsert: async (v) => { updates.push({ upsert: v }); return { error: null } },
         then: (ok) => ok({ error: null }),
       }
       return q
@@ -33,6 +34,9 @@ process.env.SUPABASE_URL = 'https://db.test'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
 process.env.STRIPE_PRICE_ORG_STARTER = 'price_org'
 process.env.STRIPE_PRICE_PARISH_MEDIUM = 'price_parish'
+process.env.VITE_SUPABASE_URL = 'https://db.test'
+process.env.FACEBOOK_APP_ID = 'fbapp'
+process.env.FACEBOOK_APP_SECRET = 'fbsecret'
 
 // Fake Supabase auth + REST: tokens map to users; tables seeded below
 const USERS = { 'tok-admin': { id: 'u-admin', email: 'a@x.test' }, 'tok-member': { id: 'u-member', email: 'm@x.test' } }
@@ -50,9 +54,9 @@ function fakeFetch(url, opts = {}) {
   return Promise.resolve({ ok: true, json: async () => rows })
 }
 
-function call(handler, { token, body } = {}) {
-  const req = { method: 'POST', headers: token ? { authorization: `Bearer ${token}` } : {}, body }
-  const res = { statusCode: 200, body: null, setHeader() {}, status(c) { this.statusCode = c; return this }, json(b) { this.body = b; return this }, end() { return this } }
+function call(handler, { token, body, query = {}, method = 'POST' } = {}) {
+  const req = { method, query, headers: token ? { authorization: `Bearer ${token}` } : {}, body }
+  const res = { statusCode: 200, body: null, setHeader() {}, status(c) { this.statusCode = c; return this }, json(b) { this.body = b; return this }, send(b) { this.body = b; return this }, end() { return this } }
   return handler(req, res).then(() => res)
 }
 
@@ -127,5 +131,52 @@ describe('track-return', async () => {
     expect(filters).toContainEqual(['user_id', 'u-member'])
     expect(filters).not.toContainEqual(['user_id', 'u-admin'])
     expect(updates).toHaveLength(1)
+  })
+})
+
+describe('integrations', async () => {
+  const { default: handler } = await import('../../api/integrations.js')
+  const hook = (token, body) => call(handler, { token, query: { action: 'webhook-connect' },
+    body: { parish_id: 'p-managed', platform: 'website_webhook', webhook_url: 'https://example.com/hook', ...body } })
+
+  it('webhook-connect rejects requests without a session', async () => {
+    expect((await hook(undefined)).statusCode).toBe(401)
+  })
+  it("webhook-connect rejects a non-admin of the parish", async () => {
+    expect((await hook('tok-member')).statusCode).toBe(403)
+    expect(updates).toHaveLength(0)
+  })
+  it.each(['http://example.com/h', 'https://localhost/h', 'https://127.0.0.1/h', 'https://10.1.2.3/h',
+           'https://192.168.0.5/h', 'https://169.254.169.254/latest', 'https://[::1]/h', 'file:///etc/passwd'])(
+    'webhook-connect refuses private / non-https URL %s', async (url) => {
+      expect((await hook('tok-admin', { webhook_url: url })).statusCode).toBe(400)
+    })
+  it('flocknote-connect rejects a non-admin', async () => {
+    const res = await call(handler, { token: 'tok-member', query: { action: 'flocknote-connect' },
+      body: { parish_id: 'p-managed', api_key: 'k', network_id: 'n' } })
+    expect(res.statusCode).toBe(403)
+  })
+  it('the old unauthenticated facebook-auth action is gone', async () => {
+    const res = await call(handler, { method: 'GET', query: { action: 'facebook-auth', parish_id: 'p-managed', admin_user_id: 'u-admin' } })
+    expect(res.statusCode).toBe(400)
+  })
+  it('facebook-start needs the parish admin and returns a signed state', async () => {
+    expect((await call(handler, { token: 'tok-member', query: { action: 'facebook-start' }, body: { parish_id: 'p-managed' } })).statusCode).toBe(403)
+    const res = await call(handler, { token: 'tok-admin', query: { action: 'facebook-start' }, body: { parish_id: 'p-managed' } })
+    expect(res.statusCode).toBe(200)
+    const state = new URL(res.body.url).searchParams.get('state')
+    expect(state.split('.')).toHaveLength(2)
+  })
+  it('facebook-callback rejects a forged (unsigned) state', async () => {
+    const forged = Buffer.from(JSON.stringify({ parish_id: 'p-managed', admin_user_id: 'u-admin' })).toString('base64url')
+    const res = await call(handler, { method: 'GET', query: { action: 'facebook-callback', code: 'c', state: forged } })
+    expect(res.statusCode).toBe(400)
+  })
+  it('facebook-callback rejects a tampered signed state', async () => {
+    const ok = await call(handler, { token: 'tok-admin', query: { action: 'facebook-start' }, body: { parish_id: 'p-managed' } })
+    const [, sig] = new URL(ok.body.url).searchParams.get('state').split('.')
+    const body = Buffer.from(JSON.stringify({ parish_id: 'p-other', admin_user_id: 'u-admin', exp: Date.now() + 1e6 })).toString('base64url')
+    const res = await call(handler, { method: 'GET', query: { action: 'facebook-callback', code: 'c', state: `${body}.${sig}` } })
+    expect(res.statusCode).toBe(400)
   })
 })

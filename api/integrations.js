@@ -2,13 +2,15 @@ import { applyNativeCors } from './_native.js'
 /**
  * Consolidated integrations handler.
  * Routes via ?action= query param:
- *   facebook-auth       GET  — initiates OAuth popup
- *   facebook-callback   GET  — OAuth code exchange
+ *   facebook-start      POST — (signed-in parish admin) returns the Facebook
+ *                              OAuth URL with a signed, expiring state
+ *   facebook-callback   GET  — OAuth code exchange (verifies the state)
  *   flocknote-connect   POST — saves API key credentials
  *   webhook-connect     POST — saves webhook URL + secret
  */
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { getSessionUser, isParishAdmin, isPlatformAdmin } from './_auth.js'
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -22,30 +24,61 @@ export default async function handler(req, res) {
   const { action } = req.query
 
   switch (action) {
-    case 'facebook-auth':     return facebookAuth(req, res)
+    case 'facebook-start':    return withParishAdmin(req, res, facebookStart)
     case 'facebook-callback': return facebookCallback(req, res)
-    case 'flocknote-connect': return flocknoteConnect(req, res)
-    case 'webhook-connect':   return webhookConnect(req, res)
+    case 'flocknote-connect': return withParishAdmin(req, res, flocknoteConnect)
+    case 'webhook-connect':   return withParishAdmin(req, res, webhookConnect)
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` })
   }
 }
 
-// ── Facebook Auth ───────────────────────────────────────────
+// ── Auth + signed OAuth state ───────────────────────────────
 
-function facebookAuth(req, res) {
-  const { parish_id, admin_user_id, native } = req.query
-  const nativeFlow = native === '1'
-
-  if (!parish_id || !admin_user_id) {
-    return res.status(400).json({ error: 'Missing parish_id or admin_user_id' })
+// Every action that changes a parish's integrations needs a signed-in admin
+// of that parish (never trust parish_id / user ids from the request alone).
+async function withParishAdmin(req, res, next) {
+  if (req.method !== 'POST') return res.status(405).end()
+  const caller = await getSessionUser(req)
+  if (!caller) return res.status(401).json({ error: 'Please sign in again' })
+  const parishId = req.body?.parish_id
+  if (!parishId) return res.status(400).json({ error: 'parish_id is required' })
+  if (!(await isParishAdmin(caller.id, parishId)) && !(await isPlatformAdmin(caller.id))) {
+    return res.status(403).json({ error: 'Only an admin of this parish can manage its integrations' })
   }
+  return next(req, res, caller)
+}
+
+const STATE_SECRET = process.env.OAUTH_STATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
+const STATE_TTL_MS = 15 * 60 * 1000
+
+function signState(payload) {
+  const body = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + STATE_TTL_MS })).toString('base64url')
+  const sig = crypto.createHmac('sha256', STATE_SECRET).update(body).digest('base64url')
+  return `${body}.${sig}`
+}
+
+function verifyState(state) {
+  const [body, sig] = String(state || '').split('.')
+  if (!body || !sig) return null
+  const expected = crypto.createHmac('sha256', STATE_SECRET).update(body).digest('base64url')
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null
+  try {
+    const data = JSON.parse(Buffer.from(body, 'base64url').toString())
+    return data.exp > Date.now() ? data : null
+  } catch { return null }
+}
+
+// ── Facebook Start ──────────────────────────────────────────
+
+function facebookStart(req, res, caller) {
+  const { parish_id, native } = req.body
+  const nativeFlow = native === true || native === '1'
   if (!process.env.FACEBOOK_APP_ID || process.env.FACEBOOK_APP_ID === 'pending') {
-    return res.send(closePopup('facebook', 'not_configured', nativeFlow))
+    return res.status(200).json({ result: 'not_configured' })
   }
 
-  const state = Buffer.from(JSON.stringify({ parish_id, admin_user_id, native: nativeFlow })).toString('base64url')
-
+  const state = signState({ parish_id, admin_user_id: caller.id, native: nativeFlow })
   const params = new URLSearchParams({
     client_id:     process.env.FACEBOOK_APP_ID,
     redirect_uri:  `${APP_URL}/api/integrations?action=facebook-callback`,
@@ -53,8 +86,7 @@ function facebookAuth(req, res) {
     state,
     response_type: 'code',
   })
-
-  res.redirect(`https://www.facebook.com/dialog/oauth?${params}`)
+  return res.status(200).json({ url: `https://www.facebook.com/dialog/oauth?${params}` })
 }
 
 // ── Facebook Callback ───────────────────────────────────────
@@ -65,13 +97,13 @@ async function facebookCallback(req, res) {
 
   if (error) return res.send(closePopup('facebook', 'denied', nativeFlow))
 
-  let parish_id, admin_user_id
-  try {
-    const decoded = JSON.parse(Buffer.from(state, 'base64url').toString())
-    parish_id = decoded.parish_id
-    admin_user_id = decoded.admin_user_id
-  } catch {
-    return res.status(400).send('Invalid state')
+  // State must be one we signed in facebook-start, unexpired, and its user
+  // must still administer the parish
+  const decoded = verifyState(state)
+  if (!decoded) return res.status(400).send('Invalid or expired link — start the connection again from inFold.')
+  const { parish_id, admin_user_id } = decoded
+  if (!(await isParishAdmin(admin_user_id, parish_id)) && !(await isPlatformAdmin(admin_user_id))) {
+    return res.status(403).send('Not an admin of this parish')
   }
 
   // Exchange code for short-lived token
@@ -138,7 +170,6 @@ async function facebookCallback(req, res) {
 // ── Flocknote Connect ───────────────────────────────────────
 
 async function flocknoteConnect(req, res) {
-  if (req.method !== 'POST') return res.status(405).end()
 
   const { parish_id, api_key, network_id, group_id } = req.body
   if (!parish_id || !api_key || !network_id) {
@@ -174,18 +205,19 @@ async function flocknoteConnect(req, res) {
 // ── Webhook Connect ─────────────────────────────────────────
 
 async function webhookConnect(req, res) {
-  if (req.method !== 'POST') return res.status(405).end()
 
   const { parish_id, platform, webhook_url, webhook_secret } = req.body
   if (!parish_id || !webhook_url || !['website_webhook', 'email_webhook'].includes(platform)) {
     return res.status(400).json({ error: 'parish_id, platform, and webhook_url are required' })
   }
 
+  // Public https endpoints only — the server calls this URL, so block
+  // loopback / private / link-local targets
   try {
     const url = new URL(webhook_url)
-    if (!['http:', 'https:'].includes(url.protocol)) throw new Error()
+    if (url.protocol !== 'https:' || isPrivateHost(url.hostname)) throw new Error()
   } catch {
-    return res.status(400).json({ error: 'Invalid webhook URL' })
+    return res.status(400).json({ error: 'Webhook URL must be a public https:// address' })
   }
 
   const secret = webhook_secret || crypto.randomBytes(32).toString('hex')
@@ -196,6 +228,7 @@ async function webhookConnect(req, res) {
       headers: { 'Content-Type': 'application/json', 'X-inFold-Event': 'ping' },
       body: JSON.stringify({ event: 'ping', timestamp: new Date().toISOString() }),
       signal: AbortSignal.timeout(8000),
+      redirect: 'manual',
     })
     if (pingRes.status >= 400) {
       return res.status(400).json({ error: `Webhook returned ${pingRes.status}. Check the URL.` })
@@ -217,7 +250,18 @@ async function webhookConnect(req, res) {
   res.status(200).json({ success: true, webhook_secret: secret })
 }
 
-// ── Helper ──────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────
+
+function isPrivateHost(host) {
+  const h = host.toLowerCase().replace(/^\[|\]$/g, '')
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal') || h.endsWith('.local')) return true
+  if (h === '::1' || h.startsWith('fc') || h.startsWith('fd') || h.startsWith('fe80')) return true
+  const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+  if (!m) return false
+  const [a, b] = [Number(m[1]), Number(m[2])]
+  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127)
+}
 
 function closePopup(platform, result, nativeFlow = false) {
   if (nativeFlow) {
@@ -241,7 +285,7 @@ function closePopup(platform, result, nativeFlow = false) {
 // Reads the `native` flag from the OAuth state without failing the request
 function readNativeFlag(state) {
   try {
-    return JSON.parse(Buffer.from(state, 'base64url').toString()).native === true
+    return JSON.parse(Buffer.from(String(state).split('.')[0], 'base64url').toString()).native === true
   } catch {
     return false
   }
