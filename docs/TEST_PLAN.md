@@ -27,7 +27,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | M1 | Home page loads, inFold branding, nav links work | – | ✅ |
 | M2 | /features, /parishes, /about, /contact pages render | – | ✅ |
 | M3 | Contact form submits and email arrives at info@getinfold.app | – | ✅ |
-| M4 | "Open app" / sign-up links go to app.getinfold.app | – | ⬜ |
+| M4 | "Open app" / sign-up links go to app.getinfold.app | – | ✅ |
 | M5 | /pitch page loads | – | ✅ |
 | M6 | Unknown path falls back to Home | – | ✅ |
 | M7 | Mobile width (375px) layout — no horizontal scroll | – | ✅ |
@@ -37,7 +37,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | P1 | /terms, /privacy, /policy, /delete-account render with inFold name + correct emails | – | ✅ |
 | P2 | Protected route (e.g. /groups) redirects to /login when signed out | – | ✅ |
-| P3 | 404 page for unknown route | – | ⬜ |
+| P3 | 404 page for unknown route | – | ✅ |
 | P4 | PWA manifest/icons load; install prompt doesn't error | – | ✅ |
 
 ## 3. Authentication
@@ -49,7 +49,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | AU4 | Wrong password shows friendly error | B | ⬜ |
 | AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⬜ |
 | AU6 | Session persists across reload | A | ✅ |
-| AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ⬜ |
+| AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ✅ |
 
 ## 4. Onboarding
 | ID | Test | Acct | Status |
@@ -88,7 +88,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | D6 | Follow / unfollow parish | B | 🔧 |
 | D7 | Mass times / contact info display | B | ✅ |
 | D8 | Send message to parish office | B | 🔧 |
-| D9 | "Send a correction" mailto link uses hello@getinfold.app | B | ⬜ |
+| D9 | "Send a correction" mailto link uses the support address | B | 🔧 |
 | D10 | Nearby event suggestions from unfollowed parishes | B | ⬜ |
 
 ## 7. Events & RSVP
@@ -303,4 +303,5 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 62 | — | `trigger_distribute_post` has an API token hard-coded in the function body — check which key it is and move it to Vault/secret | **You** | open |
 | 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
 | 64 | S6 | **Notification settings were ignored** for anything caused by another user (actor's browser can't read recipient's prefs) | Mig. 040: enforced in DB for all sources | ✅ |
+| 66 | D9 | Support address inconsistent: 3 spots used hello@getinfold.app (parish correction link, suspended screen, org checkout error) vs info@ everywhere else | All → info@ (add a hello@ route in Cloudflare if you prefer that one) | 🔧 |
 | 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |

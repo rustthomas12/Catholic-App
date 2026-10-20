@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   if (tier === 'national_network') {
     return res.status(400).json({
-      error: 'National Network (51+ chapters) requires a custom contract. Please contact us at hello@getinfold.app.'
+      error: 'National Network (51+ chapters) requires a custom contract. Please contact us at info@getinfold.app.'
     })
   }
 

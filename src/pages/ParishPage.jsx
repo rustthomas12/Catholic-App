@@ -346,7 +346,7 @@ function ParishAbout({ parish, cluster }) {
             </p>
             {!parish.website && !parish.phone && (
               <p className="text-amber-700 text-xs mt-0.5">
-                Help us improve — <a href="mailto:hello@getinfold.app" className="underline font-semibold">send a correction</a>.
+                Help us improve — <a href="mailto:info@getinfold.app" className="underline font-semibold">send a correction</a>.
               </p>
             )}
           </div>
