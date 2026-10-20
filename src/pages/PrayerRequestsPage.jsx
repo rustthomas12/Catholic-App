@@ -278,7 +278,7 @@ function PrayerCard({ intention, onPray, t }) {
 
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
         <span className="text-xs text-gray-500">
-          🙏 {t('prayer.count_other', { count: intention.prayer_count })}
+          🙏 {t('prayer.count', { count: intention.prayer_count })}
         </span>
         {intention.is_prayed_by_me ? (
           <span className="text-xs font-semibold text-gold flex items-center gap-1">

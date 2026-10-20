@@ -13,11 +13,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+// Web push is optional: without VAPID keys the module used to throw on load
+// (every run failed with FUNCTION_INVOCATION_FAILED). Skip web push and still
+// deliver to the iOS / Android apps via FCM.
+const webPushReady = Boolean(
+  process.env.VAPID_SUBJECT && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
 )
+if (webPushReady) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  )
+}
 
 export default async function handler(req, res) {
   const auth = req.headers['authorization']
@@ -67,7 +75,7 @@ export default async function handler(req, res) {
   const expiredEndpoints = []
 
   await Promise.allSettled(
-    (subs ?? []).map(async (sub) => {
+    (webPushReady ? (subs ?? []) : []).map(async (sub) => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },

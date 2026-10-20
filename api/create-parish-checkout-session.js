@@ -1,5 +1,6 @@
 import { applyNativeCors, returnUrl } from './_native.js'
 import Stripe from 'stripe'
+import { getSessionUser, isParishAdmin, parishHasAdmin, isPlatformAdmin } from './_auth.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -9,11 +10,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { parishId, parishName, adminUserId, adminEmail, tierKey } = req.body
+  const caller = await getSessionUser(req)
+  if (!caller) return res.status(401).json({ error: 'Please sign in again' })
 
-  if (!parishId || !adminUserId) {
-    return res.status(400).json({ error: 'Missing required fields' })
-  }
+  const { parishId, tierKey } = req.body || {}
+  if (!parishId) return res.status(400).json({ error: 'Missing required fields' })
+
+  // The caller subscribes for themselves: an existing admin of the parish, or
+  // a pastor claiming a parish that has no admin yet (verified after payment)
+  const allowed = await isParishAdmin(caller.id, parishId)
+    || !(await parishHasAdmin(parishId))
+    || await isPlatformAdmin(caller.id)
+  if (!allowed) return res.status(403).json({ error: 'This parish is already managed by another admin' })
+  const adminUserId = caller.id
+  const adminEmail  = caller.email
 
   const TIER_PRICES = {
     small:     process.env.STRIPE_PRICE_PARISH_SMALL,

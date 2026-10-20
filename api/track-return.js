@@ -1,5 +1,6 @@
 import { applyNativeCors } from './_native.js'
 import { createClient } from '@supabase/supabase-js'
+import { getSessionUser } from './_auth.js'
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -10,8 +11,10 @@ export default async function handler(req, res) {
   if (applyNativeCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { userId } = req.body
-  if (!userId) return res.status(400).json({ error: 'Missing userId' })
+  // Only the signed-in user can record their own return visit
+  const caller = await getSessionUser(req)
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' })
+  const userId = caller.id
 
   const { data: activation } = await supabase
     .from('sponsored_activations')

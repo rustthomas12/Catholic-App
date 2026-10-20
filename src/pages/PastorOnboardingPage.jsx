@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 
@@ -87,6 +87,15 @@ function StepParish({ onSelect }) {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [managedIds, setManagedIds] = useState(() => new Set())
+
+  // A parish that already has an admin can't be claimed here
+  async function pick(parish) {
+    setSelected(parish)
+    const { data } = await supabase.rpc('parish_is_managed', { p_parish_id: parish.id })
+    if (data) setManagedIds(prev => new Set(prev).add(parish.id))
+  }
+  const selectedIsManaged = selected && managedIds.has(selected.id)
 
   const search = useCallback(async (q) => {
     if (q.trim().length < 2) { setResults([]); return }
@@ -129,7 +138,7 @@ function StepParish({ onSelect }) {
           {results.map(parish => (
             <button
               key={parish.id}
-              onClick={() => setSelected(parish)}
+              onClick={() => pick(parish)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${
                 selected?.id === parish.id
                   ? 'border-navy bg-navy/5'
@@ -157,9 +166,16 @@ function StepParish({ onSelect }) {
         </p>
       )}
 
+      {selectedIsManaged && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
+          {selected.name} is already managed on inFold. If you're its new pastor, contact
+          info@getinfold.app and we'll transfer it to you.
+        </p>
+      )}
+
       <button
-        onClick={() => selected && onSelect(selected)}
-        disabled={!selected}
+        onClick={() => selected && !selectedIsManaged && onSelect(selected)}
+        disabled={!selected || selectedIsManaged}
         className="w-full bg-navy text-white font-bold py-4 rounded-2xl disabled:opacity-40 hover:bg-navy/90 transition-colors"
       >
         {selected ? `Continue with ${selected.name}` : 'Select a parish to continue'}
@@ -275,14 +291,8 @@ function StepTrial({ parish, tier, user, onBack }) {
     try {
       const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parishId:    parish.id,
-          parishName:  parish.name,
-          adminUserId: user.id,
-          adminEmail:  user.email,
-          tierKey:     tier.key,
-        }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ parishId: parish.id, tierKey: tier.key }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
@@ -398,9 +408,18 @@ export default function PastorOnboardingPage() {
   // Load pre-selected parish if coming from ParishPage
   useEffect(() => {
     if (!preselectedParishId) return
-    supabase.from('parishes').select('id, name, city, state')
-      .eq('id', preselectedParishId).single()
-      .then(({ data }) => { if (data) setSelectedParish(data) })
+    Promise.all([
+      supabase.from('parishes').select('id, name, city, state').eq('id', preselectedParishId).single(),
+      supabase.rpc('parish_is_managed', { p_parish_id: preselectedParishId }),
+    ]).then(([{ data }, { data: managed }]) => {
+      if (managed) {
+        // Already has an admin: send them to the picker, which explains why
+        toast.error(`${data?.name || 'This parish'} is already managed on inFold.`)
+        setStep(2)
+        return
+      }
+      if (data) setSelectedParish(data)
+    })
   }, [preselectedParishId])
 
   // If not ordained/religious, redirect home

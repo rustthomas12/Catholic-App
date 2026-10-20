@@ -14,27 +14,6 @@ webpush.setVapidDetails(
   Deno.env.get('VAPID_PRIVATE_KEY')!
 )
 
-// Map notification_type enum values to notification_preferences column names
-const TYPE_TO_PREF: Record<string, string> = {
-  like:                   'likes',
-  comment:                'comments',
-  group_invite:           'group_invites',
-  group_request:          'group_requests',
-  group_request_response: 'group_requests',
-  parish_post:            'parish_posts',
-  prayer_response:        'prayer_responses',
-  confession_reminder:    'confession_reminder',
-  direct_message:         'direct_messages',
-  event_reminder:         'event_reminders',
-  post_flagged:              'post_flagged',
-  new_parish_member:         'new_parish_member',
-  group_post:                'group_posts',
-  new_group_member:          'new_group_member',
-  new_org_member:            'new_org_member',
-  chapter_request:           'chapter_requests',
-  chapter_request_resolved:  'chapter_requests',
-}
-
 // Map notification types to push-friendly titles and deep-link URLs
 // Screen a notification opens when tapped — mirror of notificationPath() in
 // src/lib/notifications.js (keep in sync). reference_id is a post ID for
@@ -52,7 +31,10 @@ function notificationPath(type: string, ref: string | null): string {
     case 'new_group_member':
       return ref ? `/group/${ref}` : '/groups'
     case 'new_parish_member':
+    case 'pastor_verified':
       return ref ? `/parish-admin/${ref}` : '/'
+    case 'parish_message':
+      return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
     case 'chapter_request_resolved':
@@ -96,6 +78,8 @@ function formatNotification(type: string, message: string | null, actorName: str
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event` },
     post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review` },
     new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
+    parish_message:           { title: '✉️ New parish message',      body: body || `${actor} sent your parish a message` },
+    pastor_verified:          { title: "✅ You're verified",          body: body || 'Your parish dashboard is ready' },
     group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group` },
     new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group` },
     new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization` },
@@ -128,9 +112,24 @@ serve(async (req) => {
 
   // Supabase Database Webhook payload:
   // { type: 'INSERT', table: 'notifications', record: { ... }, old_record: null }
-  const record = payload?.record
-  if (!record) {
+  // This endpoint is public (the database webhook sends no credentials), so
+  // the payload is only a pointer: atomically claim the stored notification —
+  // recent and not yet pushed — and send what the database says, never what
+  // the request says. Forged / replayed calls get nothing.
+  const id = payload?.record?.id
+  if (!id) {
     return new Response('No record in payload', { status: 400 })
+  }
+  const { data: record } = await supabase
+    .from('notifications')
+    .update({ pushed_at: new Date().toISOString() })
+    .eq('id', id)
+    .is('pushed_at', null)
+    .gt('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+    .select('user_id, type, message, actor_id, reference_id')
+    .maybeSingle()
+  if (!record) {
+    return new Response('Unknown, stale or already-sent notification', { status: 200 })
   }
 
   const { user_id, type, message, actor_id, reference_id } = record
@@ -139,20 +138,9 @@ serve(async (req) => {
     return new Response('No user_id in notification record', { status: 400 })
   }
 
-  // Check user's notification preference for this type
-  const prefColumn = TYPE_TO_PREF[type]
-  if (prefColumn) {
-    const { data: prefs } = await supabase
-      .from('notification_preferences')
-      .select(prefColumn)
-      .eq('user_id', user_id)
-      .single()
-
-    if (prefs && prefs[prefColumn] === false) {
-      console.log(`Push skipped: user ${user_id} has disabled ${type}`)
-      return new Response('Notification type disabled by user', { status: 200 })
-    }
-  }
+  // Notification preferences are enforced when the notification is inserted
+  // (apply_notification_preferences, migration 040) — a disabled type never
+  // reaches this function.
 
   // Resolve actor name if present
   let actorName: string | undefined

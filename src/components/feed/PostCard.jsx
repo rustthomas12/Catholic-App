@@ -209,7 +209,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
 // ── Main PostCard ──────────────────────────────────────────
 const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSource = true }) {
   const { t } = useTranslation(['feed', 'common'])
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const {
@@ -222,6 +222,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     addComment,
     deleteComment,
     deletePost,
+    editPost,
     reportPost,
   } = usePost(initialPost.id, initialPost)
 
@@ -236,6 +237,9 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const [commentInput, setCommentInput] = useState('')
   const [commentSending, setCommentSending] = useState(false)
   const [likeAnimating, setLikeAnimating] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editDraft, setEditDraft] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
   const commentInputRef = useRef(null)
   const menuRef = useRef(null)
 
@@ -311,6 +315,18 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     }
   }
 
+  async function handleSaveEdit() {
+    setEditSaving(true)
+    const { error } = await editPost(editDraft)
+    setEditSaving(false)
+    if (error) {
+      toast.error(t('common:status.error'))
+    } else {
+      setEditing(false)
+      toast.success(t('post.edited'))
+    }
+  }
+
   async function handleBlockAuthor() {
     setBlockLoading(true)
     const { error } = await block(post.author?.id)
@@ -354,7 +370,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
         <div className="px-4 py-3">
           {/* Prayer request badge */}
           {post.is_prayer_request && (
-            <p className="text-xs font-semibold text-gold mb-2">🙏 Prayer Request</p>
+            <p className="text-xs font-semibold text-gold mb-2">{t('post.prayer_badge')}</p>
           )}
 
           {/* Header */}
@@ -393,7 +409,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      at {post.parish.name}
+                      {t('post.at_place', { name: post.parish.name })}
                     </Link>
                   )}
                   {post.group && (
@@ -402,7 +418,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      in {post.group.name}
+                      {t('post.in_place', { name: post.group.name })}
                     </Link>
                   )}
                   {post.org && (
@@ -411,7 +427,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      from {post.org.name}
+                      {t('post.from_place', { name: post.org.name })}
                     </Link>
                   )}
                 </p>
@@ -441,7 +457,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   {isOwnPost ? (
                     <>
                       <button
-                        onClick={() => { setMenuOpen(false); toast.info(t('post.edit_coming_soon')) }}
+                        onClick={() => { setMenuOpen(false); setEditDraft(post.content); setEditing(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
                       >
                         ✏️ {t('post.edit')}
@@ -480,6 +496,37 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
           </div>
 
           {/* Content */}
+          {editing ? (
+            <div className="mb-2">
+              <textarea
+                value={editDraft}
+                onChange={(e) => setEditDraft(e.target.value.slice(0, 500))}
+                rows={4}
+                autoFocus
+                aria-label={t('post.edit')}
+                className="w-full text-sm text-gray-800 leading-relaxed border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-navy resize-y"
+              />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-gray-400">{editDraft.length}/500</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditing(false)}
+                    disabled={editSaving}
+                    className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-navy min-h-[40px]"
+                  >
+                    {t('common:actions.cancel')}
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={editSaving || !editDraft.trim() || editDraft.trim() === post.content}
+                    className="px-4 py-2 text-sm font-semibold bg-navy text-white rounded-lg disabled:opacity-40 min-h-[40px]"
+                  >
+                    {t('common:actions.save')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="mb-2">
             {announcementTitle && (
               <p className="text-base font-bold text-navy mb-1">{announcementTitle}</p>
@@ -497,6 +544,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               </button>
             )}
           </div>
+          )}
 
           {/* Post image */}
           {post.image_url && (
@@ -520,7 +568,9 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             <button
               onClick={handleLike}
               className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] rounded-lg hover:bg-lightbg transition-colors group"
-              aria-label={post.is_liked_by_me ? 'Unlike' : 'Like'}
+              aria-label={post.is_prayer_request
+                ? (post.is_liked_by_me ? t('prayer.praying') : t('prayer.pray'))
+                : (post.is_liked_by_me ? 'Unlike' : 'Like')}
             >
               {post.is_liked_by_me ? (
                 <HeartIconSolid
@@ -530,9 +580,13 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 <HeartIcon className="w-5 h-5 text-gray-400 group-hover:text-gold transition-colors" />
               )}
               <span className={`text-xs font-medium ${post.is_liked_by_me ? 'text-gold' : 'text-gray-500'}`}>
-                {post.like_count > 0
-                  ? t('like.count_other', { count: post.like_count })
-                  : t('like.like')}
+                {post.is_prayer_request
+                  ? (post.like_count > 0
+                      ? t('prayer.count', { count: post.like_count })
+                      : t('prayer.pray'))
+                  : (post.like_count > 0
+                      ? t('like.count', { count: post.like_count })
+                      : t('like.like'))}
               </span>
             </button>
 
@@ -545,8 +599,8 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               <ChatBubbleLeftIcon className="w-5 h-5 text-gray-400 group-hover:text-navy transition-colors" />
               <span className="text-xs font-medium text-gray-500">
                 {post.comment_count > 0
-                  ? t('comment.count_other', { count: post.comment_count })
-                  : 'Comment'}
+                  ? t('comment.count', { count: post.comment_count })
+                  : t('comment.action')}
               </span>
             </button>
 
@@ -586,8 +640,8 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             {/* Comment input */}
             <div className="flex items-center gap-2 border-t border-gray-100 pt-3 mt-2">
               <Avatar
-                src={null}
-                name={user?.user_metadata?.full_name || 'Me'}
+                src={profile?.avatar_url || null}
+                name={profile?.full_name || user?.user_metadata?.full_name || 'Me'}
                 size="xs"
               />
               <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 gap-2">

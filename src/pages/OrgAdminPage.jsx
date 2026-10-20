@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { format, parseISO, addDays } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -207,7 +207,7 @@ export default function OrgAdminPage() {
   )
 
   const panelProps = {
-    orgId, org, setOrg, user, isNational, isChapter,
+    orgId, org, setOrg, user, isNational, isChapter, hasActiveSub,
     subscription, setSubscription,
     memberCount, chapterCount,
     setChapterCount: setChapterCount,
@@ -419,14 +419,18 @@ function OrgEventsTab({ orgId, user }) {
 
   async function handleCreate() {
     if (!form.title.trim() || !form.start_time || !user) return
+    if (form.end_time && new Date(form.end_time) < new Date(form.start_time)) {
+      toast.error('The end time must be after the start time.')
+      return
+    }
     setSaving(true)
     const { error } = await supabase.from('events').insert({
       org_id: orgId,
       creator_id: user.id,
       title: form.title.trim(),
       description: form.description.trim() || null,
-      start_time: form.start_time,
-      end_time: form.end_time || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
       location: form.location.trim() || null,
     })
     if (error) {
@@ -588,7 +592,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
       title: title.trim() || null,
       content: draft.trim(),
       published: !scheduleFor,
-      scheduled_for: scheduleFor || null,
+      scheduled_for: scheduleFor ? new Date(scheduleFor).toISOString() : null,
       published_at: scheduleFor ? null : new Date().toISOString(),
     })
 
@@ -899,7 +903,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
     const [chaptersRes, requestsRes] = await Promise.all([
       supabase.from('organizations').select('id, name, city, state, slug')
         .eq('parent_org_id', orgId).eq('org_type', 'chapter'),
-      supabase.from('chapter_requests').select('id, requesting_org_id, message, created_at, status, organizations!requesting_org_id(id, name, city, state)')
+      supabase.from('chapter_requests').select('id, requesting_org_id, requested_by, message, created_at, status, organizations!requesting_org_id(id, name, city, state)')
         .eq('target_national_org_id', orgId).eq('status', 'pending'),
     ])
 
@@ -922,18 +926,18 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
   useEffect(() => { load() }, [load])
 
   async function approveRequest(req) {
-    await supabase.from('chapter_requests').update({
-      status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString(),
-    }).eq('id', req.id)
-    await supabase.from('organizations').update({ parent_org_id: orgId, org_type: 'chapter' })
-      .eq('id', req.requesting_org_id)
+    // Links the chapter server-side; the national admin can't update the
+    // requesting org's row directly under RLS (migration 035)
+    const { error } = await supabase.rpc('approve_chapter_request', { p_request_id: req.id })
+    if (error) { toast.error('Could not approve this request.'); return }
     await supabase.from('notifications').insert({
       user_id: req.requested_by,
       type: 'chapter_request_resolved',
       reference_id: req.requesting_org_id,
       message: `Your chapter request to join ${orgName} has been approved!`,
+      actor_id: user.id,
       is_read: false,
-    }).catch(() => {})
+    }).then(() => {}, () => {})  // query builders have no .catch()
     toast.success(`${req.organizations?.name} approved as a chapter.`)
     load()
   }
@@ -1215,7 +1219,6 @@ function SettingsTab({ org, setOrg, orgId }) {
       state:       form.state.trim() || null,
       zip:         form.zip.trim() || null,
       logo_url:    form.logo_url.trim() || null,
-      org_type:    form.org_type,
       hours:       form.hours || null,
       latitude,
       longitude,
@@ -1259,12 +1262,10 @@ function SettingsTab({ org, setOrg, orgId }) {
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Organization type</label>
-          <select value={form.org_type} onChange={e => setForm(p => ({ ...p, org_type: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy bg-white">
-            <option value="standalone">Standalone</option>
-            <option value="national">National (manages chapters)</option>
-            <option value="chapter">Chapter (under a national org)</option>
-          </select>
+          {/* Set by billing (national plan) or chapter approval — not editable here */}
+          <p className="w-full border border-gray-100 bg-gray-50 rounded-xl px-3 py-2 text-sm text-gray-600">
+            {{ national: 'National (manages chapters)', chapter: 'Chapter (under a national org)' }[form.org_type] || 'Standalone'}
+          </p>
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Description</label>
@@ -1334,7 +1335,8 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
   const [portalLoading, setPortalLoading] = useState(false)
   const [billingEvents, setBillingEvents] = useState([])
 
-  const hasSubscription = !!subscription
+  // Canceled / expired plans can't be restarted from Stripe's portal — offer checkout again
+  const hasSubscription = !!subscription && !['canceled', 'incomplete_expired'].includes(subscription.status)
   const isActive = ['trialing', 'active'].includes(subscription?.status)
   const isLegacy = hasSubscription && ['small', 'mid', 'large'].includes(subscription?.tier)
 
@@ -1363,8 +1365,8 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     try {
       const res = await fetch(apiUrl('/api/create-org-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orgId, orgName: org.name, adminUserId: user.id, adminEmail: user.email, billingTrack, tier: selectedTier }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ orgId, billingTrack, tier: selectedTier }),
       })
       const data = await res.json()
       if (data.url) await openExternal(data.url)
@@ -1377,9 +1379,14 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
+      const { data: { session } } = await supabaseAuth.auth.getSession()
       const res = await fetch(apiUrl('/api/create-portal-session'), {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ orgId }),
       })
       const data = await res.json()
       if (data.url) await openExternal(data.url)

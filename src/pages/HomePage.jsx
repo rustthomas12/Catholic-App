@@ -27,6 +27,14 @@ export default function HomePage() {
   const hasAnyAdminAccess = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
   const navigate = useNavigate()
 
+  // Resume an org invite opened while signed out (set by JoinPage; survives
+  // the sign-up email confirmation, which may open in a new tab)
+  useEffect(() => {
+    let code = null
+    try { code = localStorage.getItem('infold-pending-invite') } catch {}
+    if (code && profile?.onboarding_completed !== false) navigate(`/join/${code}`, { replace: true })
+  }, [profile?.onboarding_completed]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [parish, setParish] = useState(() =>
     profile?.parish_id && _homeParishCache?.parishId === profile.parish_id
       ? _homeParishCache.data
@@ -397,10 +405,8 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
             to={`/parish-admin/${r.parish_id}`}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-navy text-white rounded-lg font-medium"
           >
-            <BuildingLibraryIcon className="w-3.5 h-3.5" />
-            {r.parishes?.name
-              ? r.parishes.name.replace(/^(St\.|Saint)\s/i, '').slice(0, 20)
-              : 'My Parish'}
+            <BuildingLibraryIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate max-w-[11rem]" title={r.parishes?.name}>{r.parishes?.name || 'My Parish'}</span>
           </Link>
         ))}
         {orgAdminRecords.map(r => (
@@ -409,8 +415,8 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
             to={`/org-admin/${r.org_id}`}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-navy text-white rounded-lg font-medium"
           >
-            <BuildingOffice2Icon className="w-3.5 h-3.5" />
-            {r.organizations?.name?.slice(0, 20) || 'My Organization'}
+            <BuildingOffice2Icon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate max-w-[11rem]" title={r.organizations?.name}>{r.organizations?.name || 'My Organization'}</span>
           </Link>
         ))}
       </div>

@@ -27,8 +27,8 @@
     "success": "Tu publicación fue compartida",
     "deleted": "Publicación eliminada",
     "removed": "[Esta publicación fue eliminada]",
+    "edited": "Publicación actualizada",
     "edit": "Editar publicación",
-    "edit_coming_soon": "La edición de publicaciones estará disponible pronto",
     "delete": "Eliminar publicación",
     "delete_confirm": "¿Eliminar esta publicación? Esta acción no se puede deshacer.",
     "confirm_delete": "¿Eliminar esta publicación?",
@@ -41,7 +41,11 @@
     "block_title": "¿Bloquear a {{name}}?",
     "block_body": "No verás sus publicaciones, comentarios, peticiones de oración ni mensajes, y no podrá enviarte mensajes. Puedes desbloquearlo en cualquier momento en Configuración.",
     "block_confirm": "Bloquear",
-    "blocked": "{{name}} ha sido bloqueado"
+    "blocked": "{{name}} ha sido bloqueado",
+    "prayer_badge": "🙏 Petición de oración",
+    "at_place": "en {{name}}",
+    "in_place": "en {{name}}",
+    "from_place": "de {{name}}"
   },
   "like": {
     "like": "Me gusta",
@@ -56,7 +60,8 @@
     "count_one": "{{count}} comentario",
     "count_other": "{{count}} comentarios",
     "removed": "[Comentario eliminado]",
-    "delete": "Eliminar comentario"
+    "delete": "Eliminar comentario",
+    "action": "Comentar"
   },
   "prayer": {
     "title": "Peticiones de oración",

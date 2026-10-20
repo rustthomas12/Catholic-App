@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { supabase } from '../lib/supabase';
+import { fuzzyIlike } from '../utils/search';
 import Avatar from '../components/shared/Avatar';
 import Modal from '../components/shared/Modal';
 import { toast } from '../components/shared/Toast';
@@ -68,15 +69,17 @@ function EntitySearch({ placeholder, onSelect, selected, onClear, searchFn, rend
 
   useEffect(() => {
     if (selected) { setQuery(''); setResults([]); return }
-    if (query.trim().length < 2) { setResults([]); return }
+    if (query.trim().length < 2) { setResults([]); setSearching(false); return }
+    let stale = false
     clearTimeout(timerRef.current)
     timerRef.current = setTimeout(async () => {
       setSearching(true)
       const res = await searchFn(query.trim())
+      if (stale) return
       setResults(res)
       setSearching(false)
     }, 300)
-    return () => clearTimeout(timerRef.current)
+    return () => { stale = true; clearTimeout(timerRef.current) }
   }, [query, selected])
 
   if (selected) {
@@ -132,7 +135,7 @@ function AssignOrgAdmin() {
   const [saving, setSaving] = useState(false)
 
   async function searchOrgs(q) {
-    const { data } = await supabase.from('organizations').select('id, name, city, state').ilike('name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('organizations').select('id, name, city, state').ilike('name', fuzzyIlike(q)).limit(8)
     return data || []
   }
 
@@ -141,6 +144,7 @@ function AssignOrgAdmin() {
     const { data } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
+      .is('deleted_at', null)
       .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
       .limit(8)
     return data || []
@@ -215,7 +219,7 @@ function AssignParishPastor() {
   const [saving, setSaving] = useState(false)
 
   async function searchParishes(q) {
-    const { data } = await supabase.from('parishes').select('id, name, city, state').ilike('name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('parishes').select('id, name, city, state').ilike('name', fuzzyIlike(q)).limit(8)
     return data || []
   }
 
@@ -224,6 +228,7 @@ function AssignParishPastor() {
     const { data } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
+      .is('deleted_at', null)
       .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
       .limit(8)
     return data || []
@@ -241,7 +246,7 @@ function AssignParishPastor() {
 
     // Also mark the user as verified clergy if they aren't already
     if (!error) {
-      await supabase.from('profiles').update({ is_verified_clergy: true }).eq('id', user.id)
+      await supabase.from('profiles').update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', user.id)
     }
 
     setSaving(false)
@@ -351,7 +356,7 @@ export default function AdminPage() {
       const todayIso = today.toISOString();
 
       const [usersRes, postsRes, flagsRes, parishesRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso),
         supabase.from('post_flags').select('id', { count: 'exact', head: true }).neq('is_resolved', true),
         supabase.from('parishes').select('id', { count: 'exact', head: true }),
@@ -394,6 +399,7 @@ export default function AdminPage() {
       let query = supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, suspended_at, created_at, is_verified_clergy, is_admin, vocation_state')
+        .is('deleted_at', null)
         .order('suspended_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
@@ -538,6 +544,7 @@ export default function AdminPage() {
             <AssignOrgAdmin />
             <AssignParishPastor />
           </div>
+          <PendingPastors />
         </section>
 
         {/* Flagged Posts */}
@@ -743,6 +750,75 @@ export default function AdminPage() {
 }
 
 // ── Parish Clusters ────────────────────────────────────────
+// Pastors who completed parish checkout and await verification
+// (stripe-webhook sets profiles.pending_pastor_parish_id)
+function PendingPastors() {
+  const { user } = useAuth()
+  const [rows, setRows] = useState(null)
+  const [busy, setBusy] = useState(null)
+
+  const load = useCallback(async () => {
+    const { data: people } = await supabase.from('profiles')
+      .select('id, full_name, username, vocation_state, pending_pastor_parish_id')
+      .not('pending_pastor_parish_id', 'is', null)
+      .is('deleted_at', null)
+    const ids = [...new Set((people ?? []).map(p => p.pending_pastor_parish_id))]
+    const { data: parishes } = ids.length
+      ? await supabase.from('parishes').select('id, name, city, state').in('id', ids)
+      : { data: [] }
+    const byId = Object.fromEntries((parishes ?? []).map(p => [p.id, p]))
+    setRows((people ?? []).map(p => ({ ...p, parish: byId[p.pending_pastor_parish_id] })))
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  async function approve(row) {
+    setBusy(row.id)
+    const parishId = row.pending_pastor_parish_id
+    const { error } = await supabase.from('parish_admins').upsert(
+      { parish_id: parishId, user_id: row.id, role: 'admin' }, { onConflict: 'parish_id,user_id' })
+    const { error: pErr } = error ? { error } : await supabase.from('profiles')
+      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id)
+    setBusy(null)
+    if (error || pErr) { toast.error('Could not approve: ' + (error || pErr).message); return }
+    await supabase.from('notifications').insert({
+      user_id: row.id, type: 'pastor_verified', reference_id: parishId, actor_id: user.id, is_read: false,
+      message: `You're verified as pastor of ${row.parish?.name || 'your parish'}. Your parish dashboard is ready.`,
+    })
+    toast.success(`${row.full_name} now manages ${row.parish?.name || 'the parish'}`)
+    load()
+  }
+
+  async function decline(row) {
+    setBusy(row.id)
+    const { error } = await supabase.from('profiles').update({ pending_pastor_parish_id: null }).eq('id', row.id)
+    setBusy(null)
+    if (error) { toast.error('Could not decline: ' + error.message); return }
+    toast.success('Application declined')
+    load()
+  }
+
+  if (!rows?.length) return null
+  return (
+    <div className='bg-white rounded-xl border border-amber-200 shadow-sm p-4 mt-4'>
+      <h3 className='text-sm font-bold text-navy mb-3'>Pending pastor applications ({rows.length})</h3>
+      <div className='space-y-2'>
+        {rows.map(r => (
+          <div key={r.id} className='flex flex-wrap items-center gap-2 border border-gray-100 rounded-lg px-3 py-2'>
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-semibold text-navy truncate'>{r.full_name} <span className='text-gray-400 font-normal'>@{r.username} · {r.vocation_state}</span></p>
+              <p className='text-xs text-gray-500 truncate'>{r.parish ? `${r.parish.name}, ${r.parish.city}, ${r.parish.state}` : r.pending_pastor_parish_id}</p>
+            </div>
+            <button disabled={busy === r.id} onClick={() => approve(r)}
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve</button>
+            <button disabled={busy === r.id} onClick={() => decline(r)}
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50'>Decline</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function ParishClusters() {
   const [clusters, setClusters] = useState([])
   const [loading, setLoading] = useState(true)
@@ -793,9 +869,11 @@ function ParishClusters() {
     if (q.trim().length < 2) return
     const { data } = await supabase.from('parishes')
       .select('id, name, city, state')
-      .ilike('name', `%${q.trim()}%`)
+      .ilike('name', fuzzyIlike(q))
       .limit(8)
-    setAddState(prev => ({ ...prev, [clusterId]: { ...prev[clusterId], results: data ?? [] } }))
+    // Ignore responses for an older keystroke that arrive late
+    setAddState(prev => prev[clusterId]?.query !== q ? prev
+      : ({ ...prev, [clusterId]: { ...prev[clusterId], results: data ?? [] } }))
   }
 
   async function addParish(clusterId, parish) {

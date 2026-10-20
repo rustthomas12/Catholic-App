@@ -317,8 +317,8 @@ export default function GroupPage() {
           <Feed
             groupId={id}
             showCreatePost={isMember}
-            emptyMessage={t('empty')}
-            emptySubtext="Be the first to post in this group."
+            emptyMessage={t('feed_empty')}
+            emptySubtext={t('feed_empty_body')}
           />
         )}
 
@@ -326,7 +326,7 @@ export default function GroupPage() {
           <GroupChat groupId={id} userId={user?.id} isMember={isMember} />
         )}
 
-        {activeTab === 'events' && <GroupEvents groupId={id} t={t} />}
+        {activeTab === 'events' && <GroupEvents groupId={id} isAdmin={isAdmin} userId={user?.id} t={t} />}
 
         {activeTab === 'members' && (
           <GroupMembers
@@ -442,7 +442,7 @@ function GroupChat({ groupId, userId, isMember }) {
 
     // Realtime
     const channel = supabase
-      .channel(`group_chat_${groupId}`)
+      .channel(`group_chat_${groupId}_${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -574,12 +574,17 @@ function GroupChat({ groupId, userId, isMember }) {
 }
 
 // ── GroupEvents ────────────────────────────────────────────
-function GroupEvents({ groupId, t }) {
+const EMPTY_EVENT_FORM = { title: '', start_time: '', end_time: '', location: '', description: '' }
+
+function GroupEvents({ groupId, isAdmin, userId, t }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [showPast, setShowPast] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [form, setForm] = useState(EMPTY_EVENT_FORM)
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!groupId) return
     supabase
       .from('events')
@@ -591,6 +596,76 @@ function GroupEvents({ groupId, t }) {
         setLoading(false)
       })
   }, [groupId])
+
+  useEffect(() => { load() }, [load])
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    if (!form.title.trim() || !form.start_time) return
+    setSaving(true)
+    const { error } = await supabase.from('events').insert({
+      group_id: groupId,
+      creator_id: userId,
+      title: form.title.trim(),
+      description: form.description.trim() || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
+      location: form.location.trim() || null,
+    })
+    setSaving(false)
+    if (error) {
+      toast.error(t('event_create_failed'))
+      return
+    }
+    toast.success(t('event_created'))
+    setForm(EMPTY_EVENT_FORM)
+    setFormOpen(false)
+    load()
+  }
+
+  const field = 'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy'
+  const adminBar = isAdmin && (
+    <div className="mb-3">
+      {!formOpen ? (
+        <button
+          onClick={() => setFormOpen(true)}
+          className="flex items-center gap-1.5 bg-navy text-white text-sm font-semibold px-4 py-2 rounded-xl min-h-[44px]"
+        >
+          <CalendarDaysIcon className="w-4 h-4" />
+          {t('new_event')}
+        </button>
+      ) : (
+        <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+          <input className={field} placeholder={t('event_title')} aria-label={t('event_title')} value={form.title}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value.slice(0, 120) }))} required />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="text-xs text-gray-500">{t('event_starts')}
+              <input type="datetime-local" className={field} value={form.start_time}
+                onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} required />
+            </label>
+            <label className="text-xs text-gray-500">{t('event_ends')}
+              <input type="datetime-local" className={field} value={form.end_time} min={form.start_time || undefined}
+                onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
+            </label>
+          </div>
+          <input className={field} placeholder={t('event_location')} aria-label={t('event_location')} value={form.location}
+            onChange={e => setForm(f => ({ ...f, location: e.target.value.slice(0, 200) }))} />
+          <textarea className={field} rows={3} placeholder={t('event_description')} aria-label={t('event_description')} value={form.description}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value.slice(0, 1000) }))} />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => { setFormOpen(false); setForm(EMPTY_EVENT_FORM) }}
+              className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-navy min-h-[40px]">
+              {t('common:actions.cancel')}
+            </button>
+            <button type="submit" disabled={saving || !form.title.trim() || !form.start_time}
+              className="px-4 py-2 text-sm font-semibold bg-navy text-white rounded-lg disabled:opacity-40 min-h-[40px]">
+              {t('event_create')}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
 
   if (loading) {
     return (
@@ -609,6 +684,7 @@ function GroupEvents({ groupId, t }) {
   if (events.length === 0) {
     return (
       <div className="px-4 pt-4">
+        {adminBar}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <CalendarDaysIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="font-semibold text-navy text-sm">{t('no_events')}</p>
@@ -619,6 +695,7 @@ function GroupEvents({ groupId, t }) {
 
   return (
     <div className="px-4 pt-4 pb-8 space-y-3">
+      {adminBar}
       {past.length > 0 && (
         <div className="flex bg-lightbg rounded-xl p-0.5 w-fit">
           <button
@@ -683,23 +760,27 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
   const [openMenuId, setOpenMenuId] = useState(null)
 
   async function handlePromote(userId) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('group_members')
       .update({ role: 'moderator' })
       .eq('group_id', groupId)
       .eq('user_id', userId)
-    if (error) { toast.error('Could not promote member.'); return }
+      .select('user_id')
+    // RLS turns a disallowed change into "0 rows" rather than an error
+    if (error || !data?.length) { toast.error('Could not promote member.'); return }
     setOpenMenuId(null)
     onRefresh()
   }
 
   async function handleRemove(userId) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('group_members')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', userId)
-    if (error) { toast.error('Could not remove member.'); return }
+      .select('user_id')
+    // RLS turns a disallowed change into "0 rows" rather than an error
+    if (error || !data?.length) { toast.error('Could not remove member.'); return }
     setOpenMenuId(null)
     onRefresh()
   }

@@ -9,6 +9,7 @@ import Button from '../components/shared/Button'
 import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
+import { fuzzyIlike } from '../utils/search'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
@@ -123,7 +124,7 @@ export default function EditProfilePage() {
       const { data } = await supabase
         .from('parishes')
         .select('id, name, city, state, diocese')
-        .or(`name.ilike.%${parishQuery}%,zip.eq.${parishQuery}`)
+        .or(`name.ilike.${fuzzyIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9]/g, '') || '0'}`)
         .limit(8)
       setParishResults(data || [])
       setShowDropdown(true)

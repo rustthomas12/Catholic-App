@@ -65,6 +65,11 @@ i18n.use(initReactI18next).init({
   debug: import.meta.env.DEV && false,
 })
 
+// Keep <html lang> in sync for screen readers and browser translation prompts
+const syncHtmlLang = (lng) => { try { document.documentElement.lang = lng?.startsWith('es') ? 'es' : 'en' } catch {} }
+syncHtmlLang(i18n.language)
+i18n.on('languageChanged', syncHtmlLang)
+
 export default i18n
 export { useTranslation } from 'react-i18next'
 export { detectLanguage }

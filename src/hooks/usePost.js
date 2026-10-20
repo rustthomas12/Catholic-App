@@ -64,7 +64,7 @@ export function usePost(postId, initialPost) {
     if (commentChannelRef.current) return // already subscribed
 
     const channel = supabase
-      .channel(`comments-${postId}`)
+      .channel(`comments-${postId}_${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
@@ -102,6 +102,7 @@ export function usePost(postId, initialPost) {
   }, [commentsExpanded, fetchComments, subscribeToComments])
 
   // ── toggleLike ─────────────────────────────────────────────
+  // posts.like_count / comment_count are kept by DB triggers (migration 038)
   const toggleLike = useCallback(async () => {
     if (!user) return
     if (profile?.suspended_at) return
@@ -142,27 +143,22 @@ export function usePost(postId, initialPost) {
       return { error: supabaseError.message }
     }
 
-    // Fire-and-forget: keep denormalised like_count in sync
-    supabase
-      .from('posts')
-      .update({ like_count: newCount })
-      .eq('id', postId)
-      .then(() => {})
-
     // Notify post author (not self)
     if (!wasLiked && post.author?.id && post.author.id !== user.id) {
-      const actorName = user.user_metadata?.full_name || 'Someone'
+      const actorName = profile?.full_name || user.user_metadata?.full_name || 'Someone'
       createNotification({
         userId: post.author.id,
         type: 'like',
         referenceId: postId,
-        message: `${actorName} liked your post`,
+        message: post.is_prayer_request
+          ? `${actorName} is praying for your intention`
+          : `${actorName} liked your post`,
         actorId: user.id,
       })
     }
 
     return { error: null }
-  }, [user, post, postId])
+  }, [user, profile?.full_name, profile?.suspended_at, post, postId])
 
   // ── addComment ─────────────────────────────────────────────
   const addComment = useCallback(
@@ -187,13 +183,6 @@ export function usePost(postId, initialPost) {
       setComments((prev) => [...prev, data])
       setPost((p) => ({ ...p, comment_count: p.comment_count + 1 }))
 
-      // Keep denormalised comment_count in sync
-      supabase
-        .from('posts')
-        .update({ comment_count: post.comment_count + 1 })
-        .eq('id', postId)
-        .then(() => {})
-
       // Update last_active_at
       supabase
         .from('profiles')
@@ -203,7 +192,7 @@ export function usePost(postId, initialPost) {
 
       // Notify post author (not self)
       if (post.author?.id && post.author.id !== user.id) {
-        const actorName = user.user_metadata?.full_name || 'Someone'
+        const actorName = profile?.full_name || user.user_metadata?.full_name || 'Someone'
         const preview = trimmed.slice(0, 50)
         createNotification({
           userId: post.author.id,
@@ -216,7 +205,7 @@ export function usePost(postId, initialPost) {
 
       return { error: null }
     },
-    [user, postId, post]
+    [user, profile?.full_name, profile?.suspended_at, postId, post]
   )
 
   // ── deleteComment ──────────────────────────────────────────
@@ -235,12 +224,6 @@ export function usePost(postId, initialPost) {
       setComments((prev) => prev.filter((c) => c.id !== commentId))
       setPost((p) => ({ ...p, comment_count: Math.max(0, p.comment_count - 1) }))
 
-      supabase
-        .from('posts')
-        .update({ comment_count: Math.max(0, post.comment_count - 1) })
-        .eq('id', postId)
-        .then(() => {})
-
       return { error: null }
     },
     [user, postId, post]
@@ -257,6 +240,23 @@ export function usePost(postId, initialPost) {
       .eq('author_id', user.id) // security: own only
 
     if (error) return { error: error.message }
+    return { error: null }
+  }, [user, postId])
+
+  // ── editPost ───────────────────────────────────────────────
+  const editPost = useCallback(async (content) => {
+    if (!user) return { error: 'Not authenticated' }
+    const trimmed = content.trim()
+    if (!trimmed) return { error: 'Post cannot be empty' }
+
+    const { error } = await supabase
+      .from('posts')
+      .update({ content: trimmed, updated_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('author_id', user.id) // security: own only
+
+    if (error) return { error: error.message }
+    setPost((p) => ({ ...p, content: trimmed }))
     return { error: null }
   }, [user, postId])
 
@@ -310,6 +310,7 @@ export function usePost(postId, initialPost) {
     addComment,
     deleteComment,
     deletePost,
+    editPost,
     reportPost,
   }
 }

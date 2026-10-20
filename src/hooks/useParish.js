@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
+import { fuzzyIlike } from '../utils/search'
 
 // Haversine distance in miles
 export function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -15,7 +16,7 @@ export function haversineMiles(lat1, lon1, lat2, lon2) {
 }
 
 const PARISH_SELECT =
-  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id'
+  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id, description'
 
 // ── useParishSearch ────────────────────────────────────────
 export function useParishSearch() {
@@ -45,8 +46,7 @@ export function useParishSearch() {
       setLoading(true)
       setError(null)
 
-      // Strip punctuation so "St Stanislaus" matches "St. Stanislaus"
-      const normalized = trimmed.replace(/['.,-]/g, '').replace(/\s+/g, ' ')
+      const fuzzy = fuzzyIlike(trimmed)
 
       let query = supabase
         .from('parishes')
@@ -60,12 +60,12 @@ export function useParishSearch() {
       if (trimmed.length >= 2 && cityTrimmed.length >= 2) {
         // Both name and city provided — AND them for precise narrowing
         // e.g. "St Mary's" AND "Worcester" → only St Mary's in Worcester
-        query = query.or(`name.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`)
+        query = query.or(`name.ilike.${fuzzy},diocese.ilike.${fuzzy}`)
         query = query.or(`city.ilike.%${cityTrimmed}%,zip.ilike.%${cityTrimmed}%`)
       } else if (trimmed.length >= 2) {
         // Name-only search — match across name, city, zip, diocese
         query = query.or(
-          `name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,zip.ilike.%${trimmed}%,diocese.ilike.%${trimmed}%,name.ilike.%${normalized}%`
+          `name.ilike.${fuzzy},city.ilike.${fuzzy},zip.ilike.${fuzzy},diocese.ilike.${fuzzy}`
         )
       } else if (cityTrimmed.length >= 2) {
         // City/zip-only search — show all parishes in that city/zip
@@ -367,31 +367,12 @@ export function useParish(parishId) {
         setFollowerCount((c) => c + 1)
         invalidateFollowedParishesCache()
 
-        // Fire-and-forget: notify parish admins of new follower
-        ;(async () => {
-          const { data: admins } = await supabase
-            .from('parish_admins')
-            .select('user_id')
-            .eq('parish_id', parishId)
-            .neq('user_id', userId)
-          if (admins?.length) {
-            await supabase.from('notifications').insert(
-              admins.map(a => ({
-                user_id: a.user_id,
-                type: 'new_parish_member',
-                reference_id: parishId,
-                message: `Someone is now following your parish`,
-                actor_id: userId,
-                is_read: false,
-              }))
-            )
-          }
-        })()
+        // Parish admins are notified by a database trigger (migration 034)
       }
     }
 
     setFollowLoading(false)
-  }, [userId, parishId, isFollowing, isMyParish, followLoading, updateProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, parishId, isFollowing, isMyParish, followLoading, updateProfile, profile?.full_name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const setAsMyParish = useCallback(async () => {
     if (!userId) return { error: 'Not authenticated' }

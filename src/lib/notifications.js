@@ -1,7 +1,10 @@
 import { supabase } from './supabase'
 
-// Map notification types to notification_preferences column names
-const PREFERENCE_MAP = {
+// Map notification types to notification_preferences column names.
+// Enforced server-side by apply_notification_preferences() (migration 040)
+// — keep the two in sync. The recipient's prefs aren't readable from the
+// actor's browser, so the check can't live here.
+export const PREFERENCE_MAP = {
   like:                   'likes',
   comment:                'comments',
   group_invite:           'group_invites',
@@ -14,6 +17,7 @@ const PREFERENCE_MAP = {
   event_reminder:         'event_reminders',
   post_flagged:           'post_flagged',
   new_parish_member:      'new_parish_member',
+  parish_message:         'parish_message',
   group_post:             'group_posts',
   new_group_member:       'new_group_member',
   chapter_request:        'chapter_requests',
@@ -26,8 +30,7 @@ const PREFERENCE_MAP = {
 /**
  * Creates an in-app notification for a user.
  *
- * Checks notification_preferences before inserting — if the user
- * has disabled this notification type it is silently skipped.
+ * The database drops it if the recipient has turned this type off.
  *
  * Never notifies users of their own actions.
  *
@@ -48,20 +51,6 @@ export async function createNotification({
   if (!userId) return
   // Never notify users of their own actions
   if (actorId && userId === actorId) return
-
-  // Check notification preferences before inserting
-  const prefColumn = PREFERENCE_MAP[type]
-  if (prefColumn) {
-    const { data: prefs } = await supabase
-      .from('notification_preferences')
-      .select(prefColumn)
-      .eq('user_id', userId)
-      .single()
-
-    // If prefs record exists and this type is explicitly disabled: skip.
-    // If no record exists at all: use defaults (all enabled).
-    if (prefs && prefs[prefColumn] === false) return
-  }
 
   const { error } = await supabase.from('notifications').insert({
     user_id:      userId,
@@ -112,7 +101,10 @@ export function notificationPath(type, referenceId) {
     case 'new_group_member':
       return ref ? `/group/${ref}` : '/groups'
     case 'new_parish_member':
+    case 'pastor_verified':
       return ref ? `/parish-admin/${ref}` : '/'
+    case 'parish_message':
+      return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
     case 'chapter_request_resolved':

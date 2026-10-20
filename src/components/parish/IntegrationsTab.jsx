@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import { formatDistanceToNow } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { supabase, authJsonHeaders } from '../../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../../lib/platform'
-import { useAuth } from '../../hooks/useAuth.jsx'
 import { toast } from '../shared/Toast'
 import LoadingSpinner from '../shared/LoadingSpinner'
 
@@ -51,7 +50,6 @@ const PLATFORMS = [
 ]
 
 export default function IntegrationsTab({ parishId }) {
-  const { user } = useAuth()
   const [integrations, setIntegrations] = useState({})
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -105,22 +103,39 @@ export default function IntegrationsTab({ parishId }) {
     toast.success('Disconnected')
   }
 
-  function handleConnect(platform) {
+  async function handleConnect(platform) {
     if (platform.authType === 'oauth') {
-      const params = new URLSearchParams({
-        parish_id:     parishId,
-        admin_user_id: user.id,
-      })
       // Native apps can't open popup windows: run OAuth in the in-app browser
       // sheet instead. The server's result page deep-links back and
       // NativeBridge re-posts it as the same INTEGRATION_RESULT message.
-      if (isNative) params.set('native', '1')
-      const authUrl = apiUrl(`/api/integrations?action=facebook-auth&${params}`)
+      // Open the popup synchronously (popup blockers), then point it at the
+      // signed OAuth URL the server returns for this signed-in admin.
       const popup = isNative ? null : window.open(
-        authUrl,
+        'about:blank',
         'infold_oauth',
         'width=600,height=700,left=200,top=100'
       )
+      let authUrl
+      try {
+        const res = await fetch(apiUrl('/api/integrations?action=facebook-start'), {
+          method: 'POST',
+          headers: await authJsonHeaders(),
+          body: JSON.stringify({ parish_id: parishId, native: isNative }),
+        })
+        const data = await res.json()
+        if (data.result === 'not_configured') {
+          popup?.close()
+          toast.error('Facebook integration is not yet configured. Contact support to enable it.')
+          return
+        }
+        if (!res.ok || !data.url) throw new Error(data.error || 'Could not start Facebook connection')
+        authUrl = data.url
+      } catch (err) {
+        popup?.close()
+        toast.error(err.message)
+        return
+      }
+      if (popup) popup.location.href = authUrl
 
       const onMessage = (e) => {
         if (e.data?.type !== 'INTEGRATION_RESULT' || e.data.platform !== platform.id) return
@@ -171,7 +186,7 @@ export default function IntegrationsTab({ parishId }) {
 
       const res = await fetch(apiUrl(endpoint), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authJsonHeaders(),
         body: JSON.stringify({ parish_id: parishId, platform: platform.id, ...formData }),
       })
       const data = await res.json()

@@ -77,3 +77,12 @@ export async function getProfile(userId) {
     .single()
   return { data, error }
 }
+
+/** JSON headers carrying the user's session token, for our /api routes. */
+export async function authJsonHeaders() {
+  const { data: { session } } = await supabaseAuth.auth.getSession()
+  return {
+    'Content-Type': 'application/json',
+    ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+  }
+}

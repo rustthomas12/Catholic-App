@@ -27,8 +27,8 @@
     "success": "Your post was shared",
     "deleted": "Post deleted",
     "removed": "[This post was removed]",
+    "edited": "Post updated",
     "edit": "Edit post",
-    "edit_coming_soon": "Editing posts is coming soon",
     "delete": "Delete post",
     "delete_confirm": "Delete this post? This cannot be undone.",
     "confirm_delete": "Delete this post?",
@@ -42,7 +42,10 @@
     "block_body": "You won't see their posts, comments, prayer requests or messages, and they won't be able to message you. You can unblock them any time in Settings.",
     "block_confirm": "Block",
     "blocked": "{{name}} has been blocked",
-    "deleted": "Post deleted"
+    "prayer_badge": "🙏 Prayer Request",
+    "at_place": "at {{name}}",
+    "in_place": "in {{name}}",
+    "from_place": "from {{name}}"
   },
   "like": {
     "like": "Like",
@@ -57,7 +60,8 @@
     "count_one": "{{count}} comment",
     "count_other": "{{count}} comments",
     "removed": "[Comment removed]",
-    "delete": "Delete comment"
+    "delete": "Delete comment",
+    "action": "Comment"
   },
   "prayer": {
     "title": "Prayer Requests",

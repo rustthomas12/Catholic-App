@@ -6,6 +6,10 @@ import {
   isTomorrow,
   isThisWeek,
 } from 'date-fns'
+import { es } from 'date-fns/locale'
+import i18n from './i18n'
+
+const dateLocale = () => (i18n.language === 'es' ? { locale: es } : undefined)
 
 /**
  * Returns a human-readable relative time string.
@@ -20,12 +24,13 @@ export function formatRelativeTime(date) {
   const diffDays = Math.floor(diffMs / 86400000)
   const diffWeeks = Math.floor(diffDays / 7)
 
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins} minutes ago`
-  if (diffHours < 24) return `${diffHours} hours ago`
-  if (diffDays < 14) return `${diffDays} days ago`
-  if (diffWeeks < 8) return `${diffWeeks} weeks ago`
-  return format(d, 'MMMM d')
+  const t = (key, count) => i18n.t(`common:time.${key}`, { count })
+  if (diffMins < 1) return t('just_now')
+  if (diffMins < 60) return t('minutes_ago', diffMins)
+  if (diffHours < 24) return t('hours_ago', diffHours)
+  if (diffDays < 14) return t('days_ago', diffDays)
+  if (diffWeeks < 8) return t('weeks_ago', diffWeeks)
+  return format(d, i18n.language === 'es' ? "d 'de' MMMM" : 'MMMM d', dateLocale())
 }
 
 /**

@@ -18,7 +18,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
@@ -548,14 +548,18 @@ function EventsTab({ parishId }) {
 
   async function handleCreate() {
     if (!form.title.trim() || !form.start_time || !user) return
+    if (form.end_time && new Date(form.end_time) < new Date(form.start_time)) {
+      toast.error('The end time must be after the start time.')
+      return
+    }
     setSaving(true)
     const { error } = await supabase.from('events').insert({
       parish_id: parishId,
       creator_id: user.id,
       title: form.title.trim(),
       description: form.description.trim() || null,
-      start_time: form.start_time,
-      end_time: form.end_time || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
       location: form.location.trim() || null,
     })
     if (error) {
@@ -1074,6 +1078,9 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
   const [billingEvents, setBillingEvents] = useState([])
 
   const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
+  // A canceled / expired plan can't be restarted from Stripe's portal, so
+  // offer a fresh checkout instead of leaving the parish locked out.
+  const needsPlan = !subscription || ['canceled', 'incomplete_expired'].includes(subscription.status)
 
   useEffect(() => {
     if (!hasActiveSub || !subscription?.stripe_customer_id) return
@@ -1092,14 +1099,8 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     try {
       const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parishId,
-          parishName: parish?.name,
-          adminUserId: user.id,
-          adminEmail: user.email,
-          tierKey: selectedTier,
-        }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ parishId, tierKey: selectedTier }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -1116,10 +1117,14 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
+      const { data: { session } } = await supabaseAuth.auth.getSession()
       const res = await fetch(apiUrl('/api/create-portal-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ parishId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -1156,9 +1161,12 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       <h2 className="font-bold text-navy">Billing</h2>
 
       {/* ── Subscription status ── */}
-      {!subscription ? (
+      {needsPlan ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Plan</p>
+          {subscription && (
+            <p className="text-sm text-gray-500 mb-3">Your previous plan was canceled. Choose a plan to reactivate your parish dashboard.</p>
+          )}
           <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
           <p className="text-sm text-gray-500 mb-5">No credit card required until day 90. Choose the plan that fits your parish.</p>
 

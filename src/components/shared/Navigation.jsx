@@ -1,5 +1,6 @@
-import { memo, useState, useEffect, useRef } from 'react'
+import { memo, useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
   BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
@@ -42,21 +43,21 @@ function CrossIcon({ solid = false, className = '' }) {
 // ── Desktop sidebar tabs ───────────────────────────────────
 const desktopTabs = [
   {
-    label: 'Home',
+    label: 'nav.home',
     Icon: HomeIcon,
     IconSolid: HomeIconSolid,
     active: (p) => p === '/',
     to: '/',
   },
   {
-    label: 'Groups',
+    label: 'nav.groups',
     Icon: UserGroupIcon,
     IconSolid: UserGroupIconSolid,
     active: (p) => p.startsWith('/groups') || p.startsWith('/group/'),
     to: '/groups',
   },
   {
-    label: 'Faith',
+    label: 'nav.faith',
     Icon: CrossIcon,
     IconSolid: (props) => <CrossIcon solid {...props} />,
     active: (p) => p.startsWith('/faith') || p.startsWith('/saints'),
@@ -64,17 +65,17 @@ const desktopTabs = [
     isFaith: true,
   },
   {
-    label: 'Directory',
+    label: 'nav.directory',
     Icon: MapIcon,
     IconSolid: MapIconSolid,
     active: (p) => p.startsWith('/directory') || p.startsWith('/parish/'),
     to: '/directory',
   },
   {
-    label: 'Profile',
+    label: 'nav.profile',
     Icon: null,
     IconSolid: null,
-    active: (p) => p.startsWith('/profile') || p.startsWith('/settings'),
+    active: (p) => p.startsWith('/profile') || p === '/settings/profile',
     to: '/profile',
     isProfile: true,
   },
@@ -84,21 +85,21 @@ const desktopTabs = [
 // Home · Groups · Faith · Notifications · More
 const mobileTabs = [
   {
-    label: 'Home',
+    label: 'nav.home',
     Icon: HomeIcon,
     IconSolid: HomeIconSolid,
     active: (p) => p === '/',
     to: '/',
   },
   {
-    label: 'Groups',
+    label: 'nav.groups',
     Icon: UserGroupIcon,
     IconSolid: UserGroupIconSolid,
     active: (p) => p.startsWith('/groups') || p.startsWith('/group/'),
     to: '/groups',
   },
   {
-    label: 'Faith',
+    label: 'nav.faith',
     Icon: CrossIcon,
     IconSolid: (props) => <CrossIcon solid {...props} />,
     active: (p) => p.startsWith('/faith') || p.startsWith('/saints'),
@@ -106,7 +107,7 @@ const mobileTabs = [
     isFaith: true,
   },
   {
-    label: 'Alerts',
+    label: 'nav.alerts',
     Icon: BellIcon,
     IconSolid: BellIconSolid,
     active: (p) => p === '/notifications',
@@ -120,6 +121,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
   const location = useLocation()
   const sheetRef = useRef(null)
   const [adminExpanded, setAdminExpanded] = useState(false)
+  const { t } = useTranslation('common')
 
   const hasAdmin = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
 
@@ -163,7 +165,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         role="dialog"
         aria-modal="true"
-        aria-label="More options"
+        aria-label={t('nav.more_options')}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-2">
@@ -190,10 +192,10 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
 
         {/* Nav links */}
         <div className="py-2">
-          <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label="Messages"      badge={unreadDMs} active={isActive('/messages')} />
-          <SheetRow to="/directory"     Icon={MapIcon}                 label="Directory"     active={isActive('/directory') || isActive('/parish/')} />
-          <SheetRow to="/organizations" Icon={BuildingOffice2Icon}     label="Organizations" active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')} />
-          <SheetRow to="/settings"      Icon={Cog6ToothIcon}           label="Settings"      active={isActive('/settings')} />
+          <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label={t('nav.messages')}      badge={unreadDMs} active={isActive('/messages')} />
+          <SheetRow to="/directory"     Icon={MapIcon}                 label={t('nav.directory')}     active={isActive('/directory') || isActive('/parish/')} />
+          <SheetRow to="/organizations" Icon={BuildingOffice2Icon}     label={t('nav.organizations')} active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')} />
+          <SheetRow to="/settings"      Icon={Cog6ToothIcon}           label={t('nav.settings')}      active={isActive('/settings')} />
 
           {/* Admin — collapsible */}
           {hasAdmin && (
@@ -206,21 +208,21 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${adminExpanded ? 'bg-red-500/20' : 'bg-white/10'}`}>
                   <ShieldExclamationIcon className={`w-5 h-5 ${adminExpanded ? 'text-red-400' : 'text-white/70'}`} />
                 </div>
-                <span className="flex-1 text-left text-sm font-medium text-white/80">Admin</span>
+                <span className="flex-1 text-left text-sm font-medium text-white/80">{t('nav.admin')}</span>
                 <Chevron flipped={adminExpanded} />
               </button>
 
               {adminExpanded && (
                 <div className="mx-4 mb-1 rounded-xl bg-white/5 overflow-hidden">
                   {isPlatformAdmin && (
-                    <SheetSubRow to="/admin" Icon={ShieldExclamationIcon} label="Platform Admin" danger active={isActive('/admin')} />
+                    <SheetSubRow to="/admin" Icon={ShieldExclamationIcon} label={t('nav.platform_admin')} danger active={isActive('/admin')} />
                   )}
                   {parishAdminRecords.map(record => (
                     <SheetSubRow
                       key={record.parish_id}
                       to={`/parish-admin/${record.parish_id}`}
                       Icon={BuildingLibraryIcon}
-                      label={record.parishes?.name || 'My Parish'}
+                      label={record.parishes?.name || t('nav.my_parish')}
                       active={location.pathname === `/parish-admin/${record.parish_id}`}
                     />
                   ))}
@@ -229,7 +231,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
                       key={record.org_id}
                       to={`/org-admin/${record.org_id}`}
                       Icon={BuildingOffice2Icon}
-                      label={record.organizations?.name || 'My Organization'}
+                      label={record.organizations?.name || t('nav.my_organization')}
                       active={location.pathname === `/org-admin/${record.org_id}`}
                     />
                   ))}
@@ -248,7 +250,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
             <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
               <ArrowRightOnRectangleIcon className="w-5 h-5 text-white/60" />
             </div>
-            <span className="text-sm font-medium text-white/60">Sign out</span>
+            <span className="text-sm font-medium text-white/60">{t('nav.sign_out')}</span>
           </button>
         </div>
 
@@ -292,10 +294,13 @@ function Navigation() {
   const { unreadCount } = useNotifications()
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
   const season = getLiturgicalSeason()
+  const { t } = useTranslation('common')
   const [unreadDMs, setUnreadDMs] = useState(0)
   const [moreOpen, setMoreOpen] = useState(false)
 
-  useEffect(() => {
+  // Unread DM badge: recount on navigation, when a thread is read,
+  // and when a new message arrives.
+  const recountDMs = useCallback(() => {
     if (!user) { setUnreadDMs(0); return }
     supabase
       .from('direct_messages')
@@ -303,8 +308,30 @@ function Navigation() {
       .eq('recipient_id', user.id)
       .eq('is_read', false)
       .then(({ count }) => setUnreadDMs(count ?? 0))
-      .catch(() => {})
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { recountDMs() }, [recountDMs, location.pathname])
+
+  // One realtime channel per mount (unique name — re-using a name returns the
+  // already-subscribed channel and .on() then throws).
+  useEffect(() => {
+    if (!user) return
+    const suffix = Math.random().toString(36).slice(2)
+    window.addEventListener('infold:dms-read', recountDMs)
+    const channel = supabase
+      .channel(`dm_badge_${user.id}_${suffix}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'direct_messages',
+        filter: `recipient_id=eq.${user.id}`,
+      }, recountDMs)
+      .subscribe()
+    return () => {
+      window.removeEventListener('infold:dms-read', recountDMs)
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, recountDMs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isPublic = PUBLIC_PATHS.some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')
@@ -367,7 +394,7 @@ function Navigation() {
                   )}
                 </div>
                 <span className={`text-[10px] font-medium ${active ? 'text-gold' : 'text-gray-400'}`}>
-                  {label}
+                  {t(label)}
                 </span>
               </Link>
             )
@@ -377,7 +404,7 @@ function Navigation() {
           <button
             onClick={() => setMoreOpen(true)}
             className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 group"
-            aria-label="More options"
+            aria-label={t('nav.more_options')}
           >
             <div className="relative flex items-center justify-center">
               {/* Avatar when "more" pages are active, hamburger otherwise */}
@@ -461,7 +488,7 @@ function Navigation() {
                       style={{ backgroundColor: season.color }} />
                   )}
                 </div>
-                <span className="text-sm font-medium">{label}</span>
+                <span className="text-sm font-medium">{t(label)}</span>
               </Link>
             )
           })}
@@ -481,16 +508,16 @@ function Navigation() {
                 </span>
               )}
             </div>
-            <span className="text-sm font-medium">Notifications</span>
+            <span className="text-sm font-medium">{t('nav.notifications')}</span>
           </Link>
 
           {/* Settings */}
           <Link to="/settings"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              location.pathname.startsWith('/settings') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              location.pathname.startsWith('/settings') && location.pathname !== '/settings/profile' ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}>
             <Cog6ToothIcon className="w-5 h-5" />
-            <span className="text-sm font-medium">Settings</span>
+            <span className="text-sm font-medium">{t('nav.settings')}</span>
           </Link>
 
           {/* Organizations */}
@@ -500,7 +527,7 @@ function Navigation() {
                 ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}>
             <BuildingOffice2Icon className="w-5 h-5" />
-            <span className="text-sm font-medium">Organizations</span>
+            <span className="text-sm font-medium">{t('nav.organizations')}</span>
           </Link>
 
           {/* Messages */}
@@ -518,7 +545,7 @@ function Navigation() {
                 </span>
               )}
             </div>
-            <span className="text-sm font-medium">Messages</span>
+            <span className="text-sm font-medium">{t('nav.messages')}</span>
           </Link>
 
           {/* Admin section */}
@@ -526,7 +553,7 @@ function Navigation() {
             <>
               <div className="mx-3 border-t border-white/10 my-1" />
               <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold text-white/40 uppercase tracking-widest">
-                Admin
+                {t('nav.admin')}
               </p>
 
               {isPlatformAdmin && (
@@ -535,7 +562,7 @@ function Navigation() {
                     location.pathname.startsWith('/admin') ? 'bg-red-900/40 text-red-300' : 'text-red-400 hover:bg-red-900/20 hover:text-red-300'
                   }`}>
                   <ShieldExclamationIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">Platform Admin</span>
+                  <span className="text-sm font-medium">{t('nav.platform_admin')}</span>
                 </Link>
               )}
 
@@ -546,7 +573,7 @@ function Navigation() {
                   }`}>
                   <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="text-sm font-medium truncate">
-                    {record.parishes?.name || 'My Parish'}
+                    {record.parishes?.name || t('nav.my_parish')}
                   </span>
                 </Link>
               ))}
@@ -558,7 +585,7 @@ function Navigation() {
                   }`}>
                   <BuildingOffice2Icon className="w-5 h-5 flex-shrink-0" />
                   <span className="text-sm font-medium truncate">
-                    {record.organizations?.name || 'My Organization'}
+                    {record.organizations?.name || t('nav.my_organization')}
                   </span>
                 </Link>
               ))}
@@ -573,9 +600,14 @@ function Navigation() {
               isVerifiedClergy={profile?.is_verified_clergy} />
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">{profile?.full_name || 'Parish Member'}</p>
-              {profile?.parish_id && (
-                <p className="text-gray-400 text-xs truncate">Parish member</p>
-              )}
+              <p className="text-gray-400 text-xs truncate">
+                {t(isPlatformAdmin ? 'nav.role_platform_admin'
+                  : profile?.is_verified_clergy ? 'nav.role_clergy'
+                  : parishAdminRecords.length > 0 ? 'nav.role_parish_admin'
+                  : orgAdminRecords.length > 0 ? 'nav.role_org_admin'
+                  : profile?.parish_id ? 'nav.role_parish_member'
+                  : 'nav.role_member')}
+              </p>
             </div>
           </div>
           <div className="px-1 py-1 mb-1">
@@ -587,7 +619,7 @@ function Navigation() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
             </svg>
-            Sign out
+            {t('nav.sign_out')}
           </button>
         </div>
       </nav>

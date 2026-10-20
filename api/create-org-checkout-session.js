@@ -1,5 +1,6 @@
 import { applyNativeCors, returnUrl } from './_native.js'
 import Stripe from 'stripe'
+import { getSessionUser, isOrgAdmin, isPlatformAdmin } from './_auth.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -25,15 +26,25 @@ export default async function handler(req, res) {
   if (applyNativeCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { orgId, orgName, adminUserId, adminEmail, billingTrack = 'standalone', tier } = req.body
+  const caller = await getSessionUser(req)
+  if (!caller) return res.status(401).json({ error: 'Please sign in again' })
 
-  if (!orgId || !adminUserId || !tier) {
+  const { orgId, billingTrack = 'standalone', tier } = req.body || {}
+  if (!orgId || !tier) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
+  if (!['standalone', 'national'].includes(billingTrack)) {
+    return res.status(400).json({ error: 'Invalid billing track' })
+  }
+  if (!(await isOrgAdmin(caller.id, orgId)) && !(await isPlatformAdmin(caller.id))) {
+    return res.status(403).json({ error: 'Only an admin of this organization can manage its billing' })
+  }
+  const adminUserId = caller.id
+  const adminEmail  = caller.email
 
   if (tier === 'national_network') {
     return res.status(400).json({
-      error: 'National Network (51+ chapters) requires a custom contract. Please contact us at hello@getinfold.app.'
+      error: 'National Network (51+ chapters) requires a custom contract. Please contact us at info@getinfold.app.'
     })
   }
 
