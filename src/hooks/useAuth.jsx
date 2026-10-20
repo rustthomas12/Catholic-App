@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { supabase, supabaseAuth } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, authRedirectUrl } from '../lib/platform'
 import i18n from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
@@ -136,11 +136,9 @@ export function AuthProvider({ children }) {
       !sessionStorage.getItem('infold-return-tracked')
     ) {
       sessionStorage.setItem('infold-return-tracked', 'true')
-      fetch(apiUrl('/api/track-return'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      }).catch(() => {})
+      authJsonHeaders()
+        .then(headers => fetch(apiUrl('/api/track-return'), { method: 'POST', headers }))
+        .catch(() => {})
     }
 
     return profileData

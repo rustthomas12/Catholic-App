@@ -18,7 +18,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase, supabaseAuth } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
@@ -1095,14 +1095,8 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     try {
       const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parishId,
-          parishName: parish?.name,
-          adminUserId: user.id,
-          adminEmail: user.email,
-          tierKey: selectedTier,
-        }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ parishId, tierKey: selectedTier }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

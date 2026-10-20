@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { format, parseISO, addDays } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase, supabaseAuth } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -1361,8 +1361,8 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     try {
       const res = await fetch(apiUrl('/api/create-org-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orgId, orgName: org.name, adminUserId: user.id, adminEmail: user.email, billingTrack, tier: selectedTier }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ orgId, billingTrack, tier: selectedTier }),
       })
       const data = await res.json()
       if (data.url) await openExternal(data.url)

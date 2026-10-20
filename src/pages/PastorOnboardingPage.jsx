@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 
@@ -275,14 +275,8 @@ function StepTrial({ parish, tier, user, onBack }) {
     try {
       const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parishId:    parish.id,
-          parishName:  parish.name,
-          adminUserId: user.id,
-          adminEmail:  user.email,
-          tierKey:     tier.key,
-        }),
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ parishId: parish.id, tierKey: tier.key }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')

@@ -172,28 +172,15 @@ export default async function handler(req, res) {
               stripe_customer_id: customerId,
               donation_tier: 'benefactor',
               donation_tier_since: new Date().toISOString(),
-              one_time_donation_total_cents: supabase.rpc
-                ? undefined  // handled below
-                : 0,
             })
             .eq('id', userId)
 
-          // Increment one_time_donation_total_cents
-          await supabase.rpc('increment_donation_total', {
+          // Atomic increment (migration 044)
+          const { error: incErr } = await supabase.rpc('increment_donation_total', {
             p_user_id: userId,
             p_amount: amountCents,
-          }).catch(() => {
-            // RPC may not exist — update directly instead
-            supabase.from('profiles')
-              .select('one_time_donation_total_cents')
-              .eq('id', userId)
-              .single()
-              .then(({ data }) => {
-                supabase.from('profiles').update({
-                  one_time_donation_total_cents: (data?.one_time_donation_total_cents || 0) + amountCents,
-                }).eq('id', userId)
-              })
           })
+          if (incErr) console.error('increment_donation_total failed:', incErr.message)
 
         } else if (tier) {
           // Recurring subscription — subscription events handle ongoing status
@@ -357,11 +344,13 @@ export default async function handler(req, res) {
 }
 
 async function logBillingEvent(userId, customerId, eventType, extras = {}) {
-  await supabase.from('billing_events').insert({
+  // Query builders have no .catch(); check the returned error instead
+  const { error } = await supabase.from('billing_events').insert({
     user_id: userId,
     stripe_customer_id: customerId,
     stripe_event_id: null,
     event_type: eventType,
     ...extras,
-  }).catch(err => console.error('Failed to log billing event:', err.message))
+  })
+  if (error) console.error('Failed to log billing event:', error.message)
 }
