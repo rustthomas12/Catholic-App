@@ -548,6 +548,10 @@ function EventsTab({ parishId }) {
 
   async function handleCreate() {
     if (!form.title.trim() || !form.start_time || !user) return
+    if (form.end_time && new Date(form.end_time) < new Date(form.start_time)) {
+      toast.error('The end time must be after the start time.')
+      return
+    }
     setSaving(true)
     const { error } = await supabase.from('events').insert({
       parish_id: parishId,

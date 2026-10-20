@@ -342,6 +342,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
           placeholder="Message…"
+          maxLength={2000}
           rows={1}
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-32 overflow-y-auto"
           style={{ minHeight: '40px' }}

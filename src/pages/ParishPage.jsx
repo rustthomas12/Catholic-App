@@ -298,6 +298,7 @@ function ContactModal({ parishId, parishName, onClose }) {
           value={body}
           onChange={e => setBody(e.target.value)}
           placeholder="Your message…"
+          maxLength={5000}
           rows={5}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
         />
