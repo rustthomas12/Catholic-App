@@ -40,7 +40,7 @@ export default function GroupPage() {
   const { t } = useTranslation('groups')
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [activeTab, setActiveTab] = useState('feed')
   const [leaveOpen, setLeaveOpen] = useState(false)
@@ -79,15 +79,7 @@ export default function GroupPage() {
           .then(({ count }) => (count ?? 0) > 0)
       )
       // Also allow if it's their home parish
-      if (user?.id) {
-        checks.push(
-          supabase.from('profiles')
-            .select('parish_id')
-            .eq('id', user.id)
-            .single()
-            .then(({ data }) => data?.parish_id === parish_id)
-        )
-      }
+      if (profile?.parish_id === parish_id) checks.push(Promise.resolve(true))
     }
     if (org_id) {
       checks.push(
@@ -102,7 +94,7 @@ export default function GroupPage() {
     Promise.all(checks).then(results => {
       setCanAccess(results.some(Boolean))
     })
-  }, [group?.id, group?.parish_id, group?.org_id, isMember, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [group?.id, group?.parish_id, group?.org_id, isMember, user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (group?.name) document.title = `${group.name} | inFold`

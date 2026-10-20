@@ -142,7 +142,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S1 | View own profile; view another user's profile | B | ✅ |
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
-| S4 | Profile visibility (Public / Members only) respected by other user | B,C | ❌ |
+| S4 | Profile visibility (Public / Members only) respected by other user | B,C | 🔧 |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
@@ -304,7 +304,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
 | 64 | S6 | **Notification settings were ignored** for anything caused by another user (actor's browser can't read recipient's prefs) | Mig. 040: enforced in DB for all sources | ✅ |
 | 66 | D9 | Support address inconsistent: 3 spots used hello@getinfold.app (parish correction link, suspended screen, org checkout error) vs info@ everywhere else | All → info@ (add a hello@ route in Cloudflare if you prefer that one) | 🔧 |
-| 67 | S4 | **"Members only" profile visibility is saved but never enforced** — anyone can view the profile. Also signed-in users can read other users' private profile columns (Stripe customer ID, donation totals, subscription) | Signed-out access limited to public columns (mig. 041). **Decide:** what "Members only" should mean (signed-in users? shared parish/group?) — then I'll enforce it and split private columns out | open |
+| 67 | S4 | **"Members only" profile visibility was saved but never enforced**; signed-in users could read other users' private columns (Stripe customer ID, donation totals, subscription) | Option B: bio + parish only for people sharing a parish/group/org (`get_profile`, mig. 053); own row via `get_my_profile`; column lock **mig. 054 — apply right after PR #5 is live**. Also fixed a previous profile's parish carrying over | 🔧 |
 | 68 | E*/PA* | Both test parishes' subscriptions are `canceled` → parish dashboard, events, announcement styling all wait on the Stripe test checkout | **You** | ⏭ |
 | 69 | O5 | **Invite codes listable by anyone (even signed out); use_count never incremented → max uses / expiry not enforced; signed-out invitees lost the invite after sign-in/sign-up** | Mig. 042 RPCs; invite resumes after login | ✅ |
 | 70 | O9 | Org admins could set `is_official` badge / `org_type` (incl. "national") themselves | Mig. 042 guard; type read-only in settings | ✅ |

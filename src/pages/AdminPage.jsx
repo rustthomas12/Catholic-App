@@ -758,10 +758,7 @@ function PendingPastors() {
   const [busy, setBusy] = useState(null)
 
   const load = useCallback(async () => {
-    const { data: people } = await supabase.from('profiles')
-      .select('id, full_name, username, vocation_state, pending_pastor_parish_id')
-      .not('pending_pastor_parish_id', 'is', null)
-      .is('deleted_at', null)
+    const { data: people } = await supabase.rpc('admin_pending_pastors')
     const ids = [...new Set((people ?? []).map(p => p.pending_pastor_parish_id))]
     const { data: parishes } = ids.length
       ? await supabase.from('parishes').select('id, name, city, state').in('id', ids)

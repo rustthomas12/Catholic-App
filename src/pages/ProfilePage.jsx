@@ -61,19 +61,23 @@ export default function ProfilePage() {
 
     document.title = 'Profile | inFold'
     setLoading(true)
+    // Clear the previous profile's details so nothing carries over
+    // (e.g. a parish shown on a private profile)
+    setParish(null)
+    setPostCount(0)
 
     async function load() {
       try {
-        const { data: p, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', targetId)
-          .single()
+        // get_profile applies profile_visibility: bio and parish are omitted
+        // (limited: true) unless the viewer shares a parish, group or org
+        const { data: p, error } = await supabase.rpc('get_profile', { p_id: targetId })
 
         if (error || !p) { setNotFound(true); return }
 
         setProfile(p)
         document.title = `${p.full_name || 'Profile'} | inFold`
+
+        if (p.limited) return
 
         // Load parish and post count in parallel
         const [parRes, countRes] = await Promise.all([
@@ -242,8 +246,18 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 flex flex-col gap-4">
+          {profile.limited && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center">
+              <p className="text-sm font-semibold text-navy mb-1">This profile is private</p>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {profile.full_name?.split(' ')[0] || 'This member'} shares their profile with people
+                in the same parish, group or organization.
+              </p>
+            </div>
+          )}
+
           {/* Bio */}
-          {profile.bio ? (
+          {profile.limited ? null : profile.bio ? (
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
               <p className="text-navy text-sm leading-relaxed">{profile.bio}</p>
             </div>
@@ -255,6 +269,7 @@ export default function ProfilePage() {
           ) : null}
 
           {/* Stats row */}
+          {!profile.limited && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 grid grid-cols-3 divide-x divide-gray-100">
             <div className="text-center px-2">
               <p className="text-lg font-bold text-navy">{postCount}</p>
@@ -269,9 +284,10 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-500">Since</p>
             </div>
           </div>
+          )}
 
           {/* Posts feed */}
-          {blocked ? (
+          {profile.limited ? null : blocked ? (
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center text-sm text-gray-500">
               You blocked this account. Their posts are hidden.
             </div>

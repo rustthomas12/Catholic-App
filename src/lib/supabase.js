@@ -70,11 +70,8 @@ export async function getCurrentUser() {
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function getProfile(userId) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  // Applies profile_visibility server-side (migration 053)
+  const { data, error } = await supabase.rpc('get_profile', { p_id: userId })
   return { data, error }
 }
 
