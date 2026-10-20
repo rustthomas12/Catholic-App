@@ -82,10 +82,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | D2 | Map view loads, pins clickable | B | ⬜ |
 | D3 | "Near me" uses location | B | ⬜ |
 | D4 | Discovery banner dismiss persists | B | ⬜ |
-| D5 | Parish page tabs: Feed, About, Events, Groups | B | ⬜ |
-| D6 | Follow / unfollow parish | B | ⬜ |
+| D5 | Parish page tabs: Feed, About, Events, Groups | B | ✅ |
+| D6 | Follow / unfollow parish | B | 🔧 |
 | D7 | Mass times / contact info display | B | ⬜ |
-| D8 | Send message to parish office | B | ⬜ |
+| D8 | Send message to parish office | B | 🔧 |
 | D9 | "Send a correction" mailto link uses hello@getinfold.app | B | ⬜ |
 | D10 | Nearby event suggestions from unfollowed parishes | B | ⬜ |
 
@@ -122,17 +122,17 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 10. Faith tools
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | ⬜ |
-| FA2 | Saint of the day card; /saints list + /saints/:id detail | B | ⬜ |
-| FA3 | Prayer requests: post, anonymous option, others can "pray" | B,A | ⬜ |
-| FA4 | Prayer journal: add / edit / delete entry (private) | B | ⬜ |
-| FA5 | Rosary tracker: log a rosary, streak updates | B | ⬜ |
-| FA6 | Liturgy of the Hours page loads | B | ⬜ |
-| FA7 | Formation programs (Advent / Lent): mark day complete | B | ⬜ |
-| FA8 | Morning Offering page | B | ⬜ |
-| FA9 | Private intentions: add / remove | B | ⬜ |
-| FA10 | Examination of Conscience (vocation-specific) | B | ⬜ |
-| FA11 | Confession tracker: log confession | B | ⬜ |
+| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | 🔧 |
+| FA2 | Saint of the day card; /saints list + /saints/:id detail | B | ✅ |
+| FA3 | Prayer requests: post, anonymous option, others can "pray" | B,A | 🔧 |
+| FA4 | Prayer journal: add / edit / delete entry (private) | B | 🔧 |
+| FA5 | Rosary tracker: log a rosary, streak updates | B | 🔧 |
+| FA6 | Liturgy of the Hours page loads | B | ✅ |
+| FA7 | Formation programs (Advent / Lent): mark day complete | B | 🔧 |
+| FA8 | Morning Offering page | B | ✅ |
+| FA9 | Private intentions: add / remove | B | ✅ |
+| FA10 | Examination of Conscience (vocation-specific) | B | ✅ |
+| FA11 | Confession tracker: log confession | B | ✅ |
 
 ## 11. Profile & settings
 | ID | Test | Acct | Status |
@@ -165,7 +165,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | PA5 | Messages tab: read parishioner message, mark handled | A | ⬜ |
 | PA6 | Parishioners list | A | ⬜ |
 | PA7 | Settings: edit name/address/phone/website/mass times, saves | A | ⬜ |
-| PA8 | Billing: tier picker shows $59/$119/$229/$389; Stripe **test** checkout; customer portal | A | ⬜ |
+| PA8 | Billing: tier picker shows $59/$119/$229/$389; Stripe **test** checkout; customer portal | A | 🔧 |
 | PA9 | Integrations tab: Facebook connect flow reaches Facebook | A | ⬜ |
 
 ## 14. Pastor / clergy onboarding
@@ -267,3 +267,14 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 30 | E1/E4 | **Security: any user could create events on any parish/group/org**; no DELETE policy so admin delete-event did nothing | Migration 032 (applied) | 🔧 |
 | 31 | G7 | **Security: anyone could add themselves to any group — even private — as admin**; no UPDATE policy so "Make Moderator" did nothing | Migration 033 (applied); UI reports RLS no-ops | 🔧 |
 | 32 | G7 | Group settings has no way to change the group photo (groups made while uploads were broken can't get one) | Not changed — suggestion | open |
+| 33 | D6/D8 | **Parish admins were never notified of new followers or office messages** (clients can't read others' parish_admins rows) | Migration 034: DB triggers send both | 🔧 |
+| 34 | X5 | **Security: any user could create any notification for anyone with any sender** (phishing/impersonation) | Migration 034 drops the permissive policy | 🔧 |
+| 35 | O8 | Chapter-request notifications used nonexistent columns and never delivered | Fixed insert | 🔧 |
+| 36 | PA8 | **A parish/org whose subscription was canceled could never re-subscribe** — billing only offered "Manage subscription" | Offer checkout again when canceled/expired | 🔧 |
+| 37 | PA8 | Stripe checkout page shows "Communio sandbox" (Stripe public business name) | Rename in Stripe → Settings → Public details | ⚠ you |
+| 38 | FA4/FA5/FA7 | **Prayer Journal, Rosary Tracker, Advent/Lent progress never saved** — their tables (migration 019) were never created | Applied 019; verified journal is private | 🔧 |
+| 39 | FA1 | **Readings showed the wrong psalm** (lectionary Ps 100 → Douay Ps 100 = Hebrew 101); credit said USCCB but text is Douay-Rheims | Psalm number mapping + credit line (live after deploy) | 🔧 |
+| 40 | FA3 | "1 prayers"; prayer count doesn't update live for others | Plural fixed; live count not changed | 🔧 / open |
+| 41 | FA3 | Two separate prayer systems (feed prayer-request posts vs /faith/prayer intentions) — confusing | Design note | open |
+| 42 | FA6 | Liturgy of the Hours is fixed text (not the day's office); Benedictus is cut off | Content note | open |
+| 43 | FA11 | Confession reminders say "notifications coming soon" | Not built | open |
