@@ -101,6 +101,7 @@ export function notificationPath(type, referenceId) {
     case 'new_group_member':
       return ref ? `/group/${ref}` : '/groups'
     case 'new_parish_member':
+    case 'pastor_verified':
       return ref ? `/parish-admin/${ref}` : '/'
     case 'parish_message':
       return ref ? `/parish-admin/${ref}?tab=messages` : '/'

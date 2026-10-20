@@ -31,7 +31,10 @@ function notificationPath(type: string, ref: string | null): string {
     case 'new_group_member':
       return ref ? `/group/${ref}` : '/groups'
     case 'new_parish_member':
+    case 'pastor_verified':
       return ref ? `/parish-admin/${ref}` : '/'
+    case 'parish_message':
+      return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
     case 'chapter_request_resolved':
@@ -75,6 +78,8 @@ function formatNotification(type: string, message: string | null, actorName: str
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event` },
     post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review` },
     new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
+    parish_message:           { title: '✉️ New parish message',      body: body || `${actor} sent your parish a message` },
+    pastor_verified:          { title: '✅ You're verified',          body: body || 'Your parish dashboard is ready' },
     group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group` },
     new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group` },
     new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization` },

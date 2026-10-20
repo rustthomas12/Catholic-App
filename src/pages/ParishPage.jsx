@@ -42,6 +42,15 @@ export default function ParishPage() {
   const adminRecord = parishAdminRecords.find(r => r.parish_id === id)
   const adminRole = adminRecord?.role ?? null
 
+  // Whether anyone manages this parish (hides the "claim it" prompts)
+  const [isManaged, setIsManaged] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    supabase.rpc('parish_is_managed', { p_parish_id: id })
+      .then(({ data }) => { if (!cancelled) setIsManaged(!!data) })
+    return () => { cancelled = true }
+  }, [id])
+
   const {
     parish,
     loading,
@@ -188,7 +197,7 @@ export default function ParishPage() {
             </button>
 
             {/* Clergy-only: apply to manage this parish */}
-            {['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !profile?.pending_pastor_parish_id && (
+            {['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !profile?.pending_pastor_parish_id && isManaged === false && (
               <button
                 onClick={() => navigate(`/pastor-setup?parish_id=${id}`)}
                 className="w-full sm:w-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors mt-1 sm:mt-0"
@@ -243,7 +252,7 @@ export default function ParishPage() {
         {activeTab === 'events' && <ParishEvents parishId={id} />}
         {activeTab === 'groups' && <ParishGroups parishId={id} />}
         {activeTab === 'about' && (
-          <ParishAbout parish={parish} cluster={cluster} />
+          <ParishAbout parish={parish} cluster={cluster} isManaged={isManaged} />
         )}
       </div>
     </div>
@@ -320,7 +329,7 @@ function ContactModal({ parishId, parishName, onClose }) {
 }
 
 // ── About tab ──────────────────────────────────────────────
-function ParishAbout({ parish, cluster }) {
+function ParishAbout({ parish, cluster, isManaged }) {
   const hasContact = parish.address || parish.phone || parish.website || parish.email
   const isIrsBmf   = parish.data_source === 'irs_bmf'
 
@@ -455,7 +464,7 @@ function ParishAbout({ parish, cluster }) {
       )}
 
       {/* B2B prompt */}
-      {!parish.is_official && (
+      {!parish.is_official && isManaged === false && (
         <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
           <p className="text-navy text-sm font-semibold mb-1">Is this your parish?</p>
           <p className="text-gray-500 text-xs">
