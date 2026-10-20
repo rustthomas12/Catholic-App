@@ -152,9 +152,9 @@ export default function CreateOrganizationPage() {
             nationalAdmins.map(a => ({
               user_id: a.user_id,
               type: 'chapter_request',
-              title: 'New chapter request',
-              body: `${form.name.trim()} is requesting to become a chapter of ${selectedParent.name}.`,
-              data: { org_id: selectedParent.id, requesting_org_id: org.id },
+              reference_id: selectedParent.id,
+              message: `${form.name.trim()} is requesting to become a chapter of ${selectedParent.name}.`,
+              actor_id: user.id,
               is_read: false,
             }))
           ).catch(() => {})

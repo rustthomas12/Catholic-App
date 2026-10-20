@@ -14,6 +14,7 @@ const PREFERENCE_MAP = {
   event_reminder:         'event_reminders',
   post_flagged:           'post_flagged',
   new_parish_member:      'new_parish_member',
+  parish_message:         'parish_message',
   group_post:             'group_posts',
   new_group_member:       'new_group_member',
   chapter_request:        'chapter_requests',
@@ -113,6 +114,8 @@ export function notificationPath(type, referenceId) {
       return ref ? `/group/${ref}` : '/groups'
     case 'new_parish_member':
       return ref ? `/parish-admin/${ref}` : '/'
+    case 'parish_message':
+      return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
     case 'chapter_request_resolved':

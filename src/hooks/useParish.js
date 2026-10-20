@@ -367,26 +367,7 @@ export function useParish(parishId) {
         setFollowerCount((c) => c + 1)
         invalidateFollowedParishesCache()
 
-        // Fire-and-forget: notify parish admins of new follower
-        ;(async () => {
-          const { data: admins } = await supabase
-            .from('parish_admins')
-            .select('user_id')
-            .eq('parish_id', parishId)
-            .neq('user_id', userId)
-          if (admins?.length) {
-            await supabase.from('notifications').insert(
-              admins.map(a => ({
-                user_id: a.user_id,
-                type: 'new_parish_member',
-                reference_id: parishId,
-                message: `${profile?.full_name || 'Someone'} is now following your parish`,
-                actor_id: userId,
-                is_read: false,
-              }))
-            )
-          }
-        })()
+        // Parish admins are notified by a database trigger (migration 034)
       }
     }
 

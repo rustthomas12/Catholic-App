@@ -932,6 +932,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
       type: 'chapter_request_resolved',
       reference_id: req.requesting_org_id,
       message: `Your chapter request to join ${orgName} has been approved!`,
+      actor_id: user.id,
       is_read: false,
     }).catch(() => {})
     toast.success(`${req.organizations?.name} approved as a chapter.`)
