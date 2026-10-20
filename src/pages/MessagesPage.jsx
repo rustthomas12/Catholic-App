@@ -95,6 +95,7 @@ function useConversations(userId) {
 
 // ── useMessages ────────────────────────────────────────────
 function useMessages(userId, partnerId, onRead) {
+  const { profile } = useAuth()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const onReadRef = useRef(onRead)
@@ -164,11 +165,11 @@ function useMessages(userId, partnerId, onRead) {
         userId: partnerId,
         type: 'direct_message',
         referenceId: userId,
-        message: `You have a new message`,
+        message: `${profile?.full_name || 'Someone'} sent you a message`,
         actorId: userId,
       })
     }
-  }, [userId, partnerId])
+  }, [userId, partnerId, profile?.full_name])
 
   return { messages, loading, send }
 }

@@ -21,10 +21,11 @@ export function formatRelativeTime(date) {
   const diffWeeks = Math.floor(diffDays / 7)
 
   if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins} minutes ago`
-  if (diffHours < 24) return `${diffHours} hours ago`
-  if (diffDays < 14) return `${diffDays} days ago`
-  if (diffWeeks < 8) return `${diffWeeks} weeks ago`
+  const ago = (n, unit) => `${n} ${unit}${n === 1 ? '' : 's'} ago`
+  if (diffMins < 60) return ago(diffMins, 'minute')
+  if (diffHours < 24) return ago(diffHours, 'hour')
+  if (diffDays < 14) return ago(diffDays, 'day')
+  if (diffWeeks < 8) return ago(diffWeeks, 'week')
   return format(d, 'MMMM d')
 }
 
