@@ -93,22 +93,22 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | E1 | Parish admin creates event | A | ⬜ |
-| E2 | Parishioner sees event, RSVPs (going / maybe / not going) | B | ⬜ |
+| E2 | Parishioner sees event, RSVPs (going / maybe / not going) | B | ✅ |
 | E3 | RSVP counts update for admin | A | ⬜ |
 | E4 | Admin deletes event | A | ⬜ |
-| E5 | Group event create + RSVP | A,B | ⬜ |
+| E5 | Group event create + RSVP | A,B | 🔧 |
 
 ## 8. Groups
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| G1 | Groups list / search | B | ⬜ |
+| G1 | Groups list / search | B | ✅ |
 | G2 | Create group (name, description, image upload, public/private) | A | 🔧 |
-| G3 | Join public group | B | ⬜ |
-| G4 | Request to join private group → admin approves / denies → notification | C→A | ⬜ |
-| G5 | Group tabs: Feed, Chat, Events, Members, About | B | ⬜ |
-| G6 | Group chat: send message, other member sees it live | A,B | ⬜ |
-| G7 | Group settings: edit details, remove member | A | ⬜ |
-| G8 | Leave group | B | ⬜ |
+| G3 | Join public group | B | ✅ |
+| G4 | Request to join private group → admin approves / denies → notification | C→A | ✅ |
+| G5 | Group tabs: Feed, Chat, Events, Members, About | B | ✅ |
+| G6 | Group chat: send message, other member sees it live | A,B | 🔧 |
+| G7 | Group settings: edit details, remove member | A | 🔧 |
+| G8 | Leave group | B | ✅ |
 | G9 | Delete group | A | ⬜ |
 
 ## 9. Direct messages
@@ -225,9 +225,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ---
 
 ## Your to-do (blocking items)
-- Run `supabase/migrations/031_group_images_and_member_count.sql` in Supabase SQL Editor (approval prompt kept cancelling).
-- Vercel → catholic-app → Settings → Environment Variables (Production): add `CRON_SECRET` (any long random string); optionally `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (same keys as the Supabase `send-push` function) for web-push reminders.
-- Reconnect the Claude in Chrome extension so browser testing can resume.
+- Optional: in Vercel production env add `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (same keys as the Supabase `send-push` function) for web-push reminders.
+- Deploy the `test-fixes` branch (merge to main) so the code fixes go live.
 
 ## Not covered here (need real devices / store accounts)
 - iOS / Android native app (push via Firebase, deep links, camera) — needs app builds + store accounts.
@@ -253,11 +252,18 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 15 | – | Report-post sheet stretches full width on desktop | Cosmetic, not changed | open |
 | 16 | – | `posts.like_count` / `comment_count` columns drift (non-authors can't update them under RLS); feed computes counts from rows so UI is correct | Not changed — consider DB triggers | open |
 | 17 | – | Profiles have no "Message" button | Suggestion | open |
-| 18 | G2 | **Group photos never saved** — the `groups` storage bucket was never created; upload failed silently | Migration 031 creates bucket (owner-scoped write policies replace "any signed-in user can overwrite any group image") | ⚠ needs you to run 031 |
-| 19 | G2 | **New group showed 3 members with 1 member** — two triggers both incremented `member_count`, default was 1 | Migration 031 drops the duplicate, default 0, recounts | ⚠ needs you to run 031 |
-| 20 | BG2 | **Daily readings & morning-offering reminders have never run** — crashed on load (missing VAPID keys) and `CRON_SECRET` isn't set | Code no longer crashes (FCM still sent); **you need to add `CRON_SECRET`** (and VAPID keys for web push) in Vercel | 🔧 + ⚠ |
+| 18 | G2 | **Group photos never saved** — the `groups` storage bucket was never created; upload failed silently | Migration 031 creates bucket (owner-scoped write policies replace "any signed-in user can overwrite any group image") | 🔧 applied |
+| 19 | G2 | **New group showed 3 members with 1 member** — two triggers both incremented `member_count`, default was 1 | Migration 031 drops the duplicate, default 0, recounts | 🔧 applied |
+| 20 | BG2 | **Daily readings & morning-offering reminders have never run** — crashed on load (missing VAPID keys) and `CRON_SECRET` isn't set | Code no longer crashes (FCM still sent); `CRON_SECRET` added to Vercel prod. Takes effect on next deploy. VAPID keys still optional | 🔧 |
 | 21 | X5 | **Security: billing portal open to anyone** — `/api/create-portal-session` opened Stripe's portal for any customer ID with no login | Requires signed-in parish/org admin; customer looked up server-side | 🔧 |
 | 22 | X5 | Security: `/api/claim-sponsorship-code` trusted `userId` from the request | Uses the session user | 🔧 |
-| 23 | X5 | Security: `increment_member_count` / `decrement_member_count` RPCs callable by anyone (even signed out) | Revoked in migration 031 | ⚠ needs you to run 031 |
+| 23 | X5 | Security: `increment_member_count` / `decrement_member_count` RPCs callable by anyone (even signed out) | Revoked in migration 031 | 🔧 applied |
 | 24 | X5 | Checkout endpoints don't check login — but webhook never grants admin rights, so impact is only "pay for someone else's parish" | Not changed | open (low) |
 | 25 | X5 | Advisors: 19 functions with mutable search_path; leaked-password protection off | Not changed — enable leaked-password protection in Supabase Auth settings | open (low) |
+| 26 | G4 | Group feed empty state said "No groups found" + "Find my parish" | Group-specific copy; "Find my parish" only on home feed | 🔧 |
+| 27 | N1 | "1 days ago" | Singular/plural relative times | 🔧 |
+| 28 | DM2 | DM notification just said "You have a new message" | "Thomas Rust sent you a message" | 🔧 |
+| 29 | E5 | **No way to create a group event anywhere** (tab was always empty) | "New event" form for group admins | 🔧 |
+| 30 | E1/E4 | **Security: any user could create events on any parish/group/org**; no DELETE policy so admin delete-event did nothing | Migration 032 (applied) | 🔧 |
+| 31 | G7 | **Security: anyone could add themselves to any group — even private — as admin**; no UPDATE policy so "Make Moderator" did nothing | Migration 033 (applied); UI reports RLS no-ops | 🔧 |
+| 32 | G7 | Group settings has no way to change the group photo (groups made while uploads were broken can't get one) | Not changed — suggestion | open |
