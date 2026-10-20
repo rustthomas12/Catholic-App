@@ -12,7 +12,20 @@
     "messages": "Messages",
     "profile": "Profile",
     "notifications": "Notifications",
-    "settings": "Settings"
+    "settings": "Settings",
+    "alerts": "Alerts",
+    "admin": "Admin",
+    "platform_admin": "Platform Admin",
+    "sign_out": "Sign out",
+    "more_options": "More options",
+    "my_parish": "My Parish",
+    "my_organization": "My Organization",
+    "role_platform_admin": "Platform admin",
+    "role_clergy": "Clergy",
+    "role_parish_admin": "Parish admin",
+    "role_org_admin": "Organization admin",
+    "role_parish_member": "Parish member",
+    "role_member": "Member"
   },
   "actions": {
     "save": "Save",
@@ -39,10 +52,14 @@
   },
   "time": {
     "just_now": "Just now",
-    "minutes_ago": "{{count}} minutes ago",
-    "hours_ago": "{{count}} hours ago",
-    "days_ago": "{{count}} days ago",
-    "weeks_ago": "{{count}} weeks ago"
+    "minutes_ago_one": "{{count}} minute ago",
+    "minutes_ago_other": "{{count}} minutes ago",
+    "hours_ago_one": "{{count}} hour ago",
+    "hours_ago_other": "{{count}} hours ago",
+    "days_ago_one": "{{count}} day ago",
+    "days_ago_other": "{{count}} days ago",
+    "weeks_ago_one": "{{count}} week ago",
+    "weeks_ago_other": "{{count}} weeks ago"
   },
   "organizations": {
     "title": "Organizations",

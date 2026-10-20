@@ -12,7 +12,20 @@
     "messages": "Mensajes",
     "profile": "Perfil",
     "notifications": "Notificaciones",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "alerts": "Alertas",
+    "admin": "Administración",
+    "platform_admin": "Administración de la plataforma",
+    "sign_out": "Cerrar sesión",
+    "more_options": "Más opciones",
+    "my_parish": "Mi parroquia",
+    "my_organization": "Mi organización",
+    "role_platform_admin": "Administrador de la plataforma",
+    "role_clergy": "Clero",
+    "role_parish_admin": "Administrador parroquial",
+    "role_org_admin": "Administrador de organización",
+    "role_parish_member": "Feligrés",
+    "role_member": "Miembro"
   },
   "actions": {
     "save": "Guardar",
@@ -39,10 +52,14 @@
   },
   "time": {
     "just_now": "Ahora mismo",
-    "minutes_ago": "Hace {{count}} minutos",
-    "hours_ago": "Hace {{count}} horas",
-    "days_ago": "Hace {{count}} días",
-    "weeks_ago": "Hace {{count}} semanas"
+    "minutes_ago_one": "Hace {{count}} minuto",
+    "minutes_ago_other": "Hace {{count}} minutos",
+    "hours_ago_one": "Hace {{count}} hora",
+    "hours_ago_other": "Hace {{count}} horas",
+    "days_ago_one": "Hace {{count}} día",
+    "days_ago_other": "Hace {{count}} días",
+    "weeks_ago_one": "Hace {{count}} semana",
+    "weeks_ago_other": "Hace {{count}} semanas"
   },
   "organizations": {
     "title": "Organizaciones",

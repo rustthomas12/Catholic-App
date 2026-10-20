@@ -370,7 +370,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
         <div className="px-4 py-3">
           {/* Prayer request badge */}
           {post.is_prayer_request && (
-            <p className="text-xs font-semibold text-gold mb-2">🙏 Prayer Request</p>
+            <p className="text-xs font-semibold text-gold mb-2">{t('post.prayer_badge')}</p>
           )}
 
           {/* Header */}
@@ -409,7 +409,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      at {post.parish.name}
+                      {t('post.at_place', { name: post.parish.name })}
                     </Link>
                   )}
                   {post.group && (
@@ -418,7 +418,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      in {post.group.name}
+                      {t('post.in_place', { name: post.group.name })}
                     </Link>
                   )}
                   {post.org && (
@@ -427,7 +427,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      from {post.org.name}
+                      {t('post.from_place', { name: post.org.name })}
                     </Link>
                   )}
                 </p>
@@ -600,7 +600,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               <span className="text-xs font-medium text-gray-500">
                 {post.comment_count > 0
                   ? t('comment.count', { count: post.comment_count })
-                  : 'Comment'}
+                  : t('comment.action')}
               </span>
             </button>
 
