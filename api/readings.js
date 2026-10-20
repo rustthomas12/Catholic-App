@@ -92,6 +92,26 @@ const BOOK_CODES = {
   'revelation':'REV','rev':'REV','apocalypse':'REV',
 }
 
+// Map a Hebrew (NABRE/lectionary) psalm number to Vulgate/Douay numbering.
+// Returns [chapter, versePart] as strings.
+function hebrewToVulgatePsalm(n, versePart) {
+  const firstVerse = parseInt(versePart, 10) || 1
+  if (n <= 8 || n >= 148) return [String(n), versePart]
+  if (n === 9 || n === 10) return ['9', versePart]
+  if (n === 114 || n === 115) return ['113', versePart]
+  if (n === 116) {
+    // Hebrew 116:1-9 = Vulgate 114; 116:10-19 = Vulgate 115:1-10
+    if (firstVerse <= 9) return ['114', versePart]
+    return ['115', versePart.replace(/\d+/g, v => String(Math.max(1, Number(v) - 9)))]
+  }
+  if (n === 147) {
+    // Hebrew 147:1-11 = Vulgate 146; 147:12-20 = Vulgate 147:1-9
+    if (firstVerse <= 11) return ['146', versePart]
+    return ['147', versePart.replace(/\d+/g, v => String(Math.max(1, Number(v) - 11)))]
+  }
+  return [String(n - 1), versePart]   // 11–113, 117–146
+}
+
 // Convert "Acts 13:26-33" or "Psalm 2:6-7, 8-9" to OSIS passage ID
 function referenceToOSIS(reference) {
   if (!reference) return null
@@ -105,8 +125,15 @@ function referenceToOSIS(reference) {
   const bookCode = BOOK_CODES[m[1].toLowerCase().trim()]
   if (!bookCode) return null
 
-  const chapter = m[2]
-  const versePart = m[3]
+  let chapter = m[2]
+  let versePart = m[3]
+
+  // Lectionary references use Hebrew psalm numbers; the Douay-Rheims text
+  // follows the Vulgate, which is one lower for most psalms. Without this
+  // e.g. "Psalm 100" returned the text of Hebrew Psalm 101.
+  if (bookCode === 'PSA') {
+    ;[chapter, versePart] = hebrewToVulgatePsalm(Number(chapter), versePart)
+  }
 
   // Cross-chapter range: "1:1-2:2" → versepart = "1-2:2"
   const crossChap = versePart.match(/^(\d+)-(\d+):(\d+)$/)

@@ -1335,7 +1335,8 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
   const [portalLoading, setPortalLoading] = useState(false)
   const [billingEvents, setBillingEvents] = useState([])
 
-  const hasSubscription = !!subscription
+  // Canceled / expired plans can't be restarted from Stripe's portal — offer checkout again
+  const hasSubscription = !!subscription && !['canceled', 'incomplete_expired'].includes(subscription.status)
   const isActive = ['trialing', 'active'].includes(subscription?.status)
   const isLegacy = hasSubscription && ['small', 'mid', 'large'].includes(subscription?.tier)
 

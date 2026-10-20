@@ -1074,6 +1074,9 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
   const [billingEvents, setBillingEvents] = useState([])
 
   const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
+  // A canceled / expired plan can't be restarted from Stripe's portal, so
+  // offer a fresh checkout instead of leaving the parish locked out.
+  const needsPlan = !subscription || ['canceled', 'incomplete_expired'].includes(subscription.status)
 
   useEffect(() => {
     if (!hasActiveSub || !subscription?.stripe_customer_id) return
@@ -1160,9 +1163,12 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       <h2 className="font-bold text-navy">Billing</h2>
 
       {/* ── Subscription status ── */}
-      {!subscription ? (
+      {needsPlan ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Plan</p>
+          {subscription && (
+            <p className="text-sm text-gray-500 mb-3">Your previous plan was canceled. Choose a plan to reactivate your parish dashboard.</p>
+          )}
           <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
           <p className="text-sm text-gray-500 mb-5">No credit card required until day 90. Choose the plan that fits your parish.</p>
 
