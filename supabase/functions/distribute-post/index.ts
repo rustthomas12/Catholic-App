@@ -1,3 +1,4 @@
+import { esc, safeUrl } from '../_shared/html.ts'
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -9,11 +10,26 @@ const supabase = createClient(
 serve(async (req) => {
   try {
     const payload = await req.json()
-    const post = payload.record
+
+    // Public endpoint: treat the payload as a pointer only. Atomically claim
+    // the stored post (recent, not yet distributed) and distribute what the
+    // database holds — forged or replayed calls can't broadcast anything.
+    const postId = payload?.record?.id
+    if (!postId) return ok('No post id')
+    const { data: post } = await supabase
+      .from('posts')
+      .update({ distributed_at: new Date().toISOString() })
+      .eq('id', postId)
+      .is('distributed_at', null)
+      .eq('is_announcement', true)
+      .not('parish_id', 'is', null)
+      .gt('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+      .select('*')
+      .maybeSingle()
 
     // Only distribute parish announcements
-    if (!post?.parish_id || !post?.is_announcement) {
-      return ok('Not a parish announcement — skipping')
+    if (!post) {
+      return ok('Not a new parish announcement — skipping')
     }
 
     const { data: integrations, error } = await supabase
@@ -286,11 +302,11 @@ function buildEmailBody(post: any, parishName: string): string {
   return `
 <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#333">
   <div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">
-    <h2 style="color:#C9A84C;margin:0">${parishName}</h2>
+    <h2 style="color:#C9A84C;margin:0">${esc(parishName)}</h2>
   </div>
   <div style="padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px">
     <p style="line-height:1.75;font-size:15px">${(post.content || '').replace(/\n/g, '<br>')}</p>
-    ${post.image_url ? `<img src="${post.image_url}" style="max-width:100%;border-radius:8px;margin-top:16px" alt=""/>` : ''}
+     ${safeUrl(post.image_url) ? `<img src="${safeUrl(post.image_url)}" style="max-width:100%;border-radius:8px;margin-top:16px" alt=""/>` : ''}
     <hr style="border:none;border-top:1px solid #C9A84C;margin:24px 0"/>
     <p style="font-size:12px;color:#888">
       Sent via <a href="https://getinfold.app" style="color:#1B2A4A">inFold</a> · The Digital Parish Hall
