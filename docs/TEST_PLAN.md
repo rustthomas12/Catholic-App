@@ -22,21 +22,21 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 1. Marketing site (getinfold.app) — no login
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| M1 | Home page loads, inFold branding, nav links work | – | ⬜ |
-| M2 | /features, /parishes, /about, /contact pages render | – | ⬜ |
+| M1 | Home page loads, inFold branding, nav links work | – | ✅ |
+| M2 | /features, /parishes, /about, /contact pages render | – | ✅ |
 | M3 | Contact form submits and email arrives at info@getinfold.app | – | ⬜ |
 | M4 | "Open app" / sign-up links go to app.getinfold.app | – | ⬜ |
-| M5 | /pitch page loads | – | ⬜ |
-| M6 | Unknown path falls back to Home | – | ⬜ |
+| M5 | /pitch page loads | – | ✅ |
+| M6 | Unknown path falls back to Home | – | ✅ |
 | M7 | Mobile width (375px) layout — no horizontal scroll | – | ⬜ |
 
 ## 2. Public app pages — no login
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| P1 | /terms, /privacy, /policy, /delete-account render with inFold name + correct emails | – | ⬜ |
+| P1 | /terms, /privacy, /policy, /delete-account render with inFold name + correct emails | – | ✅ |
 | P2 | Protected route (e.g. /groups) redirects to /login when signed out | – | ✅ |
 | P3 | 404 page for unknown route | – | ⬜ |
-| P4 | PWA manifest/icons load; install prompt doesn't error | – | ⬜ |
+| P4 | PWA manifest/icons load; install prompt doesn't error | – | ✅ |
 
 ## 3. Authentication
 | ID | Test | Acct | Status |
@@ -102,7 +102,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | G1 | Groups list / search | B | ⬜ |
-| G2 | Create group (name, description, image upload, public/private) | A | ⬜ |
+| G2 | Create group (name, description, image upload, public/private) | A | 🔧 |
 | G3 | Join public group | B | ⬜ |
 | G4 | Request to join private group → admin approves / denies → notification | C→A | ⬜ |
 | G5 | Group tabs: Feed, Chat, Events, Members, About | B | ⬜ |
@@ -202,8 +202,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 17. Background jobs & server
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| BG1 | /api/readings returns today's readings | – | ⬜ |
-| BG2 | Readings + Morning Offering cron endpoints respond (dry check) | – | ⬜ |
+| BG1 | /api/readings returns today's readings | – | ✅ |
+| BG2 | Readings + Morning Offering cron endpoints respond (dry check) | – | 🔧 |
 | BG3 | distribute-post / send-push / send-form-email functions — no errors in logs during tests | – | ⬜ |
 | BG4 | Stripe webhook receives test checkout events, subscription saved | – | ⬜ |
 
@@ -211,10 +211,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | X1 | No console errors on each page visited | all | ✅ |
-| X2 | No leftover "Communio" text anywhere in the UI | all | ⬜ |
+| X2 | No leftover "Communio" text anywhere in the UI | all | ✅ |
 | X3 | Mobile width layout of main screens | B | ⬜ |
 | X4 | Loading / error / empty states | all | ⬜ |
-| X5 | Supabase security advisors — no critical RLS gaps | – | ⬜ |
+| X5 | Supabase security advisors — no critical RLS gaps | – | 🔧 |
 
 ## 19. Last — destructive
 | ID | Test | Acct | Status |
@@ -223,6 +223,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | Z2 | Clean up all `[TEST]` content | A | ⬜ |
 
 ---
+
+## Your to-do (blocking items)
+- Run `supabase/migrations/031_group_images_and_member_count.sql` in Supabase SQL Editor (approval prompt kept cancelling).
+- Vercel → catholic-app → Settings → Environment Variables (Production): add `CRON_SECRET` (any long random string); optionally `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (same keys as the Supabase `send-push` function) for web-push reminders.
+- Reconnect the Claude in Chrome extension so browser testing can resume.
 
 ## Not covered here (need real devices / store accounts)
 - iOS / Android native app (push via Firebase, deep links, camera) — needs app builds + store accounts.
@@ -248,3 +253,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 15 | – | Report-post sheet stretches full width on desktop | Cosmetic, not changed | open |
 | 16 | – | `posts.like_count` / `comment_count` columns drift (non-authors can't update them under RLS); feed computes counts from rows so UI is correct | Not changed — consider DB triggers | open |
 | 17 | – | Profiles have no "Message" button | Suggestion | open |
+| 18 | G2 | **Group photos never saved** — the `groups` storage bucket was never created; upload failed silently | Migration 031 creates bucket (owner-scoped write policies replace "any signed-in user can overwrite any group image") | ⚠ needs you to run 031 |
+| 19 | G2 | **New group showed 3 members with 1 member** — two triggers both incremented `member_count`, default was 1 | Migration 031 drops the duplicate, default 0, recounts | ⚠ needs you to run 031 |
+| 20 | BG2 | **Daily readings & morning-offering reminders have never run** — crashed on load (missing VAPID keys) and `CRON_SECRET` isn't set | Code no longer crashes (FCM still sent); **you need to add `CRON_SECRET`** (and VAPID keys for web push) in Vercel | 🔧 + ⚠ |
+| 21 | X5 | **Security: billing portal open to anyone** — `/api/create-portal-session` opened Stripe's portal for any customer ID with no login | Requires signed-in parish/org admin; customer looked up server-side | 🔧 |
+| 22 | X5 | Security: `/api/claim-sponsorship-code` trusted `userId` from the request | Uses the session user | 🔧 |
+| 23 | X5 | Security: `increment_member_count` / `decrement_member_count` RPCs callable by anyone (even signed out) | Revoked in migration 031 | ⚠ needs you to run 031 |
+| 24 | X5 | Checkout endpoints don't check login — but webhook never grants admin rights, so impact is only "pay for someone else's parish" | Not changed | open (low) |
+| 25 | X5 | Advisors: 19 functions with mutable search_path; leaked-password protection off | Not changed — enable leaked-password protection in Supabase Auth settings | open (low) |
