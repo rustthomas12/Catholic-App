@@ -8,6 +8,7 @@ import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { getLiturgicalSeason } from '../utils/liturgical'
 import { format } from 'date-fns'
+import { fuzzyIlike } from '../utils/search'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -47,7 +48,7 @@ export default function OnboardingPage() {
       setParishSearching(true)
       const { data } = await supabase.from('parishes')
         .select('id, name, city, state')
-        .or(`name.ilike.%${q}%,city.ilike.%${q}%`)
+        .or(`name.ilike.${fuzzyIlike(q)},city.ilike.${fuzzyIlike(q)}`)
         .limit(5)
       setParishResults(data ?? [])
       setParishSearching(false)
