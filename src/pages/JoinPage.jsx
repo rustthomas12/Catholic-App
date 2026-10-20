@@ -22,70 +22,45 @@ export default function JoinPage() {
   useEffect(() => {
     if (!inviteCode) { setStatus('error'); setErrorMsg('Invalid invite link.'); return }
 
-    // Resolve the invite code
-    supabase
-      .from('organization_invites')
-      .select('id, org_id, max_uses, use_count, expires_at, organizations(id, name, slug, category, city, state)')
-      .eq('invite_code', inviteCode.toUpperCase())
-      .maybeSingle()
-      .then(async ({ data, error }) => {
-        if (error || !data) {
-          setStatus('error')
-          setErrorMsg('This invite link is invalid or has expired.')
-          return
-        }
+    // Validate the code server-side (codes aren't readable directly — migration 042)
+    const MESSAGES = {
+      not_found: 'This invite link is invalid or has expired.',
+      expired:   'This invite link has expired.',
+      used_up:   'This invite link has reached its maximum number of uses.',
+    }
+    let cancelled = false
+    ;(async () => {
+      const { data: info, error } = await supabase.rpc('lookup_org_invite', { p_code: inviteCode })
+      if (cancelled) return
+      if (error || info?.status !== 'ok') {
+        try { localStorage.removeItem('infold-pending-invite') } catch {}
+        setStatus('error')
+        setErrorMsg(MESSAGES[info?.status] || MESSAGES.not_found)
+        return
+      }
+      setOrg(info.org)
 
-        // Check expiry
-        if (data.expires_at && new Date(data.expires_at) < new Date()) {
-          setStatus('error')
-          setErrorMsg('This invite link has expired.')
-          return
-        }
+      // If not logged in, store invite code and redirect to login
+      if (!user) {
+        try { localStorage.setItem('infold-pending-invite', inviteCode.toUpperCase()) } catch {}
+        navigate(`/login?returnUrl=${encodeURIComponent(`/join/${inviteCode}`)}`, { replace: true })
+        return
+      }
+      try { localStorage.removeItem('infold-pending-invite') } catch {}
 
-        // Check max uses
-        if (data.max_uses !== null && data.use_count >= data.max_uses) {
-          setStatus('error')
-          setErrorMsg('This invite link has reached its maximum number of uses.')
-          return
-        }
-
-        setOrg(data.organizations)
-
-        // If not logged in, store invite code and redirect to login
-        if (!user) {
-          sessionStorage.setItem('pendingInviteCode', inviteCode.toUpperCase())
-          navigate(`/login?redirect=/join/${inviteCode}`, { replace: true })
-          return
-        }
-
-        // Check if already a member
-        const { data: existing } = await supabase
-          .from('organization_members')
-          .select('id')
-          .eq('org_id', data.org_id)
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        if (existing) {
-          setStatus('already_member')
-          return
-        }
-
-        // Join the org
-        const [joinRes, _] = await Promise.all([
-          supabase.from('organization_members').insert({ org_id: data.org_id, user_id: user.id }),
-          supabase.from('organization_invites').update({ use_count: data.use_count + 1 }).eq('id', data.id),
-        ])
-
-        if (joinRes.error) {
-          setStatus('error')
-          setErrorMsg('Could not join organization. Please try again.')
-        } else {
-          setStatus('success')
-          // Auto-redirect after a moment
-          setTimeout(() => navigate(`/organization/${data.org_id}`, { replace: true }), 2000)
-        }
-      })
+      // Join + count the use atomically
+      const { data: res, error: joinErr } = await supabase.rpc('redeem_org_invite', { p_code: inviteCode })
+      if (cancelled) return
+      if (res?.status === 'already_member') { setStatus('already_member'); return }
+      if (joinErr || res?.status !== 'joined') {
+        setStatus('error')
+        setErrorMsg(MESSAGES[res?.status] || 'Could not join organization. Please try again.')
+        return
+      }
+      setStatus('success')
+      setTimeout(() => navigate(`/organization/${res.org_id}`, { replace: true }), 2000)
+    })()
+    return () => { cancelled = true }
   }, [inviteCode, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -1215,7 +1215,6 @@ function SettingsTab({ org, setOrg, orgId }) {
       state:       form.state.trim() || null,
       zip:         form.zip.trim() || null,
       logo_url:    form.logo_url.trim() || null,
-      org_type:    form.org_type,
       hours:       form.hours || null,
       latitude,
       longitude,
@@ -1259,12 +1258,10 @@ function SettingsTab({ org, setOrg, orgId }) {
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Organization type</label>
-          <select value={form.org_type} onChange={e => setForm(p => ({ ...p, org_type: e.target.value }))}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy bg-white">
-            <option value="standalone">Standalone</option>
-            <option value="national">National (manages chapters)</option>
-            <option value="chapter">Chapter (under a national org)</option>
-          </select>
+          {/* Set by billing (national plan) or chapter approval — not editable here */}
+          <p className="w-full border border-gray-100 bg-gray-50 rounded-xl px-3 py-2 text-sm text-gray-600">
+            {{ national: 'National (manages chapters)', chapter: 'Chapter (under a national org)' }[form.org_type] || 'Standalone'}
+          </p>
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Description</label>

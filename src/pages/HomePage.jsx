@@ -27,6 +27,14 @@ export default function HomePage() {
   const hasAnyAdminAccess = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
   const navigate = useNavigate()
 
+  // Resume an org invite opened while signed out (set by JoinPage; survives
+  // the sign-up email confirmation, which may open in a new tab)
+  useEffect(() => {
+    let code = null
+    try { code = localStorage.getItem('infold-pending-invite') } catch {}
+    if (code && profile?.onboarding_completed !== false) navigate(`/join/${code}`, { replace: true })
+  }, [profile?.onboarding_completed]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [parish, setParish] = useState(() =>
     profile?.parish_id && _homeParishCache?.parishId === profile.parish_id
       ? _homeParishCache.data
