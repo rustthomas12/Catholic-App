@@ -207,7 +207,7 @@ export default function OrgAdminPage() {
   )
 
   const panelProps = {
-    orgId, org, setOrg, user, isNational, isChapter,
+    orgId, org, setOrg, user, isNational, isChapter, hasActiveSub,
     subscription, setSubscription,
     memberCount, chapterCount,
     setChapterCount: setChapterCount,
@@ -425,8 +425,8 @@ function OrgEventsTab({ orgId, user }) {
       creator_id: user.id,
       title: form.title.trim(),
       description: form.description.trim() || null,
-      start_time: form.start_time,
-      end_time: form.end_time || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
       location: form.location.trim() || null,
     })
     if (error) {
@@ -588,7 +588,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
       title: title.trim() || null,
       content: draft.trim(),
       published: !scheduleFor,
-      scheduled_for: scheduleFor || null,
+      scheduled_for: scheduleFor ? new Date(scheduleFor).toISOString() : null,
       published_at: scheduleFor ? null : new Date().toISOString(),
     })
 

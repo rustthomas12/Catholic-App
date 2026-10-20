@@ -554,8 +554,8 @@ function EventsTab({ parishId }) {
       creator_id: user.id,
       title: form.title.trim(),
       description: form.description.trim() || null,
-      start_time: form.start_time,
-      end_time: form.end_time || null,
+      start_time: new Date(form.start_time).toISOString(),
+      end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
       location: form.location.trim() || null,
     })
     if (error) {
