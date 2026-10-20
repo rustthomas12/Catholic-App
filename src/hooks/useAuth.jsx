@@ -62,27 +62,12 @@ export function AuthProvider({ children }) {
   const userIdRef = useRef(storedUser?.id ?? null)
 
   const fetchProfile = useCallback(async (userId) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    let profileData = data
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        const { data: newProfile } = await supabase
-          .from('profiles')
-          .insert({ id: userId })
-          .select()
-          .single()
-        if (newProfile) setStoredProfile(userId, newProfile)
-        profileData = newProfile ?? null
-      } else {
-        return null
-      }
-    }
+    // Own full row via RPC: other users' private columns aren't readable
+    // through the table (migrations 053/054). The row is created at sign-up
+    // by a database trigger.
+    const { data, error } = await supabase.rpc('get_my_profile')
+    if (error) return null
+    let profileData = data?.id === userId ? data : null
 
     if (!profileData) return null
 
@@ -94,13 +79,14 @@ export function AuthProvider({ children }) {
     if (pendingRaw) {
       try {
         const pending = JSON.parse(pendingRaw)
-        const { data: updated } = await supabase
+        const { error: pendingErr } = await supabase
           .from('profiles')
           .update(pending)
           .eq('id', userId)
-          .select()
-          .single()
-        if (updated) profileData = updated
+        if (!pendingErr) {
+          const { data: updated } = await supabase.rpc('get_my_profile')
+          if (updated?.id === userId) profileData = updated
+        }
         if (pending.parish_id) {
           supabase.from('parish_follows').upsert(
             { parish_id: pending.parish_id, user_id: userId },
@@ -347,13 +333,13 @@ export function AuthProvider({ children }) {
   async function updateProfile(updates) {
     if (!user) return { error: 'Not authenticated' }
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', user.id)
-        .select()
-        .single()
       if (error) return { error: t('common:status.error') }
+      const { data } = await supabase.rpc('get_my_profile')
+      if (!data) return { error: t('common:status.error') }
       setStoredProfile(user.id, data)
       setProfile(data)
       return { error: null }
