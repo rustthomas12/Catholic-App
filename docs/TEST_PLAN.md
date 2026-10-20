@@ -46,7 +46,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | AU1 | Sign up (email + password) → /check-email | C | ⏭ |
 | AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⏭ |
 | AU3 | Log in / log out | A,B | ✅ |
-| AU4 | Wrong password shows friendly error | B | ⬜ |
+| AU4 | Wrong password shows friendly error | B | ✅ |
 | AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⬜ |
 | AU6 | Session persists across reload | A | ✅ |
 | AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ✅ |
@@ -75,7 +75,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | F11 | Report post → appears in admin moderation queue | B→A | ✅ |
 | F12 | Block user from post menu → their posts hidden | C | ✅ |
 | F13 | Clergy badge shows on verified clergy posts | A | ✅ |
-| F14 | Parish announcement post styling | A | ⬜ |
+| F14 | Parish announcement post styling | A | ⏭ |
 
 ## 6. Directory & parishes
 | ID | Test | Acct | Status |
@@ -94,10 +94,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 7. Events & RSVP
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| E1 | Parish admin creates event | A | ⬜ |
+| E1 | Parish admin creates event | A | ⏭ |
 | E2 | Parishioner sees event, RSVPs (going / maybe / not going) | B | ✅ |
-| E3 | RSVP counts update for admin | A | ⬜ |
-| E4 | Admin deletes event | A | ⬜ |
+| E3 | RSVP counts update for admin | A | ⏭ |
+| E4 | Admin deletes event | A | ⏭ |
 | E5 | Group event create + RSVP | A,B | 🔧 |
 
 ## 8. Groups
@@ -142,7 +142,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S1 | View own profile; view another user's profile | B | ✅ |
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
-| S4 | Profile visibility (Public / Members only) respected by other user | B,C | ⬜ |
+| S4 | Profile visibility (Public / Members only) respected by other user | B,C | ❌ |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
@@ -206,7 +206,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | BG1 | /api/readings returns today's readings | – | ✅ |
 | BG2 | Readings + Morning Offering cron endpoints respond (dry check) | – | 🔧 |
-| BG3 | distribute-post / send-push / send-form-email functions — no errors in logs during tests | – | ⬜ |
+| BG3 | distribute-post / send-push / send-form-email functions — no errors in logs during tests | – | ✅ |
 | BG4 | Stripe webhook receives test checkout events, subscription saved | – | ⬜ |
 
 ## 18. Cross-cutting
@@ -304,4 +304,6 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
 | 64 | S6 | **Notification settings were ignored** for anything caused by another user (actor's browser can't read recipient's prefs) | Mig. 040: enforced in DB for all sources | ✅ |
 | 66 | D9 | Support address inconsistent: 3 spots used hello@getinfold.app (parish correction link, suspended screen, org checkout error) vs info@ everywhere else | All → info@ (add a hello@ route in Cloudflare if you prefer that one) | 🔧 |
+| 67 | S4 | **"Members only" profile visibility is saved but never enforced** — anyone can view the profile. Also signed-in users can read other users' private profile columns (Stripe customer ID, donation totals, subscription) | Signed-out access limited to public columns (mig. 041). **Decide:** what "Members only" should mean (signed-in users? shared parish/group?) — then I'll enforce it and split private columns out | open |
+| 68 | E*/PA* | Both test parishes' subscriptions are `canceled` → parish dashboard, events, announcement styling all wait on the Stripe test checkout | **You** | ⏭ |
 | 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
