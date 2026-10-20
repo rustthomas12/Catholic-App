@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { supabase } from '../lib/supabase';
+import { fuzzyIlike } from '../utils/search';
 import Avatar from '../components/shared/Avatar';
 import Modal from '../components/shared/Modal';
 import { toast } from '../components/shared/Toast';
@@ -68,15 +69,17 @@ function EntitySearch({ placeholder, onSelect, selected, onClear, searchFn, rend
 
   useEffect(() => {
     if (selected) { setQuery(''); setResults([]); return }
-    if (query.trim().length < 2) { setResults([]); return }
+    if (query.trim().length < 2) { setResults([]); setSearching(false); return }
+    let stale = false
     clearTimeout(timerRef.current)
     timerRef.current = setTimeout(async () => {
       setSearching(true)
       const res = await searchFn(query.trim())
+      if (stale) return
       setResults(res)
       setSearching(false)
     }, 300)
-    return () => clearTimeout(timerRef.current)
+    return () => { stale = true; clearTimeout(timerRef.current) }
   }, [query, selected])
 
   if (selected) {
@@ -132,7 +135,7 @@ function AssignOrgAdmin() {
   const [saving, setSaving] = useState(false)
 
   async function searchOrgs(q) {
-    const { data } = await supabase.from('organizations').select('id, name, city, state').ilike('name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('organizations').select('id, name, city, state').ilike('name', fuzzyIlike(q)).limit(8)
     return data || []
   }
 
@@ -216,7 +219,7 @@ function AssignParishPastor() {
   const [saving, setSaving] = useState(false)
 
   async function searchParishes(q) {
-    const { data } = await supabase.from('parishes').select('id, name, city, state').ilike('name', `%${q}%`).limit(8)
+    const { data } = await supabase.from('parishes').select('id, name, city, state').ilike('name', fuzzyIlike(q)).limit(8)
     return data || []
   }
 
@@ -796,9 +799,11 @@ function ParishClusters() {
     if (q.trim().length < 2) return
     const { data } = await supabase.from('parishes')
       .select('id, name, city, state')
-      .ilike('name', `%${q.trim()}%`)
+      .ilike('name', fuzzyIlike(q))
       .limit(8)
-    setAddState(prev => ({ ...prev, [clusterId]: { ...prev[clusterId], results: data ?? [] } }))
+    // Ignore responses for an older keystroke that arrive late
+    setAddState(prev => prev[clusterId]?.query !== q ? prev
+      : ({ ...prev, [clusterId]: { ...prev[clusterId], results: data ?? [] } }))
   }
 
   async function addParish(clusterId, parish) {

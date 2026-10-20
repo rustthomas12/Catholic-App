@@ -326,6 +326,12 @@ function ParishAbout({ parish, cluster }) {
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">
 
+      {parish.description && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{parish.description}</p>
+        </div>
+      )}
+
       {/* IRS BMF data quality note */}
       {isIrsBmf && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">

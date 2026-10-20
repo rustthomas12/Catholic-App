@@ -64,7 +64,7 @@ export function usePost(postId, initialPost) {
     if (commentChannelRef.current) return // already subscribed
 
     const channel = supabase
-      .channel(`comments-${postId}`)
+      .channel(`comments-${postId}_${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
@@ -102,6 +102,7 @@ export function usePost(postId, initialPost) {
   }, [commentsExpanded, fetchComments, subscribeToComments])
 
   // ── toggleLike ─────────────────────────────────────────────
+  // posts.like_count / comment_count are kept by DB triggers (migration 038)
   const toggleLike = useCallback(async () => {
     if (!user) return
     if (profile?.suspended_at) return
@@ -141,13 +142,6 @@ export function usePost(postId, initialPost) {
       }))
       return { error: supabaseError.message }
     }
-
-    // Fire-and-forget: keep denormalised like_count in sync
-    supabase
-      .from('posts')
-      .update({ like_count: newCount })
-      .eq('id', postId)
-      .then(() => {})
 
     // Notify post author (not self)
     if (!wasLiked && post.author?.id && post.author.id !== user.id) {
@@ -189,13 +183,6 @@ export function usePost(postId, initialPost) {
       setComments((prev) => [...prev, data])
       setPost((p) => ({ ...p, comment_count: p.comment_count + 1 }))
 
-      // Keep denormalised comment_count in sync
-      supabase
-        .from('posts')
-        .update({ comment_count: post.comment_count + 1 })
-        .eq('id', postId)
-        .then(() => {})
-
       // Update last_active_at
       supabase
         .from('profiles')
@@ -236,12 +223,6 @@ export function usePost(postId, initialPost) {
 
       setComments((prev) => prev.filter((c) => c.id !== commentId))
       setPost((p) => ({ ...p, comment_count: Math.max(0, p.comment_count - 1) }))
-
-      supabase
-        .from('posts')
-        .update({ comment_count: Math.max(0, post.comment_count - 1) })
-        .eq('id', postId)
-        .then(() => {})
 
       return { error: null }
     },

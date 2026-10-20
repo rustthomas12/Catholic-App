@@ -72,7 +72,7 @@ function useConversations(userId) {
   useEffect(() => {
     if (!userId) return
     const channel = supabase
-      .channel(`dm_list_${userId}`)
+      .channel(`dm_list_${userId}_${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -130,7 +130,7 @@ function useMessages(userId, partnerId, onRead) {
 
     // Realtime subscription — new incoming messages
     const channel = supabase
-      .channel(`dm_${userId}_${partnerId}`)
+      .channel(`dm_${userId}_${partnerId}_${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',

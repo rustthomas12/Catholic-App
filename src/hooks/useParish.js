@@ -16,7 +16,7 @@ export function haversineMiles(lat1, lon1, lat2, lon2) {
 }
 
 const PARISH_SELECT =
-  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id'
+  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id, description'
 
 // ── useParishSearch ────────────────────────────────────────
 export function useParishSearch() {

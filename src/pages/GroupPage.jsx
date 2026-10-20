@@ -442,7 +442,7 @@ function GroupChat({ groupId, userId, isMember }) {
 
     // Realtime
     const channel = supabase
-      .channel(`group_chat_${groupId}`)
+      .channel(`group_chat_${groupId}_${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',

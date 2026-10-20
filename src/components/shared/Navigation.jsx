@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from 'react'
+import { memo, useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
@@ -297,34 +297,38 @@ function Navigation() {
 
   // Unread DM badge: recount on navigation, when a thread is read,
   // and when a new message arrives.
-  useEffect(() => {
+  const recountDMs = useCallback(() => {
     if (!user) { setUnreadDMs(0); return }
-    let cancelled = false
-    const recount = () => {
-      supabase
-        .from('direct_messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false)
-        .then(({ count }) => { if (!cancelled) setUnreadDMs(count ?? 0) })
-    }
-    recount()
-    window.addEventListener('infold:dms-read', recount)
+    supabase
+      .from('direct_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('recipient_id', user.id)
+      .eq('is_read', false)
+      .then(({ count }) => setUnreadDMs(count ?? 0))
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { recountDMs() }, [recountDMs, location.pathname])
+
+  // One realtime channel per mount (unique name — re-using a name returns the
+  // already-subscribed channel and .on() then throws).
+  useEffect(() => {
+    if (!user) return
+    const suffix = Math.random().toString(36).slice(2)
+    window.addEventListener('infold:dms-read', recountDMs)
     const channel = supabase
-      .channel(`dm_badge_${user.id}`)
+      .channel(`dm_badge_${user.id}_${suffix}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'direct_messages',
         filter: `recipient_id=eq.${user.id}`,
-      }, recount)
+      }, recountDMs)
       .subscribe()
     return () => {
-      cancelled = true
-      window.removeEventListener('infold:dms-read', recount)
+      window.removeEventListener('infold:dms-read', recountDMs)
       supabase.removeChannel(channel)
     }
-  }, [user?.id, location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, recountDMs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isPublic = PUBLIC_PATHS.some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')
