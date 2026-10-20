@@ -899,7 +899,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
     const [chaptersRes, requestsRes] = await Promise.all([
       supabase.from('organizations').select('id, name, city, state, slug')
         .eq('parent_org_id', orgId).eq('org_type', 'chapter'),
-      supabase.from('chapter_requests').select('id, requesting_org_id, message, created_at, status, organizations!requesting_org_id(id, name, city, state)')
+      supabase.from('chapter_requests').select('id, requesting_org_id, requested_by, message, created_at, status, organizations!requesting_org_id(id, name, city, state)')
         .eq('target_national_org_id', orgId).eq('status', 'pending'),
     ])
 
@@ -922,11 +922,10 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
   useEffect(() => { load() }, [load])
 
   async function approveRequest(req) {
-    await supabase.from('chapter_requests').update({
-      status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString(),
-    }).eq('id', req.id)
-    await supabase.from('organizations').update({ parent_org_id: orgId, org_type: 'chapter' })
-      .eq('id', req.requesting_org_id)
+    // Links the chapter server-side; the national admin can't update the
+    // requesting org's row directly under RLS (migration 035)
+    const { error } = await supabase.rpc('approve_chapter_request', { p_request_id: req.id })
+    if (error) { toast.error('Could not approve this request.'); return }
     await supabase.from('notifications').insert({
       user_id: req.requested_by,
       type: 'chapter_request_resolved',
@@ -934,7 +933,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
       message: `Your chapter request to join ${orgName} has been approved!`,
       actor_id: user.id,
       is_read: false,
-    }).catch(() => {})
+    }).then(() => {}, () => {})  // query builders have no .catch()
     toast.success(`${req.organizations?.name} approved as a chapter.`)
     load()
   }

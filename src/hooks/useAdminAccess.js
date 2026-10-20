@@ -27,7 +27,7 @@ export function useAdminAccess() {
 
     async function fetchAdminAccess() {
       // Step 1 — get the IDs and roles the user admins
-      const [{ data: parishAdminData }, { data: orgAdminData }] = await Promise.all([
+      const [{ data: parishAdminData, error: parishErr }, { data: orgAdminData, error: orgErr }] = await Promise.all([
         supabase
           .from('parish_admins')
           .select('parish_id, role')
@@ -40,6 +40,9 @@ export function useAdminAccess() {
       ])
 
       if (cancelled) return
+      // A failed request (e.g. an expired session after a long idle) must not
+      // wipe the user's admin links — keep what we had and retry later.
+      if (parishErr || orgErr) { setLoading(false); return }
 
       // Step 2 — look up names separately (avoids PostgREST join / FK cache issues)
       const parishIds = (parishAdminData || []).map(r => r.parish_id)
@@ -70,7 +73,13 @@ export function useAdminAccess() {
     }
 
     fetchAdminAccess()
-    return () => { cancelled = true }
+    // Re-check when the tab comes back into view (session may have refreshed)
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchAdminAccess() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return {

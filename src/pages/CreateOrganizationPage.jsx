@@ -92,11 +92,8 @@ export default function CreateOrganizationPage() {
       created_by: user.id,
     }
 
-    // If chapter with a selected parent, set org_type and parent_org_id
-    if (isChapter && selectedParent) {
-      orgPayload.org_type = 'chapter'
-      orgPayload.parent_org_id = selectedParent.id
-    }
+    // Chapters are linked to their national org only once its admins approve
+    // the request below (approve_chapter_request, migration 035).
 
     const { data: org, error: orgError } = await supabase
       .from('organizations')
@@ -119,52 +116,19 @@ export default function CreateOrganizationPage() {
       toast.error('Organization created but could not add you as admin.')
     }
 
-    // If chapter request: check if parent has an active national subscription
+    // Chapter of a national org: always ask the national org's admins
     if (isChapter && selectedParent) {
-      const { data: parentSub } = await supabase
-        .from('org_subscriptions')
-        .select('status, billing_track')
-        .eq('org_id', selectedParent.id)
-        .single()
+      await supabase.from('chapter_requests').insert({
+        requesting_org_id: org.id,
+        target_national_org_id: selectedParent.id,
+        requested_by: user.id,
+        message: chapterMessage.trim() || null,
+        status: 'pending',
+      })
 
-      const parentIsNational = parentSub?.billing_track === 'national' &&
-        ['active', 'trialing'].includes(parentSub?.status)
+      // National org admins are notified by a DB trigger (migration 036)
 
-      if (parentIsNational) {
-        // Submit a chapter request — national org admin must approve
-        await supabase.from('chapter_requests').insert({
-          requesting_org_id: org.id,
-          target_national_org_id: selectedParent.id,
-          requested_by: user.id,
-          message: chapterMessage.trim() || null,
-          status: 'pending',
-        })
-
-        // Notify national org admins
-        const { data: nationalAdmins } = await supabase
-          .from('organization_members')
-          .select('user_id')
-          .eq('org_id', selectedParent.id)
-          .eq('role', 'admin')
-
-        if (nationalAdmins?.length) {
-          await supabase.from('notifications').insert(
-            nationalAdmins.map(a => ({
-              user_id: a.user_id,
-              type: 'chapter_request',
-              reference_id: selectedParent.id,
-              message: `${form.name.trim()} is requesting to become a chapter of ${selectedParent.name}.`,
-              actor_id: user.id,
-              is_read: false,
-            }))
-          ).catch(() => {})
-        }
-
-        toast.success('Organization created! Your chapter request has been sent.')
-      } else {
-        // Parent is not on national plan — just link directly (no approval needed)
-        toast.success('Organization created and linked to parent org!')
-      }
+      toast.success('Organization created! Your chapter request has been sent.')
     } else {
       toast.success('Organization created!')
     }
