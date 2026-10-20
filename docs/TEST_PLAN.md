@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** PO1–PO3 (needs Fr. Michael signed back in on :5175), S8 sign-out last, PA* (after Stripe test checkout), Z2 cleanup. Migrations 035–040 applied to prod; code fixes on `test-fixes` (not deployed).
+**Resume point:** deploy `test-fixes` (many API fixes only take effect then), you set VAPID keys → N3/N4, Stripe test checkout → PA*/E*, then S8 sign-out and Z2 cleanup. Migrations 035–052 applied to prod; edge functions send-push/distribute-post/send-form-email redeployed.
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -173,9 +173,9 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 14. Pastor / clergy onboarding
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| PO1 | /pastor-setup: claim a parish, submit | C | ⬜ |
-| PO2 | Verification pending page | C | ⬜ |
-| PO3 | Site admin approves clergy → C gets parish admin + badge | A | ⬜ |
+| PO1 | /pastor-setup: claim a parish, submit | C | ✅ |
+| PO2 | Verification pending page | C | ✅ |
+| PO3 | Site admin approves clergy → C gets parish admin + badge | A | 🔧 |
 
 ## 15. Organizations
 | ID | Test | Acct | Status |
@@ -283,7 +283,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 42 | FA6 | Liturgy of the Hours is fixed text (not the day's office); Benedictus is cut off | Content note | open |
 | 43 | FA11 | Confession reminders say "notifications coming soon" | Not built | open |
 | 44 | D1 | **Directory search "St Joseph" (no period) found nothing**; same in onboarding & edit-profile parish pickers | Shared punctuation/“Saint”-tolerant search | 🔧 |
-| 45 | D7 | "Is this your parish? Contact us to set up…" still shown on parishes that already have an admin | Not changed | open |
+| 45 | D7 | "Is this your parish? Contact us to set up…" still shown on parishes that already have an admin | `parish_is_managed()` (mig. 050) | ✅ |
 | 46 | D3 | "Near me" needs a browser location prompt Claude can't answer | Test manually | ⏭ |
 | 47 | O7/E1 | **Event times saved 4–5 h off** (local time stored as UTC) in parish + org admin event forms and scheduled org announcements | Convert to ISO on save | 🔧 |
 | 48 | O5 | **Org invite links never worked** — `hasActiveSub` wasn't passed to the Invites tab, button always disabled | Pass prop | ✅ re-tested (B joined via /join/2U3K0U1N) |
@@ -300,10 +300,28 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 59 | PA | **Parish settings save always failed** — `parishes.description` column missing | Added column; shown on About tab | ✅ (DB-verified; UI blocked by trial) |
 | 60 | F* | **Deleting your own comment silently did nothing** (no UPDATE policy); comments on private-group posts visible to all | Mig. 039 | ✅ |
 | 61 | S5 | Spanish: sidebar, roles, "Sign out", "X days ago", months, post labels stayed English; `<html lang>` never changed | Translated | 🔧 |
-| 62 | — | `trigger_distribute_post` has an API token hard-coded in the function body — check which key it is and move it to Vault/secret | **You** | open |
+| 62 | — | `trigger_distribute_post` had an API token hard-coded in the function body | Removed (mig. 048); rotate the service-role key if you want to be thorough | ✅ |
 | 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
 | 64 | S6 | **Notification settings were ignored** for anything caused by another user (actor's browser can't read recipient's prefs) | Mig. 040: enforced in DB for all sources | ✅ |
 | 66 | D9 | Support address inconsistent: 3 spots used hello@getinfold.app (parish correction link, suspended screen, org checkout error) vs info@ everywhere else | All → info@ (add a hello@ route in Cloudflare if you prefer that one) | 🔧 |
 | 67 | S4 | **"Members only" profile visibility is saved but never enforced** — anyone can view the profile. Also signed-in users can read other users' private profile columns (Stripe customer ID, donation totals, subscription) | Signed-out access limited to public columns (mig. 041). **Decide:** what "Members only" should mean (signed-in users? shared parish/group?) — then I'll enforce it and split private columns out | open |
 | 68 | E*/PA* | Both test parishes' subscriptions are `canceled` → parish dashboard, events, announcement styling all wait on the Stripe test checkout | **You** | ⏭ |
+| 69 | O5 | **Invite codes listable by anyone (even signed out); use_count never incremented → max uses / expiry not enforced; signed-out invitees lost the invite after sign-in/sign-up** | Mig. 042 RPCs; invite resumes after login | ✅ |
+| 70 | O9 | Org admins could set `is_official` badge / `org_type` (incl. "national") themselves | Mig. 042 guard; type read-only in settings | ✅ |
+| 71 | PA2 | **Anyone could schedule posts into any parish/group** → published as announcements to all followers by the cron | Mig. 043 | ✅ |
+| 72 | — | Sponsorship codes readable by every user; users could insert sponsored activations (billing); join requests could be pre-approved | Mig. 043 | ✅ |
+| 73 | PA* | **Checkout APIs had no auth** (anyone could start a subscription / set national for any org or parish); track-return let anyone mark any user returned | Session auth + admin checks; 11 unit tests | ✅ (deploy) |
+| 74 | BG4 | **Stripe webhook threw on every billing-event log + one-time donation** (`.catch` on query builder) → 500 + Stripe retries; donation RPC never existed | Fixed; mig. 044 | ✅ (deploy) |
+| 75 | PA9 | **Integrations API had no auth**: hijack any parish's webhook/Flocknote, forge Facebook state; server fetched arbitrary URLs (SSRF) | Admin auth, HMAC state, https-only public URLs; 15 tests | ✅ (deploy) |
+| 76 | — | No server-side length limits on DMs, parish messages, names, bios, groups, events, orgs; blank posts; duplicate blocks; bad usernames; events ending before start | Mig. 045/046 + form limits | ✅ |
+| 77 | F* | **Counter race**: 15 parallel comments → count 15, real 17; first fix deadlocked (29/30 failed) | Mig. 047 (NO KEY UPDATE lock): 30/30 in 0.3 s, exact | ✅ |
+| 78 | — | **send-push / distribute-post / send-form-email were open to anyone** (push any text to any user, broadcast fake parish announcements to Facebook/Flocknote/emails, spam info@). Contact form & announcement emails not HTML-escaped | Pointer + atomic claim (mig. 048), escaping; hard-coded key removed from DB (closes 62). Verified live | ✅ |
+| 79 | — | avatars/posts buckets: any size, any type (HTML/SVG with script) | Mig. 049; verified live | ✅ |
+| 80 | PO1 | Pastor setup let a priest claim/pay for a parish someone already manages | Mig. 050 check in setup + parish page (also closes 45) | ✅ |
+| 81 | PO3 | **No way to approve pastors in the app** (webhook email said to run SQL by hand); Assign Pastor left the user stuck "pending" | Admin "Pending pastor applications" + notification | ✅ |
+| 82 | — | **Anyone could send anyone a notification of any type/text** (fake "post reported"/"verified" phishing, pushed to phone) | Mig. 052 per-type rules | ✅ |
+| 83 | PO2 | Pending page promises an approval *email*; none is sent (in-app notification + push only) | Not changed | open |
+| 84 | — | Sponsorship codes are 6 chars with no rate limit on the claim API (guessable in theory) | Not changed | open |
+| 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
+| 86 | — | Private group member lists readable by any user | Not changed | open |
 | 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
