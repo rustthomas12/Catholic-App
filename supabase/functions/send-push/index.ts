@@ -79,7 +79,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review` },
     new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
     parish_message:           { title: '✉️ New parish message',      body: body || `${actor} sent your parish a message` },
-    pastor_verified:          { title: '✅ You're verified',          body: body || 'Your parish dashboard is ready' },
+    pastor_verified:          { title: "✅ You're verified",          body: body || 'Your parish dashboard is ready' },
     group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group` },
     new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group` },
     new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization` },
