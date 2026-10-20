@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** S6, S9, M3, M7/X3, N3/N4, PO1–PO3 (needs C signed back in), S8 last, PA* (after Stripe checkout), Z2 cleanup. Migrations 035–039 applied to prod., Z2 cleanup. Tabs: A=:5173, B=:5174, C=:5175.
+**Resume point:** PO1–PO3 (needs Fr. Michael signed back in on :5175), S8 sign-out last, PA* (after Stripe test checkout), Z2 cleanup. Migrations 035–040 applied to prod; code fixes on `test-fixes` (not deployed).
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -26,11 +26,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | M1 | Home page loads, inFold branding, nav links work | – | ✅ |
 | M2 | /features, /parishes, /about, /contact pages render | – | ✅ |
-| M3 | Contact form submits and email arrives at info@getinfold.app | – | ⬜ |
+| M3 | Contact form submits and email arrives at info@getinfold.app | – | ✅ |
 | M4 | "Open app" / sign-up links go to app.getinfold.app | – | ⬜ |
 | M5 | /pitch page loads | – | ✅ |
 | M6 | Unknown path falls back to Home | – | ✅ |
-| M7 | Mobile width (375px) layout — no horizontal scroll | – | ⬜ |
+| M7 | Mobile width (375px) layout — no horizontal scroll | – | ✅ |
 
 ## 2. Public app pages — no login
 | ID | Test | Acct | Status |
@@ -144,18 +144,18 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
 | S4 | Profile visibility (Public / Members only) respected by other user | B,C | ⬜ |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
-| S6 | Notification settings toggles save | B | ⬜ |
+| S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
 | S8 | Sign out from settings | B | ⬜ |
-| S9 | Contact page (/contact) form submits | B | ⬜ |
+| S9 | Contact page (/contact) form submits | B | ✅ |
 
 ## 12. Notifications
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | N1 | In-app notifications list; mark read; tap opens target | B | 🔧 |
 | N2 | Unread badge in navigation updates | B | 🔧 |
-| N3 | Browser push: enable prompt, receive push from another user's action | B | ⬜ |
-| N4 | Push dismissed state persists | B | ⬜ |
+| N3 | Browser push: enable prompt, receive push from another user's action | B | ⏭ |
+| N4 | Push dismissed state persists | B | ⏭ |
 
 ## 13. Parish admin (/parish-admin/:id)
 | ID | Test | Acct | Status |
@@ -214,7 +214,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | X1 | No console errors on each page visited | all | ✅ |
 | X2 | No leftover "Communio" text anywhere in the UI | all | ✅ |
-| X3 | Mobile width layout of main screens | B | ⬜ |
+| X3 | Mobile width layout of main screens | B | ✅ |
 | X4 | Loading / error / empty states | all | ⬜ |
 | X5 | Supabase security advisors — no critical RLS gaps | – | 🔧 |
 
@@ -302,3 +302,5 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 61 | S5 | Spanish: sidebar, roles, "Sign out", "X days ago", months, post labels stayed English; `<html lang>` never changed | Translated | 🔧 |
 | 62 | — | `trigger_distribute_post` has an API token hard-coded in the function body — check which key it is and move it to Vault/secret | **You** | open |
 | 63 | AD3/AD5 | Suspend and cluster delete act immediately, no confirmation | Not changed | open |
+| 64 | S6 | **Notification settings were ignored** for anything caused by another user (actor's browser can't read recipient's prefs) | Mig. 040: enforced in DB for all sources | ✅ |
+| 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
