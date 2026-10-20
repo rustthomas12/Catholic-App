@@ -18,7 +18,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
@@ -1116,10 +1116,14 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
+      const { data: { session } } = await supabaseAuth.auth.getSession()
       const res = await fetch(apiUrl('/api/create-portal-session'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ parishId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

@@ -12,10 +12,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { code, userId } = req.body
+  // The user is taken from the session, never from the request body —
+  // otherwise anyone holding a code could activate it for another account.
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  if (!token) return res.status(401).json({ error: 'Unauthorized' })
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  if (authError || !user) return res.status(401).json({ error: 'Invalid session — please log out and back in' })
+  const userId = user.id
 
-  if (!code || !userId) {
-    return res.status(400).json({ error: 'Missing code or userId' })
+  const { code } = req.body || {}
+
+  if (!code) {
+    return res.status(400).json({ error: 'Missing code' })
   }
 
   const upperCode = code.trim().toUpperCase()

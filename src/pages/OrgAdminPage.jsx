@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { format, parseISO, addDays } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAuth } from '../lib/supabase'
 import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -1377,9 +1377,14 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
     if (!subscription?.stripe_customer_id) return
     setPortalLoading(true)
     try {
+      const { data: { session } } = await supabaseAuth.auth.getSession()
       const res = await fetch(apiUrl('/api/create-portal-session'), {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripeCustomerId: subscription.stripe_customer_id }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ orgId }),
       })
       const data = await res.json()
       if (data.url) await openExternal(data.url)
