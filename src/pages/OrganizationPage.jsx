@@ -113,7 +113,9 @@ function useOrganization(orgId) {
                 user_id: a.user_id,
                 type: 'new_org_member',
                 reference_id: orgId,
-                message: `${profile?.full_name || 'Someone'} joined your organization`,
+                message: org?.name
+                  ? `${profile?.full_name || 'Someone'} joined ${org.name}`
+                  : `${profile?.full_name || 'Someone'} joined your organization`,
                 actor_id: user.id,
                 is_read: false,
               }))
@@ -123,7 +125,7 @@ function useOrganization(orgId) {
       }
     }
     setJoinLoading(false)
-  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading])
+  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading, org?.name])
 
   return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters }
 }

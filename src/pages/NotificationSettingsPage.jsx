@@ -226,7 +226,7 @@ export default function NotificationSettingsPage() {
       icon: UserGroupIcon,
       label: t('notifications.type_groups'),
       description: t('notifications.type_groups_desc'),
-      column: 'group_invites',
+      column: 'group_requests',
     },
     {
       icon: BuildingLibraryIcon,
@@ -344,6 +344,14 @@ export default function NotificationSettingsPage() {
                 description="When someone starts following your parish"
                 value={preferences.new_parish_member}
                 onChange={(v) => updatePreference('new_parish_member', v)}
+              />
+              <div className="border-t border-gray-50" />
+              <PrefRow
+                icon={EnvelopeIcon}
+                label="Parish messages"
+                description="When a parishioner sends your parish a message"
+                value={preferences.parish_message}
+                onChange={(v) => updatePreference('parish_message', v)}
               />
             </div>
           </div>

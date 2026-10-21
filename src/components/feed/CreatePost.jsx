@@ -186,7 +186,9 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
               user_id: a.user_id,
               type: 'group_post',
               reference_id: data.id,
-              message: `${profile?.full_name || 'Someone'} posted in your group`,
+              message: destination?.groupName
+                ? `${profile?.full_name || 'Someone'} posted in ${destination.groupName}`
+                : `${profile?.full_name || 'Someone'} posted in your group`,
               actor_id: user.id,
               is_read: false,
             }))
@@ -405,6 +407,7 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
               type: 'group',
               label: `${g.name} group`,
               groupId: g.id,
+              groupName: g.name,
             })
           }
         })
