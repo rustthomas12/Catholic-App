@@ -18,7 +18,8 @@ export default async function handler(req, res) {
 
   // The caller subscribes for themselves: an existing admin of the parish, or
   // a pastor claiming a parish that has no admin yet (verified after payment)
-  const allowed = await isParishAdmin(caller.id, parishId)
+  const callerIsAdmin = await isParishAdmin(caller.id, parishId)
+  const allowed = callerIsAdmin
     || !(await parishHasAdmin(parishId))
     || await isPlatformAdmin(caller.id)
   if (!allowed) return res.status(403).json({ error: 'This parish is already managed by another admin' })
@@ -59,7 +60,10 @@ export default async function handler(req, res) {
           billing_type: 'parish_' + (tierKey || 'medium'),
         },
       },
-      success_url: returnUrl(req, `/pastor-verification-pending?parish_id=${parishId}`),
+      // Existing admins go back to their dashboard; new pastors await verification
+      success_url: returnUrl(req, callerIsAdmin
+        ? `/parish-admin/${parishId}?tab=billing`
+        : `/pastor-verification-pending?parish_id=${parishId}`),
       cancel_url:  returnUrl(req, `/parish/${parishId}`),
     })
 
