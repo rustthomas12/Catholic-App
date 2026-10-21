@@ -322,9 +322,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 82 | — | **Anyone could send anyone a notification of any type/text** (fake "post reported"/"verified" phishing, pushed to phone) | Mig. 052 per-type rules | ✅ |
 | 83 | PO2 | Pending page promises an approval *email*; none is sent (in-app notification + push only) | Not changed | open |
 | 84 | — | Sponsorship codes are 6 chars with no rate limit on the claim API (guessable in theory) | Not changed | open |
-| 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
+| 85 | BG4 | Two webhook implementations + Stripe sandbox had 2 inFold endpoints (old getcommunio.app domain; dead catholic-app-eta.vercel.app → 404) | Stripe now points at app.getinfold.app/api/stripe-webhook; unused Supabase function deleted | ✅ |
 | 86 | — | Private group member lists readable by any user | Not changed | open |
 | 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
+| 95 | — | Stripe account is a **sandbox** — production app runs on test keys; real payments need live keys + live webhook to app.getinfold.app | **You** (when ready to launch) | open |
+| 96 | — | Sandbox also sends events to `perpetuationlink.com` ("Perpetuation Link subscriptions") | **You:** confirm it's yours | open |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
