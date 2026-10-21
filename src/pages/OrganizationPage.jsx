@@ -16,6 +16,7 @@ import {
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { formatRelativeTime } from '../utils/dates'
+import ParishEvents from '../components/parish/ParishEvents'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
@@ -147,6 +148,7 @@ export default function OrganizationPage() {
 
   const tabs = org ? [
     { id: 'feed', label: 'Feed' },
+    { id: 'events', label: 'Events' },
     { id: 'about', label: 'About' },
     ...(org.org_type === 'national' ? [{ id: 'chapters', label: 'Chapters' }] : []),
   ] : [{ id: 'feed', label: 'Feed' }, { id: 'about', label: 'About' }]
@@ -316,6 +318,7 @@ export default function OrganizationPage() {
             emptySubtext="This organization hasn't posted anything yet."
           />
         )}
+        {activeTab === 'events' && <ParishEvents orgId={id} />}
         {activeTab === 'about' && <OrgAbout org={org} parentOrg={parentOrg} />}
         {activeTab === 'chapters' && <ChaptersTab chapters={chapters} />}
       </div>
