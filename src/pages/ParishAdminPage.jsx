@@ -1108,7 +1108,8 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       if (isNative) setCheckoutLoading(false)
     } catch (err) {
       console.error(err)
-      toast.error('Could not start trial. Please try again.')
+      // Show the server's reason (e.g. expired session, parish managed by someone else)
+      toast.error(err?.message || 'Could not start trial. Please try again.')
       setCheckoutLoading(false)
     }
   }

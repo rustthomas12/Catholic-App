@@ -327,6 +327,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
 | 95 | — | Stripe account is a **sandbox** — production app runs on test keys; real payments need live keys + live webhook to app.getinfold.app | **You** (when ready to launch) | open |
 | 96 | — | Sandbox also sends events to `perpetuationlink.com` ("Perpetuation Link subscriptions") | **You:** confirm it's yours | open |
+| 97 | PA* | 'Could not start trial' for Beta: the password reset signed out Beta's other sessions (expected Supabase behavior), but the toast hid the server's 'please sign in again' | Toast shows the server's reason | ✅ |
+| 98 | — | Only an assigned pastor can manage a parish: 14 management actions by a non-admin on someone else's parish all blocked; dashboard redirects non-admins; parish_admins writable only by platform admins | — | ✅ |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
