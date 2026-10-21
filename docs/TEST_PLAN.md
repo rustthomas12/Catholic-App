@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** apply migration 054 (needs user approval — classifier blocked it), then live checks of sign-in/profiles, N3/N4 push, parish checkout → PA*/E*, S8 sign-out, Z2 cleanup. PRs #5 and #6 merged and live. Org checkout (Tucson, Thomas) passed end to end.
+**Resume point:** N3/N4 (user clicks Allow on the live site as Beta), AU5 (user confirms reset email), parish checkout → PA*/E*/F14, then S8 sign-out and Z2 cleanup. Migrations through 055 applied. Branch test-fixes-2 = PR #7.
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -47,7 +47,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⏭ |
 | AU3 | Log in / log out | A,B | ✅ |
 | AU4 | Wrong password shows friendly error | B | ✅ |
-| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⬜ |
+| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⏳ email sent — user to confirm |
 | AU6 | Session persists across reload | A | ✅ |
 | AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ✅ |
 
@@ -83,13 +83,13 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | D1 | Directory search by name / city / zip | B | 🔧 |
 | D2 | Map view loads, pins clickable | B | ✅ |
 | D3 | "Near me" uses location | B | ⏭ |
-| D4 | Discovery banner dismiss persists | B | ⬜ |
+| D4 | Discovery banner dismiss persists | B | ✅ |
 | D5 | Parish page tabs: Feed, About, Events, Groups | B | ✅ |
 | D6 | Follow / unfollow parish | B | 🔧 |
 | D7 | Mass times / contact info display | B | ✅ |
 | D8 | Send message to parish office | B | 🔧 |
 | D9 | "Send a correction" mailto link uses the support address | B | 🔧 |
-| D10 | Nearby event suggestions from unfollowed parishes | B | ⬜ |
+| D10 | Nearby event suggestions from unfollowed parishes | B | ⏭ |
 
 ## 7. Events & RSVP
 | ID | Test | Acct | Status |
@@ -111,7 +111,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | G6 | Group chat: send message, other member sees it live | A,B | 🔧 |
 | G7 | Group settings: edit details, remove member | A | 🔧 |
 | G8 | Leave group | B | ✅ |
-| G9 | Delete group | A | ⬜ |
+| G9 | Delete group | A | 🔧 |
 
 ## 9. Direct messages
 | ID | Test | Acct | Status |
@@ -142,7 +142,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S1 | View own profile; view another user's profile | B | ✅ |
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
-| S4 | Profile visibility (Public / Members only) respected by other user | B,C | 🔧 |
+| S4 | Profile visibility (Public / Members only) respected by other user | B,C | ✅ |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
@@ -175,7 +175,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | PO1 | /pastor-setup: claim a parish, submit | C | ✅ |
 | PO2 | Verification pending page | C | ✅ |
-| PO3 | Site admin approves clergy → C gets parish admin + badge | A | 🔧 |
+| PO3 | Site admin approves clergy → C gets parish admin + badge | A | ✅ |
 
 ## 15. Organizations
 | ID | Test | Acct | Status |
@@ -215,7 +215,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | X1 | No console errors on each page visited | all | ✅ |
 | X2 | No leftover "Communio" text anywhere in the UI | all | ✅ |
 | X3 | Mobile width layout of main screens | B | ✅ |
-| X4 | Loading / error / empty states | all | ⬜ |
+| X4 | Loading / error / empty states | all | 🔧 |
 | X5 | Supabase security advisors — no critical RLS gaps | – | 🔧 |
 
 ## 19. Last — destructive
@@ -325,4 +325,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
 | 86 | — | Private group member lists readable by any user | Not changed | open |
 | 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
+| 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
+| 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
+| 90 | X4 | /group/<missing id> showed a skeleton forever | Not-found state | ✅ |
+| 91 | X4 | **Offline, screens claimed "No notifications/messages yet", "Parish not found", "Join a parish"** | Connection banner when the server is unreachable | ✅ |
+| 92 | — | Live-site sweep after mig. 054 (22 screens as Beta) + admin page as Thomas: no errors | — | ✅ |
+| 93 | PA* | Billing portal (live API): own org 200, no token / forged token 401, other user's org 403 | — | ✅ |
 | 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
