@@ -124,6 +124,7 @@
     "type_messages_desc": "When someone sends you a message",
     "type_confession": "Confession Reminders",
     "type_confession_desc": "Gentle reminders for the Confession Tracker",
-    "type_confession_premium": "Available with Premium"
+    "type_confession_premium": "Available with Premium",
+    "turn_on_all": "Turn on all notifications"
   }
 }

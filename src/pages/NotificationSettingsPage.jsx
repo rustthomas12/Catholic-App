@@ -173,7 +173,7 @@ export default function NotificationSettingsPage() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
-  const { preferences, loading, updatePreference, turnOffAll } = useNotificationPreferences()
+  const { preferences, loading, updatePreference, turnOffAll, turnOnAll } = useNotificationPreferences()
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
   const [isParishAdmin, setIsParishAdmin] = useState(false)
@@ -425,9 +425,17 @@ export default function NotificationSettingsPage() {
           </div>
         )}
 
-        {/* ── Turn off all ── */}
+        {/* ── Turn off all / back on ── */}
         {!loading && (
-          <div className="px-4 mt-6">
+          <div className="px-4 mt-6 flex flex-wrap gap-x-6">
+            {Object.values(preferences).some(v => v === false) && (
+              <button
+                onClick={turnOnAll}
+                className="text-sm text-navy font-medium hover:underline min-h-[44px]"
+              >
+                {t('notifications.turn_on_all')}
+              </button>
+            )}
             <button
               onClick={() => setShowTurnOffModal(true)}
               className="text-sm text-red-500 font-medium hover:underline min-h-[44px]"

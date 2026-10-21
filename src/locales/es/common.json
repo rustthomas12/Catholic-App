@@ -124,6 +124,7 @@
     "type_messages_desc": "Cuando alguien te envía un mensaje",
     "type_confession": "Recordatorios de confesión",
     "type_confession_desc": "Recordatorios gentiles para el registro de confesiones",
-    "type_confession_premium": "Disponible con Premium"
+    "type_confession_premium": "Disponible con Premium",
+    "turn_on_all": "Activar todas las notificaciones"
   }
 }

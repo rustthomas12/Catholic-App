@@ -119,5 +119,20 @@ export function useNotificationPreferences() {
     }
   }, [user])
 
-  return { preferences, loading, updatePreference, turnOffAll }
+  // ── Turn on all ───────────────────────────────────────────
+  const turnOnAll = useCallback(async () => {
+    if (!user) return
+    const allOn = Object.fromEntries(Object.keys(DEFAULTS).filter(k => typeof DEFAULTS[k] === 'boolean').map(k => [k, true]))
+    const previous = preferences
+    setPreferences(prev => ({ ...prev, ...allOn }))
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({ user_id: user.id, ...allOn, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+    if (error) {
+      setPreferences(previous)
+      console.error('Failed to turn on all notifications:', error.message)
+    }
+  }, [user, preferences])
+
+  return { preferences, loading, updatePreference, turnOffAll, turnOnAll }
 }
