@@ -46,7 +46,7 @@
   "status": {
     "loading": "Loading...",
     "error": "Something went wrong. Please try again.",
-    "offline": "You are offline. Changes will sync when you reconnect.",
+    "offline": "You're offline — some content can't be loaded right now.",
     "empty": "Nothing here yet.",
     "updated": "App updated. Tap to refresh."
   },

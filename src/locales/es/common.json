@@ -46,7 +46,7 @@
   "status": {
     "loading": "Cargando...",
     "error": "Algo salió mal. Por favor intenta de nuevo.",
-    "offline": "Sin conexión. Los cambios se sincronizarán cuando vuelvas a conectarte.",
+    "offline": "Sin conexión: parte del contenido no se puede cargar ahora.",
     "empty": "Nada aquí todavía.",
     "updated": "App actualizada. Toca para recargar."
   },

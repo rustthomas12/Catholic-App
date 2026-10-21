@@ -41,6 +41,27 @@ export const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
   },
 })
 
+// ── Connectivity signal ────────────────────────────────────
+// Every data request reports whether the server was reachable, so the UI
+// can say "you're offline" instead of showing misleading empty states.
+export const NETWORK_EVENT = 'infold:network'
+let _lastOnline = true
+function _report(online) {
+  if (online === _lastOnline) return
+  _lastOnline = online
+  try { window.dispatchEvent(new CustomEvent(NETWORK_EVENT, { detail: { online } })) } catch {}
+}
+async function trackedFetch(input, init) {
+  try {
+    const res = await fetch(input, init)
+    _report(true)
+    return res
+  } catch (err) {
+    if (err?.name !== 'AbortError') _report(false)
+    throw err
+  }
+}
+
 // ── Data client ────────────────────────────────────────────
 // Used everywhere for .from(), .rpc(), and .channel() (Realtime).
 // The custom accessToken reads the JWT from localStorage without
@@ -53,6 +74,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
   accessToken: async () => _getAccessToken(),
+  global: { fetch: trackedFetch },
 })
 
 /**

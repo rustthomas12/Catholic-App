@@ -148,7 +148,8 @@ export default function GroupPage() {
     await denyRequest(req.id, req.user.id, id, group.name)
   }
 
-  if (loading || canAccess === null) return <GroupPageSkeleton />
+  // A missing group never gets an access answer — show not-found, not a skeleton forever
+  if (loading || (group && canAccess === null)) return <GroupPageSkeleton />
 
   if (error || !group) {
     return (
