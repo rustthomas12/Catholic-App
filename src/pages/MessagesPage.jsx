@@ -367,6 +367,16 @@ export default function MessagesPage() {
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
 
+  // /messages?to=<userId> opens (or starts) that conversation — used by the
+  // profile "Message" button and "Reply" on parish messages
+  const toId = new URLSearchParams(window.location.search).get('to')
+  useEffect(() => {
+    if (!toId || !user || toId === user.id) return
+    supabase.from('profiles').select('id, full_name, avatar_url')
+      .eq('id', toId).is('deleted_at', null).maybeSingle()
+      .then(({ data }) => { if (data) setActivePartner(data) })
+  }, [toId, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Two-panel layout on desktop; single panel on mobile
   return (
     <div className="min-h-screen bg-cream md:pl-60">

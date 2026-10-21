@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useBlockedUsers } from '../hooks/useBlockedUsers'
@@ -185,7 +185,16 @@ export default function ProfilePage() {
 
           {/* Block / unblock (other people's profiles) */}
           {!isOwnProfile && user && (
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-10 flex gap-2">
+              {!blocked && !profile?.deleted_at && (
+                <Link
+                  to={`/messages?to=${targetId}`}
+                  className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-sm font-medium px-3 py-1.5 min-h-[36px] rounded-full shadow-sm hover:bg-white transition-colors text-navy"
+                >
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
+                  Message
+                </Link>
+              )}
               <button
                 onClick={() => (blocked ? handleBlockToggle() : setShowBlockModal(true))}
                 disabled={blockLoading}

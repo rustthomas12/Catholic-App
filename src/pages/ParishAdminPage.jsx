@@ -27,6 +27,9 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
 
+// Tabs a parish admin can use without an active subscription
+const FREE_TABS = ['billing', 'messages']
+
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
@@ -160,7 +163,9 @@ export default function ParishAdminPage() {
 
       {/* ── Content ── */}
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
-        {activeTab !== 'billing' && !subLoading && !hasActiveSub ? (
+        {/* Billing and parishioner messages stay open without a subscription,
+            so a pastor never misses a message sent to the parish */}
+        {!FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
           <div className="text-center py-16 px-4">
             <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
             <h3 className="font-bold text-navy text-lg mb-2">Activate your parish dashboard</h3>
@@ -1044,16 +1049,25 @@ function MessagesTab({ parishId }) {
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{msg.body}</p>
                 </div>
               </div>
-              {!msg.is_read && (
-                <div className="flex justify-end mt-2">
+              <div className="flex justify-end gap-4 mt-2">
+                {msg.sender?.id && (
+                  <Link
+                    to={`/messages?to=${msg.sender.id}`}
+                    onClick={() => { if (!msg.is_read) markRead(msg.id) }}
+                    className="text-xs text-navy font-semibold hover:underline min-h-[24px] inline-flex items-center"
+                  >
+                    Reply
+                  </Link>
+                )}
+                {!msg.is_read && (
                   <button
                     onClick={() => markRead(msg.id)}
-                    className="text-xs text-navy font-semibold hover:underline"
+                    className="text-xs text-navy font-semibold hover:underline min-h-[24px]"
                   >
                     Mark as read
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
