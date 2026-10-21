@@ -17,6 +17,7 @@ import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { formatRelativeTime } from '../utils/dates'
 import ParishEvents from '../components/parish/ParishEvents'
+import { createNotification } from '../lib/notifications'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
@@ -262,7 +263,8 @@ export default function OrganizationPage() {
               {joinLoading ? '…' : isMember ? 'Leave' : 'Join'}
             </button>
 
-            {(org.email || org.phone) && (
+            {/* The form messages the org's admins in-app, so it doesn't need an email on file */}
+            {(org.email || org.phone || org.created_by) && (
               <button
                 onClick={() => setShowContact(true)}
                 className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
@@ -499,12 +501,27 @@ function OrgContactModal({ org, onClose }) {
   async function handleSend() {
     if (!body.trim() || !user) return
     setSending(true)
-    const { error } = await supabase.from('direct_messages').insert({
-      sender_id: user.id,
-      recipient_id: org.created_by,
-      content: subject.trim() ? `[${subject.trim()}]\n\n${body.trim()}` : body.trim(),
-      org_id: org.id,
-    })
+    // Message the org's current admins (the creator may have stepped down)
+    const { data: admins } = await supabase.rpc('org_admin_ids', { p_org_id: org.id })
+    const recipients = (admins ?? []).map(r => r.user_id).filter(id => id && id !== user.id)
+    if (!recipients.length) {
+      toast.error('This organization has no admin to contact yet.')
+      setSending(false)
+      return
+    }
+    const content = subject.trim() ? `[${subject.trim()}]\n\n${body.trim()}` : body.trim()
+    const { error } = await supabase.from('direct_messages').insert(
+      recipients.map(id => ({ sender_id: user.id, recipient_id: id, content, org_id: org.id }))
+    )
+    if (!error) {
+      recipients.forEach(id => createNotification({
+        userId: id,
+        type: 'direct_message',
+        referenceId: user.id,
+        message: `${profile?.full_name || 'Someone'} sent ${org.name} a message`,
+        actorId: user.id,
+      }))
+    }
     if (error) {
       toast.error('Could not send message. Please try again.')
     } else {
@@ -533,6 +550,7 @@ function OrgContactModal({ org, onClose }) {
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:border-navy"
         />
         <textarea
+            maxLength={1800}
           value={body}
           onChange={e => setBody(e.target.value)}
           placeholder="Your message…"

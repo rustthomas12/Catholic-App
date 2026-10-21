@@ -329,6 +329,22 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 96 | — | Sandbox also sends events to `perpetuationlink.com` ("Perpetuation Link subscriptions") | **You:** confirm it's yours | open |
 | 97 | PA* | 'Could not start trial' for Beta: the password reset signed out Beta's other sessions (expected Supabase behavior), but the toast hid the server's 'please sign in again' | Toast shows the server's reason | ✅ |
 | 98 | — | Only an assigned pastor can manage a parish: 14 management actions by a non-admin on someone else's parish all blocked; dashboard redirects non-admins; parish_admins writable only by platform admins | — | ✅ |
+| 99 | — | **Existing parish admin renewing was put back into 'pending pastor'** (banner, verification email, Application-received page) | Webhook/success URL distinguish existing admins | ✅ |
+| 100 | F* | Feed comment counts included removed comments (post showed 37 vs 2) | Count visible comments only | ✅ |
+| 101 | N* | **Like/unlike (follow/unfollow, join/leave) re-sent the notification + push every time** — phone spam | Same-person repeats within 24 h dropped (mig. 056) | ✅ |
+| 102 | — | **A blocked user could still comment on / like the blocker's posts, and the blocker was notified with a preview** | Refused + notifications from blocked users dropped (mig. 057) | ✅ |
+| 103 | S6 | **'Group Activity' switch controlled an unused setting**; join approvals stayed off forever after 'Turn off all' | Switch drives both; rows resynced (mig. 058) | ✅ |
+| 104 | S6 | Pastors couldn't turn off 'message to your parish' notifications; no 'Turn on all' | New setting + button | ✅ |
+| 105 | — | Prayer count stayed 0 on others' intentions (Faith page showed 🙏 0) | Counter runs as definer (mig. 059) | ✅ |
+| 106 | N* | Group-post / new-org-member notifications didn't name the group/org | Named | ✅ |
+| 107 | O9 | **Org settings saved invalid emails and `javascript:` logo URLs**; logo never displayed; About tab omitted address and hours; 'Is this your organization?' shown on managed orgs | Validation (+ parish settings), logo shown (https only), address+hours shown | ✅ |
+| 108 | O4 | **An org's/group's only admin could demote themselves or leave** (orphaned org + subscription) | Refused with message (mig. 060); dropdown snaps back | ✅ |
+| 109 | O6 | **Org announcements were never shown to members or sent; scheduled ones never published** | Shown on org page, members notified + push, cron publishes (mig. 061–062). Verified on time | ✅ |
+| 110 | O7 | **Org events were never shown to members** | Events tab with RSVP | ✅ |
+| 111 | O3 | Org Contact messaged the creator even after they stepped down, without a notification; hidden unless an email/phone was listed | Messages current admins + notifies (mig. 063) | ✅ |
+| 112 | PA5 | Parishioners can message a parish whose dashboard is locked (no subscription) — pastor is notified but can't read it | **You:** let pastors read messages without a subscription, or hide Contact on unsubscribed parishes? | open |
+| 113 | S6 | 'Event Reminders' and 'Confession Reminders' switches exist but nothing ever sends those notifications | **You:** build them, or hide the switches? | open |
+| 114 | — | Suggestions: notify a member when promoted to admin; morning-offering/readings push times are fixed in UTC (6 AM / 12 PM shift by an hour with daylight saving) | Not changed | open |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
