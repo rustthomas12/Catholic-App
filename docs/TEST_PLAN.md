@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** deploy `test-fixes` (many API fixes only take effect then), you set VAPID keys → N3/N4, Stripe test checkout → PA*/E*, then S8 sign-out and Z2 cleanup. Migrations 035–052 applied to prod; edge functions send-push/distribute-post/send-form-email redeployed.
+**Resume point:** apply migration 054 (needs user approval — classifier blocked it), then live checks of sign-in/profiles, N3/N4 push, parish checkout → PA*/E*, S8 sign-out, Z2 cleanup. PRs #5 and #6 merged and live. Org checkout (Tucson, Thomas) passed end to end.
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -189,7 +189,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | O7 | Org admin: events | A | 🔧 |
 | O8 | Org admin: chapter requests approve | A | 🔧 |
 | O9 | Org admin: settings save | A | ✅ |
-| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ⏭ |
+| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ✅ |
 
 ## 16. Site admin (/admin)
 | ID | Test | Acct | Status |
@@ -207,7 +207,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | BG1 | /api/readings returns today's readings | – | ✅ |
 | BG2 | Readings + Morning Offering cron endpoints respond (dry check) | – | 🔧 |
 | BG3 | distribute-post / send-push / send-form-email functions — no errors in logs during tests | – | ✅ |
-| BG4 | Stripe webhook receives test checkout events, subscription saved | – | ⬜ |
+| BG4 | Stripe webhook receives test checkout events, subscription saved | – | ✅ |
 
 ## 18. Cross-cutting
 | ID | Test | Acct | Status |
@@ -324,4 +324,5 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 84 | — | Sponsorship codes are 6 chars with no rate limit on the claim API (guessable in theory) | Not changed | open |
 | 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
 | 86 | — | Private group member lists readable by any user | Not changed | open |
+| 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
 | 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
