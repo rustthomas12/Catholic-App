@@ -37,6 +37,8 @@ function notificationPath(type: string, ref: string | null): string {
       return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
+    case 'org_announcement':
+      return ref ? `/organization/${ref}` : '/organizations'
     case 'chapter_request_resolved':
       return ref ? `/organization/${ref}` : '/organizations'
     case 'chapter_request':
@@ -83,6 +85,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     group_post:               { title: '📝 New group post',          body: body || `${actor} posted in your group` },
     new_group_member:         { title: '👥 New group member',        body: body || `${actor} joined your group` },
     new_org_member:           { title: '🏛 New org member',          body: body || `${actor} joined your organization` },
+    org_announcement:         { title: '📢 Announcement',            body: body || 'New announcement from your organization' },
     chapter_request:          { title: '📋 Chapter request',         body: body || `${actor} requested a chapter` },
     chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed` },
   }

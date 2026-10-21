@@ -46,7 +46,7 @@
   "status": {
     "loading": "Loading...",
     "error": "Something went wrong. Please try again.",
-    "offline": "You are offline. Changes will sync when you reconnect.",
+    "offline": "You're offline — some content can't be loaded right now.",
     "empty": "Nothing here yet.",
     "updated": "App updated. Tap to refresh."
   },
@@ -114,8 +114,8 @@
     "type_comments_desc": "When someone comments on your post",
     "type_groups": "Group Activity",
     "type_groups_desc": "Join requests and approvals",
-    "type_parish": "Parish Posts",
-    "type_parish_desc": "When your parish posts an announcement",
+    "type_parish": "Announcements",
+    "type_parish_desc": "When your parish or an organization you belong to posts an announcement",
     "type_prayer": "Prayer Responses",
     "type_prayer_desc": "When someone prays for your intention",
     "type_events": "Event Reminders",
@@ -124,6 +124,7 @@
     "type_messages_desc": "When someone sends you a message",
     "type_confession": "Confession Reminders",
     "type_confession_desc": "Gentle reminders for the Confession Tracker",
-    "type_confession_premium": "Available with Premium"
+    "type_confession_premium": "Available with Premium",
+    "turn_on_all": "Turn on all notifications"
   }
 }

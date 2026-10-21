@@ -23,6 +23,7 @@ export const PREFERENCE_MAP = {
   chapter_request:        'chapter_requests',
   chapter_request_resolved: 'chapter_requests',
   new_org_member:            'new_org_member',
+  org_announcement:          'parish_posts',
   morning_offering_reminder: 'morning_offering_reminder',
   daily_readings_reminder:   'daily_readings_reminder',
 }
@@ -107,6 +108,8 @@ export function notificationPath(type, referenceId) {
       return ref ? `/parish-admin/${ref}?tab=messages` : '/'
     case 'new_org_member':
       return ref ? `/org-admin/${ref}` : '/organizations'
+    case 'org_announcement':
+      return ref ? `/organization/${ref}` : '/organizations'
     case 'chapter_request_resolved':
       return ref ? `/organization/${ref}` : '/organizations'
     case 'chapter_request':

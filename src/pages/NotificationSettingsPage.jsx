@@ -173,7 +173,7 @@ export default function NotificationSettingsPage() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
-  const { preferences, loading, updatePreference, turnOffAll } = useNotificationPreferences()
+  const { preferences, loading, updatePreference, turnOffAll, turnOnAll } = useNotificationPreferences()
 
   const [showTurnOffModal, setShowTurnOffModal] = useState(false)
   const [isParishAdmin, setIsParishAdmin] = useState(false)
@@ -226,7 +226,7 @@ export default function NotificationSettingsPage() {
       icon: UserGroupIcon,
       label: t('notifications.type_groups'),
       description: t('notifications.type_groups_desc'),
-      column: 'group_invites',
+      column: 'group_requests',
     },
     {
       icon: BuildingLibraryIcon,
@@ -345,6 +345,14 @@ export default function NotificationSettingsPage() {
                 value={preferences.new_parish_member}
                 onChange={(v) => updatePreference('new_parish_member', v)}
               />
+              <div className="border-t border-gray-50" />
+              <PrefRow
+                icon={EnvelopeIcon}
+                label="Parish messages"
+                description="When a parishioner sends your parish a message"
+                value={preferences.parish_message}
+                onChange={(v) => updatePreference('parish_message', v)}
+              />
             </div>
           </div>
         )}
@@ -417,9 +425,17 @@ export default function NotificationSettingsPage() {
           </div>
         )}
 
-        {/* ── Turn off all ── */}
+        {/* ── Turn off all / back on ── */}
         {!loading && (
-          <div className="px-4 mt-6">
+          <div className="px-4 mt-6 flex flex-wrap gap-x-6">
+            {Object.values(preferences).some(v => v === false) && (
+              <button
+                onClick={turnOnAll}
+                className="text-sm text-navy font-medium hover:underline min-h-[44px]"
+              >
+                {t('notifications.turn_on_all')}
+              </button>
+            )}
             <button
               onClick={() => setShowTurnOffModal(true)}
               className="text-sm text-red-500 font-medium hover:underline min-h-[44px]"

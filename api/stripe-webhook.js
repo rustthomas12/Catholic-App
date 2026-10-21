@@ -80,17 +80,25 @@ export default async function handler(req, res) {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
 
+          // An existing admin renewing / reactivating needs no verification
+          let alreadyAdmin = false
+          if (adminUserId) {
+            const { data: adminRow } = await supabase.from('parish_admins')
+              .select('id').eq('parish_id', parishId).eq('user_id', adminUserId).maybeSingle()
+            alreadyAdmin = !!adminRow
+          }
+
           // Do NOT auto-add to parish_admins — requires manual verification.
           // Mark the applicant's profile as pending so the parish page shows
           // "Application under review" until an admin approves.
-          if (adminUserId) {
+          if (adminUserId && !alreadyAdmin) {
             await supabase.from('profiles')
               .update({ pending_pastor_parish_id: parishId })
               .eq('id', adminUserId)
           }
 
           // Send verification email to info@getinfold.app for review.
-          if (adminUserId) {
+          if (adminUserId && !alreadyAdmin) {
             try {
               const [profileRes, parishRes] = await Promise.all([
                 supabase.from('profiles').select('full_name').eq('id', adminUserId).single(),

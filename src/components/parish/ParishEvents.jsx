@@ -5,27 +5,28 @@ import { supabase } from '../../lib/supabase'
 import { format, isPast, isSameDay } from 'date-fns'
 import EventRsvpButtons from '../shared/EventRsvpButtons'
 
-export default function ParishEvents({ parishId }) {
+// Events for a parish, or for an organization when orgId is given
+export default function ParishEvents({ parishId, orgId }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showPast, setShowPast] = useState(false)
 
   useEffect(() => {
-    if (!parishId) return
+    if (!parishId && !orgId) return
     setLoading(true)
 
     supabase
       .from('events')
       .select('id, title, description, start_time, end_time, location, visibility, rsvp_count, image_url')
-      .eq('parish_id', parishId)
+      .eq(orgId ? 'org_id' : 'parish_id', orgId || parishId)
       .order('start_time', { ascending: true })
       .then(({ data, error: err }) => {
         if (err) setError(err.message)
         else setEvents(data ?? [])
         setLoading(false)
       })
-  }, [parishId])
+  }, [parishId, orgId])
 
   if (loading) {
     return (

@@ -46,7 +46,7 @@
   "status": {
     "loading": "Cargando...",
     "error": "Algo salió mal. Por favor intenta de nuevo.",
-    "offline": "Sin conexión. Los cambios se sincronizarán cuando vuelvas a conectarte.",
+    "offline": "Sin conexión: parte del contenido no se puede cargar ahora.",
     "empty": "Nada aquí todavía.",
     "updated": "App actualizada. Toca para recargar."
   },
@@ -114,8 +114,8 @@
     "type_comments_desc": "Cuando alguien comenta en tu publicación",
     "type_groups": "Actividad de grupos",
     "type_groups_desc": "Solicitudes de ingreso y aprobaciones",
-    "type_parish": "Publicaciones parroquiales",
-    "type_parish_desc": "Cuando tu parroquia publica un anuncio",
+    "type_parish": "Anuncios",
+    "type_parish_desc": "Cuando tu parroquia o una organización a la que perteneces publica un anuncio",
     "type_prayer": "Respuestas de oración",
     "type_prayer_desc": "Cuando alguien ora por tu intención",
     "type_events": "Recordatorios de eventos",
@@ -124,6 +124,7 @@
     "type_messages_desc": "Cuando alguien te envía un mensaje",
     "type_confession": "Recordatorios de confesión",
     "type_confession_desc": "Recordatorios gentiles para el registro de confesiones",
-    "type_confession_premium": "Disponible con Premium"
+    "type_confession_premium": "Disponible con Premium",
+    "turn_on_all": "Activar todas las notificaciones"
   }
 }

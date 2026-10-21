@@ -7,6 +7,7 @@ const DEFAULTS = {
   comments:                 true,
   group_invites:            true,
   group_requests:           true,
+  parish_message:           true,
   parish_posts:             true,
   prayer_responses:         true,
   confession_reminder:      true,
@@ -21,6 +22,10 @@ const DEFAULTS = {
   morning_offering_reminder: true,
   daily_readings_reminder:  true,
   reminder_interval_days:   30,
+}
+
+const LINKED_COLUMNS = {
+  group_requests: ['group_invites'],
 }
 
 export function useNotificationPreferences() {
@@ -51,19 +56,23 @@ export function useNotificationPreferences() {
   const updatePreference = useCallback(async (column, value) => {
     if (!user) return
 
+    // One switch can drive several columns (e.g. "Group Activity" covers
+    // requests, approvals and invites) — keep them in step
+    const changes = Object.fromEntries([column, ...(LINKED_COLUMNS[column] ?? [])].map(c => [c, value]))
+
     // Optimistic update
-    setPreferences(prev => ({ ...prev, [column]: value }))
+    setPreferences(prev => ({ ...prev, ...changes }))
 
     const { error } = await supabase
       .from('notification_preferences')
       .upsert(
-        { user_id: user.id, [column]: value, updated_at: new Date().toISOString() },
+        { user_id: user.id, ...changes, updated_at: new Date().toISOString() },
         { onConflict: 'user_id' }
       )
 
     if (error) {
       // Revert on failure
-      setPreferences(prev => ({ ...prev, [column]: !value }))
+      setPreferences(prev => ({ ...prev, ...Object.fromEntries(Object.keys(changes).map(c => [c, !value])) }))
       console.error('Failed to update notification preference:', error.message)
     }
   }, [user])
@@ -77,6 +86,7 @@ export function useNotificationPreferences() {
       comments:                 false,
       group_invites:            false,
       group_requests:           false,
+      parish_message:           false,
       parish_posts:             false,
       prayer_responses:         false,
       confession_reminder:      false,
@@ -109,5 +119,20 @@ export function useNotificationPreferences() {
     }
   }, [user])
 
-  return { preferences, loading, updatePreference, turnOffAll }
+  // ── Turn on all ───────────────────────────────────────────
+  const turnOnAll = useCallback(async () => {
+    if (!user) return
+    const allOn = Object.fromEntries(Object.keys(DEFAULTS).filter(k => typeof DEFAULTS[k] === 'boolean').map(k => [k, true]))
+    const previous = preferences
+    setPreferences(prev => ({ ...prev, ...allOn }))
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({ user_id: user.id, ...allOn, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+    if (error) {
+      setPreferences(previous)
+      console.error('Failed to turn on all notifications:', error.message)
+    }
+  }, [user, preferences])
+
+  return { preferences, loading, updatePreference, turnOffAll, turnOnAll }
 }

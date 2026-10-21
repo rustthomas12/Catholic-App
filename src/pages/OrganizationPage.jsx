@@ -7,6 +7,7 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
+  ClockIcon,
   UserGroupIcon,
   XMarkIcon,
   Cog6ToothIcon,
@@ -14,9 +15,13 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { formatRelativeTime } from '../utils/dates'
+import ParishEvents from '../components/parish/ParishEvents'
+import { createNotification } from '../lib/notifications'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
+import { safeImageUrl } from '../utils/validate'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
@@ -91,7 +96,7 @@ function useOrganization(orgId) {
     if (isMember) {
       const { error: err } = await supabase.from('organization_members')
         .delete().eq('org_id', orgId).eq('user_id', user.id)
-      if (err) toast.error('Could not leave organization.')
+      if (err) toast.error(err.code === 'P0001' ? err.message : 'Could not leave organization.')
       else { setIsMember(false); setMyRole(null); setMemberCount(c => Math.max(0, c - 1)) }
     } else {
       const { error: err } = await supabase.from('organization_members')
@@ -113,7 +118,9 @@ function useOrganization(orgId) {
                 user_id: a.user_id,
                 type: 'new_org_member',
                 reference_id: orgId,
-                message: `${profile?.full_name || 'Someone'} joined your organization`,
+                message: org?.name
+                  ? `${profile?.full_name || 'Someone'} joined ${org.name}`
+                  : `${profile?.full_name || 'Someone'} joined your organization`,
                 actor_id: user.id,
                 is_read: false,
               }))
@@ -123,7 +130,7 @@ function useOrganization(orgId) {
       }
     }
     setJoinLoading(false)
-  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading])
+  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading, org?.name])
 
   return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters }
 }
@@ -142,6 +149,7 @@ export default function OrganizationPage() {
 
   const tabs = org ? [
     { id: 'feed', label: 'Feed' },
+    { id: 'events', label: 'Events' },
     { id: 'about', label: 'About' },
     ...(org.org_type === 'national' ? [{ id: 'chapters', label: 'Chapters' }] : []),
   ] : [{ id: 'feed', label: 'Feed' }, { id: 'about', label: 'About' }]
@@ -196,8 +204,10 @@ export default function OrganizationPage() {
           )}
 
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <BuildingOffice2Icon className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {safeImageUrl(org.logo_url)
+                ? <img src={safeImageUrl(org.logo_url)} alt="" className="w-full h-full object-cover" />
+                : <BuildingOffice2Icon className="w-7 h-7 text-white" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
@@ -253,7 +263,8 @@ export default function OrganizationPage() {
               {joinLoading ? '…' : isMember ? 'Leave' : 'Join'}
             </button>
 
-            {(org.email || org.phone) && (
+            {/* The form messages the org's admins in-app, so it doesn't need an email on file */}
+            {(org.email || org.phone || org.created_by) && (
               <button
                 onClick={() => setShowContact(true)}
                 className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
@@ -300,6 +311,7 @@ export default function OrganizationPage() {
 
       {/* Tab content */}
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
+        {activeTab === 'feed' && <OrgAnnouncements orgId={id} />}
         {activeTab === 'feed' && (
           <Feed
             orgId={id}
@@ -308,6 +320,7 @@ export default function OrganizationPage() {
             emptySubtext="This organization hasn't posted anything yet."
           />
         )}
+        {activeTab === 'events' && <ParishEvents orgId={id} />}
         {activeTab === 'about' && <OrgAbout org={org} parentOrg={parentOrg} />}
         {activeTab === 'chapters' && <ChaptersTab chapters={chapters} />}
       </div>
@@ -353,6 +366,33 @@ function ChaptersTab({ chapters }) {
 }
 
 // ── OrgAbout ───────────────────────────────────────────────
+// Published announcements from the org's admins (newest first)
+function OrgAnnouncements({ orgId }) {
+  const [items, setItems] = useState([])
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('org_announcements')
+      .select('id, title, content, published_at, created_at')
+      .eq('org_id', orgId).eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(5)
+      .then(({ data }) => { if (!cancelled) setItems(data ?? []) })
+    return () => { cancelled = true }
+  }, [orgId])
+  if (!items.length) return null
+  return (
+    <div className="px-4 pt-4 space-y-3">
+      {items.map(a => (
+        <div key={a.id} className="bg-gold/10 border border-gold/30 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-gold mb-1">📢 Announcement · {formatRelativeTime(a.published_at || a.created_at)}</p>
+          {a.title && <p className="font-semibold text-navy text-sm mb-1">{a.title}</p>}
+          <p className="text-sm text-gray-700 whitespace-pre-line">{a.content}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function OrgAbout({ org, parentOrg }) {
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">
@@ -388,10 +428,25 @@ function OrgAbout({ org, parentOrg }) {
           <h2 className="text-white font-bold text-sm">Contact & Info</h2>
         </div>
         <div className="divide-y divide-gray-50">
-          {(org.city || org.state) && (
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <MapPinIcon className="w-5 h-5 text-navy flex-shrink-0" />
-              <span className="text-sm text-navy">{[org.city, org.state].filter(Boolean).join(', ')}</span>
+          {(org.address || org.city || org.state) && (() => {
+            const line = [org.address, org.city, [org.state, org.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+            return (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(line)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors">
+                <MapPinIcon className="w-5 h-5 text-navy flex-shrink-0" />
+                <span className="text-sm text-navy">{line}</span>
+              </a>
+            )
+          })()}
+          {org.hours && typeof org.hours === 'object' && Object.values(org.hours).some(Boolean) && (
+            <div className="flex items-start gap-3 px-4 py-3.5">
+              <ClockIcon className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-navy space-y-0.5">
+                {Object.entries(org.hours).filter(([, v]) => v).map(([day, v]) => (
+                  <p key={day}><span className="text-gray-500">{day}:</span> {v}</p>
+                ))}
+              </div>
             </div>
           )}
           {org.website && (
@@ -423,7 +478,8 @@ function OrgAbout({ org, parentOrg }) {
         </div>
       </div>
 
-      {!org.is_official && (
+      {/* Only for listed-but-unclaimed orgs (imported, no creator/admin) */}
+      {!org.is_official && !org.created_by && (
         <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
           <p className="text-navy text-sm font-semibold mb-1">Is this your organization?</p>
           <p className="text-gray-500 text-xs">
@@ -445,12 +501,27 @@ function OrgContactModal({ org, onClose }) {
   async function handleSend() {
     if (!body.trim() || !user) return
     setSending(true)
-    const { error } = await supabase.from('direct_messages').insert({
-      sender_id: user.id,
-      recipient_id: org.created_by,
-      content: subject.trim() ? `[${subject.trim()}]\n\n${body.trim()}` : body.trim(),
-      org_id: org.id,
-    })
+    // Message the org's current admins (the creator may have stepped down)
+    const { data: admins } = await supabase.rpc('org_admin_ids', { p_org_id: org.id })
+    const recipients = (admins ?? []).map(r => r.user_id).filter(id => id && id !== user.id)
+    if (!recipients.length) {
+      toast.error('This organization has no admin to contact yet.')
+      setSending(false)
+      return
+    }
+    const content = subject.trim() ? `[${subject.trim()}]\n\n${body.trim()}` : body.trim()
+    const { error } = await supabase.from('direct_messages').insert(
+      recipients.map(id => ({ sender_id: user.id, recipient_id: id, content, org_id: org.id }))
+    )
+    if (!error) {
+      recipients.forEach(id => createNotification({
+        userId: id,
+        type: 'direct_message',
+        referenceId: user.id,
+        message: `${profile?.full_name || 'Someone'} sent ${org.name} a message`,
+        actorId: user.id,
+      }))
+    }
     if (error) {
       toast.error('Could not send message. Please try again.')
     } else {
@@ -479,6 +550,7 @@ function OrgContactModal({ org, onClose }) {
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:border-navy"
         />
         <textarea
+            maxLength={1800}
           value={body}
           onChange={e => setBody(e.target.value)}
           placeholder="Your message…"

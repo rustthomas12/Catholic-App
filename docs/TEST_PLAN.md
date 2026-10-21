@@ -1,6 +1,6 @@
 # inFold — Full Feature Test Plan
 
-**Resume point:** deploy `test-fixes` (many API fixes only take effect then), you set VAPID keys → N3/N4, Stripe test checkout → PA*/E*, then S8 sign-out and Z2 cleanup. Migrations 035–052 applied to prod; edge functions send-push/distribute-post/send-form-email redeployed.
+**Resume point:** N3/N4 (user clicks Allow on the live site as Beta), AU5 (user confirms reset email), parish checkout → PA*/E*/F14, then S8 sign-out and Z2 cleanup. Migrations through 055 applied. Branch test-fixes-2 = PR #7.
 
 Three accounts, each signed in on its own local copy of the app (separate origins keep separate sessions):
 
@@ -47,7 +47,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⏭ |
 | AU3 | Log in / log out | A,B | ✅ |
 | AU4 | Wrong password shows friendly error | B | ✅ |
-| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⬜ |
+| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | 🔧 |
 | AU6 | Session persists across reload | A | ✅ |
 | AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ✅ |
 
@@ -83,13 +83,13 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | D1 | Directory search by name / city / zip | B | 🔧 |
 | D2 | Map view loads, pins clickable | B | ✅ |
 | D3 | "Near me" uses location | B | ⏭ |
-| D4 | Discovery banner dismiss persists | B | ⬜ |
+| D4 | Discovery banner dismiss persists | B | ✅ |
 | D5 | Parish page tabs: Feed, About, Events, Groups | B | ✅ |
 | D6 | Follow / unfollow parish | B | 🔧 |
 | D7 | Mass times / contact info display | B | ✅ |
 | D8 | Send message to parish office | B | 🔧 |
 | D9 | "Send a correction" mailto link uses the support address | B | 🔧 |
-| D10 | Nearby event suggestions from unfollowed parishes | B | ⬜ |
+| D10 | Nearby event suggestions from unfollowed parishes | B | ⏭ |
 
 ## 7. Events & RSVP
 | ID | Test | Acct | Status |
@@ -111,7 +111,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | G6 | Group chat: send message, other member sees it live | A,B | 🔧 |
 | G7 | Group settings: edit details, remove member | A | 🔧 |
 | G8 | Leave group | B | ✅ |
-| G9 | Delete group | A | ⬜ |
+| G9 | Delete group | A | 🔧 |
 
 ## 9. Direct messages
 | ID | Test | Acct | Status |
@@ -142,7 +142,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S1 | View own profile; view another user's profile | B | ✅ |
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
-| S4 | Profile visibility (Public / Members only) respected by other user | B,C | 🔧 |
+| S4 | Profile visibility (Public / Members only) respected by other user | B,C | ✅ |
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
@@ -154,8 +154,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | N1 | In-app notifications list; mark read; tap opens target | B | 🔧 |
 | N2 | Unread badge in navigation updates | B | 🔧 |
-| N3 | Browser push: enable prompt, receive push from another user's action | B | ⏭ |
-| N4 | Push dismissed state persists | B | ⏭ |
+| N3 | Browser push: enable prompt, receive push from another user's action | B | ✅ |
+| N4 | Push dismissed state persists | B | ✅ |
 
 ## 13. Parish admin (/parish-admin/:id)
 | ID | Test | Acct | Status |
@@ -175,7 +175,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | PO1 | /pastor-setup: claim a parish, submit | C | ✅ |
 | PO2 | Verification pending page | C | ✅ |
-| PO3 | Site admin approves clergy → C gets parish admin + badge | A | 🔧 |
+| PO3 | Site admin approves clergy → C gets parish admin + badge | A | ✅ |
 
 ## 15. Organizations
 | ID | Test | Acct | Status |
@@ -189,7 +189,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | O7 | Org admin: events | A | 🔧 |
 | O8 | Org admin: chapter requests approve | A | 🔧 |
 | O9 | Org admin: settings save | A | ✅ |
-| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ⏭ |
+| O10 | Org billing: tiers $50/$100/$300/$500 + national; Stripe test checkout | A | ✅ |
 
 ## 16. Site admin (/admin)
 | ID | Test | Acct | Status |
@@ -207,7 +207,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | BG1 | /api/readings returns today's readings | – | ✅ |
 | BG2 | Readings + Morning Offering cron endpoints respond (dry check) | – | 🔧 |
 | BG3 | distribute-post / send-push / send-form-email functions — no errors in logs during tests | – | ✅ |
-| BG4 | Stripe webhook receives test checkout events, subscription saved | – | ⬜ |
+| BG4 | Stripe webhook receives test checkout events, subscription saved | – | ✅ |
 
 ## 18. Cross-cutting
 | ID | Test | Acct | Status |
@@ -215,7 +215,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | X1 | No console errors on each page visited | all | ✅ |
 | X2 | No leftover "Communio" text anywhere in the UI | all | ✅ |
 | X3 | Mobile width layout of main screens | B | ✅ |
-| X4 | Loading / error / empty states | all | ⬜ |
+| X4 | Loading / error / empty states | all | 🔧 |
 | X5 | Supabase security advisors — no critical RLS gaps | – | 🔧 |
 
 ## 19. Last — destructive
@@ -322,6 +322,34 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 82 | — | **Anyone could send anyone a notification of any type/text** (fake "post reported"/"verified" phishing, pushed to phone) | Mig. 052 per-type rules | ✅ |
 | 83 | PO2 | Pending page promises an approval *email*; none is sent (in-app notification + push only) | Not changed | open |
 | 84 | — | Sponsorship codes are 6 chars with no rate limit on the claim API (guessable in theory) | Not changed | open |
-| 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
+| 85 | BG4 | Two webhook implementations + Stripe sandbox had 2 inFold endpoints (old getcommunio.app domain; dead catholic-app-eta.vercel.app → 404) | Stripe now points at app.getinfold.app/api/stripe-webhook; unused Supabase function deleted | ✅ |
 | 86 | — | Private group member lists readable by any user | Not changed | open |
-| 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
+| 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
+| 95 | — | Stripe account is a **sandbox** — production app runs on test keys; real payments need live keys + live webhook to app.getinfold.app | **You** (when ready to launch) | open |
+| 96 | — | Sandbox also sends events to `perpetuationlink.com` ("Perpetuation Link subscriptions") | **You:** confirm it's yours | open |
+| 97 | PA* | 'Could not start trial' for Beta: the password reset signed out Beta's other sessions (expected Supabase behavior), but the toast hid the server's 'please sign in again' | Toast shows the server's reason | ✅ |
+| 98 | — | Only an assigned pastor can manage a parish: 14 management actions by a non-admin on someone else's parish all blocked; dashboard redirects non-admins; parish_admins writable only by platform admins | — | ✅ |
+| 99 | — | **Existing parish admin renewing was put back into 'pending pastor'** (banner, verification email, Application-received page) | Webhook/success URL distinguish existing admins | ✅ |
+| 100 | F* | Feed comment counts included removed comments (post showed 37 vs 2) | Count visible comments only | ✅ |
+| 101 | N* | **Like/unlike (follow/unfollow, join/leave) re-sent the notification + push every time** — phone spam | Same-person repeats within 24 h dropped (mig. 056) | ✅ |
+| 102 | — | **A blocked user could still comment on / like the blocker's posts, and the blocker was notified with a preview** | Refused + notifications from blocked users dropped (mig. 057) | ✅ |
+| 103 | S6 | **'Group Activity' switch controlled an unused setting**; join approvals stayed off forever after 'Turn off all' | Switch drives both; rows resynced (mig. 058) | ✅ |
+| 104 | S6 | Pastors couldn't turn off 'message to your parish' notifications; no 'Turn on all' | New setting + button | ✅ |
+| 105 | — | Prayer count stayed 0 on others' intentions (Faith page showed 🙏 0) | Counter runs as definer (mig. 059) | ✅ |
+| 106 | N* | Group-post / new-org-member notifications didn't name the group/org | Named | ✅ |
+| 107 | O9 | **Org settings saved invalid emails and `javascript:` logo URLs**; logo never displayed; About tab omitted address and hours; 'Is this your organization?' shown on managed orgs | Validation (+ parish settings), logo shown (https only), address+hours shown | ✅ |
+| 108 | O4 | **An org's/group's only admin could demote themselves or leave** (orphaned org + subscription) | Refused with message (mig. 060); dropdown snaps back | ✅ |
+| 109 | O6 | **Org announcements were never shown to members or sent; scheduled ones never published** | Shown on org page, members notified + push, cron publishes (mig. 061–062). Verified on time | ✅ |
+| 110 | O7 | **Org events were never shown to members** | Events tab with RSVP | ✅ |
+| 111 | O3 | Org Contact messaged the creator even after they stepped down, without a notification; hidden unless an email/phone was listed | Messages current admins + notifies (mig. 063) | ✅ |
+| 112 | PA5 | Parishioners can message a parish whose dashboard is locked (no subscription) — pastor is notified but can't read it | **You:** let pastors read messages without a subscription, or hide Contact on unsubscribed parishes? | open |
+| 113 | S6 | 'Event Reminders' and 'Confession Reminders' switches exist but nothing ever sends those notifications | **You:** build them, or hide the switches? | open |
+| 114 | — | Suggestions: notify a member when promoted to admin; morning-offering/readings push times are fixed in UTC (6 AM / 12 PM shift by an hour with daylight saving) | Not changed | open |
+| 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
+| 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
+| 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
+| 90 | X4 | /group/<missing id> showed a skeleton forever | Not-found state | ✅ |
+| 91 | X4 | **Offline, screens claimed "No notifications/messages yet", "Parish not found", "Join a parish"** | Connection banner when the server is unreachable | ✅ |
+| 92 | — | Live-site sweep after mig. 054 (22 screens as Beta) + admin page as Thomas: no errors | — | ✅ |
+| 93 | PA* | Billing portal (live API): own org 200, no token / forged token 401, other user's org 403 | — | ✅ |
+| 65 | N3/N4 | Web push needed VAPID keys | Keys rotated & set; live push delivered (sent 1, failed 0) | ✅ |
