@@ -83,12 +83,13 @@ export const POST_SELECT = `
   group:groups!group_id(id, name),
   org:organizations!org_id(id, name, org_type),
   likes(user_id),
-  comments(id)
+  comments(id, is_removed)
 `
 
 export function normalisePost(raw, currentUserId) {
   const likes    = raw.likes    ?? []
-  const comments = raw.comments ?? []
+  // Removed comments stay in the table (soft delete) — don't count them
+  const comments = (raw.comments ?? []).filter((c) => !c.is_removed)
   return {
     id:               raw.id,
     content:          raw.content,
