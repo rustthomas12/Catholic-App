@@ -49,10 +49,15 @@ export default function ResetPasswordPage() {
     const { error } = await updatePassword(password)
     setLoading(false)
     if (error) {
-      if (error.message.includes('expired') || error.message.includes('invalid')) {
+      // updatePassword returns the error as a string (reading error.message
+      // threw, so every failure silently did nothing)
+      const msg = String(error).toLowerCase()
+      if (msg.includes('different from the old') || msg.includes('same_password')) {
+        setError(t('reset.error_same_password'))
+      } else if (msg.includes('expired') || msg.includes('invalid') || msg.includes('session')) {
         setError('Reset link has expired. Please request a new one.')
       } else {
-        setError(error.message)
+        setError(String(error))
       }
     } else {
       setSuccess(true)
