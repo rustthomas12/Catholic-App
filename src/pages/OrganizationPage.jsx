@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { formatRelativeTime } from '../utils/dates'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
@@ -93,7 +94,7 @@ function useOrganization(orgId) {
     if (isMember) {
       const { error: err } = await supabase.from('organization_members')
         .delete().eq('org_id', orgId).eq('user_id', user.id)
-      if (err) toast.error('Could not leave organization.')
+      if (err) toast.error(err.code === 'P0001' ? err.message : 'Could not leave organization.')
       else { setIsMember(false); setMyRole(null); setMemberCount(c => Math.max(0, c - 1)) }
     } else {
       const { error: err } = await supabase.from('organization_members')
@@ -306,6 +307,7 @@ export default function OrganizationPage() {
 
       {/* Tab content */}
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
+        {activeTab === 'feed' && <OrgAnnouncements orgId={id} />}
         {activeTab === 'feed' && (
           <Feed
             orgId={id}
@@ -359,6 +361,33 @@ function ChaptersTab({ chapters }) {
 }
 
 // ── OrgAbout ───────────────────────────────────────────────
+// Published announcements from the org's admins (newest first)
+function OrgAnnouncements({ orgId }) {
+  const [items, setItems] = useState([])
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('org_announcements')
+      .select('id, title, content, published_at, created_at')
+      .eq('org_id', orgId).eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(5)
+      .then(({ data }) => { if (!cancelled) setItems(data ?? []) })
+    return () => { cancelled = true }
+  }, [orgId])
+  if (!items.length) return null
+  return (
+    <div className="px-4 pt-4 space-y-3">
+      {items.map(a => (
+        <div key={a.id} className="bg-gold/10 border border-gold/30 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-gold mb-1">📢 Announcement · {formatRelativeTime(a.published_at || a.created_at)}</p>
+          {a.title && <p className="font-semibold text-navy text-sm mb-1">{a.title}</p>}
+          <p className="text-sm text-gray-700 whitespace-pre-line">{a.content}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function OrgAbout({ org, parentOrg }) {
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">

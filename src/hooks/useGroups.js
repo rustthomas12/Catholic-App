@@ -417,7 +417,7 @@ export function useGroupJoin() {
       .eq('user_id', user.id)
 
     if (error) {
-      toast.error('Could not leave group. Please try again.')
+      toast.error(error.code === 'P0001' ? error.message : 'Could not leave group. Please try again.')
       return { error }
     }
 

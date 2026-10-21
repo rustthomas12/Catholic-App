@@ -765,13 +765,17 @@ function MembersTab({ orgId }) {
 
   const updateRole = async (userId, role) => {
     const { error } = await supabase.from('organization_members').update({ role }).eq('org_id', orgId).eq('user_id', userId)
-    if (error) toast.error('Failed to update role.')
+    if (error) {
+      // e.g. "Make someone else an admin before removing the last admin." (migration 060)
+      toast.error(error.code === 'P0001' ? error.message : 'Failed to update role.')
+      setMembers(prev => [...prev]) // re-render so the dropdown snaps back
+    }
     else { setMembers(prev => prev.map(m => m.id === userId ? { ...m, role } : m)); toast.success('Role updated.') }
   }
 
   const removeMember = async (userId) => {
     const { error } = await supabase.from('organization_members').delete().eq('org_id', orgId).eq('user_id', userId)
-    if (error) toast.error('Failed to remove member.')
+    if (error) toast.error(error.code === 'P0001' ? error.message : 'Failed to remove member.')
     else { setMembers(prev => prev.filter(m => m.id !== userId)); toast.success('Member removed.') }
   }
 
