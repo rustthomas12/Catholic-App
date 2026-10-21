@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import { checkEmail, checkUrl } from '../utils/validate'
 
 const CATEGORIES = [
   'Apostolate', 'Charity', 'Education', 'Media', 'Men\'s Ministry',
@@ -69,6 +70,9 @@ export default function CreateOrganizationPage() {
       return
     }
     if (!user) return
+    const email = checkEmail(form.email)
+    const website = checkUrl(form.website, 'website')
+    if (email.error || website.error) { toast.error(email.error || website.error); return }
     setSaving(true)
 
     // Generate a slug from the name with a cryptographically random suffix
@@ -87,8 +91,8 @@ export default function CreateOrganizationPage() {
       description: form.description.trim() || null,
       city: form.city.trim() || null,
       state: form.state.trim() || null,
-      website: form.website.trim() || null,
-      email: form.email.trim() || null,
+      website: website.value,
+      email: email.value,
       created_by: user.id,
     }
 

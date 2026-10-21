@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
+import { checkEmail, checkUrl } from '../utils/validate'
 import { toast } from '../components/shared/Toast'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -1303,10 +1304,13 @@ function SettingsTab({ parishId, parish, setParish }) {
   }
 
   async function handleSave() {
+    const email = checkEmail(form.email)
+    const website = checkUrl(form.website, 'website')
+    if (email.error || website.error) { toast.error(email.error || website.error); return }
     setSaving(true)
     const { data, error } = await supabase
       .from('parishes')
-      .update(form)
+      .update({ ...form, email: email.value, website: website.value })
       .eq('id', parishId)
       .select()
       .single()

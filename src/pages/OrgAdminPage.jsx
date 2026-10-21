@@ -28,6 +28,7 @@ import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
+import { checkEmail, checkUrl, safeImageUrl } from '../utils/validate'
 
 // ── Tier helpers ───────────────────────────────────────────
 const STANDALONE_TIERS = [
@@ -1184,6 +1185,12 @@ function SettingsTab({ org, setOrg, orgId }) {
 
   async function handleSave() {
     if (!form.name.trim()) return
+    const email = checkEmail(form.email)
+    const website = checkUrl(form.website, 'website')
+    const logo = checkUrl(form.logo_url, 'logo')
+    const problem = email.error || website.error || logo.error
+      || (logo.value && !safeImageUrl(logo.value) ? 'The logo must be an https:// image link.' : null)
+    if (problem) { toast.error(problem); return }
     setSaving(true)
 
     // Geocode address via Nominatim when location fields are present
@@ -1211,14 +1218,14 @@ function SettingsTab({ org, setOrg, orgId }) {
       name:        form.name.trim(),
       description: form.description.trim() || null,
       category:    form.category.trim() || null,
-      website:     form.website.trim() || null,
-      email:       form.email.trim() || null,
+      website:     website.value,
+      email:       email.value,
       phone:       form.phone.trim() || null,
       address:     form.address.trim() || null,
       city:        form.city.trim() || null,
       state:       form.state.trim() || null,
       zip:         form.zip.trim() || null,
-      logo_url:    form.logo_url.trim() || null,
+      logo_url:    logo.value,
       hours:       form.hours || null,
       latitude,
       longitude,
@@ -1277,8 +1284,8 @@ function SettingsTab({ org, setOrg, orgId }) {
           <input value={form.logo_url} onChange={e => setForm(p => ({ ...p, logo_url: e.target.value }))} type="url"
             placeholder="https://example.org/logo.png"
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy" />
-          {form.logo_url.trim() && (
-            <img src={form.logo_url.trim()} alt="Logo preview"
+          {safeImageUrl(checkUrl(form.logo_url).value) && (
+            <img src={safeImageUrl(checkUrl(form.logo_url).value)} alt="Logo preview"
               className="mt-2 w-16 h-16 rounded-xl object-contain border border-gray-200 bg-gray-50"
               onError={e => { e.currentTarget.style.display = 'none' }} />
           )}

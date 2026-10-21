@@ -7,6 +7,7 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
+  ClockIcon,
   UserGroupIcon,
   XMarkIcon,
   Cog6ToothIcon,
@@ -17,6 +18,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
+import { safeImageUrl } from '../utils/validate'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
@@ -198,8 +200,10 @@ export default function OrganizationPage() {
           )}
 
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <BuildingOffice2Icon className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {safeImageUrl(org.logo_url)
+                ? <img src={safeImageUrl(org.logo_url)} alt="" className="w-full h-full object-cover" />
+                : <BuildingOffice2Icon className="w-7 h-7 text-white" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
@@ -390,10 +394,25 @@ function OrgAbout({ org, parentOrg }) {
           <h2 className="text-white font-bold text-sm">Contact & Info</h2>
         </div>
         <div className="divide-y divide-gray-50">
-          {(org.city || org.state) && (
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <MapPinIcon className="w-5 h-5 text-navy flex-shrink-0" />
-              <span className="text-sm text-navy">{[org.city, org.state].filter(Boolean).join(', ')}</span>
+          {(org.address || org.city || org.state) && (() => {
+            const line = [org.address, org.city, [org.state, org.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+            return (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(line)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-lightbg transition-colors">
+                <MapPinIcon className="w-5 h-5 text-navy flex-shrink-0" />
+                <span className="text-sm text-navy">{line}</span>
+              </a>
+            )
+          })()}
+          {org.hours && typeof org.hours === 'object' && Object.values(org.hours).some(Boolean) && (
+            <div className="flex items-start gap-3 px-4 py-3.5">
+              <ClockIcon className="w-5 h-5 text-navy flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-navy space-y-0.5">
+                {Object.entries(org.hours).filter(([, v]) => v).map(([day, v]) => (
+                  <p key={day}><span className="text-gray-500">{day}:</span> {v}</p>
+                ))}
+              </div>
             </div>
           )}
           {org.website && (
@@ -425,7 +444,8 @@ function OrgAbout({ org, parentOrg }) {
         </div>
       </div>
 
-      {!org.is_official && (
+      {/* Only for listed-but-unclaimed orgs (imported, no creator/admin) */}
+      {!org.is_official && !org.created_by && (
         <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
           <p className="text-navy text-sm font-semibold mb-1">Is this your organization?</p>
           <p className="text-gray-500 text-xs">
