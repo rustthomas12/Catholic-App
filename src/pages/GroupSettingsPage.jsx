@@ -57,7 +57,13 @@ export default function GroupSettingsPage() {
   }
 
   async function handleDelete() {
-    await supabase.from('groups').delete().eq('id', id)
+    // RLS-blocked deletes return no error, just no rows — check what was deleted
+    const { data, error } = await supabase.from('groups').delete().eq('id', id).select('id')
+    if (error || !data?.length) {
+      toast.error('Could not delete this group.')
+      return
+    }
+    toast.success('Group deleted')
     navigate('/groups')
   }
 
