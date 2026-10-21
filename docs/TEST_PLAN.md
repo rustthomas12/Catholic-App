@@ -47,7 +47,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | AU2 | Confirmation email arrives from **inFold <noreply@getinfold.app>**, link works | C | ⏭ |
 | AU3 | Log in / log out | A,B | ✅ |
 | AU4 | Wrong password shows friendly error | B | ✅ |
-| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | ⏳ email sent — user to confirm |
+| AU5 | Forgot password → email arrives (inFold branding) → reset works | B | 🔧 |
 | AU6 | Session persists across reload | A | ✅ |
 | AU7 | Suspended user cannot use the app (after A suspends C in admin) | C | ✅ |
 
@@ -154,8 +154,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 |---|---|---|---|
 | N1 | In-app notifications list; mark read; tap opens target | B | 🔧 |
 | N2 | Unread badge in navigation updates | B | 🔧 |
-| N3 | Browser push: enable prompt, receive push from another user's action | B | ⏭ |
-| N4 | Push dismissed state persists | B | ⏭ |
+| N3 | Browser push: enable prompt, receive push from another user's action | B | ✅ |
+| N4 | Push dismissed state persists | B | ✅ |
 
 ## 13. Parish admin (/parish-admin/:id)
 | ID | Test | Acct | Status |
@@ -325,10 +325,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 85 | BG4 | Two Stripe webhook implementations exist (api/stripe-webhook.js and the Supabase function) — confirm which URL Stripe calls; delete the other | **You** | open |
 | 86 | — | Private group member lists readable by any user | Not changed | open |
 | 87 | O10 | Test checkout started on localhost returns to app.getinfold.app (Stripe return URL is always the live site) — 'Access denied' when that browser is signed in as a different account. Test-setup artifact only; real users start and finish on the same site | Not a bug | ⏭ |
+| 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
 | 90 | X4 | /group/<missing id> showed a skeleton forever | Not-found state | ✅ |
 | 91 | X4 | **Offline, screens claimed "No notifications/messages yet", "Parish not found", "Join a parish"** | Connection banner when the server is unreachable | ✅ |
 | 92 | — | Live-site sweep after mig. 054 (22 screens as Beta) + admin page as Thomas: no errors | — | ✅ |
 | 93 | PA* | Billing portal (live API): own org 200, no token / forged token 401, other user's org 403 | — | ✅ |
-| 65 | N3/N4 | Web push can't be tested until VAPID keys are set in Vercel (see your to-do) | **You** | ⏭ |
+| 65 | N3/N4 | Web push needed VAPID keys | Keys rotated & set; live push delivered (sent 1, failed 0) | ✅ |
