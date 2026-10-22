@@ -38,6 +38,7 @@ const FaithPage                = lazy(() => import('./pages/FaithPage'))
 const PrayerRequestsPage       = lazy(() => import('./pages/PrayerRequestsPage'))
 const ExaminationPage          = lazy(() => import('./pages/ExaminationPage'))
 const ConfessionTrackerPage    = lazy(() => import('./pages/ConfessionTrackerPage'))
+const EventRedirectPage        = lazy(() => import('./pages/EventRedirectPage'))
 const SaintsPage               = lazy(() => import('./pages/SaintsPage'))
 const SaintPage                = lazy(() => import('./pages/SaintPage'))
 const NotificationsPage        = lazy(() => import('./pages/NotificationsPage'))
@@ -185,6 +186,7 @@ function AppInner() {
           <Route path="/premium"                   element={<Navigate to="/" replace />} />
           <Route path="/premium/success"           element={<Navigate to="/" replace />} />
           <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/event/:id"                 element={<ProtectedRoute><RouteErrorBoundary><EventRedirectPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints/:id"                element={<ProtectedRoute><RouteErrorBoundary><SaintPage /></RouteErrorBoundary></ProtectedRoute>} />

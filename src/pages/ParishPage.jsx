@@ -35,7 +35,8 @@ export default function ParishPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const { parishAdminRecords } = useAdminAccess()
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
 
   // Check if the current user admins THIS specific parish

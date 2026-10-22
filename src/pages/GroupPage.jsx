@@ -42,7 +42,8 @@ export default function GroupPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
 
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')

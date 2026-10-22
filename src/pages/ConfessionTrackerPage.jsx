@@ -87,10 +87,31 @@ export default function ConfessionTrackerPage() {
     setClearing(false)
   }
 
-  function handleReminderChange(val) {
+  // The server sends the reminders, so the interval is saved to the account
+  // (notification_preferences); "Off" turns the confession reminder off.
+  async function handleReminderChange(val) {
     setReminderDays(val)
     localStorage.setItem(REMINDER_KEY, String(val))
+    if (!user) return
+    await supabase.from('notification_preferences').upsert({
+      user_id: user.id,
+      confession_reminder: val !== null,
+      ...(val !== null ? { reminder_interval_days: val } : {}),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
   }
+
+  // Load the saved interval from the account (falls back to this device's choice)
+  useEffect(() => {
+    if (!user) return
+    supabase.from('notification_preferences')
+      .select('confession_reminder, reminder_interval_days')
+      .eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return
+        setReminderDays(data.confession_reminder === false ? null : (data.reminder_interval_days ?? 30))
+      })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">

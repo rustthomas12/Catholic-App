@@ -138,7 +138,8 @@ function useOrganization(orgId) {
 export default function OrganizationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
   const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters } = useOrganization(id)
 

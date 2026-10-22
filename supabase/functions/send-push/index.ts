@@ -52,7 +52,7 @@ function notificationPath(type: string, ref: string | null): string {
     case 'direct_message':
       return '/messages'
     case 'event_reminder':
-      return '/notifications'
+      return ref ? `/event/${ref}` : '/notifications'
     default:
       return '/'
   }
