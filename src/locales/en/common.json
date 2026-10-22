@@ -25,7 +25,8 @@
     "role_parish_admin": "Parish admin",
     "role_org_admin": "Organization admin",
     "role_parish_member": "Parish member",
-    "role_member": "Member"
+    "role_member": "Member",
+    "me": "Me"
   },
   "actions": {
     "save": "Save",
@@ -126,5 +127,14 @@
     "type_confession_desc": "Gentle reminders for the Confession Tracker",
     "type_confession_premium": "Available with Premium",
     "turn_on_all": "Turn on all notifications"
+  },
+  "me": {
+    "you_manage": "You manage",
+    "manage_parish": "Parish dashboard",
+    "manage_org": "Organization dashboard",
+    "platform_admin_hint": "Moderation and management",
+    "shortcuts": "Shortcuts",
+    "show_all": "Show all ({{count}})",
+    "show_less": "Show less"
   }
 }
