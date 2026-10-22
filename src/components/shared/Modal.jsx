@@ -1,20 +1,29 @@
 import { useEffect, useRef } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
+// Full-width bottom sheet on phones, centered dialog from md up
 const sizeMap = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  full: 'max-w-full',
+  sm: 'md:max-w-sm',
+  md: 'md:max-w-md',
+  lg: 'md:max-w-lg',
+  full: 'md:max-w-full',
 }
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export default function Modal({ isOpen, onClose, title, size = 'md', children }) {
   const dialogRef = useRef(null)
 
-  // Close on Escape key
+  // Escape closes; Tab stays inside the dialog
   useEffect(() => {
     function handleKey(e) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab' || !dialogRef.current) return
+      const items = [...dialogRef.current.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null)
+      if (items.length === 0) { e.preventDefault(); return }
+      const first = items[0], last = items[items.length - 1]
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
     }
     if (isOpen) {
       document.addEventListener('keydown', handleKey)
@@ -26,11 +35,12 @@ export default function Modal({ isOpen, onClose, title, size = 'md', children })
     }
   }, [isOpen, onClose])
 
-  // Trap focus
+  // Move focus into the dialog, and back to whatever opened it on close
   useEffect(() => {
-    if (isOpen && dialogRef.current) {
-      dialogRef.current.focus()
-    }
+    if (!isOpen) return
+    const opener = document.activeElement
+    dialogRef.current?.focus()
+    return () => { if (opener && document.contains(opener)) opener.focus() }
   }, [isOpen])
 
   if (!isOpen) return null
@@ -56,8 +66,8 @@ export default function Modal({ isOpen, onClose, title, size = 'md', children })
           // Mobile: sheet from bottom
           'rounded-t-2xl md:rounded-xl',
           // Desktop: constrained width
-          `md:${sizeMap[size] ?? sizeMap.md}`,
-          'max-h-[90vh] overflow-y-auto',
+          sizeMap[size] ?? sizeMap.md,
+          'max-h-[90vh] overflow-y-auto overscroll-contain safe-bottom',
           'shadow-xl',
           // Animate
           'animate-[slideUp_0.2s_ease-out]',
@@ -70,11 +80,11 @@ export default function Modal({ isOpen, onClose, title, size = 'md', children })
 
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 py-1.5 border-b border-gray-100">
             <h2 className="text-lg font-semibold text-navy">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-gray-500 hover:text-navy hover:bg-lightbg transition-colors"
+              className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-navy hover:bg-lightbg transition-colors"
               aria-label="Close"
             >
               <XMarkIcon className="w-5 h-5" />

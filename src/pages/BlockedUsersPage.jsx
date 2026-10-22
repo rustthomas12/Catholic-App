@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, NoSymbolIcon } from '@heroicons/react/24/outline'
+import { Link } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
+import { NoSymbolIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 import { useBlockedUsers } from '../hooks/useBlockedUsers'
 import Avatar from '../components/shared/Avatar'
@@ -9,7 +10,6 @@ import { toast } from '../components/shared/Toast'
 
 export default function BlockedUsersPage() {
   useEffect(() => { document.title = 'Blocked Users | inFold' }, [])
-  const navigate = useNavigate()
   const { blockedIds, loaded, unblock } = useBlockedUsers()
   const [fetched, setFetched] = useState(null) // profiles of blocked users, null until loaded
   const [busyId, setBusyId] = useState(null)
@@ -38,16 +38,7 @@ export default function BlockedUsersPage() {
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
-        <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-100">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-lightbg"
-            aria-label="Back"
-          >
-            <ArrowLeftIcon className="w-5 h-5 text-navy" />
-          </button>
-          <h1 className="text-lg font-bold text-navy">Blocked users</h1>
-        </div>
+        <TopBar title="Blocked users" back />
 
         <p className="px-4 pt-4 text-sm text-gray-500">
           You won't see posts, comments, prayer requests or messages from people you block,

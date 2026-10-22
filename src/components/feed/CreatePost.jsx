@@ -469,7 +469,7 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
           />
           <button
             onClick={() => setModalOpen(true)}
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-500 text-left min-h-[40px] hover:bg-gray-200 transition-colors"
+            className="flex-1 min-w-0 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-500 text-left min-h-[40px] hover:bg-gray-200 transition-colors"
           >
             {t('post.placeholder')}
           </button>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, TrashIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -69,14 +70,7 @@ export default function GroupSettingsPage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60 pb-24">
-      <div className="bg-navy px-4 pt-5 pb-5">
-        <div className="flex items-center gap-3">
-          <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white">
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <h1 className="text-white font-bold text-lg">{t('settings')}</h1>
-        </div>
-      </div>
+      <TopBar variant="navy" title={t('settings')} back={true} />
 
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
         <div>

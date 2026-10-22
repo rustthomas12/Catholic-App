@@ -938,7 +938,7 @@ function ParishClusters() {
                   <div className='divide-y divide-gray-50'>
                     {cluster.parish_cluster_members.map((m, i) => m.parishes && (
                       <div key={i} className='px-4 py-2.5 flex items-center gap-3'>
-                        <BuildingLibraryIcon className='w-4 h-4 text-navy/40 flex-shrink-0' />
+                        <BuildingLibraryIcon className='w-4 h-4 text-navy/75 flex-shrink-0' />
                         <div className='flex-1 min-w-0'>
                           <p className='text-sm font-medium text-navy truncate'>{m.parishes.name}</p>
                           {m.parishes.city && (

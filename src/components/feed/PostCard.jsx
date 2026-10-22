@@ -229,6 +229,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
 
   const [expanded, setExpanded] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuSheet, setMenuSheet] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
   const [showBlockModal, setShowBlockModal] = useState(false)
@@ -446,14 +447,20 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             {/* Three-dot menu */}
             <div className="relative" ref={menuRef}>
               <button
-                onClick={() => setMenuOpen((o) => !o)}
+                onClick={() => {
+                  // Phones get a bottom sheet (big rows, thumb reach); desktop a dropdown
+                  setMenuSheet(window.matchMedia('(max-width: 767px)').matches)
+                  setMenuOpen((o) => !o)
+                }}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
                 className="p-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy rounded-lg hover:bg-lightbg transition-colors"
                 aria-label="Post options"
               >
                 <EllipsisHorizontalIcon className="w-5 h-5" />
               </button>
 
-              {menuOpen && (
+              {menuOpen && !menuSheet && (
                 <div className="absolute right-0 top-10 z-10 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[160px]">
                   {isOwnPost ? (
                     <>
@@ -492,6 +499,48 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     </>
                   )}
                 </div>
+              )}
+              {menuSheet && (
+                <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title={t('post.options', 'Post options')}>
+                  <div className="-mx-4 -my-2 [&>button]:min-h-[52px] [&>button]:text-base [&>button]:gap-3">
+                  {isOwnPost ? (
+                    <>
+                      <button
+                        onClick={() => { setMenuOpen(false); setEditDraft(post.content); setEditing(true) }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
+                      >
+                        ✏️ {t('post.edit')}
+                      </button>
+                      <button
+                        onClick={() => { setMenuOpen(false); setShowDeleteModal(true) }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 min-h-[44px]"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        {t('post.delete')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setMenuOpen(false); setShowReportModal(true) }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
+                      >
+                        <FlagIcon className="w-4 h-4" />
+                        {t('post.report')}
+                      </button>
+                      {post.author?.id && (
+                        <button
+                          onClick={() => { setMenuOpen(false); setShowBlockModal(true) }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 min-h-[44px]"
+                        >
+                          <NoSymbolIcon className="w-4 h-4" />
+                          {t('post.block')}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+                </Modal>
               )}
             </div>
           </div>

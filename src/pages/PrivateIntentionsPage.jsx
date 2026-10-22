@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import {
   ChevronLeftIcon,
   PlusIcon,
@@ -22,7 +22,6 @@ const STATUS_LABELS = {
 export default function PrivateIntentionsPage() {
   useEffect(() => { document.title = 'Prayer Intentions | inFold' }, [])
 
-  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [intentions, setIntentions] = useState([])
@@ -103,26 +102,19 @@ export default function PrivateIntentionsPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-5">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-3">
-              <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
-                <ChevronLeftIcon className="w-5 h-5" />
-              </button>
-              <div>
-                <p className="text-gold text-xs font-semibold uppercase tracking-widest">Private</p>
-                <h1 className="text-white font-bold text-xl">Prayer Intentions</h1>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowAdd(v => !v)}
-              className="flex items-center gap-1.5 bg-gold text-navy text-xs font-bold px-3 py-2 rounded-xl hover:bg-gold/90 transition-colors"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Add
-            </button>
-          </div>
-          <p className="text-white/70 text-xs ml-8 mt-1">
+        <TopBar variant="navy" title="Prayer Intentions" back actions={
+          <button
+            onClick={() => setShowAdd(v => !v)}
+            aria-expanded={showAdd}
+            className="flex items-center gap-1.5 bg-gold text-navy text-sm font-bold px-3 min-h-[40px] rounded-xl hover:bg-gold/90 transition-colors mr-1"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add
+          </button>
+        } />
+        <div className="bg-navy px-4 pb-5">
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Private</p>
+          <p className="text-white/70 text-xs ml-10 mt-1">
             Completely private — only you can see this list.
           </p>
         </div>

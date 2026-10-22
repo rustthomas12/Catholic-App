@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { CheckCircleIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid'
 import { useFormation } from '../hooks/useFormation'
 import { LENT_PROGRAM } from '../data/formation/lent'
@@ -78,17 +79,9 @@ export default function FormationPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className={`${headerColor} px-4 pt-5 pb-6`}>
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back"
-              onClick={() => navigate('/faith')}
-              className="text-white/70 hover:text-white p-1 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">{data.title}</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">{data.subtitle}</p>
+        <TopBar variant="navy" className={headerColor} title={data.title} back="/faith" />
+        <div className={`${headerColor} px-4 pb-6`}>
+          <p className="text-gray-500 text-sm ml-10">{data.subtitle}</p>
         </div>
 
         <div className="px-4 pt-5 space-y-5">

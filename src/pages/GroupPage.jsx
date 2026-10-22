@@ -284,13 +284,13 @@ export default function GroupPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto flex">
+      <div className="bg-white border-b border-gray-100 sticky sticky-top z-10">
+        <div className="max-w-3xl mx-auto flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors relative ${
+              className={`flex-1 flex-shrink-0 whitespace-nowrap px-3 min-h-[48px] py-3 text-sm font-semibold border-b-2 transition-colors relative ${
                 activeTab === tab.id
                   ? 'border-navy text-navy'
                   : 'border-transparent text-gray-500 hover:text-gray-600'

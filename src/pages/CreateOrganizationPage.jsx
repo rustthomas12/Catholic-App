@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, XMarkIcon, MagnifyingGlassIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { XMarkIcon, MagnifyingGlassIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -142,18 +143,8 @@ export default function CreateOrganizationPage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
+      <TopBar title="New Organization" back="/organizations" />
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => navigate('/organizations')}
-            className="p-2 rounded-xl text-navy hover:bg-navy/5 transition-colors"
-            aria-label="Back"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <h1 className="text-xl font-bold text-navy">New Organization</h1>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">

@@ -1,3 +1,4 @@
+import TopBar from '../components/shared/TopBar'
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { MagnifyingGlassIcon, MapPinIcon, ListBulletIcon, MapIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -246,8 +247,8 @@ export default function DirectoryPage() {
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
 
         {/* ── Header ── */}
-        <div className="bg-navy px-4 pt-6 pb-5 md:pt-8">
-          <h1 className="text-white font-bold text-xl mb-4">Parish Directory</h1>
+        <TopBar variant="navy" title="Parish Directory" />
+        <div className="bg-navy px-4 pt-1 pb-5">
 
           {/* Search bar */}
           <div className="relative">
@@ -313,7 +314,8 @@ export default function DirectoryPage() {
             <div className="flex bg-white/10 rounded-full p-0.5 ml-auto">
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                aria-pressed={viewMode === 'list'}
+                className={`tap-target flex items-center gap-1 text-sm font-semibold px-3.5 min-h-[36px] rounded-full transition-colors ${
                   viewMode === 'list' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
                 }`}
               >
@@ -322,7 +324,8 @@ export default function DirectoryPage() {
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                aria-pressed={viewMode === 'map'}
+                className={`tap-target flex items-center gap-1 text-sm font-semibold px-3.5 min-h-[36px] rounded-full transition-colors ${
                   viewMode === 'map' ? 'bg-white text-navy' : 'text-white hover:bg-white/10'
                 }`}
               >

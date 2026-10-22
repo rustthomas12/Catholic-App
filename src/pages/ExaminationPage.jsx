@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { ChevronLeftIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { Link } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { ShieldCheckIcon } from '@heroicons/react/24/solid'
 
 const SECTIONS = [
@@ -152,7 +153,6 @@ function Section({ section, isOpen, onToggle }) {
 
 export default function ExaminationPage() {
   useEffect(() => { document.title = 'Examination of Conscience | inFold' }, [])
-  const navigate = useNavigate()
   const [openSection, setOpenSection] = useState(null)
   const [expandAll, setExpandAll] = useState(false)
 
@@ -165,17 +165,10 @@ export default function ExaminationPage() {
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-lg mx-auto pb-24">
 
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <div>
-              <p className="text-gold text-xs font-semibold uppercase tracking-widest">Sacrament of Penance</p>
-              <h1 className="text-white font-bold text-xl">Examination of Conscience</h1>
-            </div>
-          </div>
-          <p className="text-white/50 text-sm ml-8 mt-1">Prepare your heart and mind before Confession.</p>
+        <TopBar variant="navy" title="Examination of Conscience" back />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Sacrament of Penance</p>
+          <p className="text-white/75 text-sm ml-10 mt-1">Prepare your heart and mind before Confession.</p>
         </div>
 
         <div className="px-4 pt-5 space-y-4">

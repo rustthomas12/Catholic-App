@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
 import { HOURS } from '../data/liturgyOfHours'
 
 const HOUR_ORDER = ['morning', 'evening', 'night']
@@ -24,7 +23,6 @@ function Section({ title, children, accent = false }) {
 export default function LiturgyOfHoursPage() {
   useEffect(() => { document.title = 'Liturgy of the Hours | inFold' }, [])
 
-  const navigate = useNavigate()
   const [activeId, setActiveId] = useState(getCurrentHourId)
 
   const hour = HOURS[activeId]
@@ -34,21 +32,13 @@ export default function LiturgyOfHoursPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back"
-              onClick={() => navigate('/faith')}
-              className="text-white/70 hover:text-white p-1 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">Liturgy of the Hours</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">The prayer of the Church throughout the day</p>
+        <TopBar variant="navy" title="Liturgy of the Hours" back="/faith" />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gray-500 text-sm ml-10">The prayer of the Church throughout the day</p>
         </div>
 
         {/* Hour selector tabs */}
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="bg-white border-b border-gray-100 sticky z-20 sticky-below-topbar">
           <div className="flex">
             {HOUR_ORDER.map(id => {
               const h = HOURS[id]
@@ -63,7 +53,7 @@ export default function LiturgyOfHoursPage() {
                   }`}
                 >
                   <span className="block">{h.name}</span>
-                  <span className="block font-normal opacity-60">{h.latinName}</span>
+                  <span className="block font-normal opacity-90">{h.latinName}</span>
                 </button>
               )
             })}
@@ -107,7 +97,7 @@ export default function LiturgyOfHoursPage() {
                     <span className="text-gold font-bold mt-0.5 flex-shrink-0">·</span>
                     <div>
                       <p className="text-sm text-gray-700 leading-snug">{intention}</p>
-                      <p className="text-xs text-navy/50 italic">{hour.response}</p>
+                      <p className="text-xs text-navy/75 italic">{hour.response}</p>
                     </div>
                   </div>
                 ))}

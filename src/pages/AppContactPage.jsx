@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { EnvelopeIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -50,16 +51,9 @@ export default function AppContactPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-5">
-          <div className="flex items-center gap-3">
-            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <div>
-              <p className="text-gold text-xs font-semibold uppercase tracking-widest">Support</p>
-              <h1 className="text-white font-bold text-xl">Contact Us</h1>
-            </div>
-          </div>
+        <TopBar variant="navy" title="Contact Us" back />
+        <div className="bg-navy px-4 pb-5">
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Support</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">

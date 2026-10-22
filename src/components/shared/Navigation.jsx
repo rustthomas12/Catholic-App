@@ -21,6 +21,7 @@ import { useAdminAccess } from '../../hooks/useAdminAccess'
 import { getLiturgicalSeason } from '../../utils/liturgical'
 import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
+import { setUnreadDMCount } from '../../lib/dmBadge'
 import { supabase } from '../../lib/supabase'
 
 const PUBLIC_PATHS = [
@@ -301,13 +302,13 @@ function Navigation() {
   // Unread DM badge: recount on navigation, when a thread is read,
   // and when a new message arrives.
   const recountDMs = useCallback(() => {
-    if (!user) { setUnreadDMs(0); return }
+    if (!user) { setUnreadDMs(0); setUnreadDMCount(0); return }
     supabase
       .from('direct_messages')
       .select('id', { count: 'exact', head: true })
       .eq('recipient_id', user.id)
       .eq('is_read', false)
-      .then(({ count }) => setUnreadDMs(count ?? 0))
+      .then(({ count }) => { setUnreadDMs(count ?? 0); setUnreadDMCount(count ?? 0) })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { recountDMs() }, [recountDMs, location.pathname])
@@ -362,7 +363,7 @@ function Navigation() {
     <>
       {/* ── Mobile bottom tab bar ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-navy border-t border-white/10 safe-bottom" aria-label="Main">
-        <div className="flex items-center justify-around h-16">
+        <div className="flex items-center justify-around h-[64px]">
           {mobileTabs.map((tab) => {
             const active = tab.active(location.pathname)
             const { Icon, IconSolid, label, to, isFaith, isBell } = tab
@@ -371,13 +372,14 @@ function Navigation() {
               <Link
                 key={to}
                 to={to}
+                aria-current={active ? 'page' : undefined}
                 className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 group"
               >
                 <div className="relative flex items-center justify-center">
                   {active ? (
-                    <IconSolid className="w-6 h-6 text-gold" />
+                    <IconSolid className="w-[24px] h-[24px] text-gold" />
                   ) : (
-                    <Icon className="w-6 h-6 text-gray-300 group-hover:text-gray-200 transition-colors" />
+                    <Icon className="w-[24px] h-[24px] text-gray-300 group-hover:text-gray-200 transition-colors" />
                   )}
 
                   {isFaith && (
@@ -388,7 +390,7 @@ function Navigation() {
                   )}
 
                   {isBell && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
+                    <span aria-hidden="true" className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -396,6 +398,7 @@ function Navigation() {
                 <span className={`text-[11px] font-medium ${active ? 'text-gold' : 'text-gray-300'}`}>
                   {t(label)}
                 </span>
+                {isBell && unreadCount > 0 && <span className="sr-only">, {unreadCount} unread</span>}
               </Link>
             )
           })}
@@ -427,7 +430,7 @@ function Navigation() {
                   />
                   {/* Dot badge if DMs unread — visible even when not active */}
                   {unreadDMs > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border border-navy" />
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-navy" />
                   )}
                 </div>
               )}

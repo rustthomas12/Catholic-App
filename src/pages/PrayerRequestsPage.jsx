@@ -164,7 +164,7 @@ export default function PrayerRequestsPage() {
       <div className="max-w-2xl mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
+        <div className="bg-navy px-4 py-4 flex items-center gap-3 sticky sticky-top z-10">
           <button aria-label="Back"
             onClick={() => navigate(-1)}
             className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-white/70 hover:text-white"

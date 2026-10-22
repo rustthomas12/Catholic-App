@@ -101,7 +101,7 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-20">
 
       {/* ── Header ── */}
-      <div className="sticky top-0 z-10 bg-cream border-b border-gray-100">
+      <div className="sticky sticky-top z-10 bg-cream border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-navy">
             {t('notifications.title')}

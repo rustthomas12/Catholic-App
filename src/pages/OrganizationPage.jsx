@@ -1,3 +1,4 @@
+import Modal from '../components/shared/Modal'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
@@ -289,13 +290,13 @@ export default function OrganizationPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto flex">
+      <div className="bg-white border-b border-gray-100 sticky sticky-top z-10">
+        <div className="max-w-3xl mx-auto flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              className={`flex-1 flex-shrink-0 whitespace-nowrap px-3 min-h-[48px] py-3 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab.id ? 'border-navy text-navy' : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
@@ -533,15 +534,8 @@ function OrgContactModal({ org, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-navy">Contact {org.name}</h2>
-          <button aria-label="Close" onClick={onClose} className="text-gray-500 hover:text-gray-600 transition-colors">
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
-        {profile?.full_name && (
+    <Modal isOpen onClose={onClose} title={`Contact ${org.name}`}>
+      {profile?.full_name && (
           <p className="text-xs text-gray-500 mb-4">Sent as {profile.full_name}.</p>
         )}
         <input
@@ -570,7 +564,6 @@ function OrgContactModal({ org, onClose }) {
             {sending ? 'Sending…' : 'Send'}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
