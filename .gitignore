@@ -34,3 +34,4 @@ scripts/data/irs-bmf/eo3.csv
 test-results/
 playwright-report/
 dev-dist/
+deno.lock
