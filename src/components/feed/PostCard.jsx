@@ -19,67 +19,13 @@ import { usePost } from '../../hooks/usePost'
 import { useBlockedUsers } from '../../hooks/useBlockedUsers'
 import Avatar from '../shared/Avatar'
 import Modal from '../shared/Modal'
+import ReportModal from '../shared/ReportModal'
+import { reportContent } from '../../lib/reports'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { CommentSkeleton } from '../shared/skeletons'
 import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
 import { publicOrigin } from '../../lib/platform'
-
-// ── Report modal ───────────────────────────────────────────
-const REPORT_REASONS = ['spam', 'hateful', 'misinformation', 'violates_values', 'other']
-
-function ReportModal({ isOpen, onClose, onSubmit }) {
-  const { t } = useTranslation('feed')
-  const [reason, setReason] = useState('spam')
-  const [notes, setNotes] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit() {
-    setLoading(true)
-    const { error } = await onSubmit(reason, notes)
-    setLoading(false)
-    if (!error) {
-      toast.success(t('report.success'))
-      onClose()
-    } else {
-      toast.error(error)
-    }
-  }
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('report.title')}>
-      <div className="space-y-3">
-        {REPORT_REASONS.map((r) => (
-          <label key={r} className="flex items-center gap-3 cursor-pointer min-h-[44px]">
-            <input
-              type="radio"
-              name="reason"
-              value={r}
-              checked={reason === r}
-              onChange={() => setReason(r)}
-              className="accent-gold w-4 h-4 flex-shrink-0"
-            />
-            <span className="text-sm text-navy">{t(`report.${r}`)}</span>
-          </label>
-        ))}
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder={t('report.notes_placeholder')}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-navy resize-none h-20 focus:outline-none focus:ring-2 focus:ring-gold"
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-navy text-white rounded-lg py-2.5 text-sm font-semibold min-h-[44px] disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? <LoadingSpinner size="sm" color="white" /> : null}
-          {t('report.submit')}
-        </button>
-      </div>
-    </Modal>
-  )
-}
 
 // ── Delete confirm modal ───────────────────────────────────
 function DeleteModal({ isOpen, onClose, onConfirm, loading }) {
@@ -153,6 +99,7 @@ function ImageModal({ src, onClose }) {
 function CommentItem({ comment, currentUserId, onDelete }) {
   const { t } = useTranslation('feed')
   const [showDelete, setShowDelete] = useState(false)
+  const [showReport, setShowReport] = useState(false)
   const isOwn = comment.author?.id === currentUserId
 
   if (comment.is_removed) {
@@ -197,11 +144,29 @@ function CommentItem({ comment, currentUserId, onDelete }) {
               setTimeout(() => setShowDelete(false), 3000)
             }
           }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           title={t('comment.delete')}
+          aria-label={showDelete ? `${t('comment.delete')} — tap again to confirm` : t('comment.delete')}
         >
           <TrashIcon className={`w-4 h-4 ${showDelete ? 'text-red-500' : 'text-gray-500'}`} />
         </button>
+      )}
+      {!isOwn && currentUserId && (
+        <>
+          <button
+            onClick={() => setShowReport(true)}
+            className="md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-navy"
+            aria-label={t('report.title_comment')}
+          >
+            <FlagIcon className="w-4 h-4" />
+          </button>
+          <ReportModal
+            isOpen={showReport}
+            onClose={() => setShowReport(false)}
+            title={t('report.title_comment')}
+            onSubmit={(reason, notes) => reportContent('comment', comment.id, reason, notes)}
+          />
+        </>
       )}
     </div>
   )
@@ -295,10 +260,10 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   async function handleSendComment() {
     if (!commentInput.trim()) return
     setCommentSending(true)
-    const { error } = await addComment(commentInput)
+    const { error, userFacing } = await addComment(commentInput)
     setCommentSending(false)
     if (error) {
-      toast.error(t('common:status.error'))
+      toast.error(userFacing ? error : t('common:status.error'))
     } else {
       setCommentInput('')
     }

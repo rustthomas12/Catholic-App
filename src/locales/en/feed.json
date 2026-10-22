@@ -86,6 +86,14 @@
     "other": "Other",
     "notes_placeholder": "Optional: add more details...",
     "submit": "Submit report",
-    "success": "Thank you. Our team will review this."
+    "success": "Thank you. Our team will review this.",
+    "reason": "Reason",
+    "action": "Report",
+    "title_comment": "Report this comment",
+    "title_message": "Report this conversation",
+    "title_group_message": "Report this message",
+    "title_prayer_request": "Report this prayer request",
+    "title_profile": "Report this person",
+    "title_group": "Report this group"
   }
 }

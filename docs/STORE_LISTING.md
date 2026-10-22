@@ -112,7 +112,7 @@ Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 ```
 inFold is a free Catholic community app. Sign in with the demo account above; it follows a parish in Worcester, MA so you can see the parish page, readings, directory and groups.
 
-User-generated content: every post has a "…" menu with "Report post" (reports go to our moderation queue and admins are notified) and "Block user". Profiles also have a Block button, and Settings > Blocked users lets people unblock. Blocked users' content is hidden and they cannot message the blocker. Our Content Policy is at https://app.getinfold.app/policy and users agree to the Terms when signing up.
+User-generated content (guideline 1.2): everything members write can be reported — posts ("…" menu > Report post), comments, group chat messages and prayer requests (flag icon), direct messages (conversation menu > Report conversation), and profiles and groups (flag on their page). Reports go to our moderation queue, admins are notified immediately, and we act within 24 hours (remove content, suspend users). Members can block anyone from their profile, a post's menu, or a conversation; blocked users' content is hidden and they cannot message the blocker (Settings > Blocked users to unblock). Users must agree to the Terms (zero tolerance for objectionable content and abusive users) to sign up. Content Policy: https://app.getinfold.app/policy
 
 Payments: individual users never pay and there are no in-app purchases. Parishes and Catholic organizations can subscribe to administrative tools (B2B, guideline 3.1.3(c)); that checkout happens on our website.
 
@@ -133,7 +133,7 @@ Answer **"Yes, we collect data"**, then for each type below choose:
 | Contact Info | Name, Email Address |
 | User Content | Photos or Videos, Emails or Text Messages (direct messages), Other User Content (posts, comments, prayer requests) |
 | Identifiers | User ID, Device ID (push notification token) |
-| Location | Coarse Location — **not linked**, App Functionality (only sent to find nearby parishes, not stored) |
+| Location | Coarse Location — **not linked**, App Functionality (only sent to find nearby parishes, not stored; the iOS app asks for approximate location only — `NSLocationDefaultAccuracyReduced`) |
 
 Not collected: health, financial info, contacts, browsing/search history,
 purchases, diagnostics, advertising data.
@@ -162,6 +162,7 @@ Uses only standard encryption (HTTPS). Already declared in the app
 | Email address | Yes | Required | App functionality, Account management |
 | User IDs | Yes | Required | App functionality, Account management |
 | Approximate location | Yes (not stored) | Optional | App functionality |
+| Precise location | Yes (not stored; Android requests it for "Near me") | Optional | App functionality |
 | Photos | Yes | Optional | App functionality |
 | Messages (in-app) | Yes | Optional | App functionality |
 | Other user-generated content | Yes | Optional | App functionality |

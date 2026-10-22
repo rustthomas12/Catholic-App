@@ -1,3 +1,4 @@
+import { friendlyError } from '../utils/errors'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
@@ -179,7 +180,7 @@ export default function CreateGroupPage() {
         .single()
 
       if (error) {
-        toast.error('Could not create group. Please try again.')
+        toast.error(friendlyError(error, 'Could not create group. Please try again.'))
         setSubmitting(false)
         return
       }

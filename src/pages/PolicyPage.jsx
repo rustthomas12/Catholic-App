@@ -25,7 +25,7 @@ export default function PolicyPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Content Policy</h1>
-          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: October 22, 2026</p>
 
           <Section title="Our Mission">
             <p>inFold exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>
@@ -78,15 +78,19 @@ export default function PolicyPage() {
           </Section>
 
           <Section title="How Moderation Works">
-            <p>Posts reported by members are reviewed by our team. Posts that violate this policy are removed. Repeated violations result in account suspension. We aim to moderate firmly but charitably.</p>
+            <p>Reported content is reviewed by our team within 24 hours. Content that violates this policy is removed, and we have zero tolerance for abusive users: serious or repeated violations result in account suspension. We aim to moderate firmly but charitably.</p>
           </Section>
 
           <Section title="How to Report Content">
-            <p>Tap the three-dot menu on any post and select "Report this post." Our team reviews all reports, typically within 24 hours.</p>
+            <p>Posts: tap the three-dot menu and choose "Report post." Comments, group chat messages and prayer requests: tap the flag icon next to them. Direct messages: open the conversation, tap the menu at the top and choose "Report conversation." Profiles and groups: tap the flag on their page. Our team reviews every report within 24 hours.</p>
+          </Section>
+
+          <Section title="Blocking">
+            <p>Block anyone from their profile, from the menu on their posts, or from your conversation with them. You won't see their posts, comments, prayer requests or messages, and they can't message you. Manage blocked members in Settings → Blocked users.</p>
           </Section>
 
           <Section title="Appeals">
-            <p>If your post was removed and you believe it was a mistake, contact us at <span className="text-navy font-medium">hello@parishapp.com</span>. We will review and respond within 48 hours.</p>
+            <p>If your post was removed and you believe it was a mistake, contact us at <span className="text-navy font-medium">info@getinfold.app</span>. We will review and respond within 48 hours.</p>
           </Section>
 
           <Section title="A Note on Tone">

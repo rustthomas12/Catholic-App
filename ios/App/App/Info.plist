@@ -43,6 +43,8 @@
 	<string>inFold needs access to your photos so you can add images to your profile, posts and groups.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>inFold uses your location to show Catholic parishes near you. Your location is not stored.</string>
+	<key>NSLocationDefaultAccuracyReduced</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

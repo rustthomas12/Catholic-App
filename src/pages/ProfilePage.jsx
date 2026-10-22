@@ -1,6 +1,9 @@
+import ReportModal from '../components/shared/ReportModal'
+import { reportContent } from '../lib/reports'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon,
+  FlagIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useBlockedUsers } from '../hooks/useBlockedUsers'
@@ -105,6 +108,7 @@ export default function ProfilePage() {
   const { t } = useTranslation(['feed', 'common'])
   const { isBlocked, block, unblock } = useBlockedUsers()
   const [showBlockModal, setShowBlockModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   const [blockLoading, setBlockLoading] = useState(false)
   const blocked = isBlocked(targetId)
 
@@ -198,11 +202,25 @@ export default function ProfilePage() {
               <button
                 onClick={() => (blocked ? handleBlockToggle() : setShowBlockModal(true))}
                 disabled={blockLoading}
-                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-sm font-medium px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors disabled:opacity-50 text-red-600"
+                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-sm font-medium px-3 py-1.5 min-h-[36px] rounded-full shadow-sm hover:bg-white transition-colors disabled:opacity-50 text-red-600"
               >
                 <NoSymbolIcon className="w-4 h-4" />
                 {blocked ? 'Unblock' : 'Block'}
               </button>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                aria-label="Report this person"
+                className="flex items-center justify-center bg-white/90 backdrop-blur w-9 h-9 rounded-full shadow-sm hover:bg-white transition-colors text-navy"
+              >
+                <FlagIcon className="w-4 h-4" />
+              </button>
+              <ReportModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                title="Report this person"
+                onSubmit={(reason, notes) => reportContent('profile', targetId, reason, notes)}
+              />
             </div>
           )}
 
