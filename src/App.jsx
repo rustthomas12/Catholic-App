@@ -137,8 +137,11 @@ function AppInner() {
       {!isNative && <InstallPrompt />}
       {NativeBridge && <Suspense fallback={null}><NativeBridge /></Suspense>}
       <PushPrompt />
+      {/* Keyboard / screen-reader users can jump past the navigation */}
+      <a href="#main" className="skip-link">Skip to content</a>
       <ConnectionBanner />
       <Navigation />
+      <main id="main" tabIndex={-1} className="outline-none">
       <Suspense fallback={<div className="min-h-screen bg-cream" />}>
         <Routes>
           {/* Public */}
@@ -202,6 +205,7 @@ function AppInner() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      </main>
     </>
   )
 }

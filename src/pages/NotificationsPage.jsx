@@ -155,7 +155,7 @@ export default function NotificationsPage() {
           <div className="mt-2">
             {grouped.map(({ key, items }) => (
               <div key={key}>
-                <p className="px-4 pt-4 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                <p className="px-4 pt-4 pb-1 text-xs font-bold text-gray-500 uppercase tracking-widest">
                   {groupLabels[key]}
                 </p>
                 <div className="bg-white md:rounded-xl md:border md:border-gray-100 md:shadow-sm overflow-hidden mb-2">
@@ -188,7 +188,7 @@ export default function NotificationsPage() {
 
         {/* ── Caught up ── */}
         {!hasMore && notifications.length > 0 && !loading && (
-          <p className="text-center text-xs text-gray-400 py-6">
+          <p className="text-center text-xs text-gray-500 py-6">
             {t('notifications.all_caught_up')}
           </p>
         )}

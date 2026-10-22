@@ -62,7 +62,7 @@ export default function CheckEmailPage() {
 
         <Link
           to="/login"
-          className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-navy transition-colors"
+          className="flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-navy transition-colors"
         >
           <ArrowLeftIcon className="w-3.5 h-3.5" />
           Back to sign in

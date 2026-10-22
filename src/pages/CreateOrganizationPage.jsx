@@ -177,7 +177,7 @@ export default function CreateOrganizationPage() {
               <label className="text-xs font-semibold text-gray-500 mb-1 block">
                 Category <span className="text-red-400">*</span>
               </label>
-              <select
+              <select aria-label="Category"
                 value={form.category}
                 onChange={e => handleChange('category', e.target.value)}
                 required
@@ -263,7 +263,7 @@ export default function CreateOrganizationPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-navy">This is a chapter of a national organization</p>
-                <p className="text-xs text-gray-400">Link your local chapter to a national org presence</p>
+                <p className="text-xs text-gray-500">Link your local chapter to a national org presence</p>
               </div>
             </button>
 
@@ -275,13 +275,13 @@ export default function CreateOrganizationPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-navy truncate">{selectedParent.name}</p>
                       {(selectedParent.city || selectedParent.state) && (
-                        <p className="text-xs text-gray-400">{[selectedParent.city, selectedParent.state].filter(Boolean).join(', ')}</p>
+                        <p className="text-xs text-gray-500">{[selectedParent.city, selectedParent.state].filter(Boolean).join(', ')}</p>
                       )}
                     </div>
-                    <button
+                    <button aria-label="Close"
                       type="button"
                       onClick={() => { setSelectedParent(null); setParentSearch('') }}
-                      className="p-1 rounded-lg hover:bg-navy/10 text-gray-400 hover:text-navy transition-colors"
+                      className="p-1 rounded-lg hover:bg-navy/10 text-gray-500 hover:text-navy transition-colors"
                     >
                       <XMarkIcon className="w-4 h-4" />
                     </button>
@@ -289,7 +289,7 @@ export default function CreateOrganizationPage() {
                 ) : (
                   <div className="relative">
                     <div className="flex items-center border border-gray-200 rounded-xl px-3 py-2 gap-2 focus-within:border-navy">
-                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <input
                         value={parentSearch}
                         onChange={e => setParentSearch(e.target.value)}
@@ -311,7 +311,7 @@ export default function CreateOrganizationPage() {
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-navy truncate">{org.name}</p>
                               {(org.city || org.state) && (
-                                <p className="text-xs text-gray-400">{[org.city, org.state].filter(Boolean).join(', ')}</p>
+                                <p className="text-xs text-gray-500">{[org.city, org.state].filter(Boolean).join(', ')}</p>
                               )}
                             </div>
                           </button>
@@ -319,7 +319,7 @@ export default function CreateOrganizationPage() {
                       </div>
                     )}
                     {parentSearch.length >= 2 && !parentSearching && parentResults.length === 0 && (
-                      <p className="text-xs text-gray-400 mt-1 px-1">No national organizations found.</p>
+                      <p className="text-xs text-gray-500 mt-1 px-1">No national organizations found.</p>
                     )}
                   </div>
                 )}
@@ -335,7 +335,7 @@ export default function CreateOrganizationPage() {
                       maxLength={300}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
                     />
-                    <p className="text-xs text-gray-400 mt-1">A request will be sent to the national org's admins for approval.</p>
+                    <p className="text-xs text-gray-500 mt-1">A request will be sent to the national org's admins for approval.</p>
                   </div>
                 )}
               </div>
@@ -350,7 +350,7 @@ export default function CreateOrganizationPage() {
             {saving && <LoadingSpinner size="sm" color="navy" />}
             {saving ? 'Creating…' : 'Create Organization'}
           </button>
-          <p className="text-xs text-gray-400 text-center mt-3">
+          <p className="text-xs text-gray-500 text-center mt-3">
             Organization dashboards include a free 90-day trial. No credit card required to get started.
           </p>
         </form>

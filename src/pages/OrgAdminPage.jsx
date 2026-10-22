@@ -201,7 +201,7 @@ export default function OrgAdminPage() {
       <div className="text-center">
         <BuildingOffice2Icon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
         <p className="font-bold text-navy mb-1">Access denied</p>
-        <p className="text-gray-400 text-sm mb-4">You are not an admin of this organization.</p>
+        <p className="text-gray-500 text-sm mb-4">You are not an admin of this organization.</p>
         <Link to="/organizations" className="text-navy text-sm font-semibold hover:underline">← Organizations</Link>
       </div>
     </div>
@@ -232,7 +232,7 @@ export default function OrgAdminPage() {
       <div className="bg-navy px-4 pt-5 pb-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-1">
-            <button onClick={() => navigate(`/organization/${orgId}`)}
+            <button aria-label="Back" onClick={() => navigate(`/organization/${orgId}`)}
               className="text-white/60 hover:text-white transition-colors p-0.5">
               <ArrowLeftIcon className="w-5 h-5" />
             </button>
@@ -262,7 +262,7 @@ export default function OrgAdminPage() {
           {TABS.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => setActiveTab(id)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
-                activeTab === id ? 'border-navy text-navy' : 'border-transparent text-gray-400 hover:text-gray-600'
+                activeTab === id ? 'border-navy text-navy' : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}>
               <Icon className="w-4 h-4" />
               {label}
@@ -369,8 +369,8 @@ function AttendeeList({ eventId }) {
   const maybe    = attendees.filter(a => a.response === 'maybe')
   const notGoing = attendees.filter(a => a.response === 'no')
 
-  if (loading) return <p className="text-xs text-gray-400 mt-2">Loading RSVPs…</p>
-  if (attendees.length === 0) return <p className="text-xs text-gray-400 mt-2">No RSVPs yet.</p>
+  if (loading) return <p className="text-xs text-gray-500 mt-2">Loading RSVPs…</p>
+  if (attendees.length === 0) return <p className="text-xs text-gray-500 mt-2">No RSVPs yet.</p>
 
   return (
     <div className="mt-3 border-t border-gray-100 pt-3 space-y-2">
@@ -388,8 +388,8 @@ function AttendeeList({ eventId }) {
       )}
       {notGoing.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 mb-1">Can't go ({notGoing.length})</p>
-          {notGoing.map(a => <p key={a.profiles.id} className="text-xs text-gray-400 pl-2">{a.profiles.full_name}</p>)}
+          <p className="text-xs font-semibold text-gray-500 mb-1">Can't go ({notGoing.length})</p>
+          {notGoing.map(a => <p key={a.profiles.id} className="text-xs text-gray-500 pl-2">{a.profiles.full_name}</p>)}
         </div>
       )}
     </div>
@@ -482,7 +482,7 @@ function OrgEventsTab({ orgId, user }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Start *</label>
-              <input
+              <input aria-label="Start time"
                 type="datetime-local"
                 value={form.start_time}
                 onChange={e => setForm(p => ({ ...p, start_time: e.target.value }))}
@@ -491,7 +491,7 @@ function OrgEventsTab({ orgId, user }) {
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">End</label>
-              <input
+              <input aria-label="End time"
                 type="datetime-local"
                 value={form.end_time}
                 onChange={e => setForm(p => ({ ...p, end_time: e.target.value }))}
@@ -520,7 +520,7 @@ function OrgEventsTab({ orgId, user }) {
       {loading ? <LoadingSpinner /> : events.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
           <CalendarDaysIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">No events yet.</p>
+          <p className="text-gray-500 text-sm">No events yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -535,10 +535,10 @@ function OrgEventsTab({ orgId, user }) {
                       {ev.end_time ? ` – ${format(parseISO(ev.end_time), 'h:mm a')}` : ''}
                     </p>
                   )}
-                  {ev.location && <p className="text-xs text-gray-400 mt-0.5">📍 {ev.location}</p>}
+                  {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
                   {ev.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{ev.description}</p>}
                 </div>
-                <button
+                <button aria-label="Delete"
                   onClick={() => handleDelete(ev.id)}
                   className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
@@ -547,7 +547,7 @@ function OrgEventsTab({ orgId, user }) {
               <EventRsvpButtons eventId={ev.id} showCount={true} />
               <button
                 onClick={() => setOpenRsvpId(openRsvpId === ev.id ? null : ev.id)}
-                className="mt-2 text-xs text-gray-400 hover:text-navy transition-colors">
+                className="mt-2 text-xs text-gray-500 hover:text-navy transition-colors">
                 {openRsvpId === ev.id ? 'Hide RSVPs' : `See RSVPs${ev.rsvp_count > 0 ? ` (${ev.rsvp_count})` : ''}`}
               </button>
               {openRsvpId === ev.id && <AttendeeList eventId={ev.id} />}
@@ -657,7 +657,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-1">
               <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Schedule for:</label>
-              <input
+              <input aria-label="Schedule for:"
                 type="datetime-local"
                 value={scheduleFor}
                 onChange={e => setScheduleFor(e.target.value)}
@@ -684,7 +684,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
       {loading ? <LoadingSpinner /> : posts.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
           <MegaphoneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">No announcements yet.</p>
+          <p className="text-gray-500 text-sm">No announcements yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -695,7 +695,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
                   {post.title && <p className="font-semibold text-navy text-sm mb-1">{post.title}</p>}
                   <p className="text-sm text-navy leading-relaxed">{post.content}</p>
                 </div>
-                <button
+                <button aria-label="Delete"
                   onClick={() => handleDelete(post.id)}
                   className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
@@ -805,15 +805,15 @@ function MembersTab({ orgId }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-navy truncate">{m.full_name || 'Member'}</p>
-                <p className="text-xs text-gray-400 capitalize">{m.role}</p>
+                <p className="text-xs text-gray-500 capitalize">{m.role}</p>
               </div>
               <div className="flex items-center gap-1">
-                <select value={m.role} onChange={e => updateRole(m.id, e.target.value)}
+                <select value={m.role} onChange={e => updateRole(m.id, e.target.value)} aria-label={`Role for ${m.full_name || 'member'}`}
                   className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-navy bg-white">
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                 </select>
-                <button onClick={() => removeMember(m.id)} className="p-1 text-gray-300 hover:text-red-400 transition-colors">
+                <button aria-label="Delete" onClick={() => removeMember(m.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors">
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
@@ -872,7 +872,7 @@ function InvitesTab({ orgId, user, hasActiveSub }) {
         <div className="space-y-2">{[1, 2].map(i => <div key={i} className="bg-white h-16 rounded-2xl animate-pulse border border-gray-100" />)}</div>
       ) : invites.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
-          <p className="text-gray-400 text-sm">No invite links yet.</p>
+          <p className="text-gray-500 text-sm">No invite links yet.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
@@ -880,12 +880,12 @@ function InvitesTab({ orgId, user, hasActiveSub }) {
             <div key={inv.id} className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-mono font-bold text-navy">{inv.invite_code}</p>
-                <p className="text-xs text-gray-400">{inv.use_count ?? 0} use{inv.use_count !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-gray-500">{inv.use_count ?? 0} use{inv.use_count !== 1 ? 's' : ''}</p>
               </div>
-              <button onClick={() => copyLink(inv.invite_code)} className="p-1.5 text-gray-400 hover:text-navy transition-colors">
+              <button aria-label="Copy" onClick={() => copyLink(inv.invite_code)} className="p-1.5 text-gray-500 hover:text-navy transition-colors">
                 <ClipboardDocumentIcon className="w-4 h-4" />
               </button>
-              <button onClick={() => deleteInvite(inv.id)} className="p-1.5 text-gray-300 hover:text-red-400 transition-colors">
+              <button aria-label="Delete" onClick={() => deleteInvite(inv.id)} className="p-1.5 text-gray-500 hover:text-red-400 transition-colors">
                 <TrashIcon className="w-4 h-4" />
               </button>
             </div>
@@ -984,7 +984,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-navy text-sm">{reqOrg?.name || 'Unknown org'}</p>
                     {(reqOrg?.city || reqOrg?.state) && (
-                      <p className="text-xs text-gray-400">{[reqOrg.city, reqOrg.state].filter(Boolean).join(', ')}</p>
+                      <p className="text-xs text-gray-500">{[reqOrg.city, reqOrg.state].filter(Boolean).join(', ')}</p>
                     )}
                     {req.message && <p className="text-xs text-gray-500 mt-1 italic">"{req.message}"</p>}
                   </div>
@@ -1009,11 +1009,11 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <BuildingOffice2Icon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
           <p className="text-navy font-semibold text-sm">No chapters yet</p>
-          <p className="text-gray-400 text-xs mt-1">Create a chapter or approve a chapter request above.</p>
+          <p className="text-gray-500 text-xs mt-1">Create a chapter or approve a chapter request above.</p>
         </div>
       ) : chapters.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Approved Chapters</p>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Approved Chapters</p>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
             {chapters.map(ch => (
               <Link key={ch.id} to={`/organization/${ch.id}`}
@@ -1023,7 +1023,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-navy truncate">{ch.name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {[ch.city, ch.state].filter(Boolean).join(', ')}
                     {ch.memberCount > 0 && ` · ${ch.memberCount} members`}
                   </p>
@@ -1079,9 +1079,9 @@ function ProvisionChapterModal({ parentOrgId, parentOrgName, user, onClose, onCr
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-navy">New Chapter</h2>
-          <button onClick={onClose}><XMarkIcon className="w-5 h-5 text-gray-400" /></button>
+          <button aria-label="Close" onClick={onClose}><XMarkIcon className="w-5 h-5 text-gray-500" /></button>
         </div>
-        <p className="text-xs text-gray-400 mb-4">Will be created as a chapter of {parentOrgName}.</p>
+        <p className="text-xs text-gray-500 mb-4">Will be created as a chapter of {parentOrgName}.</p>
         <div className="space-y-3">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Chapter name *"
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy" />
@@ -1156,7 +1156,7 @@ function HoursEditor({ value, onChange }) {
             placeholder="e.g. 9:00 AM – 5:00 PM"
             className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
           />
-          <button onClick={() => removeRow(i)} className="text-red-300 hover:text-red-500 transition-colors">
+          <button onClick={() => removeRow(i)} aria-label="Remove this row" className="text-red-600 hover:text-red-700 transition-colors min-w-[24px] min-h-[24px] flex items-center justify-center">
             <XCircleIcon className="w-5 h-5" />
           </button>
         </div>
@@ -1247,6 +1247,7 @@ function SettingsTab({ org, setOrg, orgId }) {
       <div>
         <label className="text-xs font-semibold text-gray-500 mb-1 block">{label}</label>
         <input
+          aria-label={label}
           type={type}
           value={form[key]}
           onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
@@ -1265,7 +1266,7 @@ function SettingsTab({ org, setOrg, orgId }) {
         {field('Name *', 'name')}
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Category</label>
-          <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+          <select aria-label="Category" value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy bg-white">
             <option value="">Select category…</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -1280,7 +1281,7 @@ function SettingsTab({ org, setOrg, orgId }) {
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Description</label>
-          <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+          <textarea aria-label="Description" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
             rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy" />
         </div>
         <div>
@@ -1312,8 +1313,8 @@ function SettingsTab({ org, setOrg, orgId }) {
 
       {/* Hours */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-        <h2 className="font-bold text-navy text-sm">Hours <span className="text-gray-400 font-normal">(optional)</span></h2>
-        <p className="text-xs text-gray-400">Leave blank if your organization doesn't have set office/meeting hours.</p>
+        <h2 className="font-bold text-navy text-sm">Hours <span className="text-gray-500 font-normal">(optional)</span></h2>
+        <p className="text-xs text-gray-500">Leave blank if your organization doesn't have set office/meeting hours.</p>
         <HoursEditor
           value={form.hours}
           onChange={hours => setForm(p => ({ ...p, hours }))}
@@ -1430,7 +1431,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
             {['standalone', 'national'].map(track => (
               <button key={track} onClick={() => setBillingTrack(track)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-xl border-2 transition-colors ${
-                  billingTrack === track ? 'border-navy bg-navy/5 text-navy' : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                  billingTrack === track ? 'border-navy bg-navy/5 text-navy' : 'border-gray-200 text-gray-500 hover:border-gray-300'
                 }`}>
                 {track === 'national' ? 'National Org' : 'Standalone'}
               </button>
@@ -1438,7 +1439,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
           </div>
 
           {billingTrack === 'national' && (
-            <p className="text-xs text-center text-gray-400 mb-4">One subscription covers all your chapters.</p>
+            <p className="text-xs text-center text-gray-500 mb-4">One subscription covers all your chapters.</p>
           )}
 
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1453,7 +1454,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
                 )}
                 <p className="font-bold text-navy text-sm">{tier.label}</p>
                 {tier.price
-                  ? <p className="text-xl font-black text-navy leading-tight">${tier.price}<span className="text-xs font-normal text-gray-400">/mo</span></p>
+                  ? <p className="text-xl font-black text-navy leading-tight">${tier.price}<span className="text-xs font-normal text-gray-500">/mo</span></p>
                   : <p className="text-sm font-bold text-purple-600">Custom</p>}
                 <p className="text-xs text-gray-500 mt-1">{tier.desc}</p>
                 {selectedTier === tier.key && tier.key !== 'national_network' && (
@@ -1468,7 +1469,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
             ))}
           </div>
 
-          <p className="text-xs text-gray-400 text-center mb-4">
+          <p className="text-xs text-gray-500 text-center mb-4">
             {billingTrack === 'national'
               ? `You currently have ${chapterCount} chapter${chapterCount !== 1 ? 's' : ''} provisioned.`
               : `You currently have ${memberCount} member${memberCount !== 1 ? 's' : ''}.`}
@@ -1530,7 +1531,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
                       .replace('customer.subscription.', 'Subscription ')
                       .replace('invoice.payment_failed', 'Payment failed')}
                   </p>
-                  <p className="text-xs text-gray-400">{format(parseISO(ev.created_at), 'MMM d, yyyy')}</p>
+                  <p className="text-xs text-gray-500">{format(parseISO(ev.created_at), 'MMM d, yyyy')}</p>
                 </div>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_BADGE[ev.status] ?? 'bg-gray-100 text-gray-500'}`}>{ev.status}</span>
               </div>

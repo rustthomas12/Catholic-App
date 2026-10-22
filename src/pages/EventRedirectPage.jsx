@@ -24,10 +24,10 @@ export default function EventRedirectPage() {
 
   if (!missing) return null
   return (
-    <main id="main" className="min-h-screen bg-cream md:pl-60 flex flex-col items-center justify-center gap-3 px-4">
+    <div className="min-h-screen bg-cream md:pl-60 flex flex-col items-center justify-center gap-3 px-4">
       <h1 className="text-lg font-bold text-navy">This event isn't available</h1>
       <p className="text-sm text-gray-600 text-center">It may have been cancelled or deleted.</p>
       <Link to="/" className="text-sm font-semibold text-navy underline">Go to your feed</Link>
-    </main>
+    </div>
   )
 }

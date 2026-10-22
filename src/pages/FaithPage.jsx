@@ -156,7 +156,7 @@ export default function FaithPage() {
             </div>
           ) : intentions.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 p-6 text-center">
-              <p className="text-gray-400 text-sm">Be the first to share an intention.</p>
+              <p className="text-gray-500 text-sm">Be the first to share an intention.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -191,9 +191,9 @@ export default function FaithPage() {
             <div className="w-10 h-10 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">☀️</div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">Morning Offering</p>
-              <p className="text-gray-400 text-xs mt-0.5">Offer your day to God before it begins</p>
+              <p className="text-gray-500 text-xs mt-0.5">Offer your day to God before it begins</p>
             </div>
-            <span className="text-gray-300 text-sm">→</span>
+            <span className="text-gray-500 text-sm">→</span>
           </Link>
 
           <Link
@@ -203,9 +203,9 @@ export default function FaithPage() {
             <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">📋</div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">Examination of Conscience</p>
-              <p className="text-gray-400 text-xs mt-0.5">Prepare your heart before Confession</p>
+              <p className="text-gray-500 text-xs mt-0.5">Prepare your heart before Confession</p>
             </div>
-            <span className="text-gray-300 text-sm">→</span>
+            <span className="text-gray-500 text-sm">→</span>
           </Link>
 
           <Link
@@ -215,9 +215,9 @@ export default function FaithPage() {
             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">🙏</div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">Prayer Intentions</p>
-              <p className="text-gray-400 text-xs mt-0.5">Your private list of people and intentions</p>
+              <p className="text-gray-500 text-xs mt-0.5">Your private list of people and intentions</p>
             </div>
-            <span className="text-gray-300 text-sm">→</span>
+            <span className="text-gray-500 text-sm">→</span>
           </Link>
         </div>
 
@@ -231,7 +231,7 @@ export default function FaithPage() {
                 {confessionLoading ? (
                   <div className="h-3 w-36 bg-gray-200 rounded animate-pulse mt-1" />
                 ) : daysSince === null ? (
-                  <p className="text-xs text-gray-400 mt-0.5">{t('confession_first')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('confession_first')}</p>
                 ) : daysSince === 0 ? (
                   <p className="text-xs text-gold font-semibold mt-0.5">{t('confession_today')}</p>
                 ) : (

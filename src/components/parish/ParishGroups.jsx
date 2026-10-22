@@ -75,7 +75,7 @@ export default function ParishGroups({ parishId }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <UserGroupIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="font-semibold text-navy text-sm">No groups yet</p>
-          <p className="text-gray-400 text-xs mt-1">This parish hasn't created any groups.</p>
+          <p className="text-gray-500 text-xs mt-1">This parish hasn't created any groups.</p>
         </div>
       </div>
     )
@@ -105,7 +105,7 @@ export default function ParishGroups({ parishId }) {
           </button>
           <button
             onClick={confirmLeave}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
           >
             Leave
           </button>

@@ -87,7 +87,7 @@ export default function GroupCard({
       >
         <GroupAvatar group={group} size={36} />
         <p className="text-xs font-semibold text-navy leading-tight mt-2 truncate">{group.name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{memberLabel}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{memberLabel}</p>
         {isMember && (
           <span className="text-xs text-gold font-semibold">{t('joined')}</span>
         )}
@@ -113,16 +113,16 @@ export default function GroupCard({
                   {t(`category_${group.category}`) ?? group.category}
                 </span>
                 {group.is_private && (
-                  <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                  <span className="flex items-center gap-0.5 text-xs text-gray-500">
                     <LockClosedIcon className="w-3 h-3" />
                     {t('private')}
                   </span>
                 )}
               </div>
               {group.parishes && (
-                <p className="text-xs text-gray-400 mt-0.5">at {group.parishes.name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">at {group.parishes.name}</p>
               )}
-              <p className="text-xs text-gray-400 mt-0.5">{memberLabel}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{memberLabel}</p>
             </div>
 
             {/* Action button */}
@@ -138,7 +138,7 @@ export default function GroupCard({
               ) : hasRequested ? (
                 <button
                   disabled
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                 >
                   {t('request_sent')}
                 </button>

@@ -117,7 +117,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <p className="text-xs text-gray-400 mt-8 text-center">Made with faith in Massachusetts</p>
+      <p className="text-xs text-gray-500 mt-8 text-center">Made with faith in Massachusetts</p>
     </div>
   )
 }

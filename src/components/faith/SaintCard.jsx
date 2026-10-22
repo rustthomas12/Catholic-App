@@ -78,7 +78,7 @@ export default function SaintCard({
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-navy text-sm leading-snug">{saint.name}</p>
             {feastFormatted && (
-              <p className="text-xs text-gray-400 mt-0.5">{feastFormatted}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{feastFormatted}</p>
             )}
             {saint.summary && (
               <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
@@ -115,7 +115,7 @@ export default function SaintCard({
           </p>
           <h3 className="text-lg font-bold text-navy leading-tight">{saint.name}</h3>
           {feastFormatted && (
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-500 mt-0.5">
               {t('saints_feast_day', { date: feastFormatted })}
             </p>
           )}
@@ -148,7 +148,7 @@ export default function SaintCard({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
+          <p className="text-sm text-gray-500 italic">{t('saints_no_biography')}</p>
         )}
 
         <PatronPills patronOf={saint.patron_of} />

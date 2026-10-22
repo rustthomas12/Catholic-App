@@ -80,7 +80,7 @@ export default function FormationPage() {
         {/* Header */}
         <div className={`${headerColor} px-4 pt-5 pb-6`}>
           <div className="flex items-center gap-3 mb-1">
-            <button
+            <button aria-label="Back"
               onClick={() => navigate('/faith')}
               className="text-white/70 hover:text-white p-1 transition-colors"
             >
@@ -88,7 +88,7 @@ export default function FormationPage() {
             </button>
             <h1 className="text-white font-bold text-xl">{data.title}</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">{data.subtitle}</p>
+          <p className="text-gray-500 text-sm ml-8">{data.subtitle}</p>
         </div>
 
         <div className="px-4 pt-5 space-y-5">
@@ -106,7 +106,7 @@ export default function FormationPage() {
               />
             </div>
             {completedCount > 0 && (
-              <p className="text-xs text-gray-400 mt-1.5">{progressPct}% complete</p>
+              <p className="text-xs text-gray-500 mt-1.5">{progressPct}% complete</p>
             )}
           </div>
 
@@ -151,9 +151,9 @@ export default function FormationPage() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="text-xs font-bold text-gray-400">Day {day.day}</span>
+                            <span className="text-xs font-bold text-gray-500">Day {day.day}</span>
                             {day.dateNote && (
-                              <span className="text-xs text-gray-400">· {day.dateNote}</span>
+                              <span className="text-xs text-gray-500">· {day.dateNote}</span>
                             )}
                             {day.pillar && (
                               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize ${pillarStyle}`}>
@@ -161,12 +161,12 @@ export default function FormationPage() {
                               </span>
                             )}
                           </div>
-                          <p className={`text-sm font-bold ${done ? 'text-gray-400 line-through' : 'text-navy'}`}>
+                          <p className={`text-sm font-bold ${done ? 'text-gray-500 line-through' : 'text-navy'}`}>
                             {day.theme}
                           </p>
                         </div>
 
-                        <span className="text-gray-400 text-xs flex-shrink-0 mt-1">
+                        <span className="text-gray-500 text-xs flex-shrink-0 mt-1">
                           {isOpen ? '▲' : '▼'}
                         </span>
                       </div>
@@ -178,7 +178,7 @@ export default function FormationPage() {
 
                         {/* Scripture */}
                         <div className="pt-3">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
                             {day.scripture.reference}
                           </p>
                           <p className="text-sm text-gray-700 italic leading-relaxed">
@@ -188,7 +188,7 @@ export default function FormationPage() {
 
                         {/* Reflection */}
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
                             Reflection
                           </p>
                           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
@@ -236,10 +236,10 @@ export default function FormationPage() {
               {/* Remaining days placeholder */}
               {data.days.length < data.totalDays && (
                 <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-6 text-center">
-                  <p className="text-sm font-semibold text-gray-400">
+                  <p className="text-sm font-semibold text-gray-500">
                     Days {data.days.length + 1}–{data.totalDays} coming soon
                   </p>
-                  <p className="text-xs text-gray-300 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     More content will be added before the season begins.
                   </p>
                 </div>

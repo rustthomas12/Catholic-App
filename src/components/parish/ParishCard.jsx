@@ -36,7 +36,7 @@ export default function ParishCard({
           <p className="text-xs text-gray-500 truncate">
             {parish.city}, {parish.state}
             {typeof parish.distance === 'number' && (
-              <span className="ml-1.5 text-gray-400">
+              <span className="ml-1.5 text-gray-500">
                 · {formatDistance(parish.distance)}
               </span>
             )}
@@ -63,7 +63,7 @@ export default function ParishCard({
               <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title="Official Parish Page" />
             )}
           </div>
-          <p className="text-gray-300 text-xs mt-0.5">
+          <p className="text-gray-500 text-xs mt-0.5">
             {parish.city}, {parish.state}
             {parish.diocese ? ` · ${parish.diocese}` : ''}
           </p>
@@ -94,13 +94,13 @@ export default function ParishCard({
         <div className="flex items-center gap-4 flex-wrap">
           {typeof parish.distance === 'number' && (
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              <MapPinIcon className="w-3.5 h-3.5 text-gray-400" />
+              <MapPinIcon className="w-3.5 h-3.5 text-gray-500" />
               {formatDistance(parish.distance)}
             </span>
           )}
           {typeof parish.follower_count === 'number' && parish.follower_count > 0 && (
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              <UsersIcon className="w-3.5 h-3.5 text-gray-400" />
+              <UsersIcon className="w-3.5 h-3.5 text-gray-500" />
               {parish.follower_count.toLocaleString()} here
             </span>
           )}

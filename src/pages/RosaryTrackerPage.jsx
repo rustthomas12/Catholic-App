@@ -43,7 +43,7 @@ export default function RosaryTrackerPage() {
         {/* Header */}
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button
+            <button aria-label="Back"
               onClick={() => navigate('/faith')}
               className="text-white/70 hover:text-white p-1 transition-colors"
             >
@@ -51,7 +51,7 @@ export default function RosaryTrackerPage() {
             </button>
             <h1 className="text-white font-bold text-xl">Rosary Tracker</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">Pray daily — build the habit</p>
+          <p className="text-gray-500 text-sm ml-8">Pray daily — build the habit</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -70,7 +70,7 @@ export default function RosaryTrackerPage() {
 
           {/* Today's mystery */}
           <div className={`rounded-2xl border p-4 ${MYSTERY_COLORS[todayMysteries]}`}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-70">Today's Mysteries</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1">Today's Mysteries</p>
             <p className="font-bold text-base">{MYSTERY_NAMES[todayMysteries]}</p>
           </div>
 
@@ -80,7 +80,7 @@ export default function RosaryTrackerPage() {
             disabled={prayedToday || logging}
             className={`w-full py-4 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
               prayedToday
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                 : 'bg-gold text-navy hover:bg-gold/90 active:scale-[0.98]'
             }`}
           >
@@ -107,7 +107,7 @@ export default function RosaryTrackerPage() {
                         ? 'bg-gold text-navy'
                         : isToday
                         ? 'border-2 border-gold text-gold'
-                        : 'bg-gray-100 text-gray-300'
+                        : 'bg-gray-100 text-gray-500'
                     }`}
                   >
                     {mysteries ? MYSTERY_INITIAL[mysteries] : ''}
@@ -115,7 +115,7 @@ export default function RosaryTrackerPage() {
                 )
               })}
             </div>
-            <p className="text-xs text-gray-400 mt-2">J = Joyful · S = Sorrowful · G = Glorious · L = Luminous</p>
+            <p className="text-xs text-gray-500 mt-2">J = Joyful · S = Sorrowful · G = Glorious · L = Luminous</p>
           </div>
 
           {/* Mystery details */}
@@ -130,7 +130,7 @@ export default function RosaryTrackerPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-navy">{i + 1}. {m.title}</p>
-                    <span className="text-gray-400 text-xs ml-2">{expanded === i ? '▲' : '▼'}</span>
+                    <span className="text-gray-500 text-xs ml-2">{expanded === i ? '▲' : '▼'}</span>
                   </div>
                   {expanded === i && (
                     <p className="text-xs text-gray-500 mt-2 leading-relaxed">{m.description}</p>

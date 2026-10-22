@@ -111,13 +111,13 @@ export function MarketingFooter() {
               <img src="/icons/icon-192.png" alt="inFold" className="w-8 h-8 rounded-xl" />
               <span className="text-white font-black text-xl" style={{ fontFamily: 'Georgia, serif' }}>inFold</span>
             </div>
-            <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+            <p className="text-white/70 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
             </p>
           </div>
 
           <div>
-            <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Site</p>
+            <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-4">Site</p>
             <div className="space-y-2.5">
               {NAV_LINKS.map(l => (
                 <Link key={l.to} to={l.to} className="block text-white/50 hover:text-white text-sm transition-colors">
@@ -128,7 +128,7 @@ export function MarketingFooter() {
           </div>
 
           <div>
-            <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">App</p>
+            <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-4">App</p>
             <div className="space-y-2.5">
               {[
                 { label: 'Sign Up Free', href: `${APP_URL}/signup` },

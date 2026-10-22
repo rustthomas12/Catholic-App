@@ -106,7 +106,7 @@ export default function PrivateIntentionsPage() {
         <div className="bg-navy px-4 pt-5 pb-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
-              <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
+              <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
                 <ChevronLeftIcon className="w-5 h-5" />
               </button>
               <div>
@@ -122,7 +122,7 @@ export default function PrivateIntentionsPage() {
               Add
             </button>
           </div>
-          <p className="text-white/40 text-xs ml-8 mt-1">
+          <p className="text-white/70 text-xs ml-8 mt-1">
             Completely private — only you can see this list.
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function PrivateIntentionsPage() {
             <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-bold text-navy text-sm">New Intention</p>
-                <button type="button" onClick={() => setShowAdd(false)} className="text-gray-300 hover:text-gray-500 transition-colors">
+                <button aria-label="Close" type="button" onClick={() => setShowAdd(false)} className="text-gray-500 hover:text-gray-500 transition-colors">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
@@ -189,7 +189,7 @@ export default function PrivateIntentionsPage() {
                   <p className={`text-xl font-black ${filter === s.key ? 'text-white' : 'text-navy'}`}>
                     {counts[s.key]}
                   </p>
-                  <p className={`text-xs ${filter === s.key ? 'text-white/60' : 'text-gray-400'}`}>{s.label}</p>
+                  <p className={`text-xs ${filter === s.key ? 'text-white/60' : 'text-gray-500'}`}>{s.label}</p>
                 </button>
               ))}
             </div>
@@ -223,7 +223,7 @@ export default function PrivateIntentionsPage() {
               <p className="font-semibold text-navy text-sm mb-1">
                 {intentions.length === 0 ? 'No intentions yet' : `No ${STATUS_LABELS[filter]?.label.toLowerCase()} intentions`}
               </p>
-              <p className="text-gray-400 text-xs max-w-xs mx-auto">
+              <p className="text-gray-500 text-xs max-w-xs mx-auto">
                 {intentions.length === 0
                   ? 'Add the people and intentions you are carrying to God in prayer.'
                   : 'Try switching the filter above.'}
@@ -252,8 +252,8 @@ export default function PrivateIntentionsPage() {
 
           {/* Privacy notice */}
           <div className="flex items-start gap-2 px-1">
-            <span className="text-gray-300 text-lg mt-0.5">🔒</span>
-            <p className="text-gray-400 text-xs leading-relaxed">
+            <span className="text-gray-500 text-lg mt-0.5">🔒</span>
+            <p className="text-gray-500 text-xs leading-relaxed">
               Your prayer intentions are completely private. They are stored securely and never visible to other users, parish admins, or anyone else.
             </p>
           </div>
@@ -279,9 +279,9 @@ function IntentionCard({ intention, onStatus, onDelete }) {
             </span>
           </div>
           {intention.notes && (
-            <p className="text-gray-400 text-xs leading-relaxed mt-0.5">{intention.notes}</p>
+            <p className="text-gray-500 text-xs leading-relaxed mt-0.5">{intention.notes}</p>
           )}
-          <p className="text-gray-300 text-xs mt-1">
+          <p className="text-gray-500 text-xs mt-1">
             Added {format(parseISO(intention.created_at), 'MMM d, yyyy')}
           </p>
         </div>

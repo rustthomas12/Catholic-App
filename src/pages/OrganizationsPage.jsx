@@ -137,12 +137,12 @@ function OrgCard({ org, isSubscribed = false }) {
           )}
         </div>
         {org.category && (
-          <span className="inline-block text-[10px] font-semibold text-navy/60 bg-navy/5 px-2 py-0.5 rounded-full mt-0.5 capitalize">
+          <span className="inline-block text-[10px] font-semibold text-navy/80 bg-navy/5 px-2 py-0.5 rounded-full mt-0.5 capitalize">
             {org.category}
           </span>
         )}
         {(org.city || org.state) && (
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             {[org.city, org.state].filter(Boolean).join(', ')}
           </p>
         )}
@@ -229,7 +229,7 @@ export default function OrganizationsPage() {
 
           {/* Name search */}
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
             <input
               type="text"
               value={query}
@@ -238,9 +238,9 @@ export default function OrganizationsPage() {
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {(query || hasActiveFilters) && (
-              <button
+              <button aria-label="Clear filters"
                 onClick={clearAll}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 p-1"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -250,7 +250,7 @@ export default function OrganizationsPage() {
           {/* Category + State row */}
           <div className="grid grid-cols-2 gap-2 mt-2">
             <div className="relative">
-              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
@@ -266,7 +266,7 @@ export default function OrganizationsPage() {
               </select>
             </div>
             <div className="relative">
-              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
@@ -289,7 +289,7 @@ export default function OrganizationsPage() {
           {/* My organizations */}
           {!isSearching && !myOrgsLoading && myOrgs.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 Your organizations
               </h2>
               <div className="space-y-2">
@@ -303,7 +303,7 @@ export default function OrganizationsPage() {
           {/* Search results */}
           {isSearching && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 {searchLoading
                   ? 'Searching…'
                   : `Results${results.length ? ` (${results.length})` : ''}`}
@@ -319,7 +319,7 @@ export default function OrganizationsPage() {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                   <BuildingOffice2Icon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                   <p className="text-navy font-semibold text-sm">No organizations found</p>
-                  <p className="text-gray-400 text-xs mt-1">Try adjusting your search or filters</p>
+                  <p className="text-gray-500 text-xs mt-1">Try adjusting your search or filters</p>
                 </div>
               ) : (
                 <div className="space-y-2">

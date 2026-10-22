@@ -95,7 +95,7 @@ function ReadingsFallback({ t, isTLM }) {
           {t('readings_link')}
         </a>
       )}
-      {!isTLM && <p className="text-gray-400 text-xs px-6">{t('readings_credit')}</p>}
+      {!isTLM && <p className="text-gray-500 text-xs px-6">{t('readings_credit')}</p>}
     </div>
   )
 }
@@ -201,11 +201,11 @@ export default function ReadingsCard({
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ backgroundColor: liturgicalInfo?.color ?? '#15803D' }}
             />
-            <span className="text-xs text-gray-400">{liturgicalInfo?.label}</span>
+            <span className="text-xs text-gray-500">{liturgicalInfo?.label}</span>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 mb-1">{todayFormatted}</p>
+        <p className="text-xs text-gray-500 mb-1">{todayFormatted}</p>
 
         {feastInfo?.isFeast && (
           <p className="text-xs text-gold font-semibold mb-1">✦ {feastInfo.feastName}</p>
@@ -322,7 +322,7 @@ export default function ReadingsCard({
 
         {/* Attribution */}
         <div className="px-5 pb-4">
-          <p className="text-xs text-gray-300 text-center">
+          <p className="text-xs text-gray-500 text-center">
             {isTLM
               ? 'Traditional readings provided by Missale Meum'
               : t('readings_credit')}

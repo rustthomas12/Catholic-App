@@ -40,8 +40,8 @@ export default function NearbyEventSuggestions({ userLocation }) {
     <section className="mt-6">
       <div className="flex items-center gap-2 mb-3">
         <SparklesIcon className="w-4 h-4 text-gold flex-shrink-0" />
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Happening near you</h2>
-        <span className="text-xs text-gray-400 normal-case font-normal">· parishes you don't follow yet</span>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Happening near you</h2>
+        <span className="text-xs text-gray-500 normal-case font-normal">· parishes you don't follow yet</span>
       </div>
 
       {loading ? (
@@ -63,7 +63,7 @@ export default function NearbyEventSuggestions({ userLocation }) {
         </div>
       )}
 
-      <p className="text-xs text-gray-400 mt-3 text-center italic">
+      <p className="text-xs text-gray-500 mt-3 text-center italic">
         These suggestions are based on your location. They never appear in your home feed — only here in the Directory.
       </p>
     </section>

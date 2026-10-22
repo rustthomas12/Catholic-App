@@ -49,7 +49,7 @@ export default function PushPrompt() {
           </div>
           <div>
             <p className="font-semibold text-navy text-sm">Notifications enabled</p>
-            <p className="text-gray-400 text-xs">You'll hear about parish updates and group activity.</p>
+            <p className="text-gray-500 text-xs">You'll hear about parish updates and group activity.</p>
           </div>
         </div>
       ) : (
@@ -73,7 +73,7 @@ export default function PushPrompt() {
               <button
                 onClick={dismiss}
                 aria-label="Dismiss"
-                className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>

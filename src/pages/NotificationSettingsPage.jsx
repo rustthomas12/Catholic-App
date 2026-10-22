@@ -25,16 +25,17 @@ import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 
 // ── Toggle switch ─────────────────────────────────────────
-function Toggle({ value, onChange, disabled = false }) {
+function Toggle({ value, onChange, disabled = false, label }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={value}
+      aria-label={label}
       disabled={disabled}
       onClick={() => !disabled && onChange(!value)}
       className={[
-        'relative inline-flex flex-shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none',
+        'relative inline-flex flex-shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2',
         disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
         value ? 'bg-gold' : 'bg-gray-200',
       ].join(' ')}
@@ -79,11 +80,11 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled }) 
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-navy">{label}</span>
         </div>
-        <p className="text-xs text-gray-400 mt-0.5 leading-snug">{description}</p>
+        <p className="text-xs text-gray-500 mt-0.5 leading-snug">{description}</p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <SavedIndicator visible={saved} />
-        <Toggle value={!!value} onChange={handleChange} disabled={disabled} />
+        <Toggle value={!!value} onChange={handleChange} disabled={disabled} label={label} />
       </div>
     </div>
   )
@@ -336,7 +337,7 @@ export default function NotificationSettingsPage() {
         {/* ── Parish admin notifications ── */}
         {!loading && isParishAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Parish Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Parish Admin</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserPlusIcon}
@@ -360,7 +361,7 @@ export default function NotificationSettingsPage() {
         {/* ── Group admin notifications ── */}
         {!loading && isGroupAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Group Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Group Admin</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserGroupIcon}
@@ -384,7 +385,7 @@ export default function NotificationSettingsPage() {
         {/* ── Org admin notifications ── */}
         {!loading && isOrgAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Organization Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Organization Admin</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserPlusIcon}
@@ -412,7 +413,7 @@ export default function NotificationSettingsPage() {
         {/* ── Platform admin notifications ── */}
         {!loading && isAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2">Platform Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Platform Admin</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={ShieldExclamationIcon}
@@ -465,7 +466,7 @@ export default function NotificationSettingsPage() {
           </button>
           <button
             onClick={handleTurnOffAll}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 min-h-[44px]"
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 min-h-[44px]"
           >
             Turn off all
           </button>

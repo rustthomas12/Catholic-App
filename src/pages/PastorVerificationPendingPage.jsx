@@ -55,14 +55,14 @@ export default function PastorVerificationPendingPage() {
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
                     s.done ? 'bg-gold' : 'bg-gray-100'
                   }`}>
-                    <s.icon className={`w-5 h-5 ${s.done ? 'text-navy' : 'text-gray-400'}`} />
+                    <s.icon className={`w-5 h-5 ${s.done ? 'text-navy' : 'text-gray-500'}`} />
                   </div>
                   {i < STEPS.length - 1 && (
                     <div className="w-px h-6 bg-gray-100 mt-1" />
                   )}
                 </div>
                 <div className="pt-1 pb-1">
-                  <p className={`text-sm font-semibold ${s.done ? 'text-navy' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-semibold ${s.done ? 'text-navy' : 'text-gray-500'}`}>
                     {s.title}
                     {i === 1 && (
                       <span className="ml-2 inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -70,7 +70,7 @@ export default function PastorVerificationPendingPage() {
                       </span>
                     )}
                   </p>
-                  <p className={`text-xs mt-0.5 leading-relaxed ${s.done ? 'text-gray-500' : 'text-gray-400'}`}>
+                  <p className={`text-xs mt-0.5 leading-relaxed ${s.done ? 'text-gray-500' : 'text-gray-500'}`}>
                     {s.body}
                   </p>
                 </div>
@@ -98,7 +98,7 @@ export default function PastorVerificationPendingPage() {
             to="/"
             className={`w-full text-sm font-semibold py-3.5 rounded-xl text-center transition-colors min-h-[52px] flex items-center justify-center ${
               parishId
-                ? 'text-gray-400 hover:text-navy'
+                ? 'text-gray-500 hover:text-navy'
                 : 'bg-navy text-white hover:bg-opacity-90'
             }`}
           >

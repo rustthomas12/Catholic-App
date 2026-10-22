@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
               <p className="text-gray-500 text-sm mt-1">
                 If an account exists for <span className="font-medium text-navy">{email}</span>, we sent a reset link.
               </p>
-              <p className="text-gray-400 text-xs mt-2">The link expires in 1 hour.</p>
+              <p className="text-gray-500 text-xs mt-2">The link expires in 1 hour.</p>
             </div>
             <Link to="/login" className="text-navy font-semibold text-sm hover:underline mt-2">
               {t('forgot.back_to_login')}

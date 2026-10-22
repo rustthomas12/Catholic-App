@@ -25,7 +25,7 @@ export default function PolicyPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Content Policy</h1>
-          <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="Our Mission">
             <p>inFold exists to be the digital parish hall — a warm, safe, faith-filled space for Catholics to connect with their community between Sundays. Our content policy exists to protect that mission.</p>

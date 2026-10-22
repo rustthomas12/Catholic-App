@@ -131,7 +131,7 @@ function Problem() {
             <div key={i} className="bg-lightbg rounded-2xl p-8 text-center">
               <div className="text-5xl font-black text-navy mb-4">{item.stat}</div>
               <p className="text-gray-600 text-sm leading-relaxed">{item.label}</p>
-              {item.note && <p className="text-gray-400 text-xs mt-3">{item.note}</p>}
+              {item.note && <p className="text-gray-500 text-xs mt-3">{item.note}</p>}
             </div>
           ))}
         </div>
@@ -325,7 +325,7 @@ function ForParishes() {
 
           {/* Pricing */}
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Simple flat pricing · No per-seat fees</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Simple flat pricing · No per-seat fees</p>
             <div className="space-y-3">
               {tiers.map((t, i) => (
                 <div key={i} className={`rounded-2xl border p-5 flex items-center justify-between ${
@@ -335,16 +335,16 @@ function ForParishes() {
                 }`}>
                   <div>
                     <p className={`font-bold ${t.featured ? 'text-gold' : 'text-navy'}`}>{t.label}</p>
-                    <p className={`text-xs mt-0.5 ${t.featured ? 'text-white/60' : 'text-gray-400'}`}>{t.size}</p>
+                    <p className={`text-xs mt-0.5 ${t.featured ? 'text-white/60' : 'text-gray-500'}`}>{t.size}</p>
                   </div>
                   <div className="text-right">
                     <p className={`text-2xl font-black ${t.featured ? 'text-white' : 'text-navy'}`}>{t.price}</p>
-                    <p className={`text-xs ${t.featured ? 'text-white/50' : 'text-gray-400'}`}>/month</p>
+                    <p className={`text-xs ${t.featured ? 'text-white/50' : 'text-gray-500'}`}>/month</p>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-gray-400 text-xs mt-4 text-center">All plans include a 90-day free trial</p>
+            <p className="text-gray-500 text-xs mt-4 text-center">All plans include a 90-day free trial</p>
             <a
               href="mailto:info@getinfold.app?subject=Parish inquiry"
               className="mt-6 block text-center bg-gold text-navy font-bold px-6 py-3 rounded-2xl hover:bg-gold/90 transition-colors"
@@ -389,7 +389,7 @@ function FaithSection() {
             <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-center hover:shadow-md transition-shadow">
               <div className="text-3xl mb-3">{t.icon}</div>
               <p className="font-bold text-navy text-sm mb-1">{t.title}</p>
-              <p className="text-gray-400 text-xs leading-relaxed">{t.desc}</p>
+              <p className="text-gray-500 text-xs leading-relaxed">{t.desc}</p>
             </div>
           ))}
         </div>
@@ -474,7 +474,7 @@ function Footer() {
             <div className="text-white font-black text-xl mb-3" style={{ fontFamily: 'Georgia, serif' }}>
               inFold
             </div>
-            <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+            <p className="text-white/70 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.
             </p>
             <p className="text-white/30 text-xs mt-4 italic">Pro Ecclesia. Pro Fide.</p>

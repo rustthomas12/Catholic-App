@@ -165,7 +165,7 @@ export default function PrayerRequestsPage() {
 
         {/* Header */}
         <div className="bg-navy px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
-          <button
+          <button aria-label="Back"
             onClick={() => navigate(-1)}
             className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-white/70 hover:text-white"
           >
@@ -189,17 +189,19 @@ export default function PrayerRequestsPage() {
           <div className="flex items-center justify-between mt-2">
             <label className="flex items-center gap-2 cursor-pointer min-h-[36px]">
               <button
+                type="button"
                 onClick={() => setIsAnonymous((a) => !a)}
                 className={`relative w-10 h-5 rounded-full transition-colors ${isAnonymous ? 'bg-navy' : 'bg-gray-300'}`}
                 role="switch"
                 aria-checked={isAnonymous}
+                aria-label={t('prayer.anonymous_toggle')}
               >
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isAnonymous ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
               <span className="text-xs text-gray-600">{t('prayer.anonymous_toggle')}</span>
             </label>
             <div className="flex items-center gap-3">
-              <span className={`text-xs ${content.length >= MAX_CHARS - 30 ? 'text-amber-500' : 'text-gray-400'}`}>
+              <span className={`text-xs ${content.length >= MAX_CHARS - 30 ? 'text-amber-500' : 'text-gray-500'}`}>
                 {content.length}/{MAX_CHARS}
               </span>
               <button
@@ -271,7 +273,7 @@ function PrayerCard({ intention, onPray, t }) {
             </>
           )}
         </div>
-        <span className="text-xs text-gray-400">{formatRelativeTime(intention.created_at)}</span>
+        <span className="text-xs text-gray-500">{formatRelativeTime(intention.created_at)}</span>
       </div>
 
       <p className="text-sm text-gray-800 leading-relaxed my-2">{intention.content}</p>

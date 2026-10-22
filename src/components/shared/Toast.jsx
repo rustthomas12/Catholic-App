@@ -52,7 +52,12 @@ export function Toaster() {
   return (
     <HotToaster
       position={isMobile ? 'top-center' : 'bottom-right'}
-      toastOptions={{ style: baseStyle }}
+      // Successes are announced politely; errors interrupt screen readers
+      toastOptions={{
+        style: baseStyle,
+        ariaProps: { role: 'status', 'aria-live': 'polite' },
+        error: { ariaProps: { role: 'alert', 'aria-live': 'assertive' } },
+      }}
       containerStyle={{ zIndex: 9999 }}
       gutter={8}
     />

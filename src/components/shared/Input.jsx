@@ -11,6 +11,7 @@ export default function Input({
   icon: Icon,
   rightIcon: RightIcon,
   onRightIconClick,
+  rightIconLabel = 'Show or hide password',
   name,
   id,
   autoComplete,
@@ -31,7 +32,7 @@ export default function Input({
 
       <div className="relative">
         {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
             <Icon className="w-5 h-5" />
           </div>
         )}
@@ -60,8 +61,8 @@ export default function Input({
           <button
             type="button"
             onClick={onRightIconClick}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy transition-colors"
-            tabIndex={-1}
+            aria-label={rightIconLabel}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-navy transition-colors"
           >
             <RightIcon className="w-5 h-5" />
           </button>

@@ -208,7 +208,7 @@ export default function CreateGroupPage() {
       {/* Header */}
       <div className="bg-navy px-4 pt-5 pb-5">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => (step > 1 ? setStep(s => s - 1) : navigate(-1))} className="text-white/70 hover:text-white">
+          <button aria-label="Back" onClick={() => (step > 1 ? setStep(s => s - 1) : navigate(-1))} className="text-white/70 hover:text-white">
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
           <h1 className="text-white font-bold text-lg">{t('create')}</h1>
@@ -222,7 +222,7 @@ export default function CreateGroupPage() {
             />
           ))}
         </div>
-        <p className="text-gray-300 text-xs mt-2">
+        <p className="text-gray-500 text-xs mt-2">
           {t(STEPS[step - 1].label)} · Step {step} of {STEPS.length}
         </p>
       </div>
@@ -259,11 +259,11 @@ export default function CreateGroupPage() {
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-gold/20' : 'bg-gray-100'}`}>
-                          <Icon className={`w-4 h-4 ${isSelected ? 'text-navy' : 'text-gray-400'}`} />
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-navy' : 'text-gray-500'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold truncate ${isSelected ? 'text-navy' : 'text-gray-700'}`}>{entity.name}</p>
-                          {entity.subtitle && <p className="text-xs text-gray-400 capitalize">{entity.subtitle}</p>}
+                          {entity.subtitle && <p className="text-xs text-gray-500 capitalize">{entity.subtitle}</p>}
                         </div>
                         <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'border-gold' : 'border-gray-300'}`}>
                           {isSelected && <div className="w-2 h-2 rounded-full bg-gold" />}
@@ -287,7 +287,7 @@ export default function CreateGroupPage() {
                 maxLength={80}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
               />
-              <p className="text-xs text-gray-400 mt-1 text-right">{name.length}/80</p>
+              <p className="text-xs text-gray-500 mt-1 text-right">{name.length}/80</p>
             </div>
 
             <div>
@@ -302,7 +302,7 @@ export default function CreateGroupPage() {
                 rows={4}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
               />
-              <p className="text-xs text-gray-400 mt-1 text-right">{description.length}/500</p>
+              <p className="text-xs text-gray-500 mt-1 text-right">{description.length}/500</p>
             </div>
 
             <div>
@@ -368,7 +368,7 @@ export default function CreateGroupPage() {
                 ) : (
                   <>
                     <CameraIcon className="w-10 h-10 text-gray-300 mb-1" />
-                    <span className="text-xs text-gray-400">Upload photo</span>
+                    <span className="text-xs text-gray-500">Upload photo</span>
                   </>
                 )}
               </div>
@@ -427,7 +427,7 @@ export default function CreateGroupPage() {
                 Edit photo
               </button>
             </div>
-            <p className="text-xs text-gray-400 text-center px-4">
+            <p className="text-xs text-gray-500 text-center px-4">
               Only followers of {selectedEntityInfo?.name ?? 'the linked parish or organization'} will be able to see and join this group.
             </p>
           </div>

@@ -45,19 +45,19 @@ export default function NearbyEventSuggestionCard({ event, onDismiss, onFollowed
       </div>
 
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
+        <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
         <span className="font-medium text-navy">{parish?.name}</span>
-        {distanceText && <span className="text-gray-400">· {distanceText}</span>}
+        {distanceText && <span className="text-gray-500">· {distanceText}</span>}
       </div>
 
       {eventDate && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <CalendarIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
+          <CalendarIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
           <span>{eventDate}</span>
         </div>
       )}
 
-      <p className="text-xs text-gray-400 italic leading-relaxed">
+      <p className="text-xs text-gray-500 italic leading-relaxed">
         You're not following {parish?.name} yet. Follow them to stay updated on this event and future ones.
       </p>
 
@@ -80,7 +80,7 @@ export default function NearbyEventSuggestionCard({ event, onDismiss, onFollowed
         )}
         <button
           onClick={() => onDismiss?.(event.id)}
-          className="text-xs text-gray-400 py-2 px-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:text-gray-600 transition-colors"
+          className="text-xs text-gray-500 py-2 px-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:text-gray-600 transition-colors"
         >
           Not interested
         </button>

@@ -265,7 +265,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
           <div className="flex-1 overflow-y-auto px-4 pt-3 pb-2">
             {/* Destination selector */}
             <div className="mb-3">
-              <span className="text-xs text-gray-400 mr-2">{t('post.destination_label')}:</span>
+              <span className="text-xs text-gray-500 mr-2">{t('post.destination_label')}:</span>
               <button
                 onClick={() => setDestSheetOpen(true)}
                 className="text-xs font-semibold text-navy bg-lightbg px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
@@ -306,7 +306,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
-                <p className="text-xs text-gray-400 mt-1 truncate">{image?.name}</p>
+                <p className="text-xs text-gray-500 mt-1 truncate">{image?.name}</p>
               </div>
             )}
 
@@ -329,7 +329,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
           <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-navy transition-colors"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-navy transition-colors"
               aria-label={t('post.image_add')}
             >
               <PhotoIcon className="w-6 h-6" />
@@ -341,7 +341,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
               onChange={handleImageSelect}
               className="hidden"
             />
-            <span className={`text-xs font-medium ${overLimit ? 'text-red-500' : charCount >= WARN_CHARS ? 'text-amber-500' : 'text-gray-400'}`}>
+            <span className={`text-xs font-medium ${overLimit ? 'text-red-500' : charCount >= WARN_CHARS ? 'text-amber-500' : 'text-gray-500'}`}>
               {charCount}/{MAX_CHARS}
             </span>
           </div>
@@ -469,7 +469,7 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
           />
           <button
             onClick={() => setModalOpen(true)}
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-400 text-left min-h-[40px] hover:bg-gray-200 transition-colors"
+            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-500 text-left min-h-[40px] hover:bg-gray-200 transition-colors"
           >
             {t('post.placeholder')}
           </button>

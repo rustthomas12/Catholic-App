@@ -121,6 +121,8 @@ I compared against apps your users already know: **Facebook (Groups), Instagram,
 6. **Minimum targets** (A6): fix everything under 24px; bring nav labels to 11px.
 7. **Automated guard:** an axe test in CI (Playwright + `@axe-core/playwright`) on the 20 screens. The build fails on any *serious* or *critical* violation, so regressions can't ship.
 
+**Phase 1 status (done, 2026-10-22):** axe on the same 20 screens went from 471 contrast failures, 24 unnamed controls and missing landmarks to **0 serious/critical violations**. Done: contrast tokens (gray, gold ink, red, navy-aware overrides), names on 56 icon buttons and every form field and switch, `<main>`, skip link, one `<h1>` per screen, announced toasts, reduced motion, 24px minimum targets, 11px nav labels, and `npm run test:a11y` in CI. It also found and fixed a real bug: on short laptop screens the desktop sidebar ran off the bottom and couldn't scroll, so Sign out was unreachable.
+
 ### Phase 2: mobile layout (about 3–5 days)
 1. **M1** shared sticky top bar (title, Back, actions) on all screens.
 2. **M2** Messages icon with badge in the Home top bar.

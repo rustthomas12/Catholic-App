@@ -52,7 +52,7 @@ export default function AppContactPage() {
         {/* Header */}
         <div className="bg-navy px-4 pt-5 pb-5">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
+            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <div>
@@ -103,7 +103,7 @@ export default function AppContactPage() {
                     <label className="block text-xs font-semibold text-navy mb-1.5">
                       What's this about?
                     </label>
-                    <select
+                    <select aria-label="What's this about?"
                       value={reason}
                       onChange={e => setReason(e.target.value)}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-navy focus:outline-none focus:border-navy appearance-none bg-white"
@@ -129,7 +129,7 @@ export default function AppContactPage() {
 
                   {/* Auto-filled info note */}
                   {user?.email && (
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       We'll reply to <span className="font-medium text-gray-500">{user.email}</span>
                     </p>
                   )}
@@ -144,7 +144,7 @@ export default function AppContactPage() {
                 </form>
               </div>
 
-              <p className="text-center text-xs text-gray-400 pb-2">
+              <p className="text-center text-xs text-gray-500 pb-2">
                 We typically respond within 1–2 business days.
               </p>
             </>
