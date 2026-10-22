@@ -26,6 +26,32 @@ async function getRawBody(req) {
   })
 }
 
+// Dates and id we store from a Stripe subscription. Newer Stripe API
+// versions moved current_period_end from the subscription to its items.
+function subscriptionFields(sub) {
+  const periodEnd = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end
+  return {
+    stripe_subscription_id: sub.id,
+    status: sub.status,
+    trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+    current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+  }
+}
+
+// The subscription a checkout just created. Without this the row kept the
+// previous (canceled) subscription's id and trial date until Stripe's next
+// "updated" event, so Billing showed a trial end in the past.
+async function checkoutSubscription(session) {
+  if (!session.subscription) return {}
+  try {
+    const id = typeof session.subscription === 'string' ? session.subscription : session.subscription.id
+    return subscriptionFields(await stripe.subscriptions.retrieve(id))
+  } catch (err) {
+    console.error('Could not load the new subscription:', err.message)
+    return { stripe_subscription_id: typeof session.subscription === 'string' ? session.subscription : null }
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -42,7 +68,6 @@ export default async function handler(req, res) {
   }
 
   const rawBody = await getRawBody(req)
-  console.log('Raw body length:', rawBody.length, '| Secret prefix:', process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 10))
 
   let event
   try {
@@ -77,6 +102,7 @@ export default async function handler(req, res) {
             parish_id: parishId,
             stripe_customer_id: customerId,
             status: 'trialing',
+            ...(await checkoutSubscription(session)),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
 
@@ -158,6 +184,7 @@ export default async function handler(req, res) {
               org_id: orgId,
               stripe_customer_id: customerId,
               status: 'trialing',
+              ...(await checkoutSubscription(session)),
               tier: orgTier,
               billing_track: billingTrack,
               updated_at: new Date().toISOString(),
@@ -211,7 +238,8 @@ export default async function handler(req, res) {
         break
       }
 
-      // ── Subscription updated ────────────────────────────────
+      // ── Subscription created / updated ──────────────────────
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const sub        = event.data.object
         const customerId = sub.customer
@@ -226,12 +254,7 @@ export default async function handler(req, res) {
           await supabase.from('parish_subscriptions').upsert({
             parish_id: parishId,
             stripe_customer_id: customerId,
-            stripe_subscription_id: sub.id,
-            status,
-            trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-            current_period_end: sub.current_period_end
-              ? new Date(sub.current_period_end * 1000).toISOString()
-              : null,
+            ...subscriptionFields(sub),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
           break
@@ -246,14 +269,9 @@ export default async function handler(req, res) {
             await supabase.from('org_subscriptions').upsert({
               org_id: orgId,
               stripe_customer_id: customerId,
-              stripe_subscription_id: sub.id,
-              status,
+              ...subscriptionFields(sub),
               tier: orgTier,
               billing_track: billingTrack,
-              trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-              current_period_end: sub.current_period_end
-                ? new Date(sub.current_period_end * 1000).toISOString()
-                : null,
               updated_at: new Date().toISOString(),
             }, { onConflict: 'org_id' })
           }
