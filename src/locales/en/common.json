@@ -136,5 +136,11 @@
     "shortcuts": "Shortcuts",
     "show_all": "Show all ({{count}})",
     "show_less": "Show less"
+  },
+  "a11y": {
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread",
+    "unread_messages_one": "{{count}} unread message",
+    "unread_messages_other": "{{count}} unread messages"
   }
 }

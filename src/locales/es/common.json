@@ -136,5 +136,11 @@
     "shortcuts": "Accesos directos",
     "show_all": "Ver todo ({{count}})",
     "show_less": "Ver menos"
+  },
+  "a11y": {
+    "unread_one": "{{count}} sin leer",
+    "unread_other": "{{count}} sin leer",
+    "unread_messages_one": "{{count}} mensaje sin leer",
+    "unread_messages_other": "{{count}} mensajes sin leer"
   }
 }

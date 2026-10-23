@@ -226,7 +226,7 @@ function Navigation() {
                 <span className={`text-[11px] font-medium ${active ? 'text-gold' : 'text-gray-300'}`}>
                   {t(label)}
                 </span>
-                {isBell && unreadCount > 0 && <span className="sr-only">, {unreadCount} unread</span>}
+                {isBell && unreadCount > 0 && <span className="sr-only">, {t('a11y.unread', { count: unreadCount })}</span>}
               </Link>
             )
           })}
@@ -251,7 +251,7 @@ function Navigation() {
             <span className={`text-[11px] font-medium ${meActive ? 'text-gold' : 'text-gray-300'}`}>
               {t('nav.me')}
             </span>
-            {unreadDMs > 0 && <span className="sr-only">, {unreadDMs} unread messages</span>}
+            {unreadDMs > 0 && <span className="sr-only">, {t('a11y.unread_messages', { count: unreadDMs })}</span>}
           </Link>
         </div>
       </nav>

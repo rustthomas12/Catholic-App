@@ -124,11 +124,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 10. Faith tools
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | 🔧 |
+| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | ✅ readings load (lectionary refs + Douay-Rheims text) |
 | FA2 | Saint of the day card; /saints list + /saints/:id detail | B | ✅ |
 | FA3 | Prayer requests: post, anonymous option, others can "pray" | B,A | 🔧 |
-| FA4 | Prayer journal: add / edit / delete entry (private) | B | 🔧 |
-| FA5 | Rosary tracker: log a rosary, streak updates | B | 🔧 |
+| FA4 | Prayer journal: add / edit / delete entry (private) | B | ✅ add, edit, delete (confirm dialog); owner-only in the database |
+| FA5 | Rosary tracker: log a rosary, streak updates | B | ✅ streak 0→1; saved with the local date at 11:50 PM; Thursday → Luminous |
 | FA6 | Liturgy of the Hours page loads | B | ✅ |
 | FA7 | Formation programs (Advent / Lent): mark day complete | B | 🔧 |
 | FA8 | Morning Offering page | B | ✅ |
@@ -143,7 +143,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
 | S4 | Profile visibility (Public / Members only) respected by other user | B,C | ✅ |
-| S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
+| S5 | Language switcher (English / Spanish) — UI translates, persists | B | ✅ English ↔ Español, saved, <html lang> follows (#122 fixed) |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | ✅ unblock from Settings; messages flow again |
 | S8 | Sign out from settings | B | ✅ code check: sign-out clears cached profile/feed/group data (not run on a real account) |
@@ -352,6 +352,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 119 | — | Migrations 066/067/068 applied (SQL editor). Verified live: report on a comment → admin notified → "Remove content" hides it and closes the report; "bullshit" blocked with the explanation and the text kept, clean comment posts; event reminder sent once to Fr. Michael ~23½ h before the event | — | verified |
 | 120 | G7 | After removing a member, the group header kept the old member count (and no confirmation); every join/leave flashed the whole page skeleton | Header refreshes in place; "Removed from the group." / "Now a group admin." toasts | fixed |
 | 121 | FA3 | **Privacy:** anonymous prayer requests sent the author's name, id and photo to every member's browser — only the screen hid it | Migration 069: members read through `prayer_request_feed`, which omits the author of anonymous requests (except to the author); the table is readable only by its author; "someone prayed for you" notifications move into the database. The list now refreshes on return instead of live | fixed (needs 069) |
+| 122 | S5 | Screen-reader unread counts added in Phase 2 stayed in English in Spanish ("Alertas, 17 unread") and said "1 unread messages" | Translated, with singular/plural | fixed |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
