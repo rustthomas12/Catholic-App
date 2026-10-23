@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 
 // Sticky screen header, the pattern every major mobile app uses: Back on the
@@ -51,11 +52,12 @@ export default function TopBar({ title, back, onBack, actions, variant = 'light'
 // A 44×44 icon button for TopBar actions
 export function TopBarAction({ label, onClick, to, icon: Icon, badge, variant = 'light' }) { // eslint-disable-line no-unused-vars -- used as a JSX tag
   const navigate = useNavigate()
+  const { t } = useTranslation('common')
   const navy = variant === 'navy'
   return (
     <button
       type="button"
-      aria-label={badge ? `${label}, ${badge} unread` : label}
+      aria-label={badge ? `${label}, ${t('a11y.unread', { count: badge })}` : label}
       onClick={onClick || (() => navigate(to))}
       className={[
         'relative w-11 h-11 flex items-center justify-center rounded-full transition-colors',

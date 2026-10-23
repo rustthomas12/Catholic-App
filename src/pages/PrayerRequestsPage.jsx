@@ -1,19 +1,27 @@
 import { friendlyError } from '../utils/errors'
 import ReportModal from '../components/shared/ReportModal'
 import { reportContent } from '../lib/reports'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeftIcon, UserCircleIcon, FlagIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
-import { createNotification } from '../lib/notifications'
 import Avatar from '../components/shared/Avatar'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { formatRelativeTime } from '../utils/dates'
 import { toast } from '../components/shared/Toast'
 
 const PAGE_SIZE = 30
+
+// Rows from prayer_request_feed: the author is left out of anonymous
+// requests (migration 069), so build the author object only when present
+function fromFeed(r) {
+  return {
+    ...r,
+    author: r.author_name ? { id: r.author_id, full_name: r.author_name, avatar_url: r.author_avatar_url } : null,
+  }
+}
 
 export default function PrayerRequestsPage() {
   const { t } = useTranslation('feed')
@@ -23,7 +31,6 @@ export default function PrayerRequestsPage() {
 
   useEffect(() => { document.title = `${t('prayer.title')} | inFold` }, [t])
 
-  const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   const [intentions, setIntentions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -42,70 +49,48 @@ export default function PrayerRequestsPage() {
     else setLoadingMore(true)
 
     const { data, error } = await supabase
-      .from('prayer_requests')
-      .select(`
-        *,
-        author:profiles!author_id(id, full_name, avatar_url),
-        prayer_responses(user_id)
-      `)
-      .is('deleted_at', null)
+      .from('prayer_request_feed')
+      .select('*')
       .order('created_at', { ascending: false })
       .range(off, off + PAGE_SIZE - 1)
 
     if (error) {
       toast.error(t('common:status.error', { ns: 'common' }))
     } else {
-      const normalised = (data ?? []).map((r) => ({
-        ...r,
-        prayer_count: r.prayer_responses?.length ?? r.prayer_count ?? 0,
-        is_prayed_by_me: (r.prayer_responses ?? []).some((pr) => pr.user_id === user?.id),
-      }))
+      const normalised = (data ?? []).map(fromFeed)
       setIntentions((prev) => (append ? [...prev, ...normalised] : normalised))
       setHasMore((data ?? []).length === PAGE_SIZE)
     }
 
     setLoading(false)
     setLoadingMore(false)
-  }, [user, t])
+  }, [t])
 
   useEffect(() => {
     fetchIntentions(0, false)
   }, [fetchIntentions])
 
+  // Live inserts can't come through the privacy view (realtime reads the
+  // table, which now only shows your own rows); refresh when you come back
   useEffect(() => {
-    const channel = supabase
-      .channel(`prayer-requests-realtime-${channelSuffix.current}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'prayer_requests' },
-        async (payload) => {
-          const { data } = await supabase
-            .from('prayer_requests')
-            .select(`*, author:profiles!author_id(id, full_name, avatar_url), prayer_responses(user_id)`)
-            .eq('id', payload.new.id)
-            .single()
-          if (!data) return
-          const normalised = { ...data, prayer_count: 0, is_prayed_by_me: false }
-          setIntentions((prev) => {
-            if (prev.some((i) => i.id === normalised.id)) return prev
-            return [normalised, ...prev]
-          })
-        }
-      )
-      .subscribe()
-    return () => supabase.removeChannel(channel)
-  }, [])
+    function onVisible() { if (document.visibilityState === 'visible') fetchIntentions(0, false) }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [fetchIntentions])
 
   async function handleSubmit() {
     const trimmed = content.trim()
     if (!trimmed) return
     setSubmitting(true)
 
-    const { data, error } = await supabase
+    const { data: created, error } = await supabase
       .from('prayer_requests')
       .insert({ author_id: user.id, content: trimmed, is_anonymous: isAnonymous })
-      .select(`*, author:profiles!author_id(id, full_name, avatar_url), prayer_responses(user_id)`)
+      .select('id')
       .single()
+    const { data } = created
+      ? await supabase.from('prayer_request_feed').select('*').eq('id', created.id).maybeSingle()
+      : { data: null }
 
     setSubmitting(false)
 
@@ -114,7 +99,7 @@ export default function PrayerRequestsPage() {
       return
     }
 
-    setIntentions((prev) => [{ ...data, prayer_count: 0, is_prayed_by_me: false }, ...prev])
+    if (data) setIntentions((prev) => [fromFeed(data), ...prev])
     setContent('')
     toast.success(t('prayer.success'))
   }
@@ -135,15 +120,7 @@ export default function PrayerRequestsPage() {
       .from('prayer_responses')
       .insert({ prayer_request_id: intentionId, user_id: user.id })
 
-    if (!error && intention?.author_id && intention.author_id !== user.id) {
-      createNotification({
-        userId: intention.author_id,
-        type: 'prayer_response',
-        referenceId: intentionId,
-        message: `Someone prayed for your intention`,
-        actorId: user.id,
-      })
-    }
+    // The author is notified by the database (migration 069)
 
     if (error) {
       setIntentions((prev) =>
@@ -244,7 +221,7 @@ export default function PrayerRequestsPage() {
                 key={intention.id}
                 intention={intention}
                 onPray={handlePray}
-                onReport={user && intention.author_id !== user.id ? () => setReportId(intention.id) : null}
+                onReport={user && !intention.is_mine ? () => setReportId(intention.id) : null}
                 t={t}
               />
             ))}

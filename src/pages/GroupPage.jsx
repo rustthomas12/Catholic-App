@@ -352,7 +352,7 @@ export default function GroupPage() {
             groupId={id}
             onApprove={handleApprove}
             onDeny={handleDeny}
-            onRefresh={() => { refreshMembers(); refreshMemberships() }}
+            onRefresh={() => { refreshMembers(); refreshMemberships(); refreshGroup() }}
             t={t}
           />
         )}
@@ -803,6 +803,7 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
       .select('user_id')
     // RLS turns a disallowed change into "0 rows" rather than an error
     if (error || !data?.length) { toast.error('Could not promote member.'); return }
+    toast.success('Now a group admin.')
     setOpenMenuId(null)
     onRefresh()
   }
@@ -816,6 +817,7 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
       .select('user_id')
     // RLS turns a disallowed change into "0 rows" rather than an error
     if (error || !data?.length) { toast.error('Could not remove member.'); return }
+    toast.success('Removed from the group.')
     setOpenMenuId(null)
     onRefresh()
   }

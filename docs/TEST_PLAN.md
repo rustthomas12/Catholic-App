@@ -104,31 +104,31 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | G1 | Groups list / search | B | ✅ |
-| G2 | Create group (name, description, image upload, public/private) | A | 🔧 |
+| G2 | Create group (name, description, image upload, public/private) | A | ✅ 3-step wizard; created and opened |
 | G3 | Join public group | B | ✅ |
 | G4 | Request to join private group → admin approves / denies → notification | C→A | ✅ |
 | G5 | Group tabs: Feed, Chat, Events, Members, About | B | ✅ |
-| G6 | Group chat: send message, other member sees it live | A,B | 🔧 |
-| G7 | Group settings: edit details, remove member | A | 🔧 |
+| G6 | Group chat: send message, other member sees it live | A,B | ✅ message appears live for the other member; word filter blocks and keeps the draft |
+| G7 | Group settings: edit details, remove member | A | ✅ edit saved; remove member (#120 fixed) |
 | G8 | Leave group | B | ✅ |
-| G9 | Delete group | A | 🔧 |
+| G9 | Delete group | A | ✅ type-the-name confirmation; group, members and chat removed |
 
 ## 9. Direct messages
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| DM1 | Start conversation, send message | A→B | 🔧 |
-| DM2 | Recipient sees message + notification; reply | B | 🔧 |
+| DM1 | Start conversation, send message | A→B | ✅ live delivery + "sent you a message" notification |
+| DM2 | Recipient sees message + notification; reply | B | ✅ reply live; Report conversation captures their latest message; Block closes the thread and stops their messages |
 | DM3 | Blocked user cannot message | C | ✅ |
 | DM4 | Empty states ("No connections yet") | C | ✅ |
 
 ## 10. Faith tools
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | 🔧 |
+| FA1 | Faith hub page; daily readings card loads (/api/readings) | B | ✅ readings load (lectionary refs + Douay-Rheims text) |
 | FA2 | Saint of the day card; /saints list + /saints/:id detail | B | ✅ |
 | FA3 | Prayer requests: post, anonymous option, others can "pray" | B,A | 🔧 |
-| FA4 | Prayer journal: add / edit / delete entry (private) | B | 🔧 |
-| FA5 | Rosary tracker: log a rosary, streak updates | B | 🔧 |
+| FA4 | Prayer journal: add / edit / delete entry (private) | B | ✅ add, edit, delete (confirm dialog); owner-only in the database |
+| FA5 | Rosary tracker: log a rosary, streak updates | B | ✅ streak 0→1; saved with the local date at 11:50 PM; Thursday → Luminous |
 | FA6 | Liturgy of the Hours page loads | B | ✅ |
 | FA7 | Formation programs (Advent / Lent): mark day complete | B | 🔧 |
 | FA8 | Morning Offering page | B | ✅ |
@@ -143,9 +143,9 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S2 | Edit profile: name, username, vocation, parish, avatar upload | B | ✅ |
 | S3 | Unsaved-changes "Discard / Keep editing" prompt | B | ✅ |
 | S4 | Profile visibility (Public / Members only) respected by other user | B,C | ✅ |
-| S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
+| S5 | Language switcher (English / Spanish) — UI translates, persists | B | ✅ English ↔ Español, saved, <html lang> follows (#122 fixed) |
 | S6 | Notification settings toggles save | B | 🔧 |
-| S7 | Blocked users list → unblock | C | 🔧 |
+| S7 | Blocked users list → unblock | C | ✅ unblock from Settings; messages flow again |
 | S8 | Sign out from settings | B | ✅ code check: sign-out clears cached profile/feed/group data (not run on a real account) |
 | S9 | Contact page (/contact) form submits | B | ✅ |
 
@@ -195,7 +195,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | AD1 | Only admins can open /admin (B is refused) | A,B | ✅ |
-| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | 🔧 |
+| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | ✅ search, Clergy, Suspended, Admins all match the database (#123 fixed) |
 | AD3 | Suspend / unsuspend user | A | ✅ |
 | AD4 | Grant parish admin / org membership | A | 🔧 |
 | AD5 | Parish clusters create / delete | A | 🔧 |
@@ -350,6 +350,10 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 117 | — | Webhook logged the first 10 characters of its signing secret on every request | Log line removed | fixed (deploy) |
 | 118 | PA | Opening a parish dashboard link when the saved login had expired (e.g. after restarting the browser) sent a real admin to Home: any failed access check counted as "not an admin". Platform admins could be bounced the same way before their profile loaded. Same on org dashboards (showed "Access denied") | Access check retries briefly, waits for the profile, and only redirects on a real "no"; otherwise shows "Couldn't load — Try again" | fixed |
 | 119 | — | Migrations 066/067/068 applied (SQL editor). Verified live: report on a comment → admin notified → "Remove content" hides it and closes the report; "bullshit" blocked with the explanation and the text kept, clean comment posts; event reminder sent once to Fr. Michael ~23½ h before the event | — | verified |
+| 120 | G7 | After removing a member, the group header kept the old member count (and no confirmation); every join/leave flashed the whole page skeleton | Header refreshes in place; "Removed from the group." / "Now a group admin." toasts | fixed |
+| 121 | FA3 | **Privacy:** anonymous prayer requests sent the author's name, id and photo to every member's browser — only the screen hid it | Migration 069: members read through `prayer_request_feed`, which omits the author of anonymous requests (except to the author); the table is readable only by its author; "someone prayed for you" notifications move into the database. The list now refreshes on return instead of live | fixed (needs 069) |
+| 122 | S5 | Screen-reader unread counts added in Phase 2 stayed in English in Spanish ("Alertas, 17 unread") and said "1 unread messages" | Translated, with singular/plural | fixed |
+| 123 | AD2 | Admins could suspend themselves or another platform admin (Suspend shown on your own row; the server didn't check) | Migration 070: server refuses both; the button is hidden on those rows; the reason is shown on error | fixed (needs 070) |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |

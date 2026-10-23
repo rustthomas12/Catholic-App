@@ -94,8 +94,8 @@ export default function MeShortcuts() {
             <span className="flex-1 text-sm font-medium text-navy">{label}</span>
             {badge > 0 && (
               <span className="min-w-[20px] h-5 px-1.5 bg-red-600 rounded-full text-white text-[11px] font-bold flex items-center justify-center">
-                {badge > 99 ? '99+' : badge}
-                <span className="sr-only"> unread</span>
+                <span aria-hidden="true">{badge > 99 ? '99+' : badge}</span>
+                <span className="sr-only">{t('a11y.unread', { count: badge })}</span>
               </span>
             )}
             <ChevronRightIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />

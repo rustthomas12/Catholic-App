@@ -54,16 +54,17 @@ export default function FaithPage() {
     }
 
     supabase
-      .from('prayer_requests')
-      .select(`
-        id, content, prayer_count, is_anonymous, created_at,
-        author:profiles!author_id(full_name, avatar_url)
-      `)
+      .from('prayer_request_feed')
+      .select('id, content, prayer_count, is_anonymous, created_at, author_name, author_avatar_url')
       .order('created_at', { ascending: false })
       .limit(5)
       .then(({ data, error: err }) => {
         if (!err) {
-          const result = data ?? []
+          // Author is left out of anonymous requests (migration 069)
+          const result = (data ?? []).map((r) => ({
+            ...r,
+            author: r.author_name ? { full_name: r.author_name, avatar_url: r.author_avatar_url } : null,
+          }))
           _intentionsCache = { data: result, fetchedAt: Date.now() }
           setIntentions(result)
         }
