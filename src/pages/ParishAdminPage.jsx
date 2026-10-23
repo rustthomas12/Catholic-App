@@ -1,3 +1,4 @@
+import { readAccess } from '../lib/membership'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
@@ -43,21 +44,34 @@ const TABS = [
 ]
 
 // ── Access guard ────────────────────────────────────────────
-async function checkAccess(parishId, userId) {
-  const { data } = await supabase
+function checkAccess(parishId, userId) {
+  return readAccess(() => supabase
     .from('parish_admins')
     .select('role')
     .eq('parish_id', parishId)
     .eq('user_id', userId)
-    .maybeSingle()
-  return data
+    .maybeSingle())
+}
+
+function LoadFailed({ onRetry }) {
+  return (
+    <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
+      <div className="text-center">
+        <p className="font-bold text-navy mb-1">Couldn't load this dashboard</p>
+        <p className="text-gray-500 text-sm mb-4">Check your connection and try again.</p>
+        <button onClick={onRetry} className="bg-navy text-white text-sm font-semibold px-4 min-h-[44px] rounded-xl">Try again</button>
+      </div>
+    </div>
+  )
 }
 
 export default function ParishAdminPage() {
   const { parishId } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, loading: authLoading } = useAuth()
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard')
   const [parish, setParish] = useState(null)
   const [adminRole, setAdminRole] = useState(null)
@@ -68,26 +82,30 @@ export default function ParishAdminPage() {
   useEffect(() => { document.title = 'Parish Admin | inFold' }, [])
 
   useEffect(() => {
-    if (!user) return
+    // Wait for the profile so platform admins are recognized
+    if (!user || authLoading) return
     async function init() {
+      setLoadFailed(false)
       if (!isAdmin) {
         const access = await checkAccess(parishId, user.id)
-        if (!access) { navigate('/', { replace: true }); return }
-        setAdminRole(access.role)
+        if (access.error) { setLoadFailed(true); setLoading(false); return }
+        if (!access.row) { navigate('/', { replace: true }); return }
+        setAdminRole(access.row.role)
       } else {
         setAdminRole('admin')
       }
-      const { data } = await supabase
+      const { data, error } = await readAccess(() => supabase
         .from('parishes')
         .select('*')
         .eq('id', parishId)
-        .single()
+        .maybeSingle()).then((r) => ({ data: r.row, error: r.error }))
+      if (error) { setLoadFailed(true); setLoading(false); return }
       if (!data) { navigate('/', { replace: true }); return }
       setParish(data)
       setLoading(false)
     }
     init()
-  }, [parishId, user, isAdmin, navigate])
+  }, [parishId, user, isAdmin, authLoading, navigate, retryKey])
 
   useEffect(() => {
     supabase
@@ -109,6 +127,7 @@ export default function ParishAdminPage() {
       </div>
     )
   }
+  if (loadFailed) return <LoadFailed onRetry={() => { setLoading(true); setRetryKey((k) => k + 1) }} />
 
   const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
 

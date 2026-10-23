@@ -1,3 +1,4 @@
+import { readAccess } from '../lib/membership'
 import Modal from '../components/shared/Modal'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -89,13 +90,25 @@ const BASE_TABS = [
 
 // ── Access guard ───────────────────────────────────────────
 async function checkOrgAccess(orgId, userId) {
-  const { data } = await supabase
+  const res = await readAccess(() => supabase
     .from('organization_members')
     .select('role')
     .eq('org_id', orgId)
     .eq('user_id', userId)
-    .maybeSingle()
-  return data?.role === 'admin' ? data : null
+    .maybeSingle())
+  return res.error ? res : { row: res.row?.role === 'admin' ? res.row : null }
+}
+
+function LoadFailed({ onRetry }) {
+  return (
+    <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
+      <div className="text-center">
+        <p className="font-bold text-navy mb-1">Couldn't load this dashboard</p>
+        <p className="text-gray-500 text-sm mb-4">Check your connection and try again.</p>
+        <button onClick={onRetry} className="bg-navy text-white text-sm font-semibold px-4 min-h-[44px] rounded-xl">Try again</button>
+      </div>
+    </div>
+  )
 }
 
 // ── Subscription prompt ────────────────────────────────────
@@ -148,6 +161,8 @@ export default function OrgAdminPage() {
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const [subscription, setSubscription] = useState(null)
   const [subLoading, setSubLoading] = useState(true)
   const [memberCount, setMemberCount] = useState(0)
@@ -171,15 +186,17 @@ export default function OrgAdminPage() {
       supabase.from('organization_members').select('user_id', { count: 'exact', head: true }).eq('org_id', orgId),
       supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('parent_org_id', orgId),
     ]).then(([access, orgRes, memberRes, chapterRes]) => {
-      if (!access) { setAccessDenied(true); setLoading(false); return }
-      if (orgRes.error) { setLoading(false); return }
+      // A failed request isn't "no access" — offer a retry instead
+      if (access.error) { setLoadFailed(true); setLoading(false); return }
+      if (!access.row) { setAccessDenied(true); setLoading(false); return }
+      if (orgRes.error) { setLoadFailed(true); setLoading(false); return }
       setOrg(orgRes.data)
       setMemberCount(memberRes.count ?? 0)
       setChapterCount(chapterRes.count ?? 0)
       document.title = `${orgRes.data.name} Admin | inFold`
       setLoading(false)
     })
-  }, [orgId, user?.id])
+  }, [orgId, user?.id, retryKey])
 
   useEffect(() => {
     if (!orgId) return
@@ -196,6 +213,8 @@ export default function OrgAdminPage() {
       <div className="bg-navy h-32 animate-pulse" />
     </div>
   )
+
+  if (loadFailed) return <LoadFailed onRetry={() => { setLoadFailed(false); setLoading(true); setRetryKey((k) => k + 1) }} />
 
   if (accessDenied || !org) return (
     <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
