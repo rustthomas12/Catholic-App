@@ -63,12 +63,12 @@ export default function PrayerJournalPage() {
         {/* Header */}
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button onClick={() => navigate('/faith')} className="text-white/70 hover:text-white p-1 transition-colors">
+            <button aria-label="Back" onClick={() => navigate('/faith')} className="text-white/70 hover:text-white p-1 transition-colors">
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <h1 className="text-white font-bold text-xl">Prayer Journal</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">Your private space for reflection</p>
+          <p className="text-gray-500 text-sm ml-8">Your private space for reflection</p>
         </div>
 
         <div className="px-4 pt-5 space-y-4">
@@ -107,7 +107,7 @@ export default function PrayerJournalPage() {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
               />
               <div>
-                <p className="text-xs text-gray-400 mb-2">Mood</p>
+                <p className="text-xs text-gray-500 mb-2">Mood</p>
                 <div className="flex gap-3">
                   {MOODS.map(m => (
                     <button
@@ -146,7 +146,7 @@ export default function PrayerJournalPage() {
               {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-xl border border-gray-100" />)}
             </div>
           ) : entries.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 text-sm">
+            <div className="text-center py-12 text-gray-500 text-sm">
               No entries yet. Start by writing your first reflection.
             </div>
           ) : (
@@ -158,21 +158,21 @@ export default function PrayerJournalPage() {
                       {entry.title && (
                         <p className="font-semibold text-navy text-sm truncate">{entry.title}</p>
                       )}
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {format(parseISO(entry.created_at), 'MMMM d, yyyy · h:mm a')}
                         {entry.mood && <span className="ml-2">{entry.mood}</span>}
                       </p>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button
+                      <button aria-label="Edit"
                         onClick={() => openEdit(entry)}
-                        className="p-1.5 text-gray-400 hover:text-navy transition-colors rounded-lg hover:bg-gray-100"
+                        className="p-1.5 text-gray-500 hover:text-navy transition-colors rounded-lg hover:bg-gray-100"
                       >
                         <PencilIcon className="w-3.5 h-3.5" />
                       </button>
-                      <button
+                      <button aria-label="Delete"
                         onClick={() => setDeleteConfirm(entry.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                        className="p-1.5 text-gray-500 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                       >
                         <TrashIcon className="w-3.5 h-3.5" />
                       </button>
@@ -201,7 +201,7 @@ export default function PrayerJournalPage() {
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors"
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors"
               >
                 Delete
               </button>

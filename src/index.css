@@ -157,3 +157,47 @@ html.cap-native .sticky.top-2 {
 html.cap-native .fixed.inset-0 > .absolute.top-4 {
   top: calc(var(--app-safe-top) + 1rem);
 }
+
+/* ── Accessibility ─────────────────────────────────────────── */
+
+/* Gold text: #C9A84C is only 2.3:1 on white/cream. Text on light
+   backgrounds uses a deeper "gold ink" (≥5:1); the bright brand gold stays
+   for text on navy, and for fills, borders and icons (bg-/border-gold). */
+.text-gold { color: #7d5f17; }
+[class*="bg-navy"] .text-gold,
+[class*="bg-navy"].text-gold,
+[class*="bg-black"] .text-gold { color: #c9a84c; }
+
+/* Secondary text: Tailwind's gray-500 / red-400–600 fall just under 4.5:1 on
+   cream and light-gray surfaces; darken the text shades (fills unaffected). */
+.text-gray-500 { color: #596170; }
+.text-red-400, .text-red-500, .text-red-600 { color: #b91c1c; }
+[class*="bg-navy"] .text-gray-500,
+[class*="bg-navy"].text-gray-500 { color: #d1d5db; }
+[class*="bg-navy"] .text-red-400 { color: #fca5a5; }
+[class*="bg-navy"] .bg-white.text-gray-500 { color: #596170; }
+[class*="bg-navy"] .text-gold[class*="bg-gold/"] { color: #e3c97f; }
+
+/* Honor the OS "Reduce Motion" setting */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link: hidden until focused by keyboard */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -100px;
+  z-index: 100;
+  background: #1b2a4a;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+.skip-link:focus { top: 0.75rem; }

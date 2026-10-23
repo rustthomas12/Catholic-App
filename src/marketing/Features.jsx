@@ -58,7 +58,7 @@ const FEATURES = [
   {
     category: 'Platform',
     color: 'bg-gray-500/10 border-gray-500/20',
-    accent: 'text-gray-400',
+    accent: 'text-gray-500',
     items: [
       { icon: '📱', title: 'PWA — No Download', desc: 'Add to your home screen on any device. Looks and feels native. No App Store required.' },
       { icon: '🌐', title: 'Bilingual (EN/ES)', desc: 'Full Spanish language support for the 36% of US Catholics who are Hispanic.' },

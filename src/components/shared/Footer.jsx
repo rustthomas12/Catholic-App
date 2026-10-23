@@ -4,7 +4,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="hidden md:block text-center py-6 text-sm text-gray-400">
+    <footer className="hidden md:block text-center py-6 text-sm text-gray-500">
       <div className="flex items-center justify-center gap-1 mb-2">
         <span className="font-medium text-gray-500">Parish</span>
         <svg viewBox="0 0 24 24" className="w-3 h-4 fill-gold">

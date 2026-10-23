@@ -72,7 +72,7 @@ export default function BlockedUsersPage() {
                   <Avatar src={p.avatar_url} name={p.full_name} size="sm" isVerifiedClergy={p.is_verified_clergy} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-navy truncate">{p.full_name || 'Parish Member'}</p>
-                    {p.username && <p className="text-xs text-gray-400 truncate">@{p.username}</p>}
+                    {p.username && <p className="text-xs text-gray-500 truncate">@{p.username}</p>}
                   </div>
                 </Link>
                 <button

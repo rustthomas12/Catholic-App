@@ -125,7 +125,7 @@ export default function NotificationItem({ notification, onTap, onDismiss }) {
           <p className={`text-sm leading-snug text-gray-800 ${is_read ? 'font-normal' : 'font-medium'}`}>
             {message}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             {formatRelativeTime(created_at)}
           </p>
         </div>

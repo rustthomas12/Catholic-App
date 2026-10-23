@@ -49,7 +49,7 @@ export default function MorningOfferingPage() {
         {/* Header */}
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
+            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <div>
@@ -75,7 +75,7 @@ export default function MorningOfferingPage() {
           {/* Prayer selector */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-50">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Choose a prayer</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Choose a prayer</p>
             </div>
             <div className="divide-y divide-gray-50">
               {PRAYERS.map(p => (
@@ -101,7 +101,7 @@ export default function MorningOfferingPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-50 flex items-center gap-2">
               <SunIcon className="w-4 h-4 text-gold" />
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Prayer</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Prayer</p>
             </div>
             <div className="px-6 py-6">
               <p className="text-navy text-base leading-relaxed whitespace-pre-line font-serif italic">

@@ -113,7 +113,7 @@ function ParishApplicationForm() {
         </div>
         <div>
           <label className="block text-sm font-semibold text-navy mb-1.5">Approximate # of Parishioners</label>
-          <select value={form.parishioners} onChange={e => set('parishioners', e.target.value)}
+          <select aria-label="Approximate # of Parishioners" value={form.parishioners} onChange={e => set('parishioners', e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-navy appearance-none bg-white">
             <option value="">Select range</option>
             <option>Under 200</option>
@@ -133,7 +133,7 @@ function ParishApplicationForm() {
         className="w-full bg-navy text-white font-bold py-4 rounded-2xl hover:bg-navy/90 disabled:opacity-50 transition-colors">
         {submitting ? 'Submitting…' : 'Submit Parish Application'}
       </button>
-      <p className="text-gray-400 text-xs text-center">We'll respond within 1–2 business days. 90-day free trial included.</p>
+      <p className="text-gray-500 text-xs text-center">We'll respond within 1–2 business days. 90-day free trial included.</p>
     </form>
   )
 }
@@ -191,9 +191,9 @@ export default function ForParishesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
             {TIERS.map((t, i) => (
               <div key={i} className={`rounded-2xl border p-7 flex flex-col ${t.featured ? 'bg-navy border-navy' : 'bg-white border-gray-100 shadow-sm'}`}>
-                <div className={`text-xs font-bold tracking-widest uppercase mb-4 ${t.featured ? 'text-gold' : 'text-gray-400'}`}>{t.label}</div>
+                <div className={`text-xs font-bold tracking-widest uppercase mb-4 ${t.featured ? 'text-gold' : 'text-gray-500'}`}>{t.label}</div>
                 <div className={`text-4xl font-black mb-1 ${t.featured ? 'text-white' : 'text-navy'}`}>{t.price}</div>
-                <div className={`text-xs mb-5 ${t.featured ? 'text-white/50' : 'text-gray-400'}`}>/month · {t.size}</div>
+                <div className={`text-xs mb-5 ${t.featured ? 'text-white/50' : 'text-gray-500'}`}>/month · {t.size}</div>
                 <ul className="space-y-2 flex-1">
                   {t.features.map((f, fi) => (
                     <li key={fi} className={`text-xs flex items-start gap-1.5 ${t.featured ? 'text-white/70' : 'text-gray-500'}`}>
@@ -222,7 +222,7 @@ export default function ForParishesPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
             <ParishApplicationForm />
           </div>
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-gray-500 text-sm mt-6">
             Prefer email? Write us at{' '}
             <a href="mailto:info@getinfold.app" className="text-navy font-semibold hover:underline">info@getinfold.app</a>
           </p>

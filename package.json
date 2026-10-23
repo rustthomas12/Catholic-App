@@ -14,7 +14,8 @@
     "mobile:ios": "vite build && cap sync ios && cap open ios",
     "mobile:android": "vite build && cap sync android && cap open android",
     "mobile:assets": "node scripts/generate-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#1B2A4A\" --iconBackgroundColorDark \"#1B2A4A\" --splashBackgroundColor \"#1B2A4A\" --splashBackgroundColorDark \"#1B2A4A\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test tests/e2e/a11y.spec.js"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.5.2",
@@ -64,6 +65,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "axe-core": "^4.10.2",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",

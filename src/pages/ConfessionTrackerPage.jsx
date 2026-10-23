@@ -87,10 +87,31 @@ export default function ConfessionTrackerPage() {
     setClearing(false)
   }
 
-  function handleReminderChange(val) {
+  // The server sends the reminders, so the interval is saved to the account
+  // (notification_preferences); "Off" turns the confession reminder off.
+  async function handleReminderChange(val) {
     setReminderDays(val)
     localStorage.setItem(REMINDER_KEY, String(val))
+    if (!user) return
+    await supabase.from('notification_preferences').upsert({
+      user_id: user.id,
+      confession_reminder: val !== null,
+      ...(val !== null ? { reminder_interval_days: val } : {}),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
   }
+
+  // Load the saved interval from the account (falls back to this device's choice)
+  useEffect(() => {
+    if (!user) return
+    supabase.from('notification_preferences')
+      .select('confession_reminder, reminder_interval_days')
+      .eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return
+        setReminderDays(data.confession_reminder === false ? null : (data.reminder_interval_days ?? 30))
+      })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -99,7 +120,7 @@ export default function ConfessionTrackerPage() {
         {/* ── Header ── */}
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button
+            <button aria-label="Back"
               onClick={() => navigate(-1)}
               className="text-white/70 hover:text-white p-1 flex items-center transition-colors"
             >
@@ -107,7 +128,7 @@ export default function ConfessionTrackerPage() {
             </button>
             <h1 className="text-white font-bold text-xl">{t('tracker_title')}</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">{t('tracker_subtitle')}</p>
+          <p className="text-gray-500 text-sm ml-8">{t('tracker_subtitle')}</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -128,13 +149,13 @@ export default function ConfessionTrackerPage() {
             ) : daysSince === null ? (
               <>
                 <p className="text-5xl font-bold text-gray-200 mb-2">—</p>
-                <p className="text-sm text-gray-400">{t('tracker_never')}</p>
+                <p className="text-sm text-gray-500">{t('tracker_never')}</p>
               </>
             ) : daysSince === 0 ? (
               <>
                 <CheckCircleIcon className="w-16 h-16 text-gold mx-auto mb-2" />
                 <p className="text-sm font-semibold text-navy">{t('tracker_recorded_today')}</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   {format(parseISO(lastConfession.confessed_at), 'MMMM d, yyyy')}
                 </p>
               </>
@@ -144,7 +165,7 @@ export default function ConfessionTrackerPage() {
                 <p className="text-sm text-gray-500">
                   {t('tracker_last', { days: daysSince })}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   {format(parseISO(lastConfession.confessed_at), 'MMMM d, yyyy')}
                 </p>
               </>
@@ -157,7 +178,7 @@ export default function ConfessionTrackerPage() {
             disabled={alreadyLoggedToday || logging}
             className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
               alreadyLoggedToday
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                 : 'bg-gold text-navy hover:bg-gold/90 active:scale-[0.98]'
             }`}
           >
@@ -183,7 +204,7 @@ export default function ConfessionTrackerPage() {
               ))}
             </div>
             {reminderDays !== null && (
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 {t('tracker_reminder_note', { days: reminderDays })}
               </p>
             )}
@@ -258,7 +279,7 @@ export default function ConfessionTrackerPage() {
               <button
                 onClick={handleClearHistory}
                 disabled={clearing}
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {clearing ? 'Clearing…' : 'Clear all'}
               </button>

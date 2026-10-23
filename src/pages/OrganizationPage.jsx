@@ -138,7 +138,8 @@ function useOrganization(orgId) {
 export default function OrganizationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
   const { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters } = useOrganization(id)
 
@@ -199,7 +200,7 @@ export default function OrganizationPage() {
               <BuildingOffice2Icon className="w-3.5 h-3.5" />
               <span>{parentOrg.name}</span>
               <ChevronRightIcon className="w-3 h-3" />
-              <span className="text-white/40">Chapter</span>
+              <span className="text-white/70">Chapter</span>
             </Link>
           )}
 
@@ -239,11 +240,11 @@ export default function OrganizationPage() {
                 )}
               </div>
               {(org.city || org.state) && (
-                <p className="text-gray-300 text-sm mt-0.5">
+                <p className="text-gray-500 text-sm mt-0.5">
                   {[org.city, org.state].filter(Boolean).join(', ')}
                 </p>
               )}
-              <p className="text-gray-400 text-xs mt-1">
+              <p className="text-gray-500 text-xs mt-1">
                 {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
                 {org.org_type === 'national' && chapters.length > 0 && ` · ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}`}
               </p>
@@ -256,7 +257,7 @@ export default function OrganizationPage() {
               disabled={joinLoading}
               className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
                 isMember
-                  ? 'bg-white/20 text-white hover:bg-red-500/80'
+                  ? 'bg-white/20 text-white hover:bg-red-600/80'
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
@@ -295,7 +296,7 @@ export default function OrganizationPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
-                activeTab === tab.id ? 'border-navy text-navy' : 'border-transparent text-gray-400 hover:text-gray-600'
+                activeTab === tab.id ? 'border-navy text-navy' : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
               {tab.label}
@@ -335,14 +336,14 @@ function ChaptersTab({ chapters }) {
       <div className="px-4 pt-8 text-center">
         <BuildingOffice2Icon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
         <p className="text-navy font-semibold">No chapters yet</p>
-        <p className="text-gray-400 text-sm mt-1">Local chapters will appear here once approved.</p>
+        <p className="text-gray-500 text-sm mt-1">Local chapters will appear here once approved.</p>
       </div>
     )
   }
 
   return (
     <div className="px-4 pt-4 pb-8 space-y-2">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{chapters.length} Chapter{chapters.length !== 1 ? 's' : ''}</p>
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{chapters.length} Chapter{chapters.length !== 1 ? 's' : ''}</p>
       {chapters.map(chapter => (
         <Link
           key={chapter.id}
@@ -355,7 +356,7 @@ function ChaptersTab({ chapters }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-navy group-hover:underline truncate">{chapter.name}</p>
             {(chapter.city || chapter.state) && (
-              <p className="text-xs text-gray-400">{[chapter.city, chapter.state].filter(Boolean).join(', ')}</p>
+              <p className="text-xs text-gray-500">{[chapter.city, chapter.state].filter(Boolean).join(', ')}</p>
             )}
           </div>
           <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
@@ -409,7 +410,7 @@ function OrgAbout({ org, parentOrg }) {
             <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-0.5">National Organization</p>
             <p className="text-sm font-semibold text-navy group-hover:underline truncate">{parentOrg.name}</p>
             {(parentOrg.city || parentOrg.state) && (
-              <p className="text-xs text-gray-400">{[parentOrg.city, parentOrg.state].filter(Boolean).join(', ')}</p>
+              <p className="text-xs text-gray-500">{[parentOrg.city, parentOrg.state].filter(Boolean).join(', ')}</p>
             )}
           </div>
           <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
@@ -536,7 +537,7 @@ function OrgContactModal({ org, onClose }) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-navy">Contact {org.name}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button aria-label="Close" onClick={onClose} className="text-gray-500 hover:text-gray-600 transition-colors">
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>

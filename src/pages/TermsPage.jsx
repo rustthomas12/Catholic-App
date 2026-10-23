@@ -25,7 +25,7 @@ export default function TermsPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Terms of Service</h1>
-          <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By creating an account, you agree to these Terms of Service. If you do not agree, please do not use inFold.</p>
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
           <Section title="11. Contact">
             <p>Questions about these terms? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
-            <p className="mt-1 text-gray-400">inFold · Massachusetts</p>
+            <p className="mt-1 text-gray-500">inFold · Massachusetts</p>
           </Section>
         </div>
       </div>

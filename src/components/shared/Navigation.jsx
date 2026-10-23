@@ -143,7 +143,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
   // Chevron icon
   function Chevron({ flipped }) {
     return (
-      <svg className={`w-4 h-4 text-white/40 transition-transform duration-200 ${flipped ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className={`w-4 h-4 text-white/70 transition-transform duration-200 ${flipped ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
     )
@@ -184,7 +184,7 @@ function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishA
             <p className="font-bold text-white text-sm truncate">{profile?.full_name || 'My Profile'}</p>
             {profile?.username
               ? <p className="text-xs text-white/50">@{profile.username}</p>
-              : <p className="text-xs text-white/40">View profile</p>
+              : <p className="text-xs text-white/70">View profile</p>
             }
           </div>
           <Chevron />
@@ -270,7 +270,7 @@ function SheetRow({ to, Icon, label, badge, active }) {
       </div>
       <span className={`flex-1 text-sm font-medium ${active ? 'text-gold' : 'text-white/80'}`}>{label}</span>
       {badge > 0
-        ? <span className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{badge > 9 ? '9+' : badge}</span>
+        ? <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{badge > 9 ? '9+' : badge}</span>
         : <svg className="w-4 h-4 text-white/20 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       }
     </Link>
@@ -361,7 +361,7 @@ function Navigation() {
   return (
     <>
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-navy border-t border-white/10 safe-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-navy border-t border-white/10 safe-bottom" aria-label="Main">
         <div className="flex items-center justify-around h-16">
           {mobileTabs.map((tab) => {
             const active = tab.active(location.pathname)
@@ -377,7 +377,7 @@ function Navigation() {
                   {active ? (
                     <IconSolid className="w-6 h-6 text-gold" />
                   ) : (
-                    <Icon className="w-6 h-6 text-gray-400 group-hover:text-gray-200 transition-colors" />
+                    <Icon className="w-6 h-6 text-gray-300 group-hover:text-gray-200 transition-colors" />
                   )}
 
                   {isFaith && (
@@ -388,12 +388,12 @@ function Navigation() {
                   )}
 
                   {isBell && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                    <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-medium ${active ? 'text-gold' : 'text-gray-400'}`}>
+                <span className={`text-[11px] font-medium ${active ? 'text-gold' : 'text-gray-300'}`}>
                   {t(label)}
                 </span>
               </Link>
@@ -432,7 +432,7 @@ function Navigation() {
                 </div>
               )}
             </div>
-            <span className={`text-[10px] font-medium ${moreActive ? 'text-gold' : 'text-gray-400'}`}>
+            <span className={`text-[11px] font-medium ${moreActive ? 'text-gold' : 'text-gray-300'}`}>
               More
             </span>
           </button>
@@ -452,7 +452,7 @@ function Navigation() {
       />
 
       {/* ── Desktop left sidebar ── */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3">
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3 overflow-y-auto overscroll-contain" aria-label="Main">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 px-3 mb-8">
           <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center flex-shrink-0">
@@ -503,7 +503,7 @@ function Navigation() {
                 ? <BellIconSolid className="w-5 h-5" />
                 : <BellIcon className="w-5 h-5" />}
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -540,7 +540,7 @@ function Navigation() {
                 ? <ChatBubbleLeftRightIconSolid className="w-5 h-5" />
                 : <ChatBubbleLeftRightIcon className="w-5 h-5" />}
               {unreadDMs > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
                   {unreadDMs > 9 ? '9+' : unreadDMs}
                 </span>
               )}
@@ -552,7 +552,7 @@ function Navigation() {
           {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
             <>
               <div className="mx-3 border-t border-white/10 my-1" />
-              <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold text-white/40 uppercase tracking-widest">
+              <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold text-white/70 uppercase tracking-widest">
                 {t('nav.admin')}
               </p>
 
@@ -600,7 +600,7 @@ function Navigation() {
               isVerifiedClergy={profile?.is_verified_clergy} />
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">{profile?.full_name || 'Parish Member'}</p>
-              <p className="text-gray-400 text-xs truncate">
+              <p className="text-gray-300 text-xs truncate">
                 {t(isPlatformAdmin ? 'nav.role_platform_admin'
                   : profile?.is_verified_clergy ? 'nav.role_clergy'
                   : parishAdminRecords.length > 0 ? 'nav.role_parish_admin'
@@ -614,7 +614,7 @@ function Navigation() {
             <LanguageSwitcher variant="compact" />
           </div>
           <button onClick={handleSignOut}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-sm">
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />

@@ -286,7 +286,7 @@ export default function IntegrationsTab({ parishId }) {
                           </span>
                         )}
                         {!isConnected && (
-                          <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <span className="flex items-center gap-1 text-xs text-gray-500">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-300 inline-block" />
                             Not connected
                           </span>
@@ -297,7 +297,7 @@ export default function IntegrationsTab({ parishId }) {
                         <p className="text-xs text-blue-500 mt-1 italic">{platform.note}</p>
                       )}
                       {isConnected && integration.last_sync_at && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                           Last synced {formatDistanceToNow(new Date(integration.last_sync_at))} ago
                         </p>
                       )}
@@ -349,6 +349,7 @@ export default function IntegrationsTab({ parishId }) {
                       <div key={field.key}>
                         <label className="block text-xs font-semibold text-navy mb-1">{field.label}</label>
                         <input
+                          aria-label={field.label}
                           type={field.type === 'password' ? 'password' : 'text'}
                           value={formData[field.key] ?? ''}
                           onChange={e => setFormData(prev => ({ ...prev, [field.key]: e.target.value }))}
@@ -366,7 +367,7 @@ export default function IntegrationsTab({ parishId }) {
                       </button>
                       <button
                         onClick={() => setConnectingId(null)}
-                        className="text-xs text-gray-400 hover:text-gray-600 px-2 py-2 transition-colors"
+                        className="text-xs text-gray-500 hover:text-gray-600 px-2 py-2 transition-colors"
                       >
                         Cancel
                       </button>
@@ -388,7 +389,7 @@ export default function IntegrationsTab({ parishId }) {
                           className="w-full flex items-center gap-2 text-left px-3 py-2 border border-gray-200 rounded-xl hover:bg-lightbg transition-colors"
                         >
                           <span className="font-medium text-navy text-sm truncate">{page.name}</span>
-                          <span className="text-gray-400 text-xs ml-auto flex-shrink-0">Select →</span>
+                          <span className="text-gray-500 text-xs ml-auto flex-shrink-0">Select →</span>
                         </button>
                       ))}
                     </div>
@@ -403,7 +404,7 @@ export default function IntegrationsTab({ parishId }) {
       {/* Activity log */}
       {logs.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
             Recent Distribution Activity
           </h3>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 overflow-hidden">
@@ -415,10 +416,10 @@ export default function IntegrationsTab({ parishId }) {
                 <span className="font-medium text-navy capitalize w-28 flex-shrink-0">
                   {log.platform.replace(/_/g, ' ')}
                 </span>
-                <span className="text-gray-400 flex-1 truncate">
+                <span className="text-gray-500 flex-1 truncate">
                   {log.error_message || 'Posted successfully'}
                 </span>
-                <span className="text-gray-300 flex-shrink-0 whitespace-nowrap">
+                <span className="text-gray-500 flex-shrink-0 whitespace-nowrap">
                   {formatDistanceToNow(new Date(log.created_at))} ago
                 </span>
               </div>
@@ -432,7 +433,7 @@ export default function IntegrationsTab({ parishId }) {
         <div className="text-center py-10">
           <ArrowsRightLeftIcon className="w-10 h-10 mx-auto mb-3 text-gray-200" />
           <p className="font-semibold text-navy text-sm mb-1">No integrations connected yet</p>
-          <p className="text-gray-400 text-xs max-w-xs mx-auto">
+          <p className="text-gray-500 text-xs max-w-xs mx-auto">
             Connect a platform above. Your next announcement will distribute automatically.
           </p>
         </div>

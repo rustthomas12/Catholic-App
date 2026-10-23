@@ -222,7 +222,7 @@ export default function EditProfilePage() {
           <button
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className={`text-sm font-semibold min-h-[44px] px-2 transition-colors ${hasChanges ? 'text-navy' : 'text-gray-300'}`}>
+            className={`text-sm font-semibold min-h-[44px] px-2 transition-colors ${hasChanges ? 'text-navy' : 'text-gray-500'}`}>
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
@@ -237,7 +237,7 @@ export default function EditProfilePage() {
                 name={fullName}
                 size="lg"
               />
-              <button
+              <button aria-label="Change photo"
                 onClick={() => fileRef.current?.click()}
                 className="absolute -bottom-1 -right-1 w-8 h-8 bg-navy rounded-full flex items-center justify-center border-2 border-white">
                 <CameraIcon className="w-4 h-4 text-white" />
@@ -262,20 +262,20 @@ export default function EditProfilePage() {
             <label className="block text-sm font-semibold text-navy mb-1">
               Full name <span className="text-red-500">*</span>
             </label>
-            <input
+            <input aria-label="Full name"
               value={fullName}
               onChange={e => setFullName(e.target.value.slice(0, 50))}
               maxLength={50}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-navy focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
             />
-            <p className="text-xs text-gray-400 text-right mt-0.5">{fullName.length}/50</p>
+            <p className="text-xs text-gray-500 text-right mt-0.5">{fullName.length}/50</p>
           </div>
 
           {/* Username */}
           <div>
             <label className="block text-sm font-semibold text-navy mb-1">Username</label>
             <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 font-medium select-none">@</span>
+              <span className="absolute left-3 text-gray-500 font-medium select-none">@</span>
               <input
                 value={username}
                 onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
@@ -301,7 +301,7 @@ export default function EditProfilePage() {
               usernameStatus === 'taken' ? 'text-red-500' :
               usernameStatus === 'invalid' ? 'text-red-500' :
               usernameStatus === 'available' ? 'text-green-600' :
-              'text-gray-400'
+              'text-gray-500'
             }`}>
               {usernameStatus === 'taken' && 'This username is already taken.'}
               {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
@@ -321,7 +321,7 @@ export default function EditProfilePage() {
               placeholder="Tell your parish community about yourself..."
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-navy placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
             />
-            <p className="text-xs text-gray-400 text-right mt-0.5">{bio.length}/160</p>
+            <p className="text-xs text-gray-500 text-right mt-0.5">{bio.length}/160</p>
           </div>
 
           {/* Parish */}
@@ -334,15 +334,15 @@ export default function EditProfilePage() {
                   <p className="text-sm font-semibold text-navy truncate">{parish.name}</p>
                   <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
                 </div>
-                <button type="button" onClick={() => { setParish(null); setParishQuery('') }}
-                  className="text-gray-400 hover:text-navy p-1">
+                <button aria-label="Close" type="button" onClick={() => { setParish(null); setParishQuery('') }}
+                  className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <>
                 <div className="relative">
-                  <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
                   <input
                     type="text"
                     value={parishQuery}

@@ -183,8 +183,8 @@ export default function Feed({
           <svg viewBox="0 0 40 56" className="w-8 h-10 fill-gray-200 mb-3">
             <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z" />
           </svg>
-          <p className="text-sm font-semibold text-gray-400">{t('feed.caught_up')}</p>
-          <p className="text-xs text-gray-300 mt-0.5">{t('feed.caught_up_sub')}</p>
+          <p className="text-sm font-semibold text-gray-500">{t('feed.caught_up')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('feed.caught_up_sub')}</p>
         </div>
       )}
     </div>

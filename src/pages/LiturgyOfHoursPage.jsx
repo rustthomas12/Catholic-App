@@ -36,7 +36,7 @@ export default function LiturgyOfHoursPage() {
         {/* Header */}
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button
+            <button aria-label="Back"
               onClick={() => navigate('/faith')}
               className="text-white/70 hover:text-white p-1 transition-colors"
             >
@@ -44,7 +44,7 @@ export default function LiturgyOfHoursPage() {
             </button>
             <h1 className="text-white font-bold text-xl">Liturgy of the Hours</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">The prayer of the Church throughout the day</p>
+          <p className="text-gray-500 text-sm ml-8">The prayer of the Church throughout the day</p>
         </div>
 
         {/* Hour selector tabs */}
@@ -59,7 +59,7 @@ export default function LiturgyOfHoursPage() {
                   className={`flex-1 py-3 text-xs font-semibold border-b-2 transition-colors leading-tight ${
                     activeId === id
                       ? 'border-navy text-navy'
-                      : 'border-transparent text-gray-400 hover:text-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-600'
                   }`}
                 >
                   <span className="block">{h.name}</span>

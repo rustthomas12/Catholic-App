@@ -19,9 +19,9 @@ function SettingsRow({ icon: Icon, label, value, to, onClick, danger = false }) 
   const cls = `flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] ${danger ? 'text-red-600' : 'text-navy'} hover:bg-lightbg transition-colors`
   const content = (
     <>
-      {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${danger ? 'text-red-500' : 'text-gray-400'}`} />}
+      {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${danger ? 'text-red-500' : 'text-gray-500'}`} />}
       <span className="flex-1 text-sm font-medium text-left">{label}</span>
-      {value && <span className="text-sm text-gray-400">{value}</span>}
+      {value && <span className="text-sm text-gray-500">{value}</span>}
       {(to || onClick) && !danger && <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />}
     </>
   )
@@ -30,7 +30,7 @@ function SettingsRow({ icon: Icon, label, value, to, onClick, danger = false }) 
 }
 
 function SectionHeader({ title }) {
-  return <p className="px-4 pt-5 pb-1 text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</p>
+  return <p className="px-4 pt-5 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</p>
 }
 
 export default function SettingsPage() {
@@ -105,7 +105,7 @@ export default function SettingsPage() {
 
         {/* Language / Idioma — always bilingual label so Spanish speakers can find it */}
         <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm px-4 py-4">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
             Language / Idioma
           </p>
           <LanguageSwitcher variant="full" />
@@ -138,10 +138,11 @@ export default function SettingsPage() {
           <SectionHeader title="Privacy" />
           <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
             <div className="flex items-center gap-3">
-              <ShieldCheckIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <ShieldCheckIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
               <span className="text-sm font-medium text-navy">Profile visibility</span>
             </div>
             <select
+              aria-label="Profile visibility"
               value={profile?.profile_visibility || 'public'}
               onChange={async e => {
                 const { error } = await updateProfile({ profile_visibility: e.target.value })
@@ -185,7 +186,7 @@ export default function SettingsPage() {
           <button
             onClick={() => setShowSignOutModal(true)}
             className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 rounded-xl py-3.5 text-navy text-sm font-medium hover:bg-lightbg transition-colors min-h-[52px] shadow-sm">
-            <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-400" />
+            <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
             Sign out
           </button>
         </div>

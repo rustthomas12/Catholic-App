@@ -113,6 +113,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
+      <h1 className="sr-only">{i18n.t('common:nav.home')}</h1>
       {/* ── Mobile: single column ── */}
       <div className="md:hidden max-w-2xl mx-auto pb-24">
 
@@ -122,7 +123,7 @@ export default function HomePage() {
             <svg className="absolute right-4 top-4 w-16 h-20 opacity-10 fill-gold" viewBox="0 0 40 56">
               <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z"/>
             </svg>
-            <button onClick={dismissWelcome}
+            <button aria-label="Close" onClick={dismissWelcome}
               className="absolute top-3 right-3 text-white/50 hover:text-white p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
               <XMarkIcon className="w-5 h-5" />
             </button>
@@ -167,7 +168,7 @@ export default function HomePage() {
                 <p className="font-bold text-navy text-sm">{parish.name}</p>
                 <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
                 <Link to={`/parish/${parish.id}`}
-                  className="text-xs text-navy font-medium hover:underline mt-1 inline-block">
+                  className="text-xs text-navy font-medium hover:underline mt-1 inline-flex items-center min-h-[24px]">
                   View your parish community →
                 </Link>
               </div>
@@ -192,9 +193,9 @@ export default function HomePage() {
           <div className="bg-white border-b border-gray-100 py-3">
             <div className="flex items-center justify-between px-4 mb-2">
               <h2 className="text-sm font-bold text-navy">My Groups</h2>
-              <Link to="/groups" className="text-xs text-gray-400 hover:text-navy">See all</Link>
+              <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">See all</Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label="My groups">
               {groups.map(g => (
                 <GroupCard key={g.id} group={g} compact isMember />
               ))}
@@ -306,7 +307,7 @@ export default function HomePage() {
               <svg className="absolute right-4 top-4 w-16 h-20 opacity-10 fill-gold" viewBox="0 0 40 56">
                 <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z"/>
               </svg>
-              <button onClick={dismissWelcome}
+              <button aria-label="Close" onClick={dismissWelcome}
                 className="absolute top-3 right-3 text-white/50 hover:text-white p-1">
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -348,7 +349,7 @@ export default function HomePage() {
                   <p className="font-bold text-navy text-sm">{parish.name}</p>
                   <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
                   <Link to={`/parish/${parish.id}`}
-                    className="text-xs text-navy font-medium hover:underline mt-1 inline-block">
+                    className="text-xs text-navy font-medium hover:underline mt-1 inline-flex items-center min-h-[24px]">
                     View parish →
                   </Link>
                 </div>
@@ -369,9 +370,9 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-navy">My Groups</h2>
-                <Link to="/groups" className="text-xs text-gray-400 hover:text-navy">See all</Link>
+                <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">See all</Link>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label="My groups">
                 {groups.slice(0, 4).map(g => (
                   <GroupCard key={g.id} group={g} compact isMember />
                 ))}
@@ -388,7 +389,7 @@ export default function HomePage() {
 function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords }) {
   return (
     <div className="bg-lightbg border-b border-gold/20 px-4 py-3">
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Your Admin Access</p>
+      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-2">Your Admin Access</p>
       <div className="flex flex-wrap gap-2">
         {isPlatformAdmin && (
           <Link

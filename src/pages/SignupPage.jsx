@@ -200,7 +200,7 @@ export default function SignupPage() {
               Username <span className="text-red-500">*</span>
             </label>
             <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 font-medium select-none pointer-events-none">@</span>
+              <span className="absolute left-3 text-gray-500 font-medium select-none pointer-events-none">@</span>
               <input
                 value={username}
                 onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
@@ -231,7 +231,7 @@ export default function SignupPage() {
             ) : (
               <p className={`text-xs mt-0.5 ${
                 usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-500' :
-                usernameStatus === 'available' ? 'text-green-600' : 'text-gray-400'
+                usernameStatus === 'available' ? 'text-green-600' : 'text-gray-500'
               }`}>
                 {usernameStatus === 'taken' && 'This username is already taken.'}
                 {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
@@ -305,7 +305,7 @@ export default function SignupPage() {
           {/* Parish search */}
           <div ref={dropdownRef} className="relative">
             <label className="block text-sm font-semibold text-navy mb-1">
-              {t('signup.parish')} <span className="text-gray-400 font-normal">(optional)</span>
+              {t('signup.parish')} <span className="text-gray-500 font-normal">(optional)</span>
             </label>
 
             {selectedParish ? (
@@ -315,15 +315,15 @@ export default function SignupPage() {
                   <p className="text-sm font-semibold text-navy truncate">{selectedParish.name}</p>
                   <p className="text-xs text-gray-500">{selectedParish.city}, {selectedParish.state}</p>
                 </div>
-                <button type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
-                  className="text-gray-400 hover:text-navy p-1">
+                <button aria-label="Close" type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
+                  className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <>
                 <div className="relative">
-                  <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <BuildingLibraryIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
                   <input
                     type="text"
                     value={parishQuery}

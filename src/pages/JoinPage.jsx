@@ -73,7 +73,7 @@ export default function JoinPage() {
               <BuildingOffice2Icon className="w-8 h-8 text-navy/30" />
             </div>
             <p className="font-bold text-navy text-lg mb-1">Checking invite…</p>
-            <p className="text-gray-400 text-sm">Just a moment.</p>
+            <p className="text-gray-500 text-sm">Just a moment.</p>
           </>
         )}
 
@@ -86,7 +86,7 @@ export default function JoinPage() {
             <p className="text-gray-500 text-sm mb-4">
               Welcome to <span className="font-semibold text-navy">{org.name}</span>.
             </p>
-            <p className="text-gray-400 text-xs">Redirecting you now…</p>
+            <p className="text-gray-500 text-xs">Redirecting you now…</p>
             <Link
               to={`/organization/${org.id}`}
               className="mt-4 inline-block text-sm font-semibold text-navy hover:underline"

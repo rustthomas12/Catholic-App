@@ -42,7 +42,8 @@ export default function GroupPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
 
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
@@ -172,7 +173,7 @@ export default function GroupPage() {
         <div className="bg-navy px-4 pt-14 pb-5 max-w-3xl mx-auto flex flex-col items-center text-center">
           <GroupAvatar group={group} size={64} />
           <h1 className="text-white font-bold text-xl mt-3">{group.name}</h1>
-          <p className="text-gray-400 text-xs mt-1">{t(`category_${group.category}`)}</p>
+          <p className="text-gray-500 text-xs mt-1">{t(`category_${group.category}`)}</p>
         </div>
         <div className="max-w-3xl mx-auto px-4 pt-8 flex flex-col items-center text-center gap-3">
           <LockClosedIcon className="w-10 h-10 text-gray-300" />
@@ -214,7 +215,7 @@ export default function GroupPage() {
         </button>
 
         {isAdmin && (
-          <Link
+          <Link aria-label="Settings"
             to={`/group/${id}/settings`}
             className="absolute top-4 right-4 text-white/70 hover:text-white p-1"
           >
@@ -239,7 +240,7 @@ export default function GroupPage() {
             )}
           </div>
 
-          <p className="text-gray-300 text-xs mt-1.5">{memberLabel}</p>
+          <p className="text-gray-500 text-xs mt-1.5">{memberLabel}</p>
           {group.parish && (
             <Link
               to={`/parish/${group.parish.id}`}
@@ -248,7 +249,7 @@ export default function GroupPage() {
               <BuildingLibraryIcon className="w-3.5 h-3.5 text-gold flex-shrink-0" />
               {group.parish.name}
               {group.parish.city && (
-                <span className="text-white/50">· {group.parish.city}{group.parish.state ? `, ${group.parish.state}` : ''}</span>
+                <span className="text-white/75">· {group.parish.city}{group.parish.state ? `, ${group.parish.state}` : ''}</span>
               )}
             </Link>
           )}
@@ -292,7 +293,7 @@ export default function GroupPage() {
               className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors relative ${
                 activeTab === tab.id
                   ? 'border-navy text-navy'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
               {tab.id === 'chat' ? tab.label : t(tab.label)}
@@ -358,7 +359,7 @@ export default function GroupPage() {
           </button>
           <button
             onClick={handleLeave}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600"
           >
             {t('leave')}
           </button>
@@ -386,7 +387,7 @@ export default function GroupPage() {
           <button
             onClick={handleDelete}
             disabled={deleteConfirmText !== group.name}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40"
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40"
           >
             {t('delete_group')}
           </button>
@@ -484,7 +485,7 @@ function GroupChat({ groupId, userId, isMember }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
           <PaperAirplaneIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
           <p className="text-navy font-semibold text-sm mb-1">{t('chat_members_only')}</p>
-          <p className="text-gray-400 text-xs">{t('chat_members_only_desc')}</p>
+          <p className="text-gray-500 text-xs">{t('chat_members_only_desc')}</p>
         </div>
       </div>
     )
@@ -501,7 +502,7 @@ function GroupChat({ groupId, userId, isMember }) {
         )}
         {!loading && messages.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-400 text-sm">{t('chat_empty')}</p>
+            <p className="text-gray-500 text-sm">{t('chat_empty')}</p>
           </div>
         )}
         {messages.map((msg) => {
@@ -515,21 +516,21 @@ function GroupChat({ groupId, userId, isMember }) {
                 </div>
               )}
               <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                {!isMe && <p className="text-[10px] text-gray-400 mb-0.5 ml-1">{name}</p>}
+                {!isMe && <p className="text-[10px] text-gray-500 mb-0.5 ml-1">{name}</p>}
                 <div className={`px-3.5 py-2.5 rounded-2xl text-sm ${
                   isMe ? 'bg-navy text-white rounded-br-sm' : 'bg-white text-navy border border-gray-100 rounded-bl-sm'
                 }`}>
                   <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
                 <div className={`flex items-center gap-2 mt-0.5 ${isMe ? 'flex-row-reverse' : ''}`}>
-                  <p className={`text-[10px] text-gray-400 ${isMe ? 'mr-1' : 'ml-1'}`}>
+                  <p className={`text-[10px] text-gray-500 ${isMe ? 'mr-1' : 'ml-1'}`}>
                     {format(new Date(msg.created_at), 'h:mm a')}
                   </p>
                   {isMe && (
                     <button
                       onClick={() => deleteMessage(msg.id)}
                       disabled={deletingId === msg.id}
-                      className="opacity-0 group-hover/msg:opacity-100 text-[10px] text-gray-400 hover:text-red-500 transition-all"
+                      className="opacity-0 group-hover/msg:opacity-100 text-[10px] text-gray-500 hover:text-red-500 transition-all"
                       title="Delete message"
                     >
                       <TrashIcon className="w-3 h-3" />
@@ -554,7 +555,7 @@ function GroupChat({ groupId, userId, isMember }) {
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-28 overflow-y-auto"
           style={{ minHeight: '40px' }}
         />
-        <button
+        <button aria-label="Send"
           type="submit"
           disabled={!draft.trim() || sending}
           className="w-9 h-9 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
@@ -721,19 +722,19 @@ function GroupEventCard({ event }) {
         <div className="bg-navy w-16 flex-shrink-0 flex flex-col items-center justify-center py-4">
           <p className="text-gold text-xs font-bold uppercase tracking-wider">{format(start, 'MMM')}</p>
           <p className="text-white font-bold text-2xl leading-none">{format(start, 'd')}</p>
-          <p className="text-gray-300 text-xs">{format(start, 'EEE')}</p>
+          <p className="text-gray-500 text-xs">{format(start, 'EEE')}</p>
         </div>
         <div className="flex-1 px-4 py-3 min-w-0">
           <p className="font-bold text-navy text-sm leading-snug">{event.title}</p>
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              <ClockIcon className="w-3.5 h-3.5 text-gray-400" />
+              <ClockIcon className="w-3.5 h-3.5 text-gray-500" />
               {format(start, 'h:mm a')}
               {end && !isSameDay(start, end) ? ` – ${format(end, 'MMM d')}` : end ? ` – ${format(end, 'h:mm a')}` : ''}
             </span>
             {event.location && (
               <span className="flex items-center gap-1 text-xs text-gray-500 truncate">
-                <MapPinIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <MapPinIcon className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                 <span className="truncate">{event.location}</span>
               </span>
             )}
@@ -835,7 +836,7 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
         {members.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
             <UserGroupIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">{t('no_members')}</p>
+            <p className="text-gray-500 text-sm">{t('no_members')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -854,7 +855,7 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-navy truncate">
                       {profile?.full_name ?? 'Unknown'}
-                      {isMe && <span className="text-gray-400 font-normal"> (you)</span>}
+                      {isMe && <span className="text-gray-500 font-normal"> (you)</span>}
                     </p>
                     {member.role !== 'member' && (
                       <p className="text-xs text-gold font-semibold">{t(`role_${member.role}`)}</p>
@@ -864,9 +865,9 @@ function GroupMembers({ members, loading, pendingRequests, isAdmin, currentUserI
                   {/* Admin menu (can't act on yourself or other admins) */}
                   {isAdmin && !isMe && member.role !== 'admin' && (
                     <div className="relative flex-shrink-0">
-                      <button
+                      <button aria-label="More options"
                         onClick={() => setOpenMenuId(openMenuId === member.user_id ? null : member.user_id)}
-                        className="p-1 text-gray-400 hover:text-gray-600"
+                        className="p-1 text-gray-500 hover:text-gray-600"
                       >
                         <EllipsisVerticalIcon className="w-5 h-5" />
                       </button>
@@ -927,7 +928,7 @@ function GroupAbout({ group, isAdmin, onDeleteClick, t }) {
           />
           {group.parish && (
             <div className="px-4 py-3">
-              <p className="text-xs text-gray-400 mb-2">{t('about_parish')}</p>
+              <p className="text-xs text-gray-500 mb-2">{t('about_parish')}</p>
               <Link
                 to={`/parish/${group.parish.id}`}
                 className="flex items-center gap-3 bg-navy/5 hover:bg-navy/10 rounded-xl px-3 py-2.5 transition-colors group"
@@ -938,7 +939,7 @@ function GroupAbout({ group, isAdmin, onDeleteClick, t }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-navy group-hover:underline leading-tight">{group.parish.name}</p>
                   {(group.parish.city || group.parish.state) && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {[group.parish.city, group.parish.state].filter(Boolean).join(', ')}
                     </p>
                   )}
@@ -963,7 +964,7 @@ function GroupAbout({ group, isAdmin, onDeleteClick, t }) {
             to={`/group/${group.id}/settings`}
             className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 text-sm font-semibold text-navy hover:bg-lightbg transition-colors"
           >
-            <Cog6ToothIcon className="w-5 h-5 text-gray-400" />
+            <Cog6ToothIcon className="w-5 h-5 text-gray-500" />
             {t('settings')}
           </Link>
           <button

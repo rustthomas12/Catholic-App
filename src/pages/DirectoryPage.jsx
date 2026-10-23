@@ -251,7 +251,7 @@ export default function DirectoryPage() {
 
           {/* Search bar */}
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
             <input
               type="text"
               value={query}
@@ -260,9 +260,9 @@ export default function DirectoryPage() {
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {query && (
-              <button
+              <button aria-label="Clear search"
                 onClick={clearQuery}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 p-1"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -272,7 +272,7 @@ export default function DirectoryPage() {
           {/* City / ZIP + State row */}
           <div className="grid grid-cols-2 gap-2 mt-2">
             <div className="relative">
-              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <input
                 type="text"
                 value={cityQuery}
@@ -283,7 +283,7 @@ export default function DirectoryPage() {
               />
             </div>
             <div className="relative">
-              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
@@ -382,9 +382,9 @@ export default function DirectoryPage() {
                       ? 'Following'
                       : 'Follow'}
                   </button>
-                  <button
+                  <button aria-label="Close"
                     onClick={() => setSelectedParish(null)}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-500 hover:text-gray-600 p-1"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -404,9 +404,9 @@ export default function DirectoryPage() {
                     {selectedOrg.city ? ` · ${selectedOrg.city}, ${selectedOrg.state}` : ''}
                   </p>
                 </div>
-                <button
+                <button aria-label="Close"
                   onClick={() => setSelectedOrg(null)}
-                  className="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0"
+                  className="text-gray-500 hover:text-gray-600 p-1 flex-shrink-0"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -425,7 +425,7 @@ export default function DirectoryPage() {
           {/* ── Your parishes ── */}
           {!isSearching && !followedLoading && followedParishes.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 Your parishes
               </h2>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
@@ -445,7 +445,7 @@ export default function DirectoryPage() {
           {/* ── Nearest parishes + orgs (always shown when location available) ── */}
           {userLocation && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 Near you
               </h2>
 
@@ -461,7 +461,7 @@ export default function DirectoryPage() {
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                       <p className="text-navy font-semibold text-sm">No results nearby</p>
-                      <p className="text-gray-400 text-xs mt-1">Try searching by name or zip code instead</p>
+                      <p className="text-gray-500 text-xs mt-1">Try searching by name or zip code instead</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -490,7 +490,7 @@ export default function DirectoryPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-navy text-sm truncate">{org.name}</p>
-                              <p className="text-xs text-gray-400 capitalize mt-0.5">
+                              <p className="text-xs text-gray-500 capitalize mt-0.5">
                                 {org.org_type?.replace(/_/g, ' ')}
                                 {org.city ? ` · ${org.city}, ${org.state}` : ''}
                               </p>
@@ -516,7 +516,7 @@ export default function DirectoryPage() {
               {/* Geo-based results when city/zip was entered and geocoded */}
               {geocodedLocation ? (
                 <>
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                     Parishes near {cityQuery.trim()}
                     {filteredGeoParishes.length > 0 && ` (${filteredGeoParishes.length})`}
                   </h2>
@@ -530,7 +530,7 @@ export default function DirectoryPage() {
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                       <p className="text-navy font-semibold text-sm">No parishes found nearby</p>
-                      <p className="text-gray-400 text-xs mt-1">Try a different city or zip code</p>
+                      <p className="text-gray-500 text-xs mt-1">Try a different city or zip code</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -553,7 +553,7 @@ export default function DirectoryPage() {
               ) : (
                 /* Text-based results (name/diocese/state search, no city geocoding) */
                 <>
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                     {stateFilter && !query
                       ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
                       : 'Search results'}
@@ -569,7 +569,7 @@ export default function DirectoryPage() {
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                       <p className="text-navy font-semibold text-sm">No parishes found</p>
-                      <p className="text-gray-400 text-xs mt-1">Try a different name, city, or zip code</p>
+                      <p className="text-gray-500 text-xs mt-1">Try a different name, city, or zip code</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">

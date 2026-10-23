@@ -38,6 +38,7 @@ const FaithPage                = lazy(() => import('./pages/FaithPage'))
 const PrayerRequestsPage       = lazy(() => import('./pages/PrayerRequestsPage'))
 const ExaminationPage          = lazy(() => import('./pages/ExaminationPage'))
 const ConfessionTrackerPage    = lazy(() => import('./pages/ConfessionTrackerPage'))
+const EventRedirectPage        = lazy(() => import('./pages/EventRedirectPage'))
 const SaintsPage               = lazy(() => import('./pages/SaintsPage'))
 const SaintPage                = lazy(() => import('./pages/SaintPage'))
 const NotificationsPage        = lazy(() => import('./pages/NotificationsPage'))
@@ -136,8 +137,11 @@ function AppInner() {
       {!isNative && <InstallPrompt />}
       {NativeBridge && <Suspense fallback={null}><NativeBridge /></Suspense>}
       <PushPrompt />
+      {/* Keyboard / screen-reader users can jump past the navigation */}
+      <a href="#main" className="skip-link">Skip to content</a>
       <ConnectionBanner />
       <Navigation />
+      <main id="main" tabIndex={-1} className="outline-none">
       <Suspense fallback={<div className="min-h-screen bg-cream" />}>
         <Routes>
           {/* Public */}
@@ -185,6 +189,7 @@ function AppInner() {
           <Route path="/premium"                   element={<Navigate to="/" replace />} />
           <Route path="/premium/success"           element={<Navigate to="/" replace />} />
           <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/event/:id"                 element={<ProtectedRoute><RouteErrorBoundary><EventRedirectPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints/:id"                element={<ProtectedRoute><RouteErrorBoundary><SaintPage /></RouteErrorBoundary></ProtectedRoute>} />
@@ -200,6 +205,7 @@ function AppInner() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      </main>
     </>
   )
 }

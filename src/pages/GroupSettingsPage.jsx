@@ -71,7 +71,7 @@ export default function GroupSettingsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-24">
       <div className="bg-navy px-4 pt-5 pb-5">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">
+          <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white">
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
           <h1 className="text-white font-bold text-lg">{t('settings')}</h1>
@@ -83,7 +83,7 @@ export default function GroupSettingsPage() {
           <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
             {t('create_name')}
           </label>
-          <input
+          <input aria-label={t('create_name')}
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -96,7 +96,7 @@ export default function GroupSettingsPage() {
           <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
             {t('create_description')}
           </label>
-          <textarea
+          <textarea aria-label={t('create_description')}
             value={description}
             onChange={e => setDescription(e.target.value)}
             maxLength={500}
@@ -129,11 +129,11 @@ export default function GroupSettingsPage() {
 
         {(group?.parish || group?.parish_id || group?.org_id) && (
           <div className="bg-lightbg rounded-xl px-4 py-3">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Linked to</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Linked to</p>
             <p className="text-sm font-semibold text-navy">
               {group.parish?.name ?? 'Parish / Organization'}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-500 mt-0.5">
               Only followers of this {group.org_id ? 'organization' : 'parish'} can see and join this group.
             </p>
           </div>
@@ -178,7 +178,7 @@ export default function GroupSettingsPage() {
           <button
             onClick={handleDelete}
             disabled={deleteConfirmText !== group?.name}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40"
+            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40"
           >
             {t('delete_group')}
           </button>

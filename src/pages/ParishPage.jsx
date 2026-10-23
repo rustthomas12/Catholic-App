@@ -35,7 +35,8 @@ export default function ParishPage() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const { parishAdminRecords } = useAdminAccess()
-  const [activeTab, setActiveTab] = useState('feed')
+  // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
 
   // Check if the current user admins THIS specific parish
@@ -78,7 +79,7 @@ export default function ParishPage() {
         <div className="text-center">
           <BuildingLibraryIcon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="font-bold text-navy mb-1">Parish not found</p>
-          <p className="text-gray-400 text-sm mb-4">This parish may have been removed.</p>
+          <p className="text-gray-500 text-sm mb-4">This parish may have been removed.</p>
           <Link to="/directory" className="text-navy text-sm font-semibold hover:underline">
             ← Back to directory
           </Link>
@@ -114,11 +115,11 @@ export default function ParishPage() {
                   <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Parish Page" />
                 )}
               </div>
-              <p className="text-gray-300 text-sm mt-0.5">
+              <p className="text-gray-500 text-sm mt-0.5">
                 {[parish.city, parish.state].filter(Boolean).join(', ')}
                 {parish.diocese ? ` · ${parish.diocese}` : ''}
               </p>
-              <p className="text-gray-400 text-xs mt-1">
+              <p className="text-gray-500 text-xs mt-1">
                 {followerCount.toLocaleString()} parishioner{followerCount !== 1 ? 's' : ''} here
               </p>
               {cluster && (
@@ -158,7 +159,7 @@ export default function ParishPage() {
               disabled={followLoading}
               className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
                 isFollowing || isMyParish
-                  ? 'bg-white/20 text-white hover:bg-red-500/80'
+                  ? 'bg-white/20 text-white hover:bg-red-600/80'
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
@@ -220,7 +221,7 @@ export default function ParishPage() {
               className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-navy text-navy'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
               {tab.label}
@@ -289,7 +290,7 @@ function ContactModal({ parishId, parishName, onClose }) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-navy">Contact {parishName}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button aria-label="Close" onClick={onClose} className="text-gray-500 hover:text-gray-600 transition-colors">
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
@@ -417,7 +418,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
         <MassTimes massTimes={parish.mass_times} />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
-          <p className="text-gray-400 text-sm">Mass times not listed.</p>
+          <p className="text-gray-500 text-sm">Mass times not listed.</p>
           {parish.website && (
             <a
               href={parish.website.startsWith('http') ? parish.website : `https://${parish.website}`}
@@ -453,7 +454,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-navy truncate">{p.name}</p>
                   {p.city && (
-                    <p className="text-xs text-gray-400">{p.city}, {p.state}</p>
+                    <p className="text-xs text-gray-500">{p.city}, {p.state}</p>
                   )}
                 </div>
                 <ArrowLeftIcon className="w-3.5 h-3.5 text-gray-300 rotate-180 flex-shrink-0" />

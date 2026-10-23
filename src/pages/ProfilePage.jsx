@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useBlockedUsers } from '../hooks/useBlockedUsers'
@@ -162,7 +162,7 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="relative">
           {/* Back button (mobile) */}
-          <button onClick={() => navigate(-1)}
+          <button aria-label="Back" onClick={() => navigate(-1)}
             className="absolute top-4 left-4 z-10 w-9 h-9 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm md:hidden">
             <ArrowLeftIcon className="w-5 h-5 text-navy" />
           </button>
@@ -185,7 +185,16 @@ export default function ProfilePage() {
 
           {/* Block / unblock (other people's profiles) */}
           {!isOwnProfile && user && (
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-10 flex gap-2">
+              {!blocked && !profile?.deleted_at && (
+                <Link
+                  to={`/messages?to=${targetId}`}
+                  className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-sm font-medium px-3 py-1.5 min-h-[36px] rounded-full shadow-sm hover:bg-white transition-colors text-navy"
+                >
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
+                  Message
+                </Link>
+              )}
               <button
                 onClick={() => (blocked ? handleBlockToggle() : setShowBlockModal(true))}
                 disabled={blockLoading}
@@ -224,12 +233,12 @@ export default function ProfilePage() {
 
             <h1 className="text-xl font-bold text-navy mt-1">{profile.full_name || 'Parish Member'}</h1>
             {profile.username && (
-              <p className="text-sm text-gray-400 font-medium">@{profile.username}</p>
+              <p className="text-sm text-gray-500 font-medium">@{profile.username}</p>
             )}
 
             {parish && (
               <Link to={`/parish/${parish.id}`} className="flex items-center gap-1 mt-1 text-sm text-navy hover:underline">
-                <BuildingLibraryIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <BuildingLibraryIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <span>{parish.name}</span>
               </Link>
             )}
@@ -238,7 +247,7 @@ export default function ProfilePage() {
               {profile.vocation_state && (
                 <span className="text-sm text-gray-500">{vocLabels[profile.vocation_state]}</span>
               )}
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-gray-500">
                 Member since {format(new Date(profile.created_at), 'MMMM yyyy')}
               </span>
             </div>
@@ -263,7 +272,7 @@ export default function ProfilePage() {
             </div>
           ) : isOwnProfile ? (
             <Link to="/settings/profile"
-              className="block bg-white rounded-xl border border-dashed border-gray-200 p-4 text-center text-sm text-gray-400 hover:border-navy hover:text-navy transition-colors">
+              className="block bg-white rounded-xl border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500 hover:border-navy hover:text-navy transition-colors">
               + Add a bio
             </Link>
           ) : null}

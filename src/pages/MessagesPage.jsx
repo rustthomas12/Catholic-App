@@ -238,7 +238,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
           <input
             autoFocus
             type="text"
@@ -247,22 +247,22 @@ function NewConversationModal({ userId, onSelect, onClose }) {
             placeholder="Search members…"
             className="flex-1 text-sm text-navy focus:outline-none"
           />
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm font-medium">Cancel</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 text-sm font-medium">Cancel</button>
         </div>
         <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
           {loading && (
-            <div className="p-4 text-center text-sm text-gray-400">Loading…</div>
+            <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
           )}
           {!loading && connectedUsers.length === 0 && (
             <div className="p-6 text-center">
               <p className="text-sm font-semibold text-navy mb-1">No connections yet</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 You can message members who share a parish, group, or organization with you.
               </p>
             </div>
           )}
           {!loading && query.trim().length >= 1 && filtered.length === 0 && connectedUsers.length > 0 && (
-            <div className="p-4 text-center text-sm text-gray-400">No members found.</div>
+            <div className="p-4 text-center text-sm text-gray-500">No members found.</div>
           )}
           {filtered.map(p => (
             <button
@@ -303,7 +303,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-        <button onClick={onBack} className="text-gray-400 hover:text-navy transition-colors md:hidden">
+        <button aria-label="Back" onClick={onBack} className="text-gray-500 hover:text-navy transition-colors md:hidden">
           <ArrowLeftIcon className="w-5 h-5" />
         </button>
         <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
@@ -325,7 +325,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
                 isMine ? 'bg-navy text-white rounded-br-sm' : 'bg-white text-navy border border-gray-100 rounded-bl-sm'
               }`}>
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                <p className={`text-[10px] mt-1 ${isMine ? 'text-white/60 text-right' : 'text-gray-400'}`}>
+                <p className={`text-[10px] mt-1 ${isMine ? 'text-white/60 text-right' : 'text-gray-500'}`}>
                   {formatTime(msg.created_at)}
                 </p>
               </div>
@@ -347,7 +347,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-32 overflow-y-auto"
           style={{ minHeight: '40px' }}
         />
-        <button
+        <button aria-label="Send"
           type="submit"
           disabled={!draft.trim()}
           className="w-9 h-9 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
@@ -367,6 +367,16 @@ export default function MessagesPage() {
   const [activePartner, setActivePartner] = useState(null)
   const [showNewConvo, setShowNewConvo] = useState(false)
 
+  // /messages?to=<userId> opens (or starts) that conversation — used by the
+  // profile "Message" button and "Reply" on parish messages
+  const toId = new URLSearchParams(window.location.search).get('to')
+  useEffect(() => {
+    if (!toId || !user || toId === user.id) return
+    supabase.from('profiles').select('id, full_name, avatar_url')
+      .eq('id', toId).is('deleted_at', null).maybeSingle()
+      .then(({ data }) => { if (data) setActivePartner(data) })
+  }, [toId, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Two-panel layout on desktop; single panel on mobile
   return (
     <div className="min-h-screen bg-cream md:pl-60">
@@ -377,7 +387,7 @@ export default function MessagesPage() {
           {/* Header */}
           <div className="bg-navy px-4 py-4 flex items-center justify-between">
             <h1 className="text-white font-bold text-lg">Messages</h1>
-            <button
+            <button aria-label="New message"
               onClick={() => setShowNewConvo(true)}
               className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
             >
@@ -395,7 +405,7 @@ export default function MessagesPage() {
             {!loading && convos.length === 0 && (
               <div className="p-6 text-center">
                 <p className="text-navy font-semibold text-sm mb-1">No messages yet</p>
-                <p className="text-gray-400 text-xs">Start a conversation with another member.</p>
+                <p className="text-gray-500 text-xs">Start a conversation with another member.</p>
                 <button
                   onClick={() => setShowNewConvo(true)}
                   className="mt-3 text-sm font-semibold text-navy hover:underline"
@@ -423,11 +433,11 @@ export default function MessagesPage() {
                     <p className={`text-sm truncate ${unread ? 'font-bold text-navy' : 'font-medium text-navy'}`}>
                       {partner.full_name || 'inFold Member'}
                     </p>
-                    <p className="text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                    <p className="text-[10px] text-gray-500 flex-shrink-0 ml-2">
                       {lastMessage?.created_at ? formatTime(lastMessage.created_at) : ''}
                     </p>
                   </div>
-                  <p className={`text-xs truncate ${unread ? 'text-navy font-medium' : 'text-gray-400'}`}>
+                  <p className={`text-xs truncate ${unread ? 'text-navy font-medium' : 'text-gray-500'}`}>
                     {lastMessage?.sender_id === user.id ? 'You: ' : ''}{lastMessage?.content ?? ''}
                   </p>
                 </div>
@@ -453,7 +463,7 @@ export default function MessagesPage() {
                   <PaperAirplaneIcon className="w-8 h-8 text-navy/20" />
                 </div>
                 <p className="text-navy font-semibold text-sm">Select a conversation</p>
-                <p className="text-gray-400 text-xs mt-1">or start a new one</p>
+                <p className="text-gray-500 text-xs mt-1">or start a new one</p>
                 <button
                   onClick={() => setShowNewConvo(true)}
                   className="mt-4 text-sm font-semibold text-navy hover:underline"

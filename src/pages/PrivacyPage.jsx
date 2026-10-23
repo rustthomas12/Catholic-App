@@ -25,7 +25,7 @@ export default function PrivacyPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Privacy Policy</h1>
-          <p className="text-xs text-gray-400 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
 
           <Section title="1. Who We Are">
             <p>inFold is built by Thomas Rust in Massachusetts. We are a solo-founded Catholic social network. Our mission is to serve the Catholic community — not to profit from your data.</p>
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
 
           <Section title="11. Contact">
             <p>Questions about your privacy? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
-            <p className="text-gray-400 mt-1">inFold · Massachusetts</p>
+            <p className="text-gray-500 mt-1">inFold · Massachusetts</p>
           </Section>
         </div>
       </div>

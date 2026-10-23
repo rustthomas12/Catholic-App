@@ -111,7 +111,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-cream flex flex-col">
       {/* Skip */}
       <div className="flex justify-end p-4">
-        <button onClick={skip} className="text-sm text-gray-400 hover:text-navy transition-colors min-h-[44px] px-2">
+        <button onClick={skip} className="text-sm text-gray-500 hover:text-navy transition-colors min-h-[44px] px-2">
           Skip
         </button>
       </div>
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
             <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-gold' : 'bg-gray-200'}`} />
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right">Step {step} of {totalSteps}</p>
+        <p className="text-xs text-gray-500 mt-1.5 text-right">Step {step} of {totalSteps}</p>
       </div>
 
       {/* Content */}
@@ -156,7 +156,7 @@ export default function OnboardingPage() {
                       <p className="text-navy text-xs mt-1 font-medium">Your parish ✓</p>
                     </div>
                     <button onClick={() => { setParish(null); updateProfile({ parish_id: null }) }}
-                      className="text-xs text-gray-400 hover:text-navy transition-colors px-1">
+                      className="text-xs text-gray-500 hover:text-navy transition-colors px-1">
                       Change
                     </button>
                   </div>
@@ -165,7 +165,7 @@ export default function OnboardingPage() {
                 <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left space-y-2">
                   <p className="text-sm font-semibold text-navy mb-2">Find your parish</p>
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                     <input
                       type="text"
                       value={parishQuery}
@@ -183,16 +183,16 @@ export default function OnboardingPage() {
                         <button key={p.id} onClick={() => selectParish(p)}
                           className="w-full text-left px-3 py-2.5 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0 min-h-[44px]">
                           <p className="text-sm font-semibold text-navy">{p.name}</p>
-                          <p className="text-xs text-gray-400">{p.city}, {p.state}</p>
+                          <p className="text-xs text-gray-500">{p.city}, {p.state}</p>
                         </button>
                       ))}
                     </div>
                   )}
                   {parishQuery.length >= 2 && !parishSearching && parishResults.length === 0 && (
-                    <p className="text-xs text-gray-400 text-center py-1">No parishes found — try a different search.</p>
+                    <p className="text-xs text-gray-500 text-center py-1">No parishes found — try a different search.</p>
                   )}
                   {!parishQuery && (
-                    <p className="text-xs text-gray-400 text-center">Optional — you can add this later</p>
+                    <p className="text-xs text-gray-500 text-center">Optional — you can add this later</p>
                   )}
                 </div>
               )}
@@ -229,7 +229,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{g.name}</p>
-                      <p className="text-xs text-gray-400 capitalize">{g.category?.replace('_',' ')} · {g.member_count||0} members</p>
+                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count||0} members</p>
                     </div>
                     <button
                       onClick={() => joinGroup(g.id)}
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-navy text-sm">{name}</p>
-                        <p className="text-xs text-gray-400">Groups will appear as your community grows</p>
+                        <p className="text-xs text-gray-500">Groups will appear as your community grows</p>
                       </div>
                     </div>
                   ))
@@ -257,7 +257,7 @@ export default function OnboardingPage() {
               <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={() => setStep(3)}>
                 {t('onboarding.continue')}
               </Button>
-              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">← Back</button>
+              <button onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-navy transition-colors text-center py-1">← Back</button>
             </div>
           )}
 
@@ -278,15 +278,15 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: season.color }} />
-                    <span className="text-gray-300 text-xs">{season.label}</span>
+                    <span className="text-gray-500 text-xs">{season.label}</span>
                   </div>
                 </div>
                 <div className="p-4">
-                  <p className="text-xs text-gray-400 mb-3">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+                  <p className="text-xs text-gray-500 mb-3">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
                   <div className="flex flex-col gap-2">
                     {[['First Reading','Isaiah 40:1-5'],['Responsorial Psalm','Psalm 85'],['Gospel','Mark 1:1-8']].map(([label,ref]) => (
                       <div key={label} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-28 flex-shrink-0">{label}</span>
+                        <span className="text-xs text-gray-500 w-28 flex-shrink-0">{label}</span>
                         <span className="text-sm text-navy font-medium">{ref}</span>
                       </div>
                     ))}
@@ -298,7 +298,7 @@ export default function OnboardingPage() {
                 onClick={() => isClergy ? setStep(4) : finish()}>
                 {isClergy ? t('onboarding.continue') : t('onboarding.go_to_parish')}
               </Button>
-              <button onClick={() => setStep(2)} className="text-sm text-gray-400 hover:text-navy transition-colors text-center py-1">← Back</button>
+              <button onClick={() => setStep(2)} className="text-sm text-gray-500 hover:text-navy transition-colors text-center py-1">← Back</button>
             </div>
           )}
 
@@ -328,11 +328,11 @@ export default function OnboardingPage() {
                   Yes, set up my parish →
                 </Button>
                 <button onClick={finish}
-                  className="w-full text-sm text-gray-400 hover:text-navy transition-colors py-3 min-h-[44px]">
+                  className="w-full text-sm text-gray-500 hover:text-navy transition-colors py-3 min-h-[44px]">
                   Not right now — go to the app
                 </button>
               </div>
-              <button onClick={() => setStep(3)} className="text-sm text-gray-400 hover:text-navy transition-colors py-1">← Back</button>
+              <button onClick={() => setStep(3)} className="text-sm text-gray-500 hover:text-navy transition-colors py-1">← Back</button>
             </div>
           )}
 

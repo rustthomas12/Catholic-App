@@ -127,7 +127,7 @@ export function notificationPath(type, referenceId) {
     case 'daily_readings_reminder':
       return '/faith'
     case 'event_reminder':
-      return '/notifications'
+      return ref ? `/event/${ref}` : '/notifications'
     default:
       return '/'
   }

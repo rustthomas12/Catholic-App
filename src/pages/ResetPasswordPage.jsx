@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
             <CheckCircleIcon className="w-14 h-14 text-green-500" />
             <div>
               <p className="font-semibold text-navy text-lg">{t('reset.success')}</p>
-              <p className="text-gray-400 text-sm mt-2">Redirecting in {countdown}...</p>
+              <p className="text-gray-500 text-sm mt-2">Redirecting in {countdown}...</p>
             </div>
             <Link to="/login" className="text-navy font-semibold text-sm hover:underline">
               Sign in now

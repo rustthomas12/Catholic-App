@@ -141,7 +141,7 @@ function ImageModal({ src, onClose }) {
   }, [])
   return (
     <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={onClose}>
-      <button onClick={onClose} className="absolute top-4 right-4 text-white p-2">
+      <button aria-label="Close" onClick={onClose} className="absolute top-4 right-4 text-white p-2">
         <XMarkIcon className="w-6 h-6" />
       </button>
       <img src={src} alt="" className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
@@ -158,14 +158,15 @@ function CommentItem({ comment, currentUserId, onDelete }) {
   if (comment.is_removed) {
     return (
       <div className="py-2">
-        <p className="text-xs text-gray-400 italic">{t('comment.removed')}</p>
+        <p className="text-xs text-gray-500 italic">{t('comment.removed')}</p>
       </div>
     )
   }
 
   return (
     <div className="flex items-start gap-2 py-2 group">
-      <Link to={`/profile/${comment.author?.id}`} onClick={(e) => e.stopPropagation()}>
+      <Link to={`/profile/${comment.author?.id}`} onClick={(e) => e.stopPropagation()}
+        aria-label={`View ${comment.author?.full_name || 'this member'}'s profile`}>
         <Avatar
           src={comment.author?.avatar_url}
           name={comment.author?.full_name}
@@ -182,7 +183,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
           >
             {comment.author?.full_name || 'Parish Member'}
           </Link>
-          <span className="text-xs text-gray-400">{formatRelativeTime(comment.created_at)}</span>
+          <span className="text-xs text-gray-500">{formatRelativeTime(comment.created_at)}</span>
         </div>
         <p className="text-sm text-gray-800 leading-relaxed break-words">{comment.content}</p>
       </div>
@@ -199,7 +200,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           title={t('comment.delete')}
         >
-          <TrashIcon className={`w-4 h-4 ${showDelete ? 'text-red-500' : 'text-gray-400'}`} />
+          <TrashIcon className={`w-4 h-4 ${showDelete ? 'text-red-500' : 'text-gray-500'}`} />
         </button>
       )}
     </div>
@@ -392,12 +393,12 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   onClick={() => navigate(`/profile/${post.author?.id}`)}
-                  className="text-sm font-semibold text-navy hover:underline"
+                  className="text-sm font-semibold text-navy hover:underline inline-flex items-center min-h-[24px]"
                 >
                   {post.author?.full_name || 'Parish Member'}
                 </button>
                 {post.author?.username && (
-                  <span className="text-xs text-gray-400">@{post.author.username}</span>
+                  <span className="text-xs text-gray-500">@{post.author.username}</span>
                 )}
               </div>
 
@@ -406,7 +407,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   {post.parish && (
                     <Link
                       to={`/parish/${post.parish.id}`}
-                      className="hover:underline"
+                      className="hover:underline inline-flex items-center min-h-[24px]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {t('post.at_place', { name: post.parish.name })}
@@ -415,7 +416,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   {post.group && (
                     <Link
                       to={`/group/${post.group.id}`}
-                      className="hover:underline"
+                      className="hover:underline inline-flex items-center min-h-[24px]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {t('post.in_place', { name: post.group.name })}
@@ -424,7 +425,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   {post.org && (
                     <Link
                       to={`/organizations/${post.org.id}`}
-                      className="hover:underline"
+                      className="hover:underline inline-flex items-center min-h-[24px]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {t('post.from_place', { name: post.org.name })}
@@ -439,14 +440,14 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 </span>
               )}
 
-              <p className="text-xs text-gray-400">{formatRelativeTime(post.created_at)}</p>
+              <p className="text-xs text-gray-500">{formatRelativeTime(post.created_at)}</p>
             </div>
 
             {/* Three-dot menu */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen((o) => !o)}
-                className="p-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-navy rounded-lg hover:bg-lightbg transition-colors"
+                className="p-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy rounded-lg hover:bg-lightbg transition-colors"
                 aria-label="Post options"
               >
                 <EllipsisHorizontalIcon className="w-5 h-5" />
@@ -507,7 +508,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 className="w-full text-sm text-gray-800 leading-relaxed border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-navy resize-y"
               />
               <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-gray-400">{editDraft.length}/500</span>
+                <span className="text-xs text-gray-500">{editDraft.length}/500</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setEditing(false)}
@@ -577,7 +578,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                   className={`w-5 h-5 text-gold transition-transform ${likeAnimating ? 'scale-125' : 'scale-100'}`}
                 />
               ) : (
-                <HeartIcon className="w-5 h-5 text-gray-400 group-hover:text-gold transition-colors" />
+                <HeartIcon className="w-5 h-5 text-gray-500 group-hover:text-gold transition-colors" />
               )}
               <span className={`text-xs font-medium ${post.is_liked_by_me ? 'text-gold' : 'text-gray-500'}`}>
                 {post.is_prayer_request
@@ -596,7 +597,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] rounded-lg hover:bg-lightbg transition-colors group"
               aria-label="Comments"
             >
-              <ChatBubbleLeftIcon className="w-5 h-5 text-gray-400 group-hover:text-navy transition-colors" />
+              <ChatBubbleLeftIcon className="w-5 h-5 text-gray-500 group-hover:text-navy transition-colors" />
               <span className="text-xs font-medium text-gray-500">
                 {post.comment_count > 0
                   ? t('comment.count', { count: post.comment_count })
@@ -610,7 +611,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
               className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] rounded-lg hover:bg-lightbg transition-colors group"
               aria-label="Share"
             >
-              <ShareIcon className="w-5 h-5 text-gray-400 group-hover:text-navy transition-colors" />
+              <ShareIcon className="w-5 h-5 text-gray-500 group-hover:text-navy transition-colors" />
               <span className="text-xs font-medium text-gray-500">{t('common:actions.share')}</span>
             </button>
           </div>

@@ -87,7 +87,7 @@ function EntitySearch({ placeholder, onSelect, selected, onClear, searchFn, rend
       <div className='flex items-center gap-2 bg-navy/5 border border-navy/10 rounded-xl px-3 py-2.5'>
         {Icon && <Icon className='w-4 h-4 text-navy flex-shrink-0' />}
         <span className='text-sm font-semibold text-navy flex-1 truncate'>{renderResult(selected, true)}</span>
-        <button type='button' onClick={onClear} className='text-gray-400 hover:text-navy transition-colors'>
+        <button aria-label="Clear selection" type='button' onClick={onClear} className='text-gray-500 hover:text-navy transition-colors'>
           <XMarkIcon className='w-4 h-4' />
         </button>
       </div>
@@ -97,7 +97,7 @@ function EntitySearch({ placeholder, onSelect, selected, onClear, searchFn, rend
   return (
     <div className='relative'>
       <div className='flex items-center border border-gray-200 rounded-xl px-3 py-2 gap-2 focus-within:border-navy bg-white'>
-        <MagnifyingGlassIcon className='w-4 h-4 text-gray-400 flex-shrink-0' />
+        <MagnifyingGlassIcon className='w-4 h-4 text-gray-500 flex-shrink-0' />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -122,7 +122,7 @@ function EntitySearch({ placeholder, onSelect, selected, onClear, searchFn, rend
         </div>
       )}
       {query.length >= 2 && !searching && results.length === 0 && (
-        <p className='text-xs text-gray-400 mt-1 px-1'>No results found.</p>
+        <p className='text-xs text-gray-500 mt-1 px-1'>No results found.</p>
       )}
     </div>
   )
@@ -175,7 +175,7 @@ function AssignOrgAdmin() {
       </div>
 
       <div>
-        <label className='text-xs font-semibold text-gray-400 mb-1 block'>Organization</label>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>Organization</label>
         <EntitySearch
           placeholder='Search organizations…'
           selected={org}
@@ -188,7 +188,7 @@ function AssignOrgAdmin() {
       </div>
 
       <div>
-        <label className='text-xs font-semibold text-gray-400 mb-1 block'>User</label>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>User</label>
         <EntitySearch
           placeholder='Search by name or @username…'
           selected={user}
@@ -267,7 +267,7 @@ function AssignParishPastor() {
       </div>
 
       <div>
-        <label className='text-xs font-semibold text-gray-400 mb-1 block'>Parish</label>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>Parish</label>
         <EntitySearch
           placeholder='Search parishes…'
           selected={parish}
@@ -280,7 +280,7 @@ function AssignParishPastor() {
       </div>
 
       <div>
-        <label className='text-xs font-semibold text-gray-400 mb-1 block'>User</label>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>User</label>
         <EntitySearch
           placeholder='Search by name or @username…'
           selected={user}
@@ -292,7 +292,7 @@ function AssignParishPastor() {
         />
       </div>
 
-      <p className='text-xs text-gray-400'>This will also grant the user the verified clergy badge.</p>
+      <p className='text-xs text-gray-500'>This will also grant the user the verified clergy badge.</p>
 
       <button
         onClick={handleAssign}
@@ -508,7 +508,7 @@ export default function AdminPage() {
       <div className='bg-navy text-white px-4 py-3 flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <ShieldExclamationIcon className='w-5 h-5' />
-          <span className='font-semibold text-lg'>Platform Admin</span>
+          <h1 className='font-semibold text-lg'>Platform Admin</h1>
         </div>
         <Link to='/' className='text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1'>
           <XMarkIcon className='w-4 h-4' />
@@ -519,7 +519,7 @@ export default function AdminPage() {
       <div className='max-w-3xl mx-auto px-4 pt-6 pb-16 space-y-8'>
         {/* Stats */}
         <section>
-          <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3'>Overview</h2>
+          <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3'>Overview</h2>
           {loadingStats ? (
             <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
               {[0, 1, 2, 3].map((i) => <div key={i} className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm animate-pulse h-20' />)}
@@ -536,7 +536,7 @@ export default function AdminPage() {
 
         {/* Role Management */}
         <section>
-          <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2'>
+          <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2'>
             <UserCircleIcon className='w-4 h-4' />
             Role Management
           </h2>
@@ -549,7 +549,7 @@ export default function AdminPage() {
 
         {/* Flagged Posts */}
         <section>
-          <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2'>
+          <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2'>
             <FlagIcon className='w-4 h-4 text-red-500' />
             Flagged Posts
           </h2>
@@ -558,7 +558,7 @@ export default function AdminPage() {
               {[0, 1, 2].map((i) => <div key={i} className='bg-white rounded-xl border border-gray-100 shadow-sm animate-pulse h-28' />)}
             </div>
           ) : flaggedPosts.length === 0 ? (
-            <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-400 text-sm'>
+            <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-500 text-sm'>
               No open flags — great job!
             </div>
           ) : (
@@ -574,7 +574,7 @@ export default function AdminPage() {
                         {author && <Avatar src={author.avatar_url} name={author.full_name} size='sm' />}
                         <div className='min-w-0'>
                           <p className='text-sm font-medium text-gray-900 truncate'>{author?.full_name || 'Unknown user'}</p>
-                          <p className='text-xs text-gray-400'>Reported by {reporter?.full_name || 'unknown'}</p>
+                          <p className='text-xs text-gray-500'>Reported by {reporter?.full_name || 'unknown'}</p>
                         </div>
                       </div>
                       <ReasonBadge reason={flag.reason} />
@@ -607,14 +607,14 @@ export default function AdminPage() {
 
         {/* Users */}
         <section>
-          <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2'>
+          <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2'>
             <UsersIcon className='w-4 h-4' />
             Users
           </h2>
 
           {/* Search input */}
           <div className='relative mb-2'>
-            <MagnifyingGlassIcon className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
+            <MagnifyingGlassIcon className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500' />
             <input
               type='text'
               placeholder='Search by name or username…'
@@ -652,7 +652,7 @@ export default function AdminPage() {
               {[0, 1, 2, 3].map((i) => <div key={i} className='bg-white rounded-xl border border-gray-100 shadow-sm animate-pulse h-14' />)}
             </div>
           ) : recentUsers.length === 0 ? (
-            <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-400 text-sm'>
+            <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-500 text-sm'>
               {userSearch
                 ? `No ${userFilter !== 'all' ? userFilter + ' ' : ''}users match that search.`
                 : userFilter !== 'all'
@@ -674,7 +674,7 @@ export default function AdminPage() {
                         <span className='text-[10px] font-bold bg-navy/10 text-navy px-1.5 py-0.5 rounded-full flex-shrink-0'>Admin</span>
                       )}
                     </div>
-                    <p className='text-xs text-gray-400 truncate'>
+                    <p className='text-xs text-gray-500 truncate'>
                       {user.username ? `@${user.username} · ` : ''}
                       {user.vocation_state ? `${user.vocation_state} · ` : ''}
                       Joined {new Date(user.created_at).toLocaleDateString()}
@@ -737,7 +737,7 @@ export default function AdminPage() {
               disabled={banInput !== 'BAN'}
               className={
                 'text-sm px-4 py-2 rounded-lg font-medium transition-colors ' +
-                (banInput === 'BAN' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+                (banInput === 'BAN' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-100 text-gray-500 cursor-not-allowed')
               }
             >
               Suspend User
@@ -802,7 +802,7 @@ function PendingPastors() {
         {rows.map(r => (
           <div key={r.id} className='flex flex-wrap items-center gap-2 border border-gray-100 rounded-lg px-3 py-2'>
             <div className='flex-1 min-w-0'>
-              <p className='text-sm font-semibold text-navy truncate'>{r.full_name} <span className='text-gray-400 font-normal'>@{r.username} · {r.vocation_state}</span></p>
+              <p className='text-sm font-semibold text-navy truncate'>{r.full_name} <span className='text-gray-500 font-normal'>@{r.username} · {r.vocation_state}</span></p>
               <p className='text-xs text-gray-500 truncate'>{r.parish ? `${r.parish.name}, ${r.parish.city}, ${r.parish.state}` : r.pending_pastor_parish_id}</p>
             </div>
             <button disabled={busy === r.id} onClick={() => approve(r)}
@@ -917,7 +917,7 @@ function ParishClusters() {
         </div>
 
         {loading ? <LoadingSpinner /> : clusters.length === 0 ? (
-          <p className='text-gray-400 text-sm text-center py-4'>No clusters yet.</p>
+          <p className='text-gray-500 text-sm text-center py-4'>No clusters yet.</p>
         ) : (
           <div className='space-y-5'>
             {clusters.map(cluster => {
@@ -942,10 +942,10 @@ function ParishClusters() {
                         <div className='flex-1 min-w-0'>
                           <p className='text-sm font-medium text-navy truncate'>{m.parishes.name}</p>
                           {m.parishes.city && (
-                            <p className='text-xs text-gray-400'>{m.parishes.city}, {m.parishes.state}</p>
+                            <p className='text-xs text-gray-500'>{m.parishes.city}, {m.parishes.state}</p>
                           )}
                         </div>
-                        <button
+                        <button aria-label="Close"
                           onClick={() => removeParish(cluster.id, m.parishes.id)}
                           className='text-gray-300 hover:text-red-400 transition-colors p-1'
                         >
@@ -957,7 +957,7 @@ function ParishClusters() {
 
                   <div className='px-4 py-3 border-t border-gray-50 space-y-1'>
                     <div className='relative'>
-                      <MagnifyingGlassIcon className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none' />
+                      <MagnifyingGlassIcon className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none' />
                       <input
                         value={state.query ?? ''}
                         onChange={e => searchParishes(cluster.id, e.target.value)}
@@ -974,7 +974,7 @@ function ParishClusters() {
                             className='w-full flex items-center gap-2 px-3 py-2 hover:bg-lightbg transition-colors text-left text-sm'
                           >
                             <span className='font-medium text-navy truncate'>{p.name}</span>
-                            <span className='text-gray-400 text-xs flex-shrink-0'>{p.city}, {p.state}</span>
+                            <span className='text-gray-500 text-xs flex-shrink-0'>{p.city}, {p.state}</span>
                           </button>
                         ))}
                       </div>

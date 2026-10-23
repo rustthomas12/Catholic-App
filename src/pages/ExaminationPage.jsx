@@ -128,11 +128,11 @@ function Section({ section, isOpen, onToggle }) {
       >
         <div className="flex-1 min-w-0 pr-3">
           <p className="font-bold text-navy text-sm">{section.title}</p>
-          <p className="text-gray-400 text-xs mt-0.5 leading-snug">{section.subtitle}</p>
+          <p className="text-gray-500 text-xs mt-0.5 leading-snug">{section.subtitle}</p>
         </div>
         {isOpen
-          ? <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          : <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+          ? <ChevronDownIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          : <ChevronRightIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />}
       </button>
       {isOpen && (
         <div className="px-5 pb-5 border-t border-gray-50">
@@ -167,7 +167,7 @@ export default function ExaminationPage() {
 
         <div className="bg-navy px-4 pt-5 pb-6">
           <div className="flex items-center gap-3 mb-1">
-            <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
+            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <div>
@@ -188,7 +188,7 @@ export default function ExaminationPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{SECTIONS.length} sections</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{SECTIONS.length} sections</p>
             <button onClick={() => setExpandAll(v => !v)} className="text-xs font-semibold text-navy hover:text-gold transition-colors">
               {expandAll ? 'Collapse all' : 'Expand all'}
             </button>
@@ -221,7 +221,7 @@ export default function ExaminationPage() {
                 <p className="text-white/50 text-xs">Track your last confession date</p>
               </div>
             </div>
-            <ChevronRightIcon className="w-4 h-4 text-white/40" />
+            <ChevronRightIcon className="w-4 h-4 text-white/70" />
           </Link>
 
         </div>

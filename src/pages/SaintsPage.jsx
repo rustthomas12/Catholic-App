@@ -47,7 +47,7 @@ export default function SaintsPage() {
         {/* ── Header ── */}
         <div className="bg-navy px-4 pt-5 pb-5">
           <div className="flex items-center gap-3 mb-1">
-            <button
+            <button aria-label="Back"
               onClick={() => navigate(-1)}
               className="text-white/70 hover:text-white p-1 flex items-center transition-colors"
             >
@@ -55,13 +55,13 @@ export default function SaintsPage() {
             </button>
             <h1 className="text-white font-bold text-xl">{t('saints_title')}</h1>
           </div>
-          <p className="text-gray-300 text-sm ml-8">
+          <p className="text-gray-500 text-sm ml-8">
             Learn about the men and women who showed us how to live the faith
           </p>
 
           {/* Search */}
           <div className="relative mt-4">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
@@ -70,9 +70,9 @@ export default function SaintsPage() {
               className="w-full bg-white pl-9 pr-9 py-2.5 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {searchQuery && (
-              <button
+              <button aria-label="Close"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -100,7 +100,7 @@ export default function SaintsPage() {
                   />
                 </div>
               ) : (
-                <p className="text-gray-400 text-sm">No feast day today.</p>
+                <p className="text-gray-500 text-sm">No feast day today.</p>
               )}
             </section>
           )}
@@ -156,12 +156,12 @@ export default function SaintsPage() {
               </div>
             ) : error ? (
               <div className="text-center py-10">
-                <p className="text-gray-400 text-sm">Could not load saints. Please try again.</p>
+                <p className="text-gray-500 text-sm">Could not load saints. Please try again.</p>
               </div>
             ) : saints.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
                 <p className="font-semibold text-navy text-sm">{t('saints_no_results')}</p>
-                <p className="text-gray-400 text-xs mt-1">Try a different name or clear your filter.</p>
+                <p className="text-gray-500 text-xs mt-1">Try a different name or clear your filter.</p>
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}

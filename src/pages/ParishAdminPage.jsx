@@ -27,6 +27,9 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
 
+// Tabs a parish admin can use without an active subscription
+const FREE_TABS = ['billing', 'messages']
+
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
@@ -127,7 +130,7 @@ export default function ParishAdminPage() {
       <div className="bg-navy px-4 pt-5 pb-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-1">
-            <Link to={`/parish/${parishId}`} className="text-white/60 hover:text-white transition-colors">
+            <Link aria-label="Back" to={`/parish/${parishId}`} className="text-white/60 hover:text-white transition-colors">
               <ArrowLeftIcon className="w-5 h-5" />
             </Link>
             <div>
@@ -148,7 +151,7 @@ export default function ParishAdminPage() {
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
                 activeTab === id
                   ? 'border-navy text-navy'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -160,7 +163,9 @@ export default function ParishAdminPage() {
 
       {/* ── Content ── */}
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
-        {activeTab !== 'billing' && !subLoading && !hasActiveSub ? (
+        {/* Billing and parishioner messages stay open without a subscription,
+            so a pastor never misses a message sent to the parish */}
+        {!FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
           <div className="text-center py-16 px-4">
             <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
             <h3 className="font-bold text-navy text-lg mb-2">Activate your parish dashboard</h3>
@@ -252,17 +257,17 @@ function DashboardTab({ parishId }) {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
           <h2 className="font-bold text-navy text-sm">Recent Posts</h2>
-          <Link to={`/parish/${parishId}`} className="text-xs text-gold font-semibold hover:underline">View feed →</Link>
+          <Link to={`/parish/${parishId}`} className="text-xs text-gold font-semibold hover:underline inline-flex items-center min-h-[24px]">View feed →</Link>
         </div>
         {recentPosts.length === 0 ? (
-          <p className="text-gray-400 text-sm p-4">No posts yet.</p>
+          <p className="text-gray-500 text-sm p-4">No posts yet.</p>
         ) : (
           <div className="divide-y divide-gray-50">
             {recentPosts.map(post => (
               <div key={post.id} className="px-4 py-3">
                 <p className="text-sm text-navy line-clamp-2">{post.content}</p>
                 <div className="flex items-center gap-4 mt-1.5">
-                  <span className="text-xs text-gray-400">{format(parseISO(post.created_at), 'MMM d, yyyy')}</span>
+                  <span className="text-xs text-gray-500">{format(parseISO(post.created_at), 'MMM d, yyyy')}</span>
                   <span className="text-xs text-gray-500">♥ {post.like_count ?? 0}</span>
                   <span className="text-xs text-gray-500">💬 {post.comment_count ?? 0}</span>
                 </div>
@@ -404,7 +409,7 @@ function AnnouncementsTab({ parishId }) {
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-1">
               <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Schedule for:</label>
-              <input
+              <input aria-label="Schedule for:"
                 type="datetime-local"
                 value={scheduleFor}
                 min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
@@ -433,7 +438,7 @@ function AnnouncementsTab({ parishId }) {
 
       {loading ? <LoadingSpinner /> : posts.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-gray-400 text-sm">No announcements yet.</p>
+          <p className="text-gray-500 text-sm">No announcements yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -441,7 +446,7 @@ function AnnouncementsTab({ parishId }) {
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm text-navy flex-1">{post.content}</p>
-                <button
+                <button aria-label="Delete"
                   onClick={() => handleDelete(post.id, post.published)}
                   className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0"
                 >
@@ -493,8 +498,8 @@ function AttendeeList({ eventId }) {
   const maybe    = attendees.filter(a => a.response === 'maybe')
   const notGoing = attendees.filter(a => a.response === 'no')
 
-  if (loading) return <p className="text-xs text-gray-400 mt-2">Loading RSVPs…</p>
-  if (attendees.length === 0) return <p className="text-xs text-gray-400 mt-2">No RSVPs yet.</p>
+  if (loading) return <p className="text-xs text-gray-500 mt-2">Loading RSVPs…</p>
+  if (attendees.length === 0) return <p className="text-xs text-gray-500 mt-2">No RSVPs yet.</p>
 
   return (
     <div className="mt-3 border-t border-gray-100 pt-3 space-y-2">
@@ -512,8 +517,8 @@ function AttendeeList({ eventId }) {
       )}
       {notGoing.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 mb-1">Can't go ({notGoing.length})</p>
-          {notGoing.map(a => <p key={a.profiles.id} className="text-xs text-gray-400 pl-2">{a.profiles.full_name}</p>)}
+          <p className="text-xs font-semibold text-gray-500 mb-1">Can't go ({notGoing.length})</p>
+          {notGoing.map(a => <p key={a.profiles.id} className="text-xs text-gray-500 pl-2">{a.profiles.full_name}</p>)}
         </div>
       )}
     </div>
@@ -612,7 +617,7 @@ function EventsTab({ parishId }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Start *</label>
-              <input
+              <input aria-label="Start time"
                 type="datetime-local"
                 value={form.start_time}
                 onChange={e => handleChange('start_time', e.target.value)}
@@ -621,7 +626,7 @@ function EventsTab({ parishId }) {
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">End</label>
-              <input
+              <input aria-label="End time"
                 type="datetime-local"
                 value={form.end_time}
                 onChange={e => handleChange('end_time', e.target.value)}
@@ -650,7 +655,7 @@ function EventsTab({ parishId }) {
 
       {loading ? <LoadingSpinner /> : events.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-gray-400 text-sm">No events yet.</p>
+          <p className="text-gray-500 text-sm">No events yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -665,9 +670,9 @@ function EventsTab({ parishId }) {
                       {ev.end_time ? ` – ${format(parseISO(ev.end_time), 'h:mm a')}` : ''}
                     </p>
                   )}
-                  {ev.location && <p className="text-xs text-gray-400 mt-0.5">📍 {ev.location}</p>}
+                  {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
                 </div>
-                <button
+                <button aria-label="Delete"
                   onClick={() => handleDelete(ev.id)}
                   className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0"
                 >
@@ -677,7 +682,7 @@ function EventsTab({ parishId }) {
               <EventRsvpButtons eventId={ev.id} showCount={true} />
               <button
                 onClick={() => setOpenRsvpId(openRsvpId === ev.id ? null : ev.id)}
-                className="mt-2 text-xs text-gray-400 hover:text-navy transition-colors"
+                className="mt-2 text-xs text-gray-500 hover:text-navy transition-colors"
               >
                 {openRsvpId === ev.id ? 'Hide RSVPs' : `See RSVPs${ev.rsvp_count > 0 ? ` (${ev.rsvp_count})` : ''}`}
               </button>
@@ -795,7 +800,7 @@ function MassTimesTab({ parishId, parish, setParish }) {
                   placeholder="e.g. 7:00 AM, 10:00 AM, 12:00 PM"
                   className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
                 />
-                <button onClick={() => removeRow(i)} className="text-red-300 hover:text-red-500 transition-colors">
+                <button onClick={() => removeRow(i)} aria-label="Remove this row" className="text-red-600 hover:text-red-700 transition-colors min-w-[24px] min-h-[24px] flex items-center justify-center">
                   <XCircleIcon className="w-5 h-5" />
                 </button>
               </div>
@@ -818,14 +823,14 @@ function MassTimesTab({ parishId, parish, setParish }) {
           <div className="divide-y divide-gray-50">
             {Object.entries(parish.mass_times).map(([day, time]) => (
               <div key={day} className="px-4 py-3 flex items-start gap-4">
-                <span className="text-xs font-bold text-gray-400 uppercase w-24 flex-shrink-0 pt-0.5">{day}</span>
+                <span className="text-xs font-bold text-gray-500 uppercase w-24 flex-shrink-0 pt-0.5">{day}</span>
                 <span className="text-sm text-navy">{String(time)}</span>
               </div>
             ))}
           </div>
         ) : (
           <div className="p-6 text-center">
-            <p className="text-gray-400 text-sm">No mass times set. Click Edit to add them.</p>
+            <p className="text-gray-500 text-sm">No mass times set. Click Edit to add them.</p>
           </div>
         )}
       </div>
@@ -932,7 +937,7 @@ function ParishionersTab({ parishId }) {
 
       {loading ? <LoadingSpinner /> : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-gray-400 text-sm">{search ? 'No results.' : 'No parishioners yet.'}</p>
+          <p className="text-gray-500 text-sm">{search ? 'No results.' : 'No parishioners yet.'}</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 overflow-hidden">
@@ -944,7 +949,7 @@ function ParishionersTab({ parishId }) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-navy truncate">{p.profiles.full_name}</p>
                 {p.profiles.vocation_state && (
-                  <p className="text-xs text-gray-400">{vocLabels[p.profiles.vocation_state]}</p>
+                  <p className="text-xs text-gray-500">{vocLabels[p.profiles.vocation_state]}</p>
                 )}
               </div>
               {p.isAdmin && (
@@ -953,7 +958,7 @@ function ParishionersTab({ parishId }) {
               {p.profiles.is_verified_clergy && (
                 <span className="text-xs bg-navy/10 text-navy font-semibold px-2 py-0.5 rounded-full">Clergy</span>
               )}
-              <span className="text-xs text-gray-400 flex-shrink-0">{format(parseISO(p.created_at), 'MMM yyyy')}</span>
+              <span className="text-xs text-gray-500 flex-shrink-0">{format(parseISO(p.created_at), 'MMM yyyy')}</span>
             </div>
           ))}
         </div>
@@ -1002,7 +1007,7 @@ function MessagesTab({ parishId }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-navy">
-          Messages {unreadCount > 0 && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-semibold">{unreadCount} unread</span>}
+          Messages {unreadCount > 0 && <span className="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-semibold">{unreadCount} unread</span>}
         </h2>
         {unreadCount > 0 && (
           <button
@@ -1016,7 +1021,7 @@ function MessagesTab({ parishId }) {
 
       {loading ? <LoadingSpinner /> : messages.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-gray-400 text-sm">No messages yet.</p>
+          <p className="text-gray-500 text-sm">No messages yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -1034,7 +1039,7 @@ function MessagesTab({ parishId }) {
                     <p className={`text-sm font-semibold text-navy ${!msg.is_read ? 'font-bold' : ''}`}>
                       {msg.sender?.full_name ?? 'Unknown'}
                     </p>
-                    <span className="text-xs text-gray-400 flex-shrink-0">
+                    <span className="text-xs text-gray-500 flex-shrink-0">
                       {format(parseISO(msg.created_at), 'MMM d, h:mm a')}
                     </span>
                   </div>
@@ -1044,16 +1049,25 @@ function MessagesTab({ parishId }) {
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{msg.body}</p>
                 </div>
               </div>
-              {!msg.is_read && (
-                <div className="flex justify-end mt-2">
+              <div className="flex justify-end gap-4 mt-2">
+                {msg.sender?.id && (
+                  <Link
+                    to={`/messages?to=${msg.sender.id}`}
+                    onClick={() => { if (!msg.is_read) markRead(msg.id) }}
+                    className="text-xs text-navy font-semibold hover:underline min-h-[24px] inline-flex items-center"
+                  >
+                    Reply
+                  </Link>
+                )}
+                {!msg.is_read && (
                   <button
                     onClick={() => markRead(msg.id)}
-                    className="text-xs text-navy font-semibold hover:underline"
+                    className="text-xs text-navy font-semibold hover:underline min-h-[24px]"
                   >
                     Mark as read
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -1190,7 +1204,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
                   </span>
                 )}
                 <p className="font-bold text-navy text-sm">{tier.label}</p>
-                <p className="text-2xl font-black text-navy leading-tight">${tier.price}<span className="text-xs font-normal text-gray-400">/mo</span></p>
+                <p className="text-2xl font-black text-navy leading-tight">${tier.price}<span className="text-xs font-normal text-gray-500">/mo</span></p>
                 <p className="text-xs text-gray-500 mt-1">{tier.size}</p>
                 {selectedTier === tier.key && (
                   <span className="absolute top-2 right-2 w-4 h-4 bg-gold rounded-full flex items-center justify-center">
@@ -1260,7 +1274,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
               <div key={i} className="px-4 py-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-navy">{humanizeEvent(ev.event_type)}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {format(parseISO(ev.created_at), 'MMM d, yyyy · h:mm a')}
                   </p>
                 </div>
@@ -1344,7 +1358,7 @@ function SettingsTab({ parishId, parish, setParish }) {
               <label className="text-xs font-semibold text-gray-500 mb-1 block">
                 {label}{required && ' *'}
               </label>
-              <input
+              <input aria-label={label}
                 value={form[key]}
                 onChange={e => handleChange(key, e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy"
@@ -1354,7 +1368,7 @@ function SettingsTab({ parishId, parish, setParish }) {
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">About / Description</label>
-          <textarea
+          <textarea aria-label="About / Description"
             value={form.description}
             onChange={e => handleChange('description', e.target.value)}
             rows={4}

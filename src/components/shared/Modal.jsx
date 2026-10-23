@@ -74,7 +74,7 @@ export default function Modal({ isOpen, onClose, title, size = 'md', children })
             <h2 className="text-lg font-semibold text-navy">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:text-navy hover:bg-lightbg transition-colors"
+              className="p-1 rounded-lg text-gray-500 hover:text-navy hover:bg-lightbg transition-colors"
               aria-label="Close"
             >
               <XMarkIcon className="w-5 h-5" />

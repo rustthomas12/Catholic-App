@@ -32,7 +32,7 @@ export default function EventRsvpButtons({ eventId, showCount = true }) {
         </button>
       ))}
       {showCount && rsvpCount > 0 && (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-500">
           {rsvpCount} going
         </span>
       )}

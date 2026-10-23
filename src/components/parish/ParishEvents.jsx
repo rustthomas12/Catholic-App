@@ -41,7 +41,7 @@ export default function ParishEvents({ parishId, orgId }) {
   if (error) {
     return (
       <div className="px-4 pt-4">
-        <p className="text-gray-400 text-sm text-center py-8">Could not load events.</p>
+        <p className="text-gray-500 text-sm text-center py-8">Could not load events.</p>
       </div>
     )
   }
@@ -56,7 +56,7 @@ export default function ParishEvents({ parishId, orgId }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <CalendarDaysIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="font-semibold text-navy text-sm">No upcoming events</p>
-          <p className="text-gray-400 text-xs mt-1">Check back later for events from this parish.</p>
+          <p className="text-gray-500 text-xs mt-1">Check back later for events from this parish.</p>
         </div>
       </div>
     )
@@ -90,7 +90,7 @@ export default function ParishEvents({ parishId, orgId }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <CalendarDaysIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="font-semibold text-navy text-sm">No upcoming events</p>
-          <p className="text-gray-400 text-xs mt-1">Check back soon.</p>
+          <p className="text-gray-500 text-xs mt-1">Check back soon.</p>
         </div>
       ) : (
         displayed.map((event) => <EventCard key={event.id} event={event} />)
@@ -113,7 +113,7 @@ function EventCard({ event }) {
             {format(start, 'MMM')}
           </p>
           <p className="text-white font-bold text-2xl leading-none">{format(start, 'd')}</p>
-          <p className="text-gray-300 text-xs">{format(start, 'EEE')}</p>
+          <p className="text-gray-500 text-xs">{format(start, 'EEE')}</p>
         </div>
 
         {/* Content */}
@@ -121,13 +121,13 @@ function EventCard({ event }) {
           <p className="font-bold text-navy text-sm leading-snug">{event.title}</p>
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              <ClockIcon className="w-3.5 h-3.5 text-gray-400" />
+              <ClockIcon className="w-3.5 h-3.5 text-gray-500" />
               {format(start, 'h:mm a')}
               {end && !isSameDay(start, end) ? ` – ${format(end, 'MMM d')}` : end ? ` – ${format(end, 'h:mm a')}` : ''}
             </span>
             {event.location && (
               <span className="flex items-center gap-1 text-xs text-gray-500 truncate">
-                <MapPinIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <MapPinIcon className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                 <span className="truncate">{event.location}</span>
               </span>
             )}

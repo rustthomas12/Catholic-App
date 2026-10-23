@@ -163,7 +163,7 @@ export default function SaintPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 text-gray-400 hover:text-navy transition-colors"
+              className="p-2 text-gray-500 hover:text-navy transition-colors"
               aria-label="Share"
             >
               <ShareIcon className="w-5 h-5" />
@@ -198,10 +198,10 @@ export default function SaintPage() {
 
         <h1 className="text-2xl font-bold text-navy text-center leading-snug">{saint.name}</h1>
         {feastFormatted && (
-          <p className="text-sm text-gray-400 text-center mt-1">{feastFormatted}</p>
+          <p className="text-sm text-gray-500 text-center mt-1">{feastFormatted}</p>
         )}
         {yearsLabel && (
-          <p className="text-xs text-gray-400 text-center mt-0.5">c. {yearsLabel}</p>
+          <p className="text-xs text-gray-500 text-center mt-0.5">c. {yearsLabel}</p>
         )}
 
         {/* ── Patron causes ── */}
@@ -246,7 +246,7 @@ export default function SaintPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 italic">{t('saints_no_biography')}</p>
+            <p className="text-sm text-gray-500 italic">{t('saints_no_biography')}</p>
           )}
         </div>
 
@@ -283,7 +283,7 @@ export default function SaintPage() {
                   className="flex-shrink-0 w-40 bg-white rounded-xl border border-gray-100 shadow-sm p-3 hover:shadow-md transition-shadow"
                 >
                   <p className="text-xs font-semibold text-navy leading-snug">{related.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{formatFeastDay(related.feast_day)}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{formatFeastDay(related.feast_day)}</p>
                   {related.summary && (
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{related.summary}</p>
                   )}

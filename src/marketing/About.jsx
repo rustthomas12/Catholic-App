@@ -95,14 +95,14 @@ export default function AboutPage() {
                 <p className="text-gold text-sm font-semibold mt-4">— Thomas Rust</p>
               </blockquote>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                <p className="text-white/40 text-xs uppercase tracking-widest mb-4">Built on</p>
+                <p className="text-white/70 text-xs uppercase tracking-widest mb-4">Built on</p>
                 <div className="flex flex-wrap gap-2">
                   {['React', 'Supabase', 'Vercel', 'Claude Code', 'Tailwind CSS'].map((t, i) => (
                     <span key={i} className="bg-white/10 text-white/60 text-xs px-3 py-1 rounded-full">{t}</span>
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-sm">
-                  <span className="text-white/40">Monthly infrastructure cost</span>
+                  <span className="text-white/70">Monthly infrastructure cost</span>
                   <span className="text-emerald-400 font-bold">$0</span>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="bg-navy py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <p className="text-white/40 italic text-lg mb-4">Pro Ecclesia. Pro Fide.</p>
+          <p className="text-white/70 italic text-lg mb-4">Pro Ecclesia. Pro Fide.</p>
           <h2 className="text-3xl md:text-4xl font-black text-white mb-6">Join us.</h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href={APP_URL} className="bg-gold text-navy font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors">

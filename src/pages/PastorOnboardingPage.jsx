@@ -72,7 +72,7 @@ function StepAsk({ onYes, onSkip }) {
         </button>
         <button
           onClick={onSkip}
-          className="w-full text-gray-400 text-sm py-3 hover:text-navy transition-colors"
+          className="w-full text-gray-500 text-sm py-3 hover:text-navy transition-colors"
         >
           Not right now
         </button>
@@ -120,7 +120,7 @@ function StepParish({ onSelect }) {
       <p className="text-gray-500 text-sm mb-6">Search by parish name or city.</p>
 
       <div className="relative mb-4">
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
         <input
           autoFocus
           type="text"
@@ -131,7 +131,7 @@ function StepParish({ onSelect }) {
         />
       </div>
 
-      {loading && <p className="text-center text-gray-400 text-sm py-4">Searching…</p>}
+      {loading && <p className="text-center text-gray-500 text-sm py-4">Searching…</p>}
 
       {results.length > 0 && (
         <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
@@ -150,7 +150,7 @@ function StepParish({ onSelect }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-navy text-sm truncate">{parish.name}</p>
-                <p className="text-gray-400 text-xs">{parish.city}, {parish.state}</p>
+                <p className="text-gray-500 text-xs">{parish.city}, {parish.state}</p>
               </div>
               {selected?.id === parish.id && (
                 <CheckCircleSolid className="w-5 h-5 text-navy flex-shrink-0" />
@@ -161,7 +161,7 @@ function StepParish({ onSelect }) {
       )}
 
       {query.length >= 2 && !loading && results.length === 0 && (
-        <p className="text-center text-gray-400 text-sm py-4">
+        <p className="text-center text-gray-500 text-sm py-4">
           No parishes found. Try a different name or city.
         </p>
       )}
@@ -235,7 +235,7 @@ function StepSize({ parish, onSelect }) {
             </div>
             <div className="text-right">
               <p className="text-2xl font-black text-navy">{tier.price}</p>
-              <p className="text-gray-400 text-xs">/month</p>
+              <p className="text-gray-500 text-xs">/month</p>
             </div>
           </div>
           <p className="text-gray-500 text-sm">{tier.desc}</p>
@@ -249,7 +249,7 @@ function StepSize({ parish, onSelect }) {
 
       {/* Show all tiers collapsed */}
       <details className="mb-6">
-        <summary className="text-xs text-gray-400 cursor-pointer hover:text-navy transition-colors select-none">
+        <summary className="text-xs text-gray-500 cursor-pointer hover:text-navy transition-colors select-none">
           View all plans
         </summary>
         <div className="mt-3 space-y-2">
@@ -263,7 +263,7 @@ function StepSize({ parish, onSelect }) {
             >
               <div className="text-left">
                 <span className="font-semibold text-navy">{t.label}</span>
-                <span className="text-gray-400 text-xs ml-2">{t.range}</span>
+                <span className="text-gray-500 text-xs ml-2">{t.range}</span>
               </div>
               <span className="font-bold text-navy">{t.price}/mo</span>
             </button>
@@ -320,16 +320,16 @@ function StepTrial({ parish, tier, user, onBack }) {
           </div>
           <div>
             <p className="font-bold text-navy text-sm">{parish.name}</p>
-            <p className="text-gray-400 text-xs">{parish.city}, {parish.state}</p>
+            <p className="text-gray-500 text-xs">{parish.city}, {parish.state}</p>
           </div>
         </div>
         <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
           <div>
             <p className="font-semibold text-navy text-sm">{tier.label} Plan</p>
-            <p className="text-gray-400 text-xs">{tier.range}</p>
+            <p className="text-gray-500 text-xs">{tier.range}</p>
           </div>
           <div className="text-right">
-            <p className="font-black text-navy text-lg">{tier.price}<span className="text-sm font-normal text-gray-400">/mo</span></p>
+            <p className="font-black text-navy text-lg">{tier.price}<span className="text-sm font-normal text-gray-500">/mo</span></p>
             <p className="text-xs text-gold font-semibold">after 90-day trial</p>
           </div>
         </div>
@@ -349,7 +349,7 @@ function StepTrial({ parish, tier, user, onBack }) {
 
       {/* What's included */}
       <div className="mb-6">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Included in your trial</p>
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Included in your trial</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             'Parish admin dashboard',
@@ -379,12 +379,12 @@ function StepTrial({ parish, tier, user, onBack }) {
 
       <button
         onClick={onBack}
-        className="w-full text-gray-400 text-sm py-2 hover:text-navy transition-colors"
+        className="w-full text-gray-500 text-sm py-2 hover:text-navy transition-colors"
       >
         ← Change plan
       </button>
 
-      <p className="text-center text-gray-300 text-xs mt-3">
+      <p className="text-center text-gray-500 text-xs mt-3">
         Secured by Stripe · Cancel anytime · No charge for 90 days
       </p>
     </div>
@@ -445,7 +445,7 @@ export default function PastorOnboardingPage() {
               <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-navy' : 'bg-gray-200'}`} />
             ))}
           </div>
-          <p className="text-xs text-gray-400 text-right">Step {step} of 4</p>
+          <p className="text-xs text-gray-500 text-right">Step {step} of 4</p>
         </div>
       )}
 
@@ -461,7 +461,7 @@ export default function PastorOnboardingPage() {
             <StepParish
               onSelect={parish => { setSelectedParish(parish); setStep(3) }}
             />
-            <button onClick={() => setStep(1)} className="w-full text-sm text-gray-400 hover:text-navy transition-colors text-center mt-4 py-1">
+            <button onClick={() => setStep(1)} className="w-full text-sm text-gray-500 hover:text-navy transition-colors text-center mt-4 py-1">
               ← Back
             </button>
           </>
@@ -484,7 +484,7 @@ export default function PastorOnboardingPage() {
 
       {/* Skip link */}
       {step === 1 && (
-        <p className="text-xs text-gray-300 mt-6">
+        <p className="text-xs text-gray-500 mt-6">
           You can set up your parish later from Settings.
         </p>
       )}

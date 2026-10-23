@@ -163,7 +163,7 @@ function SlideSolution() {
               <span className="text-white/70 text-sm font-medium">{item}</span>
             </div>
           ))}
-          <div className="ml-auto text-white/40 text-sm">Revenue from parish subscriptions — not attention.</div>
+          <div className="ml-auto text-white/70 text-sm">Revenue from parish subscriptions — not attention.</div>
         </div>
       </div>
     </SlideWrapper>
@@ -378,9 +378,9 @@ function SlideCompetition() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="text-left text-white/40 font-normal pb-4 pr-6 text-xs uppercase tracking-wider">Feature</th>
+                <th className="text-left text-white/70 font-normal pb-4 pr-6 text-xs uppercase tracking-wider">Feature</th>
                 {cols.map((c, i) => (
-                  <th key={i} className={`text-center pb-4 px-4 text-xs font-bold tracking-wider uppercase ${i === 0 ? 'text-amber-400' : 'text-white/40'}`}>{c}</th>
+                  <th key={i} className={`text-center pb-4 px-4 text-xs font-bold tracking-wider uppercase ${i === 0 ? 'text-amber-400' : 'text-white/70'}`}>{c}</th>
                 ))}
               </tr>
             </thead>
@@ -433,9 +433,9 @@ function SlideBusinessModel() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {tiers.map((t, i) => (
             <div key={i} className={`rounded-2xl border p-6 text-center transition-colors ${t.featured ? 'bg-amber-500/15 border-amber-500/40' : 'bg-white/5 border-white/10 hover:bg-white/8'}`}>
-              <div className={`text-xs font-bold tracking-widest uppercase mb-4 ${t.featured ? 'text-amber-400' : 'text-white/40'}`}>{t.label}</div>
+              <div className={`text-xs font-bold tracking-widest uppercase mb-4 ${t.featured ? 'text-amber-400' : 'text-white/70'}`}>{t.label}</div>
               <div className={`text-4xl font-black mb-1 ${t.featured ? 'text-amber-400' : 'text-white'}`}>{t.price}</div>
-              <div className="text-white/40 text-xs mb-4">{t.period}</div>
+              <div className="text-white/70 text-xs mb-4">{t.period}</div>
               <div className="text-white/60 text-xs">{t.size}</div>
             </div>
           ))}
@@ -458,7 +458,7 @@ function SlideBusinessModel() {
               { label: 'US market share', val: '0.22%' },
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                <span className="text-white/40 text-sm">{item.label}</span>
+                <span className="text-white/70 text-sm">{item.label}</span>
                 <span className="text-amber-400 font-bold">{item.val}</span>
               </div>
             ))}
@@ -539,9 +539,9 @@ function SlideGTM() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {phases.map((p, i) => (
             <div key={i} className={`rounded-2xl bg-gradient-to-br ${p.color} border ${p.border} p-8`}>
-              <div className="text-xs font-black tracking-widest text-white/40 uppercase mb-1">{p.phase}</div>
+              <div className="text-xs font-black tracking-widest text-white/70 uppercase mb-1">{p.phase}</div>
               <div className="text-lg font-bold text-white mb-1">{p.title}</div>
-              <div className="text-xs text-white/40 mb-4 font-mono">{p.time}</div>
+              <div className="text-xs text-white/70 mb-4 font-mono">{p.time}</div>
               <div className="text-sm text-white/80 font-semibold mb-4 pb-4 border-b border-white/10">Goal: {p.goal}</div>
               <ul className="space-y-2">
                 {p.items.map((item, j) => (
@@ -563,7 +563,7 @@ function SlideGTM() {
           ].map((item, i) => (
             <div key={i} className="text-center">
               <div className="text-amber-400 font-bold text-lg">{item.val}</div>
-              <div className="text-white/40 text-xs mt-1">{item.label}</div>
+              <div className="text-white/70 text-xs mt-1">{item.label}</div>
             </div>
           ))}
         </div>
@@ -608,7 +608,7 @@ function SlideTraction() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           {/* Demand signals */}
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Demand Signals</p>
+            <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Demand Signals</p>
             <div className="space-y-3">
               {[
                 { icon: '🏛', text: '559 verified MA parishes in directory — national data expansion in progress' },
@@ -625,7 +625,7 @@ function SlideTraction() {
           </div>
           {/* Milestone timeline */}
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Milestone Timeline</p>
+            <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Milestone Timeline</p>
             <div className="space-y-3">
               {[
                 { done: true,  when: 'Q1–Q2 2026', what: 'Full platform built & deployed — parish admin, faith tools, integrations hub' },
@@ -657,7 +657,7 @@ function SlideTraction() {
               <span key={i} className="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">{t}</span>
             ))}
           </div>
-          <div className="text-white/40 text-sm">$0 infrastructure cost at current scale</div>
+          <div className="text-white/70 text-sm">$0 infrastructure cost at current scale</div>
         </div>
       </div>
     </SlideWrapper>
@@ -700,7 +700,7 @@ function SlideFounder() {
               </p>
             </blockquote>
             <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
-              <div className="text-white/40 text-xs uppercase tracking-widest mb-4">Infrastructure</div>
+              <div className="text-white/70 text-xs uppercase tracking-widest mb-4">Infrastructure</div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-white/60">Stack</span>
@@ -742,7 +742,7 @@ function SlideFounder() {
 
 function SlideFinancials() {
   const years = [
-    { year: 'Year 1', arr: '$0', label: 'Building traction', parishes: '—', color: 'text-white/40' },
+    { year: 'Year 1', arr: '$0', label: 'Building traction', parishes: '—', color: 'text-white/70' },
     { year: 'Year 2', arr: '$124K', label: 'inFold SaaS only', parishes: '80 parishes · 8% churn', color: 'text-blue-400' },
     { year: 'Year 3', arr: '$489K', label: 'inFold + Parish OS', parishes: '141 parishes · 1 diocese partner', color: 'text-amber-400' },
   ]
@@ -759,7 +759,7 @@ function SlideFinancials() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {years.map((y, i) => (
             <div key={i} className={`rounded-2xl bg-white/5 border border-white/10 p-8 ${i === 2 ? 'md:ring-2 md:ring-amber-500/30' : ''}`}>
-              <div className="text-xs font-black tracking-widest text-white/40 uppercase mb-4">{y.year}</div>
+              <div className="text-xs font-black tracking-widest text-white/70 uppercase mb-4">{y.year}</div>
               <div className={`text-5xl font-black mb-3 ${y.color}`}>{y.arr}</div>
               <div className="text-white/60 text-sm mb-2">{y.label}</div>
               <div className="text-white/30 text-xs">{y.parishes}</div>
@@ -775,12 +775,12 @@ function SlideFinancials() {
           ].map((item, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-4 text-center">
               <div className="text-amber-400 font-bold text-lg mb-1">{item.val}</div>
-              <div className="text-white/40 text-xs">{item.label}</div>
+              <div className="text-white/70 text-xs">{item.label}</div>
             </div>
           ))}
         </div>
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-          <div className="text-white/40 text-xs uppercase tracking-widest mb-3">Year 3 ARR Range</div>
+          <div className="text-white/70 text-xs uppercase tracking-widest mb-3">Year 3 ARR Range</div>
           <div className="flex items-end gap-4">
             {[
               { label: 'Conservative', val: '$156K', h: 'h-8' },
@@ -790,7 +790,7 @@ function SlideFinancials() {
               <div key={i} className="flex flex-col items-center gap-2">
                 <div className="text-amber-400 font-bold text-sm">{bar.val}</div>
                 <div className={`w-16 md:w-24 ${bar.h} rounded-t-lg bg-amber-500/30 border border-amber-500/40`} />
-                <div className="text-white/40 text-xs text-center">{bar.label}</div>
+                <div className="text-white/70 text-xs text-center">{bar.label}</div>
               </div>
             ))}
           </div>
@@ -831,7 +831,7 @@ function SlideAsk() {
         </div>
 
         {/* Use of funds */}
-        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Use of Funds</p>
+        <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Use of Funds</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {items.map((item, i) => (
             <div key={i} className="flex gap-5 rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
@@ -923,7 +923,7 @@ function SlideClosing() {
           "The question I'd leave you with isn't whether you want to invest.
           It's whether you think this is something the Church needs."
         </blockquote>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-white/40 text-sm">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-white/70 text-sm">
           <a href="https://getinfold.app" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
             getinfold.app
           </a>

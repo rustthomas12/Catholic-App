@@ -52,7 +52,7 @@ export default function DirectoryDiscoveryBanner({ followedCount }) {
 
       <button
         onClick={dismiss}
-        className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors rounded"
+        className="flex-shrink-0 p-1 text-gray-500 hover:text-gray-600 transition-colors rounded"
         aria-label="Dismiss this suggestion"
       >
         <XMarkIcon className="w-4 h-4" />

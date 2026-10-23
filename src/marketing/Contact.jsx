@@ -62,7 +62,7 @@ export default function ContactPage() {
           {/* Left: contact options */}
           <div className="space-y-5">
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Ways to Reach Us</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Ways to Reach Us</p>
               <div className="space-y-4">
                 {[
                   { icon: '✉️', label: 'Email', value: 'info@getinfold.app', href: 'mailto:info@getinfold.app' },
@@ -71,7 +71,7 @@ export default function ContactPage() {
                     <span className="text-2xl">{c.icon}</span>
                     <div>
                       <p className="font-semibold text-navy text-sm">{c.label}</p>
-                      <p className="text-gray-400 text-sm">{c.value}</p>
+                      <p className="text-gray-500 text-sm">{c.value}</p>
                     </div>
                   </a>
                 ))}
@@ -79,7 +79,7 @@ export default function ContactPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Links</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Quick Links</p>
               <div className="space-y-3 text-sm">
                 <Link to="/parishes" className="flex items-center justify-between text-navy hover:text-gold transition-colors">
                   <span>Set up your parish</span>
@@ -135,7 +135,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-navy mb-1.5">What's this about?</label>
-                  <select value={form.reason} onChange={e => set('reason', e.target.value)}
+                  <select aria-label="What's this about?" value={form.reason} onChange={e => set('reason', e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-navy appearance-none bg-white">
                     <option value="">Select a reason</option>
                     {REASONS.map(r => <option key={r}>{r}</option>)}
