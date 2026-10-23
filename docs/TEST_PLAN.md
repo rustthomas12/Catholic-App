@@ -94,9 +94,9 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 7. Events & RSVP
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| E1 | Parish admin creates event | A | ⏭ |
+| E1 | Parish admin creates event | A | ✅ end-before-start is rejected; event created |
 | E2 | Parishioner sees event, RSVPs (going / maybe / not going) | B | ✅ |
-| E3 | RSVP counts update for admin | A | ⏭ |
+| E3 | RSVP counts update for admin | A | ✅ Fr. Michael "Going" shows on the admin's RSVP list |
 | E4 | Admin deletes event | A | ⏭ |
 | E5 | Group event create + RSVP | A,B | 🔧 |
 
@@ -146,7 +146,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | S5 | Language switcher (English / Spanish) — UI translates, persists | B | 🔧 |
 | S6 | Notification settings toggles save | B | 🔧 |
 | S7 | Blocked users list → unblock | C | 🔧 |
-| S8 | Sign out from settings | B | ⬜ |
+| S8 | Sign out from settings | B | ✅ code check: sign-out clears cached profile/feed/group data (not run on a real account) |
 | S9 | Contact page (/contact) form submits | B | ✅ |
 
 ## 12. Notifications
@@ -160,15 +160,15 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 ## 13. Parish admin (/parish-admin/:id)
 | ID | Test | Acct | Status |
 |---|---|---|---|
-| PA1 | Dashboard stats load | A | ⬜ |
-| PA2 | Announcements: post + schedule a future post | A | ⬜ |
-| PA3 | Scheduled post publishes (deliver-scheduled-posts function) | A | ⬜ |
-| PA4 | Events tab (see §7) | A | ⬜ |
-| PA5 | Messages tab: read parishioner message, mark handled | A | ⬜ |
-| PA6 | Parishioners list | A | ⬜ |
-| PA7 | Settings: edit name/address/phone/website/mass times, saves | A | ⬜ |
-| PA8 | Billing: tier picker shows $59/$119/$229/$389; Stripe **test** checkout; customer portal | A | 🔧 |
-| PA9 | Integrations tab: Facebook connect flow reaches Facebook | A | ⬜ |
+| PA1 | Dashboard stats load | A | ✅ all four numbers match the database |
+| PA2 | Announcements: post + schedule a future post | A | ✅ published; ❌ followers not notified (#115) |
+| PA3 | Scheduled post publishes (deliver-scheduled-posts function) | A | ✅ delivered on time by the cron; ❌ no notification (#115) |
+| PA4 | Events tab (see §7) | A | ✅ see E1/E3 |
+| PA5 | Messages tab: read parishioner message, mark handled | A | ✅ messages load; mark as read updates the count |
+| PA6 | Parishioners list | A | ✅ 6 followers listed (CSV export not run — it downloads a file) |
+| PA7 | Settings: edit name/address/phone/website/mass times, saves | A | ✅ invalid email rejected; save confirmed |
+| PA8 | Billing: tier picker shows $59/$119/$229/$389; Stripe **test** checkout; customer portal | A | ❌ shows "Trial ends August 10, 2026" (in the past) (#116) |
+| PA9 | Integrations tab: Facebook connect flow reaches Facebook | A | ✅ Connect builds a valid Facebook authorization link (finishing needs a real Page owner) |
 
 ## 14. Pastor / clergy onboarding
 | ID | Test | Acct | Status |
@@ -345,6 +345,11 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 112 | PA5 | Parishioners can message a parish whose dashboard is locked (no subscription) — pastor is notified but can't read it | **You:** let pastors read messages without a subscription, or hide Contact on unsubscribed parishes? | open |
 | 113 | S6 | 'Event Reminders' and 'Confession Reminders' switches exist but nothing ever sends those notifications | **You:** build them, or hide the switches? | open |
 | 114 | — | Suggestions: notify a member when promoted to admin; morning-offering/readings push times are fixed in UTC (6 AM / 12 PM shift by an hour with daylight saving) | Not changed | open |
+| 115 | PA2/PA3 | Announcements posted from the parish dashboard (now or scheduled) notified nobody — no in-app alert, no push. Only the feed composer notified followers, and it never makes announcements | Migration 068: database trigger notifies followers of every announcement ("St. Joseph Parish: Parish picnic") | fixed — 068 applied; verified: "[TEST] Bake sale" notified all 5 followers, not the author |
+| 116 | PA8 | After checkout the webhook kept the previous (canceled) subscription's id and trial date, and ignored `customer.subscription.created`; newer Stripe API also moved `current_period_end` onto the items, so it was always empty. Billing showed a trial ending in the past | Webhook fetches the new subscription at checkout, handles `subscription.created`, reads the period end from either place; unit test added. St. Joseph's row corrects itself on Stripe's next update for that subscription | fixed (deploy) |
+| 117 | — | Webhook logged the first 10 characters of its signing secret on every request | Log line removed | fixed (deploy) |
+| 118 | PA | Opening a parish dashboard link when the saved login had expired (e.g. after restarting the browser) sent a real admin to Home: any failed access check counted as "not an admin". Platform admins could be bounced the same way before their profile loaded. Same on org dashboards (showed "Access denied") | Access check retries briefly, waits for the profile, and only redirects on a real "no"; otherwise shows "Couldn't load — Try again" | fixed |
+| 119 | — | Migrations 066/067/068 applied (SQL editor). Verified live: report on a comment → admin notified → "Remove content" hides it and closes the report; "bullshit" blocked with the explanation and the text kept, clean comment posts; event reminder sent once to Fr. Michael ~23½ h before the event | — | verified |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
