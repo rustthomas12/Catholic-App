@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom'
+import TopBar, { TopBarAction } from '../components/shared/TopBar'
+import Modal from '../components/shared/Modal'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   PaperAirplaneIcon,
@@ -235,9 +238,8 @@ function NewConversationModal({ userId, onSelect, onClose }) {
     : connectedUsers
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+    <Modal isOpen onClose={onClose} title="New message" size="sm">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
           <input
             autoFocus
@@ -247,7 +249,6 @@ function NewConversationModal({ userId, onSelect, onClose }) {
             placeholder="Search members…"
             className="flex-1 text-sm text-navy focus:outline-none"
           />
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 text-sm font-medium">Cancel</button>
         </div>
         <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
           {loading && (
@@ -275,8 +276,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
             </button>
           ))}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -302,12 +302,14 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-        <button aria-label="Back" onClick={onBack} className="text-gray-500 hover:text-navy transition-colors md:hidden">
+      <div className="bg-white border-b border-gray-100 px-4 py-1.5 flex items-center gap-2 flex-shrink-0">
+        <button aria-label="Back" onClick={onBack} className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-navy hover:bg-lightbg transition-colors md:hidden">
           <ArrowLeftIcon className="w-5 h-5" />
         </button>
-        <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
-        <p className="font-semibold text-navy text-sm">{partner.full_name || 'inFold Member'}</p>
+        <Link to={`/profile/${partner.id}`} className="flex items-center gap-3 min-w-0 min-h-[44px]">
+          <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
+          <h2 className="font-semibold text-navy text-sm truncate">{partner.full_name || 'inFold Member'}</h2>
+        </Link>
       </div>
 
       {/* Messages */}
@@ -336,12 +338,13 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="bg-white border-t border-gray-100 px-3 py-3 flex items-end gap-2 flex-shrink-0">
+      <form onSubmit={handleSend} className="bg-white border-t border-gray-100 px-3 py-2 flex items-end gap-2 flex-shrink-0">
         <textarea
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
           placeholder="Message…"
+          aria-label={`Message ${partner.full_name || ''}`.trim()}
           maxLength={2000}
           rows={1}
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-32 overflow-y-auto"
@@ -350,7 +353,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
         <button aria-label="Send"
           type="submit"
           disabled={!draft.trim()}
-          className="w-9 h-9 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
+          className="w-11 h-11 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
         >
           <PaperAirplaneIcon className="w-4 h-4" />
         </button>
@@ -380,20 +383,14 @@ export default function MessagesPage() {
   // Two-panel layout on desktop; single panel on mobile
   return (
     <div className="min-h-screen bg-cream md:pl-60">
-      <div className="max-w-4xl mx-auto h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+      <div className="max-w-4xl mx-auto chat-viewport flex flex-col md:flex-row">
 
         {/* Conversation list */}
         <div className={`w-full md:w-80 md:border-r border-gray-100 bg-white flex flex-col flex-shrink-0 ${activePartner ? 'hidden md:flex' : 'flex'}`}>
           {/* Header */}
-          <div className="bg-navy px-4 py-4 flex items-center justify-between">
-            <h1 className="text-white font-bold text-lg">Messages</h1>
-            <button aria-label="New message"
-              onClick={() => setShowNewConvo(true)}
-              className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            >
-              <PencilSquareIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <TopBar variant="navy" title="Messages" actions={
+            <TopBarAction variant="navy" label="New message" icon={PencilSquareIcon} onClick={() => setShowNewConvo(true)} />
+          } />
 
           {/* List */}
           <div className="flex-1 overflow-y-auto divide-y divide-gray-50">

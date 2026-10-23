@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, SunIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { SunIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 
 const TODAY_KEY = () => `morning_offering_${new Date().toDateString()}`
@@ -31,7 +31,6 @@ const PRAYERS = [
 export default function MorningOfferingPage() {
   useEffect(() => { document.title = 'Morning Offering | inFold' }, [])
 
-  const navigate = useNavigate()
   const [prayedToday, setPrayedToday] = useState(() => !!localStorage.getItem(TODAY_KEY()))
   const [selected, setSelected] = useState('traditional')
 
@@ -47,17 +46,10 @@ export default function MorningOfferingPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back" onClick={() => navigate(-1)} className="text-white/70 hover:text-white p-1 transition-colors">
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <div>
-              <p className="text-gold text-xs font-semibold uppercase tracking-widest">Daily Prayer</p>
-              <h1 className="text-white font-bold text-xl">Morning Offering</h1>
-            </div>
-          </div>
-          <p className="text-white/50 text-sm ml-8 mt-1">
+        <TopBar variant="navy" title="Morning Offering" back />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Daily Prayer</p>
+          <p className="text-white/75 text-sm ml-10 mt-1">
             Offer your day to God before it begins.
           </p>
         </div>

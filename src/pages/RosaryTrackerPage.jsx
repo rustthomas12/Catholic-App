@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { LockClosedIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { format } from 'date-fns'
 import { useRosaryTracker, MYSTERY_NAMES, MYSTERY_INITIAL, MYSTERIES } from '../hooks/useRosaryTracker'
@@ -15,7 +15,6 @@ const MYSTERY_COLORS = {
 export default function RosaryTrackerPage() {
   useEffect(() => { document.title = 'Rosary Tracker | inFold' }, [])
 
-  const navigate = useNavigate()
   const {
     recentDays, streak, loading, prayedToday,
     todayMysteries, logRosary,
@@ -41,17 +40,9 @@ export default function RosaryTrackerPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back"
-              onClick={() => navigate('/faith')}
-              className="text-white/70 hover:text-white p-1 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">Rosary Tracker</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">Pray daily — build the habit</p>
+        <TopBar variant="navy" title="Rosary Tracker" back="/faith" />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gray-500 text-sm ml-10">Pray daily — build the habit</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">

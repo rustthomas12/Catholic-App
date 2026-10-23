@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import TopBar, { TopBarAction } from '../components/shared/TopBar'
+import { useUnreadDMCount } from '../lib/dmBadge'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useAdminAccess } from '../hooks/useAdminAccess'
@@ -23,6 +25,7 @@ export default function HomePage() {
   useEffect(() => { document.title = 'Home | inFold' }, [])
   const { i18n } = useTranslation()
   const { profile } = useAuth()
+  const unreadDMs = useUnreadDMCount()
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
   const hasAnyAdminAccess = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
   const navigate = useNavigate()
@@ -113,9 +116,25 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
-      <h1 className="sr-only">{i18n.t('common:nav.home')}</h1>
+      <h1 className="sr-only hidden md:block">{i18n.t('common:nav.home')}</h1>
       {/* ── Mobile: single column ── */}
       <div className="md:hidden max-w-2xl mx-auto pb-24">
+        <TopBar
+          variant="navy"
+          title={
+            <span className="flex items-center gap-2">
+              <span className="w-7 h-7 bg-gold rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="w-4 h-4 fill-navy"><path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/></svg>
+              </span>
+              <span aria-hidden="true" className="tracking-tight">inFold</span>
+              <span className="sr-only">{i18n.t('common:nav.home')}</span>
+            </span>
+          }
+          actions={<>
+            <TopBarAction variant="navy" label={i18n.t('common:nav.directory')} icon={MagnifyingGlassIcon} to="/directory" />
+            <TopBarAction variant="navy" label={i18n.t('common:nav.messages')} icon={ChatBubbleLeftRightIcon} to="/messages" badge={unreadDMs} />
+          </>}
+        />
 
         {/* Welcome card (first 7 days) */}
         {isNewUser && !dismissed && (
@@ -208,10 +227,10 @@ export default function HomePage() {
           <div className="border-t-4 border-gray-100 px-4 py-10 flex flex-col items-center text-center gap-4">
             <div className="flex gap-3 mb-1">
               <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
-                <BuildingLibraryIcon className="w-6 h-6 text-navy/40" />
+                <BuildingLibraryIcon className="w-6 h-6 text-navy/75" />
               </div>
               <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
-                <UserGroupIcon className="w-6 h-6 text-navy/40" />
+                <UserGroupIcon className="w-6 h-6 text-navy/75" />
               </div>
             </div>
             <div>
@@ -261,10 +280,10 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 flex flex-col items-center text-center gap-4">
               <div className="flex gap-3 mb-1">
                 <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
-                  <BuildingLibraryIcon className="w-6 h-6 text-navy/40" />
+                  <BuildingLibraryIcon className="w-6 h-6 text-navy/75" />
                 </div>
                 <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
-                  <UserGroupIcon className="w-6 h-6 text-navy/40" />
+                  <UserGroupIcon className="w-6 h-6 text-navy/75" />
                 </div>
               </div>
               <div>

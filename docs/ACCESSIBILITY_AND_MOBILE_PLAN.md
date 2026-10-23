@@ -132,6 +132,17 @@ I compared against apps your users already know: **Facebook (Groups), Instagram,
 6. **M7** sticky chat composer with safe-area and keyboard handling.
 7. **A7** focus trap and focus return in Modal.
 
+**Phase 2 status (done, 2026-10-22):**
+- **M1:** a shared sticky `TopBar` on 25 screens (title, a 44px Back, actions), offset below the native status bar. Older sticky rows now also sit below the notch.
+- **M2:** Home top bar with Search and Messages (unread badge shared with the nav).
+- **M4:** post options become a bottom sheet on phones. The six custom pop-ups (contact, new chapter, new message, delete/clear confirmations) moved to the shared sheet.
+- **A7:** Modal traps Tab, returns focus to the button that opened it, pads for the home indicator, and has a 44px close button.
+- **M3/M6:** the tab bar is fixed at 64px (it was 129px at 200% text); `aria-current` on the active tab; no sideways scroll at 200% text (the composer and Group/Parish/Org tab rows were fixed).
+- **M5:** 48px touch areas on feed chips, group category chips, List/Map and notification switches, plus `aria-pressed` on the filters.
+- **M7:** the chat fits the visible viewport (`dvh`, tab bar, safe areas); 44px Back and Send; the partner's name links to their profile.
+- **Phones:** inputs are 16px, so iOS no longer zooms the page when a field gets focus.
+- **Guard:** a unit test fails if any JSX component is used without being imported. A real crash on the Directory screen was caught while doing this.
+
 ### Phase 3: verification and polish (ongoing)
 1. **Real devices:** a VoiceOver (iPhone) and TalkBack (Android) walkthrough of the five core journeys: sign up, find my parish, post, message, prayer.
 2. **Large text and dark mode:** iOS "Larger Text" at maximum, Android font scale 2.0, and the OS dark mode on Faith screens.

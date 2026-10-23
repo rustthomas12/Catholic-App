@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import { MagnifyingGlassIcon, XMarkIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useGroupMemberships, useGroupSearch, useSuggestedGroups, useGroupJoin } from '../hooks/useGroups'
@@ -88,20 +89,17 @@ export default function GroupsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-24">
 
       {/* ── Header ── */}
-      <div className="bg-navy px-4 pt-5 pb-5">
-        <div className="flex items-center justify-between mb-1">
-          <div>
-            <h1 className="text-white font-bold text-xl">{t('title')}</h1>
-            <p className="text-gray-500 text-sm">{t('subtitle')}</p>
-          </div>
-          <button
-            onClick={() => navigate('/groups/new')}
-            className="flex items-center gap-1.5 bg-gold text-navy text-sm font-bold px-3 py-2 rounded-xl"
-          >
-            <PlusIcon className="w-4 h-4" />
-            {t('create')}
-          </button>
-        </div>
+      <TopBar variant="navy" title={t('title')} actions={
+        <button
+          onClick={() => navigate('/groups/new')}
+          className="flex items-center gap-1.5 bg-gold text-navy text-sm font-bold px-3 min-h-[40px] rounded-xl mr-1"
+        >
+          <PlusIcon className="w-4 h-4" />
+          {t('create')}
+        </button>
+      } />
+      <div className="bg-navy px-4 pb-5">
+        <p className="text-gray-500 text-sm px-2">{t('subtitle')}</p>
 
         {/* Search */}
         <div className="relative mt-4">
@@ -125,12 +123,13 @@ export default function GroupsPage() {
       </div>
 
       {/* ── Category filter ── */}
-      <div className="flex gap-2 overflow-x-auto pb-1 px-4 pt-3" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto py-2.5 px-4 mt-1" style={{ scrollbarWidth: 'none' }}>
         {CATEGORIES.map(({ value, label }) => (
           <button
             key={String(value)}
             onClick={() => setActiveCategory(value)}
-            className={`flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+            aria-pressed={activeCategory === value}
+            className={`tap-target flex-shrink-0 text-sm font-semibold px-3.5 min-h-[36px] rounded-full transition-colors ${
               activeCategory === value
                 ? 'bg-gold text-navy'
                 : 'bg-white text-gray-500 border border-gray-200 hover:border-navy'

@@ -168,6 +168,42 @@ html.cap-native .fixed.inset-0 > .absolute.top-4 {
 [class*="bg-navy"].text-gold,
 [class*="bg-black"] .text-gold { color: #c9a84c; }
 
+/* Full-height chat: the visible viewport (dvh shrinks for browser bars and
+   the keyboard) minus the status bar, and on phones the 64px tab bar. */
+.chat-viewport { height: calc(100vh - var(--app-safe-top, 0px) - 64px - env(safe-area-inset-bottom, 0px)); }
+@supports (height: 100dvh) {
+  .chat-viewport { height: calc(100dvh - var(--app-safe-top, 0px) - 64px - env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 768px) {
+  .chat-viewport { height: calc(100vh - var(--app-safe-top, 0px)); }
+  @supports (height: 100dvh) { .chat-viewport { height: calc(100dvh - var(--app-safe-top, 0px)); } }
+}
+
+/* iOS zooms the page when a field under 16px gets focus */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select { font-size: 16px; }
+}
+
+/* 48px touch area for compact controls (chips, toggles) without changing
+   their look; the row around them needs ~6px of vertical room. */
+.tap-target { position: relative; }
+.tap-target::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 48px;
+  min-height: 100%;
+  transform: translateY(-50%);
+}
+
+/* Sticky rows sit below the native status-bar cover */
+.sticky-top { top: var(--app-safe-top, 0px); }
+
+/* Second sticky row (tabs) under the shared TopBar (56px) */
+.sticky-below-topbar { top: calc(var(--app-safe-top, 0px) + 56px); }
+
 /* Secondary text: Tailwind's gray-500 / red-400–600 fall just under 4.5:1 on
    cream and light-gray surfaces; darken the text shades (fills unaffected). */
 .text-gray-500 { color: #596170; }

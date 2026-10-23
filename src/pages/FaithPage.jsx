@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import {
   UserCircleIcon,
   ClipboardDocumentCheckIcon,
@@ -109,16 +110,8 @@ export default function FaithPage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
-
-        {/* ── Page header ── */}
-        <div className="flex items-center gap-2 mb-1">
-          <svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true">
-            <path d="M6.5 0h3v5.5h6.5v3H9.5v11.5h-3V8.5H0v-3h6.5z" fill="#C9A84C" />
-          </svg>
-          <h1 className="text-xl font-bold text-navy">{t('title')}</h1>
-        </div>
-        <div className="h-px bg-gray-200 mt-3 mb-6" />
+      <TopBar title={t('title')} />
+      <div className="max-w-2xl mx-auto px-4 pt-5 pb-24">
 
         {/* ── Readings ── */}
         <ReadingsCard

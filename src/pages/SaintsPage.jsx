@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { MagnifyingGlassIcon, XMarkIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useSaintLibrary, useTodaySaint, useSaintFavorites } from '../hooks/useSaints'
 import SaintCard from '../components/faith/SaintCard'
@@ -25,7 +25,6 @@ export default function SaintsPage() {
   useEffect(() => { document.title = 'Saints | inFold' }, [])
 
   const { t } = useTranslation('faith')
-  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeMonth, setActiveMonth] = useState(null)
 
@@ -45,17 +44,9 @@ export default function SaintsPage() {
       <div className="max-w-2xl mx-auto pb-20">
 
         {/* ── Header ── */}
-        <div className="bg-navy px-4 pt-5 pb-5">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back"
-              onClick={() => navigate(-1)}
-              className="text-white/70 hover:text-white p-1 flex items-center transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">{t('saints_title')}</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">
+        <TopBar variant="navy" title={t('saints_title')} back={true} />
+        <div className="bg-navy px-4 pb-5">
+          <p className="text-gray-500 text-sm ml-10">
             Learn about the men and women who showed us how to live the faith
           </p>
 

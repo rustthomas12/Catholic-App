@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, CameraIcon, BuildingLibraryIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { CameraIcon, BuildingLibraryIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -206,13 +207,8 @@ export default function CreateGroupPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-24">
 
       {/* Header */}
-      <div className="bg-navy px-4 pt-5 pb-5">
-        <div className="flex items-center gap-3 mb-4">
-          <button aria-label="Back" onClick={() => (step > 1 ? setStep(s => s - 1) : navigate(-1))} className="text-white/70 hover:text-white">
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <h1 className="text-white font-bold text-lg">{t('create')}</h1>
-        </div>
+      <TopBar variant="navy" title={t('create')} back onBack={step > 1 ? () => setStep(s => s - 1) : undefined} />
+      <div className="bg-navy px-4 pt-1 pb-5">
 
         <div className="flex gap-2">
           {STEPS.map(s => (

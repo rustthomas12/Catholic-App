@@ -89,7 +89,7 @@ export default function MarketingHome() {
       <section className="bg-gold py-16 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
-            <p className="text-navy/60 text-xs font-bold uppercase tracking-widest mb-2">For Parishes</p>
+            <p className="text-navy/75 text-xs font-bold uppercase tracking-widest mb-2">For Parishes</p>
             <h2 className="text-2xl md:text-4xl font-black text-navy leading-tight">
               Keep your parishioners in the loop<br /> during the week.
             </h2>

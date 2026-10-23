@@ -32,8 +32,9 @@ export default function FeedFilters({ activeFilter, onChange, counts = null }) {
           <button
             key={key}
             onClick={() => onChange(key)}
+            aria-pressed={active}
             className={[
-              'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[36px] whitespace-nowrap',
+              'tap-target flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[36px] whitespace-nowrap',
               active
                 ? 'bg-gold text-navy font-semibold'
                 : 'bg-white text-gray-500 border border-gray-200 hover:border-navy hover:text-navy',

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { POST_SELECT, normalisePost } from '../hooks/useFeed'
@@ -47,16 +47,7 @@ export default function PostPage() {
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
-        <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-gray-100">
-          <button
-            onClick={goBack}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-lightbg"
-            aria-label="Back"
-          >
-            <ArrowLeftIcon className="w-5 h-5 text-navy" />
-          </button>
-          <h1 className="text-lg font-bold text-navy">Post</h1>
-        </div>
+        <TopBar title="Post" back onBack={goBack} />
 
         <div className="pt-3">
           {status === 'loading' && <PostCardSkeleton />}

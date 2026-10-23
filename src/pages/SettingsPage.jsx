@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import {
   ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
@@ -80,9 +81,7 @@ export default function SettingsPage() {
       <div className="max-w-2xl mx-auto pb-24">
 
         {/* Header */}
-        <div className="px-4 py-5 border-b border-gray-100 bg-white">
-          <h1 className="text-xl font-bold text-navy">Settings</h1>
-        </div>
+        <TopBar title="Settings" />
 
         {/* Platform Administration — only for platform admins */}
         {isAdmin && (

@@ -456,7 +456,7 @@ function CTA() {
             Get Your Parish Set Up
           </a>
         </div>
-        <p className="text-navy/50 text-sm mt-6">
+        <p className="text-navy/75 text-sm mt-6">
           Works on iPhone, Android, and desktop · No download required · 90-day parish trial
         </p>
       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import {
   ChevronLeftIcon,
   HeartIcon,
@@ -35,7 +35,7 @@ function Toggle({ value, onChange, disabled = false, label }) {
       disabled={disabled}
       onClick={() => !disabled && onChange(!value)}
       className={[
-        'relative inline-flex flex-shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2',
+        'tap-target relative inline-flex flex-shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2',
         disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
         value ? 'bg-gold' : 'bg-gray-200',
       ].join(' ')}
@@ -172,7 +172,6 @@ export default function NotificationSettingsPage() {
   useEffect(() => { document.title = 'Notification Settings | inFold' }, [])
 
   const { t } = useTranslation('common')
-  const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
   const { preferences, loading, updatePreference, turnOffAll, turnOnAll } = useNotificationPreferences()
 
@@ -277,18 +276,7 @@ export default function NotificationSettingsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-20">
 
       {/* ── Header ── */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/settings')}
-          className="p-1 -ml-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-navy hover:bg-lightbg rounded-lg transition-colors"
-          aria-label="Back"
-        >
-          <ChevronLeftIcon className="w-5 h-5" />
-        </button>
-        <h1 className="text-lg font-bold text-navy">
-          {t('notifications.settings_title')}
-        </h1>
-      </div>
+      <TopBar title={t('notifications.settings_title')} back="/settings" />
 
       <div className="max-w-2xl mx-auto px-4 pt-4">
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">

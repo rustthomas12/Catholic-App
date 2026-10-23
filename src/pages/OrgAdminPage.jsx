@@ -1,3 +1,4 @@
+import Modal from '../components/shared/Modal'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -257,7 +258,7 @@ export default function OrgAdminPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="bg-white border-b border-gray-100 overflow-x-auto sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-100 overflow-x-auto sticky sticky-top z-10">
         <div className="max-w-3xl mx-auto flex min-w-max">
           {TABS.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => setActiveTab(id)}
@@ -1075,13 +1076,8 @@ function ProvisionChapterModal({ parentOrgId, parentOrgName, user, onClose, onCr
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-navy">New Chapter</h2>
-          <button aria-label="Close" onClick={onClose}><XMarkIcon className="w-5 h-5 text-gray-500" /></button>
-        </div>
-        <p className="text-xs text-gray-500 mb-4">Will be created as a chapter of {parentOrgName}.</p>
+    <Modal isOpen onClose={onClose} title="New Chapter">
+      <p className="text-xs text-gray-500 mb-4">Will be created as a chapter of {parentOrgName}.</p>
         <div className="space-y-3">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Chapter name *"
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy" />
@@ -1099,8 +1095,7 @@ function ProvisionChapterModal({ parentOrgId, parentOrgName, user, onClose, onCr
             {saving ? 'Creating…' : 'Create Chapter'}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

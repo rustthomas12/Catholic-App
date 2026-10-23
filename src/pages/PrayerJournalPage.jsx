@@ -1,6 +1,7 @@
+import Modal from '../components/shared/Modal'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, PencilIcon, TrashIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
+import TopBar from '../components/shared/TopBar'
+import { PencilIcon, TrashIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { format, parseISO } from 'date-fns'
 import { usePrayerJournal } from '../hooks/usePrayerJournal'
 import { toast } from '../components/shared/Toast'
@@ -10,7 +11,6 @@ const MOODS = ['😔', '😐', '🙂', '😊', '🙏']
 export default function PrayerJournalPage() {
   useEffect(() => { document.title = 'Prayer Journal | inFold' }, [])
 
-  const navigate = useNavigate()
   const { entries, loading, createEntry, updateEntry, deleteEntry } = usePrayerJournal()
 
   const [composing, setComposing] = useState(false)
@@ -61,14 +61,9 @@ export default function PrayerJournalPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back" onClick={() => navigate('/faith')} className="text-white/70 hover:text-white p-1 transition-colors">
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">Prayer Journal</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">Your private space for reflection</p>
+        <TopBar variant="navy" title="Prayer Journal" back="/faith" />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gray-500 text-sm ml-10">Your private space for reflection</p>
         </div>
 
         <div className="px-4 pt-5 space-y-4">
@@ -188,10 +183,8 @@ export default function PrayerJournalPage() {
 
       {/* Delete confirm modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <p className="font-bold text-navy text-base mb-2">Delete entry?</p>
-            <p className="text-sm text-gray-500 mb-5">This cannot be undone.</p>
+        <Modal isOpen onClose={() => setDeleteConfirm(null)} title="Delete entry?" size="sm">
+          <p className="text-sm text-gray-500 mb-5">This cannot be undone.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
@@ -206,8 +199,7 @@ export default function PrayerJournalPage() {
                 Delete
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

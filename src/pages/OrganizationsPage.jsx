@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -215,17 +216,16 @@ export default function OrganizationsPage() {
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
 
         {/* Header */}
-        <div className="bg-navy px-4 pt-6 pb-5 md:pt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-white font-bold text-xl">Organizations</h1>
-            <Link
-              to="/organizations/new"
-              className="flex items-center gap-1.5 text-xs font-semibold bg-gold text-navy px-3 py-2 rounded-full"
-            >
-              <PlusIcon className="w-3.5 h-3.5" />
-              New
-            </Link>
-          </div>
+        <TopBar variant="navy" title="Organizations" actions={
+          <Link
+            to="/organizations/new"
+            className="flex items-center gap-1.5 text-sm font-semibold bg-gold text-navy px-3 min-h-[40px] rounded-full mr-1"
+          >
+            <PlusIcon className="w-4 h-4" />
+            New
+          </Link>
+        } />
+        <div className="bg-navy px-4 pt-1 pb-5">
 
           {/* Name search */}
           <div className="relative">

@@ -1,6 +1,8 @@
+import Modal from '../components/shared/Modal'
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { ShieldCheckIcon, ChevronLeftIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { Link } from 'react-router-dom'
+import TopBar from '../components/shared/TopBar'
+import { ShieldCheckIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
 import { format, differenceInDays, parseISO } from 'date-fns'
@@ -16,7 +18,6 @@ export default function ConfessionTrackerPage() {
   useEffect(() => { document.title = 'Confession Tracker | inFold' }, [])
 
   const { t } = useTranslation('premium')
-  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [history, setHistory] = useState([])
@@ -118,17 +119,9 @@ export default function ConfessionTrackerPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* ── Header ── */}
-        <div className="bg-navy px-4 pt-5 pb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button aria-label="Back"
-              onClick={() => navigate(-1)}
-              className="text-white/70 hover:text-white p-1 flex items-center transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-white font-bold text-xl">{t('tracker_title')}</h1>
-          </div>
-          <p className="text-gray-500 text-sm ml-8">{t('tracker_subtitle')}</p>
+        <TopBar variant="navy" title={t('tracker_title')} back={true} />
+        <div className="bg-navy px-4 pb-6">
+          <p className="text-gray-500 text-sm ml-10">{t('tracker_subtitle')}</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -265,10 +258,8 @@ export default function ConfessionTrackerPage() {
 
       {/* ── Clear confirmation modal ── */}
       {clearConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <p className="font-bold text-navy text-base mb-2">{t('tracker_clear_title')}</p>
-            <p className="text-sm text-gray-500 mb-5">{t('tracker_clear_confirm')}</p>
+        <Modal isOpen onClose={() => setClearConfirm(false)} title={t('tracker_clear_title')} size="sm">
+          <p className="text-sm text-gray-500 mb-5">{t('tracker_clear_confirm')}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setClearConfirm(false)}
@@ -284,8 +275,7 @@ export default function ConfessionTrackerPage() {
                 {clearing ? 'Clearing…' : 'Clear all'}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )
