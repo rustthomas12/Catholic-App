@@ -178,7 +178,7 @@ export function usePost(postId, initialPost) {
         .select(COMMENT_SELECT)
         .single()
 
-      if (error) return { error: error.message }
+      if (error) return { error: error.message, userFacing: error.code === 'P0001' }
 
       setComments((prev) => [...prev, data])
       setPost((p) => ({ ...p, comment_count: p.comment_count + 1 }))

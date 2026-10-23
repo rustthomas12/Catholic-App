@@ -313,6 +313,7 @@ export default function AdminPage() {
 
   const [stats, setStats] = useState({ users: 0, postsToday: 0, openFlags: 0, parishes: 0 });
   const [flaggedPosts, setFlaggedPosts] = useState([]);
+  const [contentReports, setContentReports] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [userFilter, setUserFilter] = useState('all'); // 'all' | 'clergy' | 'suspended' | 'admin'
@@ -338,6 +339,7 @@ export default function AdminPage() {
     if (!profile?.is_admin) return;
     loadStats();
     loadFlaggedPosts();
+    loadContentReports();
   }, [profile]);
 
   useEffect(() => {
@@ -373,6 +375,33 @@ export default function AdminPage() {
     } finally {
       setLoadingStats(false);
     }
+  }
+
+  // Reports on comments, messages, group chat, prayer requests, profiles, groups
+  async function loadContentReports() {
+    const { data, error } = await supabase
+      .from('content_reports')
+      .select('id, content_type, content_id, reason, notes, snapshot, created_at, reported:profiles!reported_user_id(id, full_name, avatar_url), reporter:profiles!reporter_id(id, full_name)')
+      .eq('is_resolved', false)
+      .order('created_at', { ascending: false });
+    if (error) { console.error('loadContentReports', error); return; }
+    setContentReports(data || []);
+  }
+
+  async function dismissReport(id) {
+    const { error } = await supabase
+      .from('content_reports')
+      .update({ is_resolved: true, resolution: 'dismissed', resolved_by: profile.id, resolved_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) { toast.error('Failed to dismiss report'); return; }
+    setContentReports((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  async function removeReported(report) {
+    const { error } = await supabase.rpc('admin_remove_reported_content', { p_report_id: report.id });
+    if (error) { toast.error(error.message || 'Failed to remove'); return; }
+    toast.success('Removed');
+    setContentReports((prev) => prev.filter((r) => !(r.content_type === report.content_type && r.content_id === report.content_id)));
   }
 
   async function loadFlaggedPosts() {
@@ -601,6 +630,56 @@ export default function AdminPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        {/* Other reports */}
+        <section>
+          <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2'>
+            <FlagIcon className='w-4 h-4 text-red-500' />
+            Other Reports
+          </h2>
+          {contentReports.length === 0 ? (
+            <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-gray-500 text-sm'>
+              No open reports on comments, messages, prayer requests, profiles or groups.
+            </div>
+          ) : (
+            <div className='space-y-3'>
+              {contentReports.map((r) => (
+                <div key={r.id} className='bg-white rounded-xl border border-gray-100 shadow-sm border-l-4 border-l-red-400 p-4'>
+                  <div className='flex items-start justify-between gap-3 mb-2'>
+                    <div className='flex items-center gap-2 min-w-0'>
+                      {r.reported && <Avatar src={r.reported.avatar_url} name={r.reported.full_name} size='sm' />}
+                      <div className='min-w-0'>
+                        <p className='text-sm font-medium text-gray-900 truncate'>
+                          {r.reported?.full_name || 'Unknown user'}
+                          <span className='ml-2 text-xs font-normal text-gray-500 capitalize'>{r.content_type.replace('_', ' ')}</span>
+                        </p>
+                        <p className='text-xs text-gray-500'>Reported by {r.reporter?.full_name || 'unknown'}</p>
+                      </div>
+                    </div>
+                    <ReasonBadge reason={r.reason} />
+                  </div>
+                  {r.snapshot && <p className='text-sm text-gray-700 mb-2 whitespace-pre-wrap line-clamp-4'>{r.snapshot}</p>}
+                  {r.notes && <p className='text-xs text-gray-500 italic mb-3'>Note: {r.notes}</p>}
+                  <div className='flex flex-wrap gap-2'>
+                    <button onClick={() => dismissReport(r.id)} className='text-xs px-3 min-h-[36px] rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors'>
+                      Dismiss
+                    </button>
+                    {r.content_type !== 'profile' && (
+                      <button onClick={() => removeReported(r)} className='text-xs px-3 min-h-[36px] rounded-lg border border-orange-200 text-orange-700 hover:bg-orange-50 transition-colors'>
+                        Remove {r.content_type === 'group' ? 'group' : 'content'}
+                      </button>
+                    )}
+                    {r.reported && (
+                      <button onClick={() => openBanModal(null, r.reported)} className='text-xs px-3 min-h-[36px] rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition-colors'>
+                        Suspend User
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>

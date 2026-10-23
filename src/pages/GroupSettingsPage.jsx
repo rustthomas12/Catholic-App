@@ -1,3 +1,4 @@
+import { friendlyError } from '../utils/errors'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
@@ -50,7 +51,7 @@ export default function GroupSettingsPage() {
       .eq('id', id)
 
     if (error) {
-      toast.error('Could not save changes.')
+      toast.error(friendlyError(error, 'Could not save changes.'))
     } else {
       toast.success('Settings saved.')
     }

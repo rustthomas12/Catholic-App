@@ -1,6 +1,9 @@
+import { friendlyError } from '../utils/errors'
+import ReportModal from '../components/shared/ReportModal'
+import { reportContent } from '../lib/reports'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { ChevronLeftIcon, UserCircleIcon, FlagIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
@@ -15,6 +18,7 @@ const PAGE_SIZE = 30
 export default function PrayerRequestsPage() {
   const { t } = useTranslation('feed')
   const { user } = useAuth()
+  const [reportId, setReportId] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => { document.title = `${t('prayer.title')} | inFold` }, [t])
@@ -106,7 +110,7 @@ export default function PrayerRequestsPage() {
     setSubmitting(false)
 
     if (error) {
-      toast.error(t('common:status.error', { ns: 'common' }))
+      toast.error(friendlyError(error, t('common:status.error', { ns: 'common' })))
       return
     }
 
@@ -161,6 +165,12 @@ export default function PrayerRequestsPage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
+      <ReportModal
+        isOpen={!!reportId}
+        onClose={() => setReportId(null)}
+        title="Report this prayer request"
+        onSubmit={(reason, notes) => reportContent('prayer_request', reportId, reason, notes)}
+      />
       <div className="max-w-2xl mx-auto pb-24">
 
         {/* Header */}
@@ -234,6 +244,7 @@ export default function PrayerRequestsPage() {
                 key={intention.id}
                 intention={intention}
                 onPray={handlePray}
+                onReport={user && intention.author_id !== user.id ? () => setReportId(intention.id) : null}
                 t={t}
               />
             ))}
@@ -256,7 +267,7 @@ export default function PrayerRequestsPage() {
   )
 }
 
-function PrayerCard({ intention, onPray, t }) {
+function PrayerCard({ intention, onPray, onReport, t }) {
   return (
     <div className="bg-white border-b border-gray-100 px-4 py-4">
       <div className="flex items-center justify-between mb-2">
@@ -273,7 +284,19 @@ function PrayerCard({ intention, onPray, t }) {
             </>
           )}
         </div>
-        <span className="text-xs text-gray-500">{formatRelativeTime(intention.created_at)}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-gray-500">{formatRelativeTime(intention.created_at)}</span>
+          {onReport && (
+            <button
+              type="button"
+              onClick={onReport}
+              aria-label="Report this prayer request"
+              className="w-9 h-9 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-navy hover:bg-lightbg"
+            >
+              <FlagIcon className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <p className="text-sm text-gray-800 leading-relaxed my-2">{intention.content}</p>

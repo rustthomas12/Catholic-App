@@ -1,3 +1,4 @@
+import { friendlyError } from '../utils/errors'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
@@ -15,7 +16,10 @@ import {
   MapPinIcon,
   PaperAirplaneIcon,
   BuildingLibraryIcon,
+  FlagIcon,
 } from '@heroicons/react/24/outline'
+import ReportModal from '../components/shared/ReportModal'
+import { reportContent } from '../lib/reports'
 import { useTranslation } from 'react-i18next'
 import { toast } from '../components/shared/Toast'
 import { format, isPast, isSameDay } from 'date-fns'
@@ -45,6 +49,7 @@ export default function GroupPage() {
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
   const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [leaveOpen, setLeaveOpen] = useState(false)
+  const [reportGroupOpen, setReportGroupOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
@@ -208,20 +213,35 @@ export default function GroupPage() {
       <div className="bg-navy relative">
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
+          className="absolute top-2 left-2 text-white/80 hover:text-white min-w-[44px] min-h-[44px] px-2 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />
           <span className="hidden sm:inline">{t('title')}</span>
         </button>
 
-        {isAdmin && (
+        {isAdmin ? (
           <Link aria-label="Settings"
             to={`/group/${id}/settings`}
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-1"
+            className="absolute top-2 right-2 text-white/80 hover:text-white w-11 h-11 flex items-center justify-center"
           >
             <Cog6ToothIcon className="w-5 h-5" />
           </Link>
+        ) : user && (
+          <button
+            type="button"
+            onClick={() => setReportGroupOpen(true)}
+            aria-label="Report this group"
+            className="absolute top-2 right-2 text-white/80 hover:text-white w-11 h-11 flex items-center justify-center"
+          >
+            <FlagIcon className="w-5 h-5" />
+          </button>
         )}
+        <ReportModal
+          isOpen={reportGroupOpen}
+          onClose={() => setReportGroupOpen(false)}
+          title="Report this group"
+          onSubmit={(reason, notes) => reportContent('group', id, reason, notes)}
+        />
 
         <div className="px-4 pt-14 pb-5 max-w-3xl mx-auto flex flex-col items-center text-center">
           <GroupAvatar group={group} size={64} />
@@ -405,6 +425,7 @@ function GroupChat({ groupId, userId, isMember }) {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [reportId, setReportId] = useState(null)
   const bottomRef = useRef(null)
 
   const deleteMessage = useCallback(async (msgId) => {
@@ -475,8 +496,12 @@ function GroupChat({ groupId, userId, isMember }) {
     setSending(true)
     const content = draft.trim()
     setDraft('')
-    await supabase.from('group_chat_messages').insert({ group_id: groupId, user_id: userId, content })
+    const { error } = await supabase.from('group_chat_messages').insert({ group_id: groupId, user_id: userId, content })
     setSending(false)
+    if (error) {
+      setDraft(content) // keep what they wrote
+      toast.error(friendlyError(error, 'Message not sent. Please try again.'))
+    }
   }, [draft, userId, isMember, sending, groupId])
 
   if (!isMember) {
@@ -493,6 +518,12 @@ function GroupChat({ groupId, userId, isMember }) {
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 220px)', minHeight: '300px' }}>
+      <ReportModal
+        isOpen={!!reportId}
+        onClose={() => setReportId(null)}
+        title="Report this message"
+        onSubmit={(reason, notes) => reportContent('group_message', reportId, reason, notes)}
+      />
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {loading && (
@@ -526,14 +557,24 @@ function GroupChat({ groupId, userId, isMember }) {
                   <p className={`text-[10px] text-gray-500 ${isMe ? 'mr-1' : 'ml-1'}`}>
                     {format(new Date(msg.created_at), 'h:mm a')}
                   </p>
-                  {isMe && (
+                  {isMe ? (
                     <button
                       onClick={() => deleteMessage(msg.id)}
                       disabled={deletingId === msg.id}
-                      className="opacity-0 group-hover/msg:opacity-100 text-[10px] text-gray-500 hover:text-red-500 transition-all"
+                      className="md:opacity-0 md:group-hover/msg:opacity-100 focus:opacity-100 w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-red-600 transition-all"
                       title="Delete message"
+                      aria-label="Delete message"
                     >
-                      <TrashIcon className="w-3 h-3" />
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setReportId(msg.id)}
+                      className="md:opacity-0 md:group-hover/msg:opacity-100 focus:opacity-100 w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-navy transition-all"
+                      title="Report message"
+                      aria-label={`Report message from ${name}`}
+                    >
+                      <FlagIcon className="w-4 h-4" />
                     </button>
                   )}
                 </div>

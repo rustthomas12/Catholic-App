@@ -99,7 +99,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="11. Contact">
-            <p>Questions about your privacy? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
+            <p>Questions about your privacy? Contact us at <span className="text-navy font-medium">info@getinfold.app</span></p>
             <p className="text-gray-500 mt-1">inFold · Massachusetts</p>
           </Section>
         </div>

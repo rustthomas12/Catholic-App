@@ -337,7 +337,7 @@ export function AuthProvider({ children }) {
         .from('profiles')
         .update(updates)
         .eq('id', user.id)
-      if (error) return { error: t('common:status.error') }
+      if (error) return { error: error.code === 'P0001' ? error.message : t('common:status.error') }
       const { data } = await supabase.rpc('get_my_profile')
       if (!data) return { error: t('common:status.error') }
       setStoredProfile(user.id, data)

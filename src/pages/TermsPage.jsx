@@ -25,7 +25,7 @@ export default function TermsPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Terms of Service</h1>
-          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: October 22, 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By creating an account, you agree to these Terms of Service. If you do not agree, please do not use inFold.</p>
@@ -50,14 +50,19 @@ export default function TermsPage() {
               <li>Impersonate other people, priests, or clergy</li>
               <li>Use the service to harm others</li>
             </ul>
+            <p className="mt-3 font-medium text-navy">We have zero tolerance for objectionable content or abusive users. Content that breaks these rules is removed, and accounts that post it or abuse others are suspended or terminated.</p>
+          </Section>
+
+          <Section title="4a. Reporting and Blocking">
+            <p>You can report any post, comment, message, prayer request, group or profile from its menu or flag button, and you can block any member from their profile, their posts or your conversation with them. Blocked members can't message you and you won't see their content. Our team reviews reports within 24 hours and removes content that violates these terms. See our <a href="/policy" className="text-navy underline">Content Policy</a>.</p>
           </Section>
 
           <Section title="5. Content You Post">
             <p>You own your content. By posting, you grant us a non-exclusive license to display it on the platform. We may remove content that violates these terms. We do not claim ownership of your posts, photos, or other materials you submit.</p>
           </Section>
 
-          <Section title="6. Premium Subscriptions">
-            <p>Premium subscriptions are billed monthly or annually via Stripe. You may cancel at any time — access continues until the end of your current billing period. We do not offer refunds for partial periods. We may change pricing with 30 days notice.</p>
+          <Section title="6. Parish and Organization Subscriptions">
+            <p>inFold is free for individual members, and every member feature is included at no cost. Parishes and Catholic organizations may subscribe to administrative tools. Those subscriptions are purchased by the parish or organization on our website, billed monthly or annually via Stripe, and can be cancelled at any time; access continues until the end of the current billing period. We do not offer refunds for partial periods. We may change pricing with 30 days notice.</p>
           </Section>
 
           <Section title="7. Termination">
@@ -77,7 +82,7 @@ export default function TermsPage() {
           </Section>
 
           <Section title="11. Contact">
-            <p>Questions about these terms? Contact us at <span className="text-navy font-medium">hello@parishapp.com</span></p>
+            <p>Questions about these terms? Contact us at <span className="text-navy font-medium">info@getinfold.app</span></p>
             <p className="mt-1 text-gray-500">inFold · Massachusetts</p>
           </Section>
         </div>

@@ -306,6 +306,31 @@ In-app deletion exists (Settings), as Apple guideline 5.1.1(v) requires.
 
 ---
 
+## 6a. Store requirements check (2026-10-22)
+
+| Requirement | Status |
+|---|---|
+| Apple 1.2 / Play UGC: agree to Terms with zero-tolerance language | ✅ signup checkbox; Terms §4 and §4a |
+| Report objectionable content | ✅ posts, comments, DMs, group chat, prayer requests, profiles, groups → admin queue + admin notification (migration 066) |
+| Block abusive users | ✅ profile, post menu, conversation menu; Settings → Blocked users |
+| Filter objectionable material | ✅ database word filter on everything members write (migration 067; edit `blocked_terms`) |
+| Act on reports within 24 h; published contact | ✅ admin queue (Remove / Suspend); info@getinfold.app |
+| Apple 3.1.1 / Play Billing: no digital sales to individuals | ✅ all member features free; parish/org subscriptions are B2B (3.1.3(c)) on the website; Terms §6 rewritten |
+| Apple 4.8 Sign in with Apple | Not required (email sign-in only, no third-party login) |
+| Apple 5.1.1(v) / Play account deletion | ✅ Settings → Delete my account; web page /delete-account |
+| Privacy policy in app and store | ✅ Settings → Privacy Policy |
+| Permission prompts with purpose strings | ✅ camera, photos, location (iOS asks for approximate location only) |
+| Privacy manifest / labels match behavior | ✅ PrivacyInfo.xcprivacy; STORE_LISTING.md updated (Play: precise location declared) |
+| Android target API, 16 KB pages, notification permission | ✅ targetSdk 36, Capacitor 8, POST_NOTIFICATIONS from the push plugin |
+| Android photo/video permission policy | ✅ none requested (system photo picker) |
+| Encryption export | ✅ `ITSAppUsesNonExemptEncryption = NO` |
+
+**Still yours to do in the consoles:** the demo account (`appreview@getinfold.app`)
+must have content, the questionnaires must use the answers in `STORE_LISTING.md`,
+and if the Google Play developer account is a *personal* account, Google
+requires a closed test with at least 12 testers for 14 days before you can
+publish to production (organization accounts are exempt).
+
 ## 7. Issues found and fixed during testing
 
 - The "Make a Gift" / Support the Mission feature was removed entirely. Old

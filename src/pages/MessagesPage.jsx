@@ -1,3 +1,4 @@
+import { friendlyError } from '../utils/errors'
 import { Link } from 'react-router-dom'
 import TopBar, { TopBarAction } from '../components/shared/TopBar'
 import Modal from '../components/shared/Modal'
@@ -7,7 +8,14 @@ import {
   ArrowLeftIcon,
   PencilSquareIcon,
   MagnifyingGlassIcon,
+  EllipsisVerticalIcon,
+  FlagIcon,
+  NoSymbolIcon,
 } from '@heroicons/react/24/outline'
+import ReportModal from '../components/shared/ReportModal'
+import { reportContent } from '../lib/reports'
+import { useBlockedUsers } from '../hooks/useBlockedUsers'
+import { toast } from '../components/shared/Toast'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { createNotification } from '../lib/notifications'
@@ -162,7 +170,8 @@ function useMessages(userId, partnerId, onRead) {
       recipient_id: partnerId,
       content: content.trim(),
     }).select().single()
-    if (!error && data) {
+    if (error) return { error }
+    if (data) {
       setMessages(prev => [...prev, data])
       createNotification({
         userId: partnerId,
@@ -285,6 +294,28 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   const { messages, loading, send } = useMessages(userId, partner.id, onRead)
   const [draft, setDraft] = useState('')
   const bottomRef = useRef(null)
+  const { block } = useBlockedUsers()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [blockOpen, setBlockOpen] = useState(false)
+  const name = partner.full_name || 'this member'
+
+  // Report the newest message they sent (moderators see its text); if they
+  // haven't written anything, report the person
+  function submitReport(reason, notes) {
+    const theirs = [...messages].reverse().find((m) => m.sender_id === partner.id)
+    return theirs
+      ? reportContent('message', theirs.id, reason, notes)
+      : reportContent('profile', partner.id, reason, notes)
+  }
+
+  async function handleBlock() {
+    const { error } = await block(partner.id)
+    setBlockOpen(false)
+    if (error) { toast.error('Could not block. Please try again.'); return }
+    toast.success(`${name} has been blocked`)
+    onBack()
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'auto' })
@@ -295,7 +326,12 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
     if (!draft.trim()) return
     const content = draft
     setDraft('')
-    await send(content)
+    const result = await send(content)
+    if (result?.error) {
+      setDraft(content) // keep what they wrote
+      toast.error(friendlyError(result.error, 'Message not sent. Please try again.'))
+      return
+    }
     onSent?.()
   }
 
@@ -310,7 +346,45 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
           <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
           <h2 className="font-semibold text-navy text-sm truncate">{partner.full_name || 'inFold Member'}</h2>
         </Link>
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Conversation options"
+          aria-haspopup="dialog"
+          className="ml-auto w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-navy hover:bg-lightbg transition-colors"
+        >
+          <EllipsisVerticalIcon className="w-5 h-5" />
+        </button>
       </div>
+
+      <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title="Conversation options" size="sm">
+        <div className="-mx-4 -my-2">
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(false); setReportOpen(true) }}
+            className="w-full flex items-center gap-3 px-4 min-h-[52px] text-base text-navy hover:bg-lightbg"
+          >
+            <FlagIcon className="w-5 h-5" /> Report conversation
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(false); setBlockOpen(true) }}
+            className="w-full flex items-center gap-3 px-4 min-h-[52px] text-base text-red-600 hover:bg-red-50"
+          >
+            <NoSymbolIcon className="w-5 h-5" /> Block {name}
+          </button>
+        </div>
+      </Modal>
+      <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} title="Report this conversation" onSubmit={submitReport} />
+      <Modal isOpen={blockOpen} onClose={() => setBlockOpen(false)} title={`Block ${name}?`} size="sm">
+        <p className="text-sm text-gray-600 mb-4">
+          You won't see their posts, comments, prayer requests or messages, and they won't be able to message you. You can unblock them any time in Settings.
+        </p>
+        <div className="flex gap-3">
+          <button type="button" onClick={() => setBlockOpen(false)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">Cancel</button>
+          <button type="button" onClick={handleBlock} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">Block</button>
+        </div>
+      </Modal>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">

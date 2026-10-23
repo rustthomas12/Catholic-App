@@ -1,3 +1,4 @@
+import { friendlyError } from '../../utils/errors'
 import { useState, useRef, useEffect } from 'react'
 import { PhotoIcon, XMarkIcon, BuildingLibraryIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -164,7 +165,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
     setPosting(false)
 
     if (error) {
-      toast.error(t('common:status.error', { ns: 'common' }))
+      toast.error(friendlyError(error, t('common:status.error', { ns: 'common' })))
       return
     }
 
