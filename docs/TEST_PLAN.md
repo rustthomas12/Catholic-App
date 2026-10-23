@@ -195,7 +195,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | AD1 | Only admins can open /admin (B is refused) | A,B | ✅ |
-| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | 🔧 |
+| AD2 | User list / search; filters (all, clergy, suspended, admin) | A | ✅ search, Clergy, Suspended, Admins all match the database (#123 fixed) |
 | AD3 | Suspend / unsuspend user | A | ✅ |
 | AD4 | Grant parish admin / org membership | A | 🔧 |
 | AD5 | Parish clusters create / delete | A | 🔧 |
@@ -353,6 +353,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 120 | G7 | After removing a member, the group header kept the old member count (and no confirmation); every join/leave flashed the whole page skeleton | Header refreshes in place; "Removed from the group." / "Now a group admin." toasts | fixed |
 | 121 | FA3 | **Privacy:** anonymous prayer requests sent the author's name, id and photo to every member's browser — only the screen hid it | Migration 069: members read through `prayer_request_feed`, which omits the author of anonymous requests (except to the author); the table is readable only by its author; "someone prayed for you" notifications move into the database. The list now refreshes on return instead of live | fixed (needs 069) |
 | 122 | S5 | Screen-reader unread counts added in Phase 2 stayed in English in Spanish ("Alertas, 17 unread") and said "1 unread messages" | Translated, with singular/plural | fixed |
+| 123 | AD2 | Admins could suspend themselves or another platform admin (Suspend shown on your own row; the server didn't check) | Migration 070: server refuses both; the button is hidden on those rows; the reason is shown on error | fixed (needs 070) |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |

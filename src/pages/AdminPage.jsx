@@ -508,7 +508,7 @@ export default function AdminPage() {
       setBanInput('');
       loadRecentUsers(userSearch);
     } catch (err) {
-      toast.error('Failed to suspend user');
+      toast.error(err?.code === 'P0001' ? err.message : 'Failed to suspend user');
     }
   }
 
@@ -525,7 +525,7 @@ export default function AdminPage() {
         u.id === user.id ? { ...u, suspended_at: suspending ? new Date().toISOString() : null } : u
       ));
     } catch (err) {
-      toast.error('Failed to update user status');
+      toast.error(err?.code === 'P0001' ? err.message : 'Failed to update user status');
     }
   }
 
@@ -764,6 +764,7 @@ export default function AdminPage() {
                       Suspended
                     </span>
                   )}
+                  {(user.suspended_at || (user.id !== profile?.id && !user.is_admin)) && (
                   <button
                     onClick={() => toggleSuspend(user)}
                     className={
@@ -773,6 +774,7 @@ export default function AdminPage() {
                   >
                     {user.suspended_at ? 'Unsuspend' : 'Suspend'}
                   </button>
+                  )}
                 </div>
               ))}
             </div>
