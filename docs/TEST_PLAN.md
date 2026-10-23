@@ -222,7 +222,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | ID | Test | Acct | Status |
 |---|---|---|---|
 | Z1 | Delete account (type DELETE) → signed out, data removed | C | ⏭ |
-| Z2 | Clean up all `[TEST]` content | A | ⬜ |
+| Z2 | Clean up all `[TEST]` content | A | ✅ 2026-10-23: all [TEST] content, test groups/orgs (incl. Tucson) and their notifications removed in one transaction; real orgs, 558 parishes and 5 accounts untouched |
 
 ---
 
@@ -351,9 +351,9 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 118 | PA | Opening a parish dashboard link when the saved login had expired (e.g. after restarting the browser) sent a real admin to Home: any failed access check counted as "not an admin". Platform admins could be bounced the same way before their profile loaded. Same on org dashboards (showed "Access denied") | Access check retries briefly, waits for the profile, and only redirects on a real "no"; otherwise shows "Couldn't load — Try again" | fixed |
 | 119 | — | Migrations 066/067/068 applied (SQL editor). Verified live: report on a comment → admin notified → "Remove content" hides it and closes the report; "bullshit" blocked with the explanation and the text kept, clean comment posts; event reminder sent once to Fr. Michael ~23½ h before the event | — | verified |
 | 120 | G7 | After removing a member, the group header kept the old member count (and no confirmation); every join/leave flashed the whole page skeleton | Header refreshes in place; "Removed from the group." / "Now a group admin." toasts | fixed |
-| 121 | FA3 | **Privacy:** anonymous prayer requests sent the author's name, id and photo to every member's browser — only the screen hid it | Migration 069: members read through `prayer_request_feed`, which omits the author of anonymous requests (except to the author); the table is readable only by its author; "someone prayed for you" notifications move into the database. The list now refreshes on return instead of live | fixed (needs 069) |
+| 121 | FA3 | **Privacy:** anonymous prayer requests sent the author's name, id and photo to every member's browser — only the screen hid it | Migration 069: members read through `prayer_request_feed`, which omits the author of anonymous requests (except to the author); the table is readable only by its author; "someone prayed for you" notifications move into the database. The list now refreshes on return instead of live | fixed — 069 applied; verified: author hidden from others, "prayed for you" still reaches the anonymous author |
 | 122 | S5 | Screen-reader unread counts added in Phase 2 stayed in English in Spanish ("Alertas, 17 unread") and said "1 unread messages" | Translated, with singular/plural | fixed |
-| 123 | AD2 | Admins could suspend themselves or another platform admin (Suspend shown on your own row; the server didn't check) | Migration 070: server refuses both; the button is hidden on those rows; the reason is shown on error | fixed (needs 070) |
+| 123 | AD2 | Admins could suspend themselves or another platform admin (Suspend shown on your own row; the server didn't check) | Migration 070: server refuses both; the button is hidden on those rows; the reason is shown on error | fixed — 070 applied |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
