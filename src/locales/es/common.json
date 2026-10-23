@@ -25,7 +25,8 @@
     "role_parish_admin": "Administrador parroquial",
     "role_org_admin": "Administrador de organización",
     "role_parish_member": "Feligrés",
-    "role_member": "Miembro"
+    "role_member": "Miembro",
+    "me": "Yo"
   },
   "actions": {
     "save": "Guardar",
@@ -126,5 +127,14 @@
     "type_confession_desc": "Recordatorios gentiles para el registro de confesiones",
     "type_confession_premium": "Disponible con Premium",
     "turn_on_all": "Activar todas las notificaciones"
+  },
+  "me": {
+    "you_manage": "Administras",
+    "manage_parish": "Panel de la parroquia",
+    "manage_org": "Panel de la organización",
+    "platform_admin_hint": "Moderación y gestión",
+    "shortcuts": "Accesos directos",
+    "show_all": "Ver todo ({{count}})",
+    "show_less": "Ver menos"
   }
 }

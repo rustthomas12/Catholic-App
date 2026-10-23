@@ -1,12 +1,11 @@
-import { memo, useState, useEffect, useRef, useCallback } from 'react'
+import { memo, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   HomeIcon, UserGroupIcon, MapIcon,
   BellIcon, Cog6ToothIcon, BuildingLibraryIcon,
   BuildingOffice2Icon, ChatBubbleLeftRightIcon,
-  ShieldExclamationIcon, Bars3Icon, XMarkIcon,
-  ArrowRightOnRectangleIcon,
+  ShieldExclamationIcon,
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -117,176 +116,6 @@ const mobileTabs = [
   },
 ]
 
-// ── More sheet ─────────────────────────────────────────────
-function MoreSheet({ open, onClose, profile, unreadDMs, isPlatformAdmin, parishAdminRecords, orgAdminRecords, onSignOut }) {
-  const location = useLocation()
-  const sheetRef = useRef(null)
-  const [adminExpanded, setAdminExpanded] = useState(false)
-  const { t } = useTranslation('common')
-
-  const hasAdmin = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
-
-  function handleBackdrop(e) {
-    if (e.target === e.currentTarget) onClose()
-  }
-
-  useEffect(() => { onClose() }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!open) return
-    function onKey(e) { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  const isActive = (path) => location.pathname.startsWith(path)
-
-  // Chevron icon
-  function Chevron({ flipped }) {
-    return (
-      <svg className={`w-4 h-4 text-white/70 transition-transform duration-200 ${flipped ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    )
-  }
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 md:hidden ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        onClick={handleBackdrop}
-        aria-hidden="true"
-      />
-
-      {/* Sheet — navy to match sidebar */}
-      <div
-        ref={sheetRef}
-        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-navy rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('nav.more_options')}
-      >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
-        </div>
-
-        {/* Profile card */}
-        <Link to="/profile" className="flex items-center gap-3 px-5 py-4 border-b border-white/10 active:bg-white/5 transition-colors">
-          <Avatar
-            src={profile?.avatar_url}
-            name={profile?.full_name || 'Me'}
-            size="md"
-            isVerifiedClergy={profile?.is_verified_clergy}
-          />
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate">{profile?.full_name || 'My Profile'}</p>
-            {profile?.username
-              ? <p className="text-xs text-white/50">@{profile.username}</p>
-              : <p className="text-xs text-white/70">View profile</p>
-            }
-          </div>
-          <Chevron />
-        </Link>
-
-        {/* Nav links */}
-        <div className="py-2">
-          <SheetRow to="/messages"      Icon={ChatBubbleLeftRightIcon} label={t('nav.messages')}      badge={unreadDMs} active={isActive('/messages')} />
-          <SheetRow to="/directory"     Icon={MapIcon}                 label={t('nav.directory')}     active={isActive('/directory') || isActive('/parish/')} />
-          <SheetRow to="/organizations" Icon={BuildingOffice2Icon}     label={t('nav.organizations')} active={isActive('/organizations') || isActive('/organization/') || isActive('/org-admin/')} />
-          <SheetRow to="/settings"      Icon={Cog6ToothIcon}           label={t('nav.settings')}      active={isActive('/settings')} />
-
-          {/* Admin — collapsible */}
-          {hasAdmin && (
-            <>
-              <div className="mx-5 border-t border-white/10 my-2" />
-              <button
-                onClick={() => setAdminExpanded(p => !p)}
-                className="w-full flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors"
-              >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${adminExpanded ? 'bg-red-500/20' : 'bg-white/10'}`}>
-                  <ShieldExclamationIcon className={`w-5 h-5 ${adminExpanded ? 'text-red-400' : 'text-white/70'}`} />
-                </div>
-                <span className="flex-1 text-left text-sm font-medium text-white/80">{t('nav.admin')}</span>
-                <Chevron flipped={adminExpanded} />
-              </button>
-
-              {adminExpanded && (
-                <div className="mx-4 mb-1 rounded-xl bg-white/5 overflow-hidden">
-                  {isPlatformAdmin && (
-                    <SheetSubRow to="/admin" Icon={ShieldExclamationIcon} label={t('nav.platform_admin')} danger active={isActive('/admin')} />
-                  )}
-                  {parishAdminRecords.map(record => (
-                    <SheetSubRow
-                      key={record.parish_id}
-                      to={`/parish-admin/${record.parish_id}`}
-                      Icon={BuildingLibraryIcon}
-                      label={record.parishes?.name || t('nav.my_parish')}
-                      active={location.pathname === `/parish-admin/${record.parish_id}`}
-                    />
-                  ))}
-                  {orgAdminRecords.map(record => (
-                    <SheetSubRow
-                      key={record.org_id}
-                      to={`/org-admin/${record.org_id}`}
-                      Icon={BuildingOffice2Icon}
-                      label={record.organizations?.name || t('nav.my_organization')}
-                      active={location.pathname === `/org-admin/${record.org_id}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="mx-5 border-t border-white/10 my-2" />
-
-          {/* Sign out */}
-          <button
-            onClick={onSignOut}
-            className="w-full flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors"
-          >
-            <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <ArrowRightOnRectangleIcon className="w-5 h-5 text-white/60" />
-            </div>
-            <span className="text-sm font-medium text-white/60">{t('nav.sign_out')}</span>
-          </button>
-        </div>
-
-        <div className="px-5 pb-4">
-          <LanguageSwitcher variant="compact" />
-        </div>
-      </div>
-    </>
-  )
-}
-
-function SheetRow({ to, Icon, label, badge, active }) {
-  return (
-    <Link to={to} className="flex items-center gap-4 px-5 py-3 active:bg-white/5 transition-colors">
-      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${active ? 'bg-gold/20' : 'bg-white/10'}`}>
-        <Icon className={`w-5 h-5 ${active ? 'text-gold' : 'text-white/70'}`} />
-      </div>
-      <span className={`flex-1 text-sm font-medium ${active ? 'text-gold' : 'text-white/80'}`}>{label}</span>
-      {badge > 0
-        ? <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{badge > 9 ? '9+' : badge}</span>
-        : <svg className="w-4 h-4 text-white/20 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-      }
-    </Link>
-  )
-}
-
-function SheetSubRow({ to, Icon, label, active, danger }) {
-  return (
-    <Link to={to} className="flex items-center gap-3 px-4 py-2.5 active:bg-white/5 transition-colors">
-      <Icon className={`w-4 h-4 flex-shrink-0 ${danger ? 'text-red-400' : active ? 'text-gold' : 'text-white/50'}`} />
-      <span className={`flex-1 text-sm truncate ${danger ? 'text-red-400' : active ? 'text-gold font-medium' : 'text-white/60'}`}>{label}</span>
-    </Link>
-  )
-}
-
 // ── Main Navigation ────────────────────────────────────────
 function Navigation() {
   const location = useLocation()
@@ -297,7 +126,6 @@ function Navigation() {
   const season = getLiturgicalSeason()
   const { t } = useTranslation('common')
   const [unreadDMs, setUnreadDMs] = useState(0)
-  const [moreOpen, setMoreOpen] = useState(false)
 
   // Unread DM badge: recount on navigation, when a thread is read,
   // and when a new message arrives.
@@ -339,9 +167,10 @@ function Navigation() {
   )
   if (!isAuthenticated || isPublic) return null
 
-  // "More" is visually active when on a page only reachable from the sheet
-  const moreActive = (
-    location.pathname.startsWith('/profile') ||
+  // "Me" is active on your own profile and the places reached from it
+  const meActive = (
+    location.pathname === '/profile' ||
+    (user && location.pathname === `/profile/${user.id}`) ||
     location.pathname.startsWith('/settings') ||
     location.pathname === '/messages' ||
     location.pathname.startsWith('/directory') ||
@@ -354,7 +183,6 @@ function Navigation() {
   )
 
   async function handleSignOut() {
-    setMoreOpen(false)
     await signOut()
     navigate('/login', { replace: true })
   }
@@ -403,56 +231,31 @@ function Navigation() {
             )
           })}
 
-          {/* More button */}
-          <button
-            onClick={() => setMoreOpen(true)}
+          {/* Me: your profile, with Settings behind its gear */}
+          <Link
+            to="/profile"
+            aria-current={meActive ? 'page' : undefined}
             className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 group"
-            aria-label={t('nav.more_options')}
           >
-            <div className="relative flex items-center justify-center">
-              {/* Avatar when "more" pages are active, hamburger otherwise */}
-              {moreActive ? (
-                <div className="rounded-full ring-2 ring-gold">
-                  <Avatar
-                    src={profile?.avatar_url}
-                    name={profile?.full_name || 'Me'}
-                    size="xs"
-                    isVerifiedClergy={profile?.is_verified_clergy}
-                  />
-                </div>
-              ) : (
-                <div className="relative">
-                  <Avatar
-                    src={profile?.avatar_url}
-                    name={profile?.full_name || 'Me'}
-                    size="xs"
-                    isVerifiedClergy={profile?.is_verified_clergy}
-                  />
-                  {/* Dot badge if DMs unread — visible even when not active */}
-                  {unreadDMs > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-navy" />
-                  )}
-                </div>
+            <div className={`relative rounded-full ${meActive ? 'ring-2 ring-gold' : ''}`}>
+              <Avatar
+                src={profile?.avatar_url}
+                name={profile?.full_name || 'Me'}
+                size="xs"
+                isVerifiedClergy={profile?.is_verified_clergy}
+              />
+              {unreadDMs > 0 && (
+                <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-navy" />
               )}
             </div>
-            <span className={`text-[11px] font-medium ${moreActive ? 'text-gold' : 'text-gray-300'}`}>
-              More
+            <span className={`text-[11px] font-medium ${meActive ? 'text-gold' : 'text-gray-300'}`}>
+              {t('nav.me')}
             </span>
-          </button>
+            {unreadDMs > 0 && <span className="sr-only">, {unreadDMs} unread messages</span>}
+          </Link>
         </div>
       </nav>
 
-      {/* ── More slide-up sheet ── */}
-      <MoreSheet
-        open={moreOpen}
-        onClose={() => setMoreOpen(false)}
-        profile={profile}
-        unreadDMs={unreadDMs}
-        isPlatformAdmin={isPlatformAdmin}
-        parishAdminRecords={parishAdminRecords}
-        orgAdminRecords={orgAdminRecords}
-        onSignOut={handleSignOut}
-      />
 
       {/* ── Desktop left sidebar ── */}
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3 overflow-y-auto overscroll-contain" aria-label="Main">
@@ -512,15 +315,6 @@ function Navigation() {
               )}
             </div>
             <span className="text-sm font-medium">{t('nav.notifications')}</span>
-          </Link>
-
-          {/* Settings */}
-          <Link to="/settings"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              location.pathname.startsWith('/settings') && location.pathname !== '/settings/profile' ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}>
-            <Cog6ToothIcon className="w-5 h-5" />
-            <span className="text-sm font-medium">{t('nav.settings')}</span>
           </Link>
 
           {/* Organizations */}
@@ -598,7 +392,8 @@ function Navigation() {
 
         {/* User info + sign out */}
         <div className="border-t border-white/10 pt-4 mt-2">
-          <div className="flex items-center gap-3 px-3 mb-3">
+          <div className="flex items-center gap-1 px-1 mb-3">
+            <Link to="/profile" className="flex-1 min-w-0 flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || 'Me'} size="sm"
               isVerifiedClergy={profile?.is_verified_clergy} />
             <div className="flex-1 min-w-0">
@@ -612,6 +407,14 @@ function Navigation() {
                   : 'nav.role_member')}
               </p>
             </div>
+            </Link>
+            <Link to="/settings" aria-label={t('nav.settings')}
+              aria-current={location.pathname.startsWith('/settings') ? 'page' : undefined}
+              className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors flex-shrink-0 ${
+                location.pathname.startsWith('/settings') ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              }`}>
+              <Cog6ToothIcon className="w-5 h-5" />
+            </Link>
           </div>
           <div className="px-1 py-1 mb-1">
             <LanguageSwitcher variant="compact" />

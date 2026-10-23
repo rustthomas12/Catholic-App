@@ -4,10 +4,9 @@ import TopBar from '../components/shared/TopBar'
 import {
   ChevronRightIcon, UserIcon, BellIcon,
   ShieldCheckIcon, InformationCircleIcon, ArrowRightOnRectangleIcon,
-  ExclamationTriangleIcon, ShieldExclamationIcon, EnvelopeIcon, NoSymbolIcon,
+  ExclamationTriangleIcon, EnvelopeIcon, NoSymbolIcon, KeyIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useNotifications } from '../hooks/useNotifications'
 import { supabase, supabaseAuth } from '../lib/supabase'
 import { apiUrl } from '../lib/platform'
 import Modal from '../components/shared/Modal'
@@ -31,13 +30,21 @@ function SettingsRow({ icon: Icon, label, value, to, onClick, danger = false }) 
 }
 
 function SectionHeader({ title }) {
-  return <p className="px-4 pt-5 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</p>
+  return <h2 className="px-7 pt-6 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h2>
+}
+
+// One rounded card of rows, iOS Settings style
+function Group({ children, className = '' }) {
+  return (
+    <div className={`bg-white rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm divide-y divide-gray-50 ${className}`}>
+      {children}
+    </div>
+  )
 }
 
 export default function SettingsPage() {
   useEffect(() => { document.title = 'Settings | inFold' }, [])
-  const { user, profile, isAdmin, signOut, updateProfile } = useAuth()
-  const { unreadCount } = useNotifications()
+  const { user, profile, signOut, updateProfile } = useAuth()
   const navigate = useNavigate()
 
   const [showSignOutModal, setShowSignOutModal] = useState(false)
@@ -80,115 +87,87 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
 
-        {/* Header */}
-        <TopBar title="Settings" />
+        <TopBar title="Settings" back="/profile" />
 
-        {/* Platform Administration — only for platform admins */}
-        {isAdmin && (
-          <div className="mx-3 mt-4">
-            <Link
-              to="/admin"
-              className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <ShieldExclamationIcon className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="text-sm font-semibold text-red-700">Admin Dashboard</p>
-                  <p className="text-xs text-red-400">Platform moderation and management</p>
-                </div>
-              </div>
-              <ChevronRightIcon className="w-4 h-4 text-red-400" />
-            </Link>
-          </div>
-        )}
-
-        {/* Language / Idioma — always bilingual label so Spanish speakers can find it */}
-        <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm px-4 py-4">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-            Language / Idioma
-          </p>
-          <LanguageSwitcher variant="full" />
-        </div>
-
-        <div className="bg-white mt-2 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm">
-          {/* Account */}
-          <SectionHeader title="Account" />
-          <SettingsRow icon={null} label="Email" value={user?.email} />
-          <div className="border-t border-gray-50" />
-          <SettingsRow icon={null} label="Change password" to="/forgot-password" />
-
-          {/* Profile */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="Profile" />
+        {/* Account */}
+        <SectionHeader title="Account" />
+        <Group>
+          <SettingsRow icon={EnvelopeIcon} label="Email" value={user?.email} />
+          <SettingsRow icon={KeyIcon} label="Change password" to="/forgot-password" />
           <SettingsRow icon={UserIcon} label="Edit profile" to="/settings/profile" />
+        </Group>
 
-          {/* Notifications */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="Notifications" />
+        {/* Notifications */}
+        <SectionHeader title="Notifications" />
+        <Group>
           <SettingsRow
             icon={BellIcon}
             label="Notification preferences"
             to="/settings/notifications"
-            value={unreadCount > 0 ? `${unreadCount} unread` : undefined}
           />
+        </Group>
 
-          {/* Privacy */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="Privacy" />
+        {/* Privacy & safety */}
+        <SectionHeader title="Privacy & safety" />
+        <Group>
           <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
             <div className="flex items-center gap-3">
               <ShieldCheckIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              <span className="text-sm font-medium text-navy">Profile visibility</span>
+              <span className="text-sm font-medium text-navy">Who can see my profile</span>
             </div>
             <select
-              aria-label="Profile visibility"
+              aria-label="Who can see my profile"
               value={profile?.profile_visibility || 'public'}
               onChange={async e => {
                 const { error } = await updateProfile({ profile_visibility: e.target.value })
                 if (error) toast.error(error)
                 else toast.success('Visibility updated')
               }}
-              className="text-sm text-gray-500 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gold">
-              <option value="public">Public</option>
-              <option value="members_only">Members only</option>
+              className="text-sm text-gray-500 border border-gray-200 rounded-lg px-2 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-gold">
+              <option value="public">Everyone</option>
+              <option value="members_only">My communities</option>
             </select>
           </div>
-          <div className="border-t border-gray-50" />
           <SettingsRow icon={NoSymbolIcon} label="Blocked users" to="/settings/blocked" />
+        </Group>
 
-          {/* About */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="About" />
-          <SettingsRow icon={InformationCircleIcon} label="Version" value={`v${pkgJson.version}`} />
-          <div className="border-t border-gray-50" />
+        {/* Language / Idioma — always bilingual so Spanish speakers can find it */}
+        <SectionHeader title="Language / Idioma" />
+        <Group>
+          <div className="px-4 py-4">
+            <LanguageSwitcher variant="full" />
+          </div>
+        </Group>
+
+        {/* About */}
+        <SectionHeader title="About" />
+        <Group>
+          <SettingsRow icon={EnvelopeIcon} label="Contact us" to="/contact" />
           <SettingsRow icon={null} label="Terms of Service" to="/terms" />
-          <div className="border-t border-gray-50" />
           <SettingsRow icon={null} label="Privacy Policy" to="/privacy" />
-          <div className="border-t border-gray-50" />
           <SettingsRow icon={null} label="Content Policy" to="/policy" />
-          <div className="border-t border-gray-50" />
-          <SettingsRow icon={EnvelopeIcon} label="Contact Us" to="/contact" />
+          <SettingsRow icon={InformationCircleIcon} label="Version" value={`v${pkgJson.version}`} />
+        </Group>
 
-          {/* Danger zone */}
-          <div className="border-t border-gray-100" />
-          <SectionHeader title="Danger Zone" />
+        {/* Sign out */}
+        <Group className="mt-6">
+          <button
+            onClick={() => setShowSignOutModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-3.5 text-navy text-sm font-semibold hover:bg-lightbg transition-colors min-h-[52px]">
+            <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
+            Sign out
+          </button>
+        </Group>
+
+        {/* Delete account — on its own, at the very bottom */}
+        <Group className="mt-3">
           <SettingsRow
             icon={ExclamationTriangleIcon}
             label="Delete my account"
             onClick={() => setShowDeleteModal(true)}
             danger
           />
-        </div>
-
-        {/* Sign out button */}
-        <div className="mx-3 mt-4">
-          <button
-            onClick={() => setShowSignOutModal(true)}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 rounded-xl py-3.5 text-navy text-sm font-medium hover:bg-lightbg transition-colors min-h-[52px] shadow-sm">
-            <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
-            Sign out
-          </button>
-        </div>
+        </Group>
       </div>
 
       {/* Sign out modal */}

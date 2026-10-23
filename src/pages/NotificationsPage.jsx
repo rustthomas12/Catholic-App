@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BellIcon } from '@heroicons/react/24/outline'
+import { BellIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import TopBar, { TopBarAction } from '../components/shared/TopBar'
 import { isToday, isYesterday, isThisWeek } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { useNotifications } from '../hooks/useNotifications'
@@ -101,20 +102,18 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-20">
 
       {/* ── Header ── */}
-      <div className="sticky sticky-top z-10 bg-cream border-b border-gray-100">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-navy">
-            {t('notifications.title')}
-          </h1>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-sm font-semibold text-gold hover:underline min-h-[44px] px-2"
-            >
-              {t('notifications.mark_all_read')}
-            </button>
-          )}
-        </div>
+      <TopBar title={t('notifications.title')} actions={<>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllAsRead}
+            className="text-sm font-semibold text-gold hover:underline min-h-[44px] px-2"
+          >
+            {t('notifications.mark_all_read')}
+          </button>
+        )}
+        <TopBarAction label={t('notifications.settings_title')} icon={Cog6ToothIcon} to="/settings/notifications" />
+      </>} />
+      <div className="bg-cream">
 
         {/* Unread pill */}
         {unreadCount > 0 && (

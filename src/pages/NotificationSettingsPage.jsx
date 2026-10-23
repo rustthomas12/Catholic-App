@@ -276,7 +276,7 @@ export default function NotificationSettingsPage() {
     <div className="min-h-screen bg-cream md:pl-60 pb-20">
 
       {/* ── Header ── */}
-      <TopBar title={t('notifications.settings_title')} back="/settings" />
+      <TopBar title={t('notifications.settings_title')} back />
 
       <div className="max-w-2xl mx-auto px-4 pt-4">
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">

@@ -1,8 +1,9 @@
+import MeShortcuts from '../components/profile/MeShortcuts'
 import ReportModal from '../components/shared/ReportModal'
 import { reportContent } from '../lib/reports'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, ShieldExclamationIcon, NoSymbolIcon,
+import { BuildingLibraryIcon, PencilIcon, ArrowLeftIcon, Cog6ToothIcon, NoSymbolIcon,
   FlagIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -37,7 +38,7 @@ function ProfileSkeleton() {
 
 export default function ProfilePage() {
   const { id } = useParams()
-  const { user, profile: currentProfile, isAdmin, loading: authLoading } = useAuth()
+  const { user, profile: currentProfile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const [profile, setProfile] = useState(null)
@@ -105,6 +106,8 @@ export default function ProfilePage() {
   }, [targetId, authLoading])
 
   const isOwnProfile = user?.id === targetId
+  // /profile with no id is the Me tab
+  const isMeTab = !id
   const { t } = useTranslation(['feed', 'common'])
   const { isBlocked, block, unblock } = useBlockedUsers()
   const [showBlockModal, setShowBlockModal] = useState(false)
@@ -165,24 +168,26 @@ export default function ProfilePage() {
 
         {/* Header */}
         <div className="relative">
-          {/* Back button (mobile) */}
-          <button aria-label="Back" onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 z-10 w-9 h-9 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm md:hidden">
-            <ArrowLeftIcon className="w-5 h-5 text-navy" />
-          </button>
+          {/* Back button (mobile) — not on the Me tab itself, which is a tab root */}
+          {!isMeTab && (
+            <button aria-label="Back" onClick={() => navigate(-1)}
+              className="absolute top-3 left-3 z-10 w-11 h-11 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm md:hidden">
+              <ArrowLeftIcon className="w-5 h-5 text-navy" />
+            </button>
+          )}
 
           {/* Edit + Settings buttons */}
           {isOwnProfile && (
             <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-              <Link to="/settings"
-                className="flex items-center justify-center w-9 h-9 bg-white/90 backdrop-blur text-navy rounded-full shadow-sm hover:bg-white transition-colors md:hidden"
-                aria-label="Settings">
-                <Cog6ToothIcon className="w-5 h-5" />
-              </Link>
               <Link to="/settings/profile"
-                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-navy text-sm font-medium px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                className="flex items-center gap-1.5 bg-white/90 backdrop-blur text-navy text-sm font-medium px-3.5 min-h-[44px] rounded-full shadow-sm hover:bg-white transition-colors">
                 <PencilIcon className="w-4 h-4" />
-                Edit
+                Edit profile
+              </Link>
+              <Link to="/settings"
+                className="flex items-center justify-center w-11 h-11 bg-white/90 backdrop-blur text-navy rounded-full shadow-sm hover:bg-white transition-colors"
+                aria-label="Settings">
+                <Cog6ToothIcon className="w-6 h-6" />
               </Link>
             </div>
           )}
@@ -238,15 +243,6 @@ export default function ProfilePage() {
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {profile.is_verified_clergy && <Badge variant="clergy" />}
-              {isOwnProfile && isAdmin && (
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full hover:bg-red-100 transition-colors"
-                >
-                  <ShieldExclamationIcon className="w-3.5 h-3.5" />
-                  Platform Admin
-                </Link>
-              )}
             </div>
 
             <h1 className="text-xl font-bold text-navy mt-1">{profile.full_name || 'Parish Member'}</h1>
@@ -312,6 +308,8 @@ export default function ProfilePage() {
             </div>
           </div>
           )}
+
+          {isOwnProfile && <MeShortcuts />}
 
           {/* Posts feed */}
           {profile.limited ? null : blocked ? (
