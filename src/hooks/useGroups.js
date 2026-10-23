@@ -262,9 +262,13 @@ export function useGroup(groupId) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Only the first load shows the skeleton; refreshes (join, leave,
+  // member changes) update in place instead of flashing the whole page
+  const loadedFor = useRef(null)
+
   const fetch = useCallback(async () => {
     if (!groupId) return
-    setLoading(true)
+    if (loadedFor.current !== groupId) setLoading(true)
     const { data, error: err } = await supabase
       .from('groups')
       .select(`
@@ -277,7 +281,7 @@ export function useGroup(groupId) {
       .single()
 
     if (err) setError(err.message)
-    else setGroup(data)
+    else { setGroup(data); loadedFor.current = groupId }
     setLoading(false)
   }, [groupId])
 
