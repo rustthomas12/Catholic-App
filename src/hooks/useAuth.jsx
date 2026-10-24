@@ -45,6 +45,12 @@ function clearStoredProfile(userId) {
   try { localStorage.removeItem('parish_profile_' + userId) } catch {}
 }
 
+// Keep the existing user object when nothing meaningful changed, so hooks
+// that depend on `user` don't refetch on every session refresh.
+function sameUser(prev, next) {
+  return prev && next && prev.id === next.id && prev.email === next.email ? prev : next
+}
+
 export function AuthProvider({ children }) {
   const storedUser    = getStoredUser()
   const storedProfile = getStoredProfile(storedUser?.id)
@@ -150,7 +156,7 @@ export function AuthProvider({ children }) {
 
       if (session?.user) {
         userIdRef.current = session.user.id
-        setUser(session.user)
+        setUser(prev => sameUser(prev, session.user))
 
         const cached = getStoredProfile(session.user.id)
         if (cached && cached.id === session.user.id) {
@@ -202,7 +208,9 @@ export function AuthProvider({ children }) {
           event === 'USER_UPDATED'
         )) {
           userIdRef.current = session.user.id
-          setUser(session.user)
+          // Hourly TOKEN_REFRESHED used to swap in an identical user object,
+          // which made every hook keyed on `user` reload all its data
+          setUser(prev => sameUser(prev, session.user))
           const p = await fetchProfile(session.user.id)
           if (!cancelled && p) setProfile(p)
         }
