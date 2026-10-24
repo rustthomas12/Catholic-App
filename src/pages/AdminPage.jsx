@@ -932,8 +932,9 @@ function ParishClusters() {
   }
 
   async function removeParish(clusterId, parishId) {
-    await supabase.from('parish_cluster_members').delete()
-      .eq('cluster_id', clusterId).eq('parish_id', parishId)
+    const { data, error } = await supabase.from('parish_cluster_members').delete()
+      .eq('cluster_id', clusterId).eq('parish_id', parishId).select('parish_id')
+    if (error || !data?.length) { toast.error('Could not remove parish'); return }
     setClusters(prev => prev.map(c =>
       c.id !== clusterId ? c : {
         ...c,

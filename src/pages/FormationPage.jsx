@@ -1,3 +1,4 @@
+import { toast } from '../components/shared/Toast'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
@@ -65,11 +66,10 @@ export default function FormationPage() {
   const progressPct = Math.round((completedCount / totalDays) * 100)
 
   async function toggleDay(dayNumber) {
-    if (completedDays.has(dayNumber)) {
-      await markIncomplete(dayNumber)
-    } else {
-      await markComplete(dayNumber)
-    }
+    const ok = completedDays.has(dayNumber)
+      ? await markIncomplete(dayNumber)
+      : await markComplete(dayNumber)
+    if (!ok) toast.error('Could not save your progress. Please try again.')
   }
 
   const headerColor = PROGRAM_HEADER_COLORS[program] || 'bg-navy'

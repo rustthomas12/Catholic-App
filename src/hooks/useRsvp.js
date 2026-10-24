@@ -1,3 +1,4 @@
+import { toast } from '../components/shared/Toast'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
@@ -41,19 +42,22 @@ export function useRsvp(eventId) {
     try {
       if (response === myRsvp) {
         // Toggle off — delete the row
-        await supabase
+        const { error } = await supabase
           .from('event_rsvps')
           .delete()
           .eq('event_id', eventId)
           .eq('user_id', user.id)
+        // Supabase returns errors instead of throwing — make catch() see them
+        if (error) throw error
       } else {
         // Upsert RSVP (handles new + change-of-mind)
-        await supabase
+        const { error } = await supabase
           .from('event_rsvps')
           .upsert(
             { event_id: eventId, user_id: user.id, response },
             { onConflict: 'event_id,user_id' }
           )
+        if (error) throw error
       }
 
       // Refetch count — DB trigger keeps it accurate
@@ -67,6 +71,7 @@ export function useRsvp(eventId) {
     } catch (err) {
       // Revert on error
       setMyRsvp(prev)
+      toast.error('Could not save your RSVP. Please try again.')
       console.error('RSVP error:', err)
     } finally {
       setLoading(false)

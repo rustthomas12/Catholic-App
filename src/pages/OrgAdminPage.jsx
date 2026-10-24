@@ -871,7 +871,8 @@ function InvitesTab({ orgId, user, hasActiveSub }) {
   }
 
   const deleteInvite = async (id) => {
-    await supabase.from('organization_invites').delete().eq('id', id)
+    const { data, error } = await supabase.from('organization_invites').delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete invite.'); return }
     setInvites(prev => prev.filter(i => i.id !== id))
   }
 

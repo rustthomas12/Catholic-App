@@ -90,11 +90,14 @@ export default function IntegrationsTab({ parishId }) {
   }
 
   async function handleDisconnect(platformId) {
-    await supabase
+    const { data, error } = await supabase
       .from('parish_integrations')
       .delete()
       .eq('parish_id', parishId)
       .eq('platform', platformId)
+      .select('id')
+    // RLS turns a disallowed delete into "0 rows" rather than an error
+    if (error || !data?.length) { toast.error('Could not disconnect. Please try again.'); return }
     setIntegrations(prev => {
       const next = { ...prev }
       delete next[platformId]

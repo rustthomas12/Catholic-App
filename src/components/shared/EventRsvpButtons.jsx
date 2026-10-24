@@ -20,8 +20,9 @@ export default function EventRsvpButtons({ eventId, showCount = true }) {
           key={btn.value}
           onClick={() => respond(btn.value)}
           disabled={loading}
+          aria-pressed={myRsvp === btn.value}
           className={`
-            text-xs font-medium px-3 py-1.5 rounded-full border transition-colors
+            tap-target text-xs font-medium px-3 py-1.5 rounded-full border transition-colors
             ${myRsvp === btn.value
               ? btn.activeClass
               : 'bg-white text-gray-600 border-gray-300 hover:border-navy hover:text-navy'
