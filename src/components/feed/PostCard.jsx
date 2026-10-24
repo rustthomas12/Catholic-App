@@ -1,3 +1,4 @@
+import { useDialog } from '../../hooks/useDialog'
 import { memo, useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -81,13 +82,14 @@ function BlockModal({ isOpen, onClose, onConfirm, loading, name }) {
 
 // ── Fullscreen image modal ─────────────────────────────────
 function ImageModal({ src, onClose }) {
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+  // Escape closes, focus stays inside and returns afterwards, no page scroll
+  const ref = useDialog(true, onClose)
   return (
-    <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={onClose}>
-      <button aria-label="Close" onClick={onClose} className="absolute top-4 right-4 text-white p-2">
+    <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Photo"
+      className="fixed inset-0 z-50 bg-black flex items-center justify-center outline-none" onClick={onClose}>
+      <button aria-label="Close" onClick={onClose}
+        className="absolute right-2 w-11 h-11 flex items-center justify-center text-white rounded-full hover:bg-white/10"
+        style={{ top: 'calc(var(--app-safe-top, 0px) + 8px)' }}>
         <XMarkIcon className="w-6 h-6" />
       </button>
       <img src={src} alt="" className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />

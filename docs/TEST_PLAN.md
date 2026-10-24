@@ -68,8 +68,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | F4 | Create post with image (≤5 MB); >5 MB rejected | B | ✅ |
 | F5 | Prayer-request toggle on post | B | 🔧 |
 | F6 | Character counter / max length | B | ✅ |
-| F7 | Like / react to post; count updates for other user | A,B | 🔧 |
-| F8 | Comment on post; other user sees it + gets notification | A,B | 🔧 |
+| F7 | Like / react to post; count updates for other user | A,B | ✅ like count + "liked your post" notification |
+| F8 | Comment on post; other user sees it + gets notification | A,B | ✅ comment shows; "commented on your post: …" notification |
 | F9 | Open /post/:id direct link; unavailable post shows message | A | ✅ |
 | F10 | Delete own post | B | ✅ |
 | F11 | Report post → appears in admin moderation queue | B→A | ✅ |
@@ -361,6 +361,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 128 | N1 | Message notifications (incl. org contact messages) opened the Messages list, not the conversation | Open `/messages?to=<sender>` in the app and from push; push title for reports is now "New report" | fixed (needs send-push deploy for push) |
 | 129 | D1 | Directory search stopped at 50 unordered results with no hint (Diocese of Worcester has 95) | Sorted by name; "(first 50)" + "add a city, zip or state" hint | fixed |
 | 130 | — | Six search boxes put typed text straight into a PostgREST or() filter — a comma or parenthesis broke the search (and could add conditions; RLS still applied) | `containsIlike()` strips filter syntax; tests | fixed |
+| 131 | F1 | Every post fired a "posted in your parish" insert to up to 500 followers that the database always rejects (only announcements may notify the parish) | Dead code removed; announcements notify via 068 | fixed |
+| 132 | F1 | Post composer, "Post to" sheet and the photo viewer weren't dialogs to assistive tech: no role, no Escape (viewer), no focus trap or return; viewer's close button sat under the notch | Shared `useDialog` hook (also used by Modal): role/aria-modal/label, Escape, Tab trap, focus return, scroll lock; safe-area close button | fixed |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |
