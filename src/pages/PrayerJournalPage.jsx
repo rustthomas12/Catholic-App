@@ -11,7 +11,7 @@ const MOODS = ['😔', '😐', '🙂', '😊', '🙏']
 export default function PrayerJournalPage() {
   useEffect(() => { document.title = 'Prayer Journal | inFold' }, [])
 
-  const { entries, loading, createEntry, updateEntry, deleteEntry } = usePrayerJournal()
+  const { entries, otherDeviceCount, loading, createEntry, updateEntry, deleteEntry } = usePrayerJournal()
 
   const [composing, setComposing] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -40,12 +40,12 @@ export default function PrayerJournalPage() {
   async function handleSave() {
     if (!content.trim()) return
     setSaving(true)
-    if (editingId) {
-      await updateEntry(editingId, { title, content, mood })
-    } else {
-      await createEntry({ title, content, mood })
-    }
+    const saved = editingId
+      ? await updateEntry(editingId, { title, content, mood })
+      : await createEntry({ title, content, mood })
     setSaving(false)
+    // Keep the editor open (and the text) if it didn't save
+    if (!saved) { toast.error('Could not save your entry. Please try again.'); return }
     setComposing(false)
   }
 
@@ -72,7 +72,7 @@ export default function PrayerJournalPage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 flex items-start gap-3">
             <ShieldCheckIcon className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-500 leading-relaxed">
-              🔒 Your journal entries are private. They are never visible to other users or our team.
+              🔒 Your journal is encrypted on this device before it's saved. Only this device can read it — not other members, not our team, not anyone with access to our servers. Entries can't be opened on your other devices, and if this device is lost or the app is removed, they can't be recovered.
             </p>
           </div>
 
@@ -140,7 +140,15 @@ export default function PrayerJournalPage() {
             <div className="space-y-2 animate-pulse">
               {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-xl border border-gray-100" />)}
             </div>
-          ) : entries.length === 0 ? (
+          ) : null}
+          {!loading && otherDeviceCount > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 p-3 text-xs text-gray-500">
+              {otherDeviceCount === 1
+                ? '1 entry was written on another device and can only be read there.'
+                : `${otherDeviceCount} entries were written on another device and can only be read there.`}
+            </div>
+          )}
+          {loading ? null : entries.length === 0 ? (
             <div className="text-center py-12 text-gray-500 text-sm">
               No entries yet. Start by writing your first reflection.
             </div>

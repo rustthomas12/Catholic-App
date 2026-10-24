@@ -1,59 +1,81 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
+import { encryptEntry, decryptEntry } from '../lib/journalCrypto'
+
+// Entries are end-to-end encrypted with a key that exists only on this
+// device (see lib/journalCrypto). The server stores ciphertext only.
+const COLUMNS = 'id, ciphertext, iv, key_id, created_at, updated_at'
 
 export function usePrayerJournal() {
   const { user } = useAuth()
   const [entries,  setEntries]  = useState([])
+  const [otherDeviceCount, setOtherDeviceCount] = useState(0)
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState(null)
+
+  const open = useCallback(async (row) => {
+    const plain = await decryptEntry(user.id, row)
+    return plain ? { id: row.id, created_at: row.created_at, updated_at: row.updated_at, ...plain } : null
+  }, [user])
 
   const fetchEntries = useCallback(async () => {
     if (!user) return
     setLoading(true)
     const { data, error } = await supabase
       .from('prayer_journal')
-      .select('*')
+      .select(COLUMNS)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(100)
-    if (error) setError(error.message)
-    else setEntries(data || [])
+      .limit(200)
+    if (error) {
+      setError(error.message)
+    } else {
+      const opened = await Promise.all((data || []).map(open))
+      setEntries(opened.filter(Boolean))
+      setOtherDeviceCount(opened.filter((e) => !e).length)
+    }
     setLoading(false)
-  }, [user])
+  }, [user, open])
 
   useEffect(() => { fetchEntries() }, [fetchEntries])
 
   const createEntry = useCallback(async ({ title, content, mood }) => {
     if (!user || !content?.trim()) return null
-    const { data, error } = await supabase
-      .from('prayer_journal')
-      .insert({
-        user_id: user.id,
-        title:   title?.trim() || null,
-        content: content.trim(),
-        mood:    mood || null,
-      })
-      .select()
-      .single()
-    if (!error) setEntries(prev => [data, ...prev])
-    return error ? null : data
-  }, [user])
+    try {
+      const sealed = await encryptEntry(user.id, { title, content, mood })
+      const { data, error } = await supabase
+        .from('prayer_journal')
+        .insert({ user_id: user.id, ...sealed })
+        .select(COLUMNS)
+        .single()
+      if (error) return null
+      const entry = await open(data)
+      if (entry) setEntries(prev => [entry, ...prev])
+      return entry
+    } catch {
+      return null
+    }
+  }, [user, open])
 
   const updateEntry = useCallback(async (id, { title, content, mood }) => {
-    const { data, error } = await supabase
-      .from('prayer_journal')
-      .update({
-        title:   title?.trim() || null,
-        content: content.trim(),
-        mood:    mood || null,
-      })
-      .eq('id', id)
-      .select()
-      .single()
-    if (!error) setEntries(prev => prev.map(e => e.id === id ? data : e))
-    return error ? null : data
-  }, [])
+    if (!user || !content?.trim()) return null
+    try {
+      const sealed = await encryptEntry(user.id, { title, content, mood })
+      const { data, error } = await supabase
+        .from('prayer_journal')
+        .update(sealed)
+        .eq('id', id)
+        .select(COLUMNS)
+        .single()
+      if (error) return null
+      const entry = await open(data)
+      if (entry) setEntries(prev => prev.map(e => e.id === id ? entry : e))
+      return entry
+    } catch {
+      return null
+    }
+  }, [user, open])
 
   const deleteEntry = useCallback(async (id) => {
     const { error } = await supabase
@@ -64,5 +86,5 @@ export function usePrayerJournal() {
     return !error
   }, [])
 
-  return { entries, loading, error, createEntry, updateEntry, deleteEntry, refetch: fetchEntries }
+  return { entries, otherDeviceCount, loading, error, createEntry, updateEntry, deleteEntry, refetch: fetchEntries }
 }
