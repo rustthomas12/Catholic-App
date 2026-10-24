@@ -1,3 +1,4 @@
+import { containsIlike } from '../utils/search'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
@@ -64,7 +65,7 @@ function useOrgSearch() {
 
       // Each active filter is AND-ed
       if (trimmed.length >= 2) {
-        q = q.or(`name.ilike.%${trimmed}%,city.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+        { const t = containsIlike(trimmed); q = q.or(`name.ilike.${t},city.ilike.${t},description.ilike.${t}`) }
       }
       if (category) {
         q = q.eq('category', category)

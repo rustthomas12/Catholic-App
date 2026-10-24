@@ -27,7 +27,8 @@ describe('notificationPath', () => {
   })
 
   it('handles the fixed-destination types', () => {
-    expect(notificationPath('direct_message', 'u1')).toBe('/messages')
+    expect(notificationPath('direct_message', 'u1')).toBe('/messages?to=u1')
+    expect(notificationPath('direct_message', null)).toBe('/messages')
     expect(notificationPath('prayer_response', 'r1')).toBe('/faith/prayer')
     expect(notificationPath('confession_reminder', null)).toBe('/premium/confession-tracker')
     expect(notificationPath('post_flagged', 'p1')).toBe('/admin')

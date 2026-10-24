@@ -1,3 +1,4 @@
+import { containsIlike } from '../utils/search'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -74,7 +75,7 @@ export default function SignupPage() {
       const { data } = await supabase
         .from('parishes')
         .select('id, name, city, state, diocese')
-        .or(`name.ilike.%${parishQuery}%,zip.eq.${parishQuery}`)
+        .or(`name.ilike.${containsIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9-]/g, '') || '00000'}`)
         .limit(8)
       setParishResults(data || [])
       setShowDropdown(true)

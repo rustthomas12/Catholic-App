@@ -223,16 +223,36 @@ async function distributeToWebhook(post: any, integration: any): Promise<void> {
     headers['X-inFold-Signature'] = btoa(String.fromCharCode(...new Uint8Array(sig)))
   }
 
-  const res = await fetch(webhook_url, {
+  // Re-check on every delivery (the URL was only checked when it was
+  // connected) and never follow redirects — a public endpoint could
+  // otherwise bounce us to a private address.
+  const target = new URL(webhook_url)
+  if (target.protocol !== 'https:' || isPrivateHost(target.hostname)) {
+    throw new Error('Webhook: URL must be a public https:// address')
+  }
+  const res = await fetch(target, {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(10000),
+    redirect: 'manual',
   })
 
   if (!res.ok) {
     throw new Error(`Webhook: ${res.status} ${res.statusText}`)
   }
+}
+
+// Same rule as api/integrations.js: loopback / private / link-local hosts
+function isPrivateHost(host: string): boolean {
+  const h = host.toLowerCase().replace(/^\[|\]$/g, '')
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal') || h.endsWith('.local')) return true
+  if (h === '::1' || h.startsWith('fc') || h.startsWith('fd') || h.startsWith('fe80')) return true
+  const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+  if (!m) return false
+  const [a, b] = [Number(m[1]), Number(m[2])]
+  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127)
 }
 
 // ── Google Business ─────────────────────────────────────────

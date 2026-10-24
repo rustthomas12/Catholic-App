@@ -121,7 +121,8 @@ export function notificationPath(type, referenceId) {
     case 'confession_reminder':
       return '/premium/confession-tracker'
     case 'direct_message':
-      return '/messages'
+      // reference_id is the sender — open that conversation
+      return ref ? `/messages?to=${ref}` : '/messages'
     case 'morning_offering_reminder':
       return '/faith/morning-offering'
     case 'daily_readings_reminder':

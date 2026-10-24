@@ -16,7 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { supabase } from '../lib/supabase';
-import { fuzzyIlike } from '../utils/search';
+import { fuzzyIlike, containsIlike } from '../utils/search';
 import Avatar from '../components/shared/Avatar';
 import Modal from '../components/shared/Modal';
 import { toast } from '../components/shared/Toast';
@@ -145,7 +145,7 @@ function AssignOrgAdmin() {
       .from('profiles')
       .select('id, full_name, username, avatar_url')
       .is('deleted_at', null)
-      .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
+      .or(`full_name.ilike.${containsIlike(trimmed)},username.ilike.${containsIlike(trimmed)}`)
       .limit(8)
     return data || []
   }
@@ -229,7 +229,7 @@ function AssignParishPastor() {
       .from('profiles')
       .select('id, full_name, username, avatar_url')
       .is('deleted_at', null)
-      .or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`)
+      .or(`full_name.ilike.${containsIlike(trimmed)},username.ilike.${containsIlike(trimmed)}`)
       .limit(8)
     return data || []
   }
@@ -435,7 +435,7 @@ export default function AdminPage() {
       // Text search — match full_name OR username
       const trimmed = (search ?? '').trim();
       if (trimmed) {
-        query = query.or(`full_name.ilike.%${trimmed}%,username.ilike.%${trimmed}%`);
+        query = query.or(`full_name.ilike.${containsIlike(trimmed)},username.ilike.${containsIlike(trimmed)}`);
       }
 
       // Role / status filters
