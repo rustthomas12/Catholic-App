@@ -68,8 +68,8 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | F4 | Create post with image (≤5 MB); >5 MB rejected | B | ✅ |
 | F5 | Prayer-request toggle on post | B | 🔧 |
 | F6 | Character counter / max length | B | ✅ |
-| F7 | Like / react to post; count updates for other user | A,B | 🔧 |
-| F8 | Comment on post; other user sees it + gets notification | A,B | 🔧 |
+| F7 | Like / react to post; count updates for other user | A,B | ✅ like count + "liked your post" notification |
+| F8 | Comment on post; other user sees it + gets notification | A,B | ✅ comment shows; "commented on your post: …" notification |
 | F9 | Open /post/:id direct link; unavailable post shows message | A | ✅ |
 | F10 | Delete own post | B | ✅ |
 | F11 | Report post → appears in admin moderation queue | B→A | ✅ |
@@ -98,7 +98,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | E2 | Parishioner sees event, RSVPs (going / maybe / not going) | B | ✅ |
 | E3 | RSVP counts update for admin | A | ✅ Fr. Michael "Going" shows on the admin's RSVP list |
 | E4 | Admin deletes event | A | ⏭ |
-| E5 | Group event create + RSVP | A,B | 🔧 |
+| E5 | Group event create + RSVP | A,B | ✅ Going → Maybe → cleared; count follows (parish event) |
 
 ## 8. Groups
 | ID | Test | Acct | Status |
@@ -355,6 +355,18 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 122 | S5 | Screen-reader unread counts added in Phase 2 stayed in English in Spanish ("Alertas, 17 unread") and said "1 unread messages" | Translated, with singular/plural | fixed |
 | 123 | AD2 | Admins could suspend themselves or another platform admin (Suspend shown on your own row; the server didn't check) | Migration 070: server refuses both; the button is hidden on those rows; the reason is shown on error | fixed — 070 applied |
 | 124 | FA4 | Owner's request: journal must be unreadable even with database access. Also: a failed save closed the editor and lost the text | End-to-end encryption with a device-only key (AES-256-GCM, non-extractable, IndexedDB); migration 071 removes the readable columns; failed saves keep the editor open | fixed (needs 071) |
+| 125 | X5 | Security advisor: 13 functions without a fixed search_path; trigger-only and admin functions exposed as public API endpoints (they refused, but needn't exist); leaked-password protection off | Migration 072 pins search_path and revokes the needless endpoints. Leaked-password protection is a Supabase Pro-plan Auth setting | fixed (needs 072) |
+| 126 | — | Webhook integrations: the address was checked only when connected, and deliveries followed redirects — a public endpoint could bounce announcements to a private address | distribute-post re-checks the address on every delivery and refuses redirects | fixed (needs edge deploy) |
+| 127 | N1 | 45 notifications pointed at deleted/hidden posts ("post not found" on tap) | Migration 073: notifications are removed with their post; one-time cleanup | fixed (needs 073) |
+| 128 | N1 | Message notifications (incl. org contact messages) opened the Messages list, not the conversation | Open `/messages?to=<sender>` in the app and from push; push title for reports is now "New report" | fixed (needs send-push deploy for push) |
+| 129 | D1 | Directory search stopped at 50 unordered results with no hint (Diocese of Worcester has 95) | Sorted by name; "(first 50)" + "add a city, zip or state" hint | fixed |
+| 130 | — | Six search boxes put typed text straight into a PostgREST or() filter — a comma or parenthesis broke the search (and could add conditions; RLS still applied) | `containsIlike()` strips filter syntax; tests | fixed |
+| 131 | F1 | Every post fired a "posted in your parish" insert to up to 500 followers that the database always rejects (only announcements may notify the parish) | Dead code removed; announcements notify via 068 | fixed |
+| 132 | F1 | Post composer, "Post to" sheet and the photo viewer weren't dialogs to assistive tech: no role, no Escape (viewer), no focus trap or return; viewer's close button sat under the notch | Shared `useDialog` hook (also used by Modal): role/aria-modal/label, Escape, Tab trap, focus return, scroll lock; safe-area close button | fixed |
+| 133 | FA6 | Private intentions: Remove deleted instantly with no confirmation, and removed it from the list even when the delete failed; trash icon ~1.4:1 contrast | Confirmation sheet; error check; readable icon | fixed |
+| 134 | — | 9 icon-only buttons (saint favourite stars, admin delete icons, formation check, admin row delete) used gray-300 / red-300 — below the 3:1 needed for controls | Darkened to gray-500 / red-600 | fixed |
+| 135 | — | Five actions updated the screen without checking the save worked (integration disconnect, cluster remove, invite revoke, formation un-check/check) — RLS reports a refused delete as "0 rows", not an error. RSVP's error handling never ran (Supabase returns errors rather than throwing), so a failed RSVP still showed as chosen | Each checks the result (rows, not just errors) and shows an error; RSVP reverts and says so | fixed |
+| 136 | E3 | RSVP buttons didn't tell screen readers which one is selected; 30px tall | aria-pressed; 48px touch area | fixed |
 | 94 | AU5 | **Reset password: every error silently did nothing** (e.g. reusing the old password) — page read `.message` on a string | Shows the error; 'must be different' message | ✅ |
 | 88 | — | Fr. Michael's local tab crashed on load ("removeChild") — stale dev service worker registered before it was disabled, booting the app twice | Unregistered in the 3 local tabs (local-only) | ✅ |
 | 89 | G9 | **"Delete group" did nothing** — no DELETE policy, app navigated away as if it worked | Mig. 055 + result check | ✅ |

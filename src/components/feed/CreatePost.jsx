@@ -1,3 +1,4 @@
+import { useDialog } from '../../hooks/useDialog'
 import { friendlyError } from '../../utils/errors'
 import { useState, useRef, useEffect } from 'react'
 import { PhotoIcon, XMarkIcon, BuildingLibraryIcon, UserGroupIcon } from '@heroicons/react/24/outline'
@@ -14,11 +15,13 @@ const WARN_CHARS = 450
 
 // ── Destination selector sheet ─────────────────────────────
 function DestinationSheet({ isOpen, onClose, options, selected, onSelect }) {
+  const panelRef = useDialog(isOpen, onClose)
   if (!isOpen) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-2xl md:rounded-xl w-full md:max-w-sm shadow-xl">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Post to"
+        className="relative bg-white rounded-t-2xl md:rounded-xl w-full md:max-w-sm shadow-xl outline-none safe-bottom">
         <div className="flex justify-center pt-3 pb-1 md:hidden">
           <div className="w-10 h-1 rounded-full bg-gray-300" />
         </div>
@@ -198,34 +201,16 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
       })()
     }
 
-    // Fire-and-forget: notify parish followers of new post
-    if (parishId && data?.id) {
-      ;(async () => {
-        const { data: followers } = await supabase
-          .from('parish_follows')
-          .select('user_id')
-          .eq('parish_id', parishId)
-          .neq('user_id', user.id)
-          .limit(500)
-        if (followers?.length) {
-          await supabase.from('notifications').insert(
-            followers.map(f => ({
-              user_id: f.user_id,
-              type: 'parish_post',
-              reference_id: data.id,
-              message: `${profile?.full_name || 'Someone'} posted in your parish`,
-              actor_id: user.id,
-              is_read: false,
-            }))
-          )
-        }
-      })()
-    }
+    // Parish announcements notify followers in the database (migration 068);
+    // ordinary posts don't notify the whole parish (blocked by can_send_notification).
 
     toast.success(t('post.success'))
     onPost?.(data)
     onClose()
   }
+
+  // Escape, focus trap and focus return (the textarea's autoFocus is kept)
+  const composerRef = useDialog(isOpen, onClose, { initialFocus: 'none' })
 
   if (!isOpen) return null
 
@@ -235,9 +220,10 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
   return (
     <>
       <div className="fixed inset-0 z-40 flex items-end md:items-center justify-center">
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
 
-        <div className="relative bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh]">
+        <div ref={composerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={t('post.create_title', 'Create post')}
+          className="relative bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] outline-none safe-bottom">
           {/* Drag handle (mobile) */}
           <div className="md:hidden flex justify-center pt-3 pb-1">
             <div className="w-10 h-1 rounded-full bg-gray-300" />

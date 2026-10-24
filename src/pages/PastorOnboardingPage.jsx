@@ -1,3 +1,4 @@
+import { containsIlike } from '../utils/search'
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -103,7 +104,7 @@ function StepParish({ onSelect }) {
     const { data } = await supabase
       .from('parishes')
       .select('id, name, city, state, diocese')
-      .or(`name.ilike.%${q.trim()}%,city.ilike.%${q.trim()}%`)
+      .or(`name.ilike.${containsIlike(q)},city.ilike.${containsIlike(q)}`)
       .limit(8)
     setResults(data ?? [])
     setLoading(false)

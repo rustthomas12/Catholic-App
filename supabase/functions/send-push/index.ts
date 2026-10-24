@@ -50,7 +50,7 @@ function notificationPath(type: string, ref: string | null): string {
     case 'confession_reminder':
       return '/premium/confession-tracker'
     case 'direct_message':
-      return '/messages'
+      return ref ? `/messages?to=${ref}` : '/messages'
     case 'event_reminder':
       return ref ? `/event/${ref}` : '/notifications'
     default:
@@ -78,7 +78,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession` },
     direct_message:         { title: '💬 New message',         body: `${actor} sent you a message` },
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event` },
-    post_flagged:             { title: '🚩 Post reported',          body: body || `A post was flagged for review` },
+    post_flagged:             { title: '🚩 New report',             body: body || `Something was reported for review` },
     new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
     parish_message:           { title: '✉️ New parish message',      body: body || `${actor} sent your parish a message` },
     pastor_verified:          { title: "✅ You're verified",          body: body || 'Your parish dashboard is ready' },

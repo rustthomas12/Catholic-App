@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
-import { fuzzyIlike } from '../utils/search'
+import { fuzzyIlike, containsIlike } from '../utils/search'
 
 // Haversine distance in miles
 export function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -18,9 +18,12 @@ export function haversineMiles(lat1, lon1, lat2, lon2) {
 const PARISH_SELECT =
   'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id, description'
 
+const RESULT_LIMIT = 50
+
 // ── useParishSearch ────────────────────────────────────────
 export function useParishSearch() {
   const [results, setResults] = useState([])
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
@@ -47,11 +50,14 @@ export function useParishSearch() {
       setError(null)
 
       const fuzzy = fuzzyIlike(trimmed)
+      const place = containsIlike(cityTrimmed)
 
+      // Fetch one extra row to know whether there are more than we show
       let query = supabase
         .from('parishes')
         .select(PARISH_SELECT)
-        .limit(50)
+        .order('name')
+        .limit(RESULT_LIMIT + 1)
 
       if (state) {
         query = query.eq('state', state)
@@ -61,7 +67,7 @@ export function useParishSearch() {
         // Both name and city provided — AND them for precise narrowing
         // e.g. "St Mary's" AND "Worcester" → only St Mary's in Worcester
         query = query.or(`name.ilike.${fuzzy},diocese.ilike.${fuzzy}`)
-        query = query.or(`city.ilike.%${cityTrimmed}%,zip.ilike.%${cityTrimmed}%`)
+        query = query.or(`city.ilike.${place},zip.ilike.${place}`)
       } else if (trimmed.length >= 2) {
         // Name-only search — match across name, city, zip, diocese
         query = query.or(
@@ -69,7 +75,7 @@ export function useParishSearch() {
         )
       } else if (cityTrimmed.length >= 2) {
         // City/zip-only search — show all parishes in that city/zip
-        query = query.or(`city.ilike.%${cityTrimmed}%,zip.ilike.%${cityTrimmed}%`)
+        query = query.or(`city.ilike.${place},zip.ilike.${place}`)
       }
 
       const { data, error: err } = await query
@@ -80,7 +86,8 @@ export function useParishSearch() {
         return
       }
 
-      let parishes = data ?? []
+      let parishes = (data ?? []).slice(0, RESULT_LIMIT)
+      setHasMore((data ?? []).length > RESULT_LIMIT)
 
       if (userLocation && parishes.length > 0) {
         parishes = parishes
@@ -106,11 +113,12 @@ export function useParishSearch() {
   const clear = useCallback(() => {
     clearTimeout(debounceRef.current)
     setResults([])
+    setHasMore(false)
     setError(null)
     setLoading(false)
   }, [])
 
-  return { results, loading, error, search, clear }
+  return { results, hasMore, loading, error, search, clear }
 }
 
 // ── useNearbyParishes — bounding box + Haversine ──────────

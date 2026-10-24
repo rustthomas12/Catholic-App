@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useDialog } from '../../hooks/useDialog'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 // Full-width bottom sheet on phones, centered dialog from md up
@@ -9,39 +9,8 @@ const sizeMap = {
   full: 'md:max-w-full',
 }
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-
 export default function Modal({ isOpen, onClose, title, size = 'md', children }) {
-  const dialogRef = useRef(null)
-
-  // Escape closes; Tab stays inside the dialog
-  useEffect(() => {
-    function handleKey(e) {
-      if (e.key === 'Escape') { onClose(); return }
-      if (e.key !== 'Tab' || !dialogRef.current) return
-      const items = [...dialogRef.current.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null)
-      if (items.length === 0) { e.preventDefault(); return }
-      const first = items[0], last = items[items.length - 1]
-      if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { e.preventDefault(); last.focus() }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
-    }
-    if (isOpen) {
-      document.addEventListener('keydown', handleKey)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKey)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, onClose])
-
-  // Move focus into the dialog, and back to whatever opened it on close
-  useEffect(() => {
-    if (!isOpen) return
-    const opener = document.activeElement
-    dialogRef.current?.focus()
-    return () => { if (opener && document.contains(opener)) opener.focus() }
-  }, [isOpen])
+  const dialogRef = useDialog(isOpen, onClose)
 
   if (!isOpen) return null
 

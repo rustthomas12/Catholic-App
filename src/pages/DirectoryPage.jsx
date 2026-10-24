@@ -28,7 +28,7 @@ export default function DirectoryPage() {
   useEffect(() => { document.title = 'Parish Directory | inFold' }, [])
 
   const { user, profile } = useAuth()
-  const { results, loading: searchLoading, search, clear } = useParishSearch()
+  const { results, hasMore, loading: searchLoading, search, clear } = useParishSearch()
   const { parishes: followedParishes, loading: followedLoading } = useFollowedParishes()
 
   const [query, setQuery] = useState('')
@@ -560,7 +560,7 @@ export default function DirectoryPage() {
                     {stateFilter && !query
                       ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
                       : 'Search results'}
-                    {results.length > 0 && ` (${results.length})`}
+                    {results.length > 0 && (hasMore ? ` (first ${results.length})` : ` (${results.length})`)}
                   </h2>
                   {searchLoading ? (
                     <div className="space-y-2">
@@ -589,6 +589,11 @@ export default function DirectoryPage() {
                           followLoading={followStates[parish.id]?.loading ?? false}
                         />
                       ))}
+                      {hasMore && (
+                        <p className="sm:col-span-2 text-center text-xs text-gray-500 py-2">
+                          More parishes match — add a city, zip code or state to narrow the list.
+                        </p>
+                      )}
                     </div>
                   )}
                 </>

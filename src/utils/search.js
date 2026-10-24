@@ -13,3 +13,13 @@ export function fuzzyIlike(input) {
     .filter(Boolean)
   return words.length ? `%${words.join('%')}%` : '%'
 }
+
+/**
+ * Plain "contains" pattern for user text inside a PostgREST or() filter.
+ * Commas, parentheses, quotes and wildcards would otherwise end the
+ * condition early or add new ones — strip them.
+ */
+export function containsIlike(input) {
+  const cleaned = (input || '').replace(/[,()"'%*\:]/g, ' ').replace(/\s+/g, ' ').trim()
+  return `%${cleaned}%`
+}

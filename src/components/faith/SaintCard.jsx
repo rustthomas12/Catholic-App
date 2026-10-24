@@ -94,7 +94,7 @@ export default function SaintCard({
             >
               {isFavorite
                 ? <StarSolid className="w-4 h-4 text-gold" />
-                : <StarIcon className="w-4 h-4 text-gray-300 hover:text-gold transition-colors" />
+                : <StarIcon className="w-4 h-4 text-gray-500 hover:text-gold transition-colors" />
               }
             </button>
           )}
@@ -128,7 +128,7 @@ export default function SaintCard({
           >
             {isFavorite
               ? <StarSolid className="w-5 h-5 text-gold" />
-              : <StarIcon className="w-5 h-5 text-gray-300 hover:text-gold transition-colors" />
+              : <StarIcon className="w-5 h-5 text-gray-500 hover:text-gold transition-colors" />
             }
           </button>
         )}
