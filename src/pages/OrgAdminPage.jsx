@@ -560,7 +560,7 @@ function OrgEventsTab({ orgId, user }) {
                 </div>
                 <button aria-label="Delete"
                   onClick={() => handleDelete(ev.id)}
-                  className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0">
+                  className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
@@ -717,7 +717,7 @@ function OrgAnnouncementsTab({ orgId, user }) {
                 </div>
                 <button aria-label="Delete"
                   onClick={() => handleDelete(post.id)}
-                  className="text-red-300 hover:text-red-500 transition-colors flex-shrink-0">
+                  className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>

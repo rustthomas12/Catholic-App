@@ -138,7 +138,7 @@ export default function FormationPage() {
                         >
                           {done
                             ? <CheckCircleIconSolid className="w-6 h-6 text-gold" />
-                            : <CheckCircleIcon className="w-6 h-6 text-gray-300" />
+                            : <CheckCircleIcon className="w-6 h-6 text-gray-500" />
                           }
                         </button>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import TopBar from '../components/shared/TopBar'
+import Modal from '../components/shared/Modal'
 import {
   ChevronLeftIcon,
   PlusIcon,
@@ -31,6 +32,7 @@ export default function PrivateIntentionsPage() {
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState('active')
+  const [confirmDelete, setConfirmDelete] = useState(null)
 
   const load = useCallback(async () => {
     if (!user?.id) return
@@ -78,11 +80,13 @@ export default function PrivateIntentionsPage() {
   }
 
   async function handleDelete(id) {
-    await supabase
+    setConfirmDelete(null)
+    const { error } = await supabase
       .from('private_prayer_intentions')
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
+    if (error) { toast.error('Could not remove this intention.'); return }
     setIntentions(prev => prev.filter(i => i.id !== id))
     toast.success('Intention removed')
   }
@@ -236,7 +240,7 @@ export default function PrivateIntentionsPage() {
                   key={intention.id}
                   intention={intention}
                   onStatus={handleStatus}
-                  onDelete={handleDelete}
+                  onDelete={(id) => setConfirmDelete(id)}
                 />
               ))}
             </div>
@@ -252,6 +256,13 @@ export default function PrivateIntentionsPage() {
 
         </div>
       </div>
+      <Modal isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Remove this intention?" size="sm">
+        <p className="text-sm text-gray-600 mb-4">It will be removed from your list. This can't be undone.</p>
+        <div className="flex gap-3">
+          <button type="button" onClick={() => setConfirmDelete(null)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">Cancel</button>
+          <button type="button" onClick={() => handleDelete(confirmDelete)} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">Remove</button>
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -310,7 +321,8 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           <button
             onClick={() => onDelete(intention.id)}
             title="Remove intention"
-            className="w-8 h-8 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center hover:bg-red-50 hover:text-red-400 transition-colors"
+            aria-label="Remove intention"
+            className="w-8 h-8 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <TrashIcon className="w-3.5 h-3.5" />
           </button>

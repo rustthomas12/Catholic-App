@@ -1028,7 +1028,7 @@ function ParishClusters() {
                         </div>
                         <button aria-label="Close"
                           onClick={() => removeParish(cluster.id, m.parishes.id)}
-                          className='text-gray-300 hover:text-red-400 transition-colors p-1'
+                          className='text-gray-500 hover:text-red-700 transition-colors p-1'
                         >
                           <XMarkIcon className='w-4 h-4' />
                         </button>
