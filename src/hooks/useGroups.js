@@ -487,21 +487,22 @@ export function useGroupJoin() {
   const approveRequest = useCallback(async (requestId, requestUserId, groupId, groupName, onSuccess) => {
     if (!user) return
 
-    // Update request status
-    await supabase
-      .from('group_join_requests')
-      .update({ status: 'approved' })
-      .eq('id', requestId)
-
-    // Insert into group_members — admin is inserting for another user
+    // Add the member first, so a failure leaves the request pending to retry.
+    // 23505 = already a member (e.g. approved from another device): carry on.
     const { error: insertErr } = await supabase
       .from('group_members')
       .insert({ group_id: groupId, user_id: requestUserId, role: 'member' })
 
-    if (insertErr) {
+    if (insertErr && insertErr.code !== '23505') {
       console.error('approveRequest insert error:', insertErr.message)
+      toast.error('Could not approve the request. Please try again.')
       return
     }
+
+    await supabase
+      .from('group_join_requests')
+      .update({ status: 'approved' })
+      .eq('id', requestId)
 
     _invalidateMemberships()
     // Remove from pending list
@@ -522,10 +523,18 @@ export function useGroupJoin() {
   const denyRequest = useCallback(async (requestId, requestUserId, groupId, groupName) => {
     if (!user) return
 
-    await supabase
+    // RLS turns a refused update into 0 rows; don't tell them "not approved"
+    // unless the request really was denied
+    const { data, error } = await supabase
       .from('group_join_requests')
       .update({ status: 'denied' })
       .eq('id', requestId)
+      .select('id')
+
+    if (error || !data?.length) {
+      toast.error('Could not deny the request. Please try again.')
+      return
+    }
 
     setPendingRequests(prev => prev.filter(r => r.id !== requestId))
 
@@ -538,6 +547,30 @@ export function useGroupJoin() {
     })
   }, [user])
 
+  const cancelRequest = useCallback(async (groupId) => {
+    if (!user) return
+    const { data, error } = await supabase
+      .from('group_join_requests')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .select('id')
+
+    if (error || !data?.length) {
+      toast.error('Could not cancel your request. Please try again.')
+      return { error: error ?? 'not_found' }
+    }
+
+    setRequestedGroupIds(prev => {
+      const next = new Set(prev)
+      next.delete(groupId)
+      return next
+    })
+    toast.success('Request cancelled.')
+    return { error: null }
+  }, [user])
+
   const hasRequested = useCallback((groupId) => {
     return requestedGroupIds.has(groupId)
   }, [requestedGroupIds])
@@ -546,6 +579,7 @@ export function useGroupJoin() {
     joinGroup,
     leaveGroup,
     requestToJoin,
+    cancelRequest,
     approveRequest,
     denyRequest,
     hasRequested,

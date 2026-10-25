@@ -125,6 +125,7 @@ function Section({ section, isOpen, onToggle }) {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <button
         onClick={onToggle}
+        aria-expanded={isOpen}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-lightbg transition-colors"
       >
         <div className="flex-1 min-w-0 pr-3">

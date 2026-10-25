@@ -15,6 +15,9 @@ const READ_EVENT = 'infold:notifications-read'
 
 export function useNotifications() {
   const { user } = useAuth()
+  // Depend on the id, not the object: the session refresh at startup swaps in
+  // an identical user object, which refetched everything a second time.
+  const userId = user?.id
 
   const [notifications, setNotifications] = useState([])
   const [unreadCount,   setUnreadCount]   = useState(0)
@@ -28,7 +31,7 @@ export function useNotifications() {
 
   // ── Fetch a page ─────────────────────────────────────────
   const fetchNotifications = useCallback(async (reset = false) => {
-    if (!user) return
+    if (!userId) return
     const offset = reset ? 0 : offsetRef.current
     if (reset) setLoading(true)
     else       setLoadingMore(true)
@@ -43,7 +46,7 @@ export function useNotifications() {
       const { data, error } = await supabase
         .from('notifications')
         .select(NOTIFICATION_SELECT)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1)
 
@@ -73,35 +76,35 @@ export function useNotifications() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [user])
+  }, [userId])
 
   // ── Initial load ─────────────────────────────────────────
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setNotifications([])
       setUnreadCount(0)
       setLoading(false)
       return
     }
     fetchNotifications(true)
-  }, [user, fetchNotifications])
+  }, [userId, fetchNotifications])
 
   // ── Real-time subscription ────────────────────────────────
   // Each mount increments mountIdRef so the channel name is unique.
   // This prevents the StrictMode double-invoke from hitting the same
   // already-subscribed channel object before removeChannel completes.
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
 
     const channel = supabase
-      .channel(`notifications-${user.id}-${channelSuffix.current}`)
+      .channel(`notifications-${userId}-${channelSuffix.current}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         async (payload) => {
           // Fetch the full row with actor join
@@ -123,7 +126,7 @@ export function useNotifications() {
           event: 'UPDATE',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           setNotifications(prev =>
@@ -140,11 +143,11 @@ export function useNotifications() {
       supabase.removeChannel(channel)
       channelRef.current = null
     }
-  }, [user])
+  }, [userId])
 
   // ── Mark one as read ─────────────────────────────────────
   const markAsRead = useCallback(async (notificationId) => {
-    if (!user) return
+    if (!userId) return
     // Optimistic
     setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
@@ -155,13 +158,13 @@ export function useNotifications() {
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
     window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: channelSuffix.current }))
-  }, [user])
+  }, [userId])
 
   // ── Mark all as read ─────────────────────────────────────
   const markAllAsRead = useCallback(async () => {
-    if (!user) return
+    if (!userId) return
     // Optimistic
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     setUnreadCount(0)
@@ -169,10 +172,10 @@ export function useNotifications() {
     await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_read', false)
     window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: channelSuffix.current }))
-  }, [user])
+  }, [userId])
 
   // ── Load more ────────────────────────────────────────────
   const loadMore = useCallback(() => {
@@ -187,15 +190,15 @@ export function useNotifications() {
 
   // ── Keep other hook instances (e.g. the nav badge) in sync ──
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
     const handleRead = (e) => { if (e.detail !== channelSuffix.current) refresh() }
     window.addEventListener(READ_EVENT, handleRead)
     return () => window.removeEventListener(READ_EVENT, handleRead)
-  }, [user, refresh])
+  }, [userId, refresh])
 
   // ── Foreground refresh (iOS / PWA background→foreground) ──
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         refresh()
@@ -203,7 +206,7 @@ export function useNotifications() {
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [user, refresh])
+  }, [userId, refresh])
 
   return {
     notifications,

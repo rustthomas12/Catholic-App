@@ -100,17 +100,15 @@ function LastActiveUpdater() {
   return null
 }
 
-// ── Offline detector ───────────────────────────────────────
+// ── Back-online notice ─────────────────────────────────────
+// While offline, ConnectionBanner says so; this only confirms reconnection.
+// (An offline toast duplicated the banner and promised that changes would
+// sync later, which they don't: nothing is queued.)
 function OfflineDetector() {
   useEffect(() => {
-    const handleOffline = () => toast.offline()
     const handleOnline = () => toast.online()
-    window.addEventListener('offline', handleOffline)
     window.addEventListener('online', handleOnline)
-    return () => {
-      window.removeEventListener('offline', handleOffline)
-      window.removeEventListener('online', handleOnline)
-    }
+    return () => window.removeEventListener('online', handleOnline)
   }, [])
   return null
 }

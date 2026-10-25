@@ -124,24 +124,26 @@ export default function FormationPage() {
                       done ? 'border-gold/40' : 'border-gray-100'
                     }`}
                   >
-                    {/* Card header */}
-                    <button
-                      onClick={() => setExpandedDay(isOpen ? null : day.day)}
-                      className="w-full text-left p-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        {/* Complete toggle */}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleDay(day.day) }}
-                          className="flex-shrink-0 mt-0.5"
-                          aria-label={done ? `Mark day ${day.day} incomplete` : `Mark day ${day.day} complete`}
-                        >
-                          {done
-                            ? <CheckCircleIconSolid className="w-6 h-6 text-gold" />
-                            : <CheckCircleIcon className="w-6 h-6 text-gray-500" />
-                          }
-                        </button>
+                    {/* Card header: the complete toggle and the expand button are
+                        siblings (a button can't contain another button) */}
+                    <div className="flex items-start gap-3 p-4">
+                      <button
+                        onClick={() => toggleDay(day.day)}
+                        className="flex-shrink-0 mt-0.5 w-8 h-8 -m-1 flex items-center justify-center rounded-full"
+                        aria-label={done ? `Mark day ${day.day} incomplete` : `Mark day ${day.day} complete`}
+                        aria-pressed={done}
+                      >
+                        {done
+                          ? <CheckCircleIconSolid className="w-6 h-6 text-gold" />
+                          : <CheckCircleIcon className="w-6 h-6 text-gray-500" />
+                        }
+                      </button>
 
+                      <button
+                        onClick={() => setExpandedDay(isOpen ? null : day.day)}
+                        aria-expanded={isOpen}
+                        className="flex-1 min-w-0 flex items-start gap-3 text-left"
+                      >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <span className="text-xs font-bold text-gray-500">Day {day.day}</span>
@@ -159,11 +161,11 @@ export default function FormationPage() {
                           </p>
                         </div>
 
-                        <span className="text-gray-500 text-xs flex-shrink-0 mt-1">
+                        <span className="text-gray-500 text-xs flex-shrink-0 mt-1" aria-hidden="true">
                           {isOpen ? '▲' : '▼'}
                         </span>
-                      </div>
-                    </button>
+                      </button>
+                    </div>
 
                     {/* Expanded content */}
                     {isOpen && (

@@ -77,26 +77,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: { fetch: trackedFetch },
 })
 
-/**
- * Returns the current authenticated user or null.
- * @returns {Promise<import('@supabase/supabase-js').User|null>}
- */
-export async function getCurrentUser() {
-  const { data: { session } } = await supabaseAuth.auth.getSession()
-  return session?.user ?? null
-}
-
-/**
- * Fetches the full profile record for a given user id.
- * @param {string} userId
- * @returns {Promise<{data: object|null, error: object|null}>}
- */
-export async function getProfile(userId) {
-  // Applies profile_visibility server-side (migration 053)
-  const { data, error } = await supabase.rpc('get_profile', { p_id: userId })
-  return { data, error }
-}
-
 /** JSON headers carrying the user's session token, for our /api routes. */
 export async function authJsonHeaders() {
   const { data: { session } } = await supabaseAuth.auth.getSession()

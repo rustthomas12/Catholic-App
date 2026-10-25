@@ -23,6 +23,7 @@ import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { checkEmail, checkUrl } from '../utils/validate'
 import { toast } from '../components/shared/Toast'
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
@@ -374,9 +375,11 @@ function AnnouncementsTab({ parishId }) {
 
   async function handleDelete(id, isPublished) {
     const table = isPublished ? 'posts' : 'scheduled_posts'
-    const { error } = await supabase.from(table).delete().eq('id', id)
-    if (error) { toast.error('Could not delete.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from(table).delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete.'); return }
     setPosts(prev => prev.filter(p => p.id !== id))
+    toast.success('Deleted.')
   }
 
   async function handleSendNow(scheduledPost) {
@@ -465,12 +468,14 @@ function AnnouncementsTab({ parishId }) {
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm text-navy flex-1">{post.content}</p>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(post.id, post.published)}
+                <ConfirmDeleteButton
+                  title="Delete this announcement?"
+                  message="It will be removed from the parish feed. This can't be undone."
+                  onConfirm={() => handleDelete(post.id, post.published)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {post.published ? (
@@ -599,9 +604,11 @@ function EventsTab({ parishId }) {
   }
 
   async function handleDelete(id) {
-    const { error } = await supabase.from('events').delete().eq('id', id)
-    if (error) { toast.error('Could not delete event.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from('events').delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete event.'); return }
     setEvents(prev => prev.filter(e => e.id !== id))
+    toast.success('Deleted.')
   }
 
   return (
@@ -691,12 +698,14 @@ function EventsTab({ parishId }) {
                   )}
                   {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
                 </div>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(ev.id)}
+                <ConfirmDeleteButton
+                  title="Delete this event?"
+                  message="Everyone's RSVPs will be removed too. This can't be undone."
+                  onConfirm={() => handleDelete(ev.id)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <EventRsvpButtons eventId={ev.id} showCount={true} />
               <button

@@ -316,7 +316,7 @@ export default function SignupPage() {
                   <p className="text-sm font-semibold text-navy truncate">{selectedParish.name}</p>
                   <p className="text-xs text-gray-500">{selectedParish.city}, {selectedParish.state}</p>
                 </div>
-                <button aria-label="Close" type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
+                <button aria-label="Clear parish" type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
                   className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>

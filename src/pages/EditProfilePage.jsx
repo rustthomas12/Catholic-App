@@ -334,7 +334,7 @@ export default function EditProfilePage() {
                   <p className="text-sm font-semibold text-navy truncate">{parish.name}</p>
                   <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
                 </div>
-                <button aria-label="Close" type="button" onClick={() => { setParish(null); setParishQuery('') }}
+                <button aria-label="Clear parish" type="button" onClick={() => { setParish(null); setParishQuery('') }}
                   className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>

@@ -81,5 +81,9 @@
   "chat_members_only": "Members only",
   "chat_members_only_desc": "Join this group to participate in chat.",
   "chat_empty": "No messages yet. Say hello!",
-  "chat_placeholder": "Send a message…"
+  "chat_placeholder": "Send a message…",
+  "cancel_request": "Cancel request",
+  "cancel_request_title": "Cancel your request?",
+  "cancel_request_body": "Your request to join {{name}} will be withdrawn. You can ask again later.",
+  "keep_request": "Keep request"
 }

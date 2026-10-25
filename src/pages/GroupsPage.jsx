@@ -112,7 +112,7 @@ export default function GroupsPage() {
             className="w-full bg-white pl-9 pr-9 py-2.5 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
           />
           {searchQuery && (
-            <button aria-label="Close"
+            <button aria-label="Clear search"
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
             >

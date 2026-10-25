@@ -22,6 +22,7 @@ import ReportModal from '../components/shared/ReportModal'
 import { reportContent } from '../lib/reports'
 import { useTranslation } from 'react-i18next'
 import { toast } from '../components/shared/Toast'
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import { format, isPast, isSameDay } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -55,8 +56,8 @@ export default function GroupPage() {
 
   const { group, loading, error, refresh: refreshGroup } = useGroup(id)
   const { members, loading: membersLoading, refresh: refreshMembers } = useGroupMembers(id)
-  const { memberships, memberGroupIds, adminGroupIds, refresh: refreshMemberships } = useGroupMemberships()
-  const { joinGroup, leaveGroup, requestToJoin, approveRequest, denyRequest, hasRequested, pendingRequests, loadPendingRequests } = useGroupJoin()
+  const { memberships, memberGroupIds, adminGroupIds, loading: membershipsLoading, refresh: refreshMemberships } = useGroupMemberships()
+  const { joinGroup, leaveGroup, requestToJoin, cancelRequest, approveRequest, denyRequest, hasRequested, pendingRequests, loadPendingRequests } = useGroupJoin()
 
   const isMember = memberGroupIds.has(id)
   const isAdmin = adminGroupIds.has(id)
@@ -68,6 +69,11 @@ export default function GroupPage() {
   useEffect(() => {
     if (!group) return
     if (isMember) { setCanAccess(true); return }
+    // Wait for memberships: otherwise a member (even the group's admin) was
+    // briefly a "non-member", and the parish check started then could finish
+    // last and lock them out of their own group
+    if (membershipsLoading) return
+    let cancelled = false
 
     const { parish_id, org_id } = group
 
@@ -98,15 +104,22 @@ export default function GroupPage() {
     }
 
     Promise.all(checks).then(results => {
-      setCanAccess(results.some(Boolean))
+      if (!cancelled) setCanAccess(results.some(Boolean))
     })
-  }, [group?.id, group?.parish_id, group?.org_id, isMember, user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true }
+  }, [group?.id, group?.parish_id, group?.org_id, isMember, membershipsLoading, user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (group?.name) document.title = `${group.name} | inFold`
   }, [group?.name])
 
-  // Load pending requests when admin views members tab
+  // Admins see a dot on the Members tab when someone is waiting, so load the
+  // requests as soon as an admin opens the group (not only on that tab)
+  useEffect(() => {
+    if (isAdmin) loadPendingRequests(adminGroupIds)
+  }, [isAdmin, id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Refresh pending requests when admin views members tab
   function handleTabChange(tabId) {
     setActiveTab(tabId)
     if (tabId === 'members' && isAdmin) {
@@ -285,12 +298,17 @@ export default function GroupPage() {
                 {t('joined')}
               </button>
             ) : requested ? (
-              <button
-                disabled
-                className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white/50 cursor-not-allowed"
+              <ConfirmDeleteButton
+                aria-label={`${t('request_sent')}. ${t('cancel_request')}`}
+                title={t('cancel_request_title')}
+                message={t('cancel_request_body', { name: group.name })}
+                confirmLabel={t('cancel_request')}
+                cancelLabel={t('keep_request')}
+                onConfirm={() => cancelRequest(id)}
+                className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
               >
                 {t('request_sent')}
-              </button>
+              </ConfirmDeleteButton>
             ) : (
               <button
                 onClick={handleJoin}

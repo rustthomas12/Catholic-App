@@ -229,7 +229,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{g.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count||0} members</p>
+                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count || 0} member{g.member_count === 1 ? '' : 's'}</p>
                     </div>
                     <button
                       onClick={() => joinGroup(g.id)}
