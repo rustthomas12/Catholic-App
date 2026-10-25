@@ -28,7 +28,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | O3 | Finish / skip → home | ⬜ |
 | O4 | Pastor onboarding: ask → parish → size → trial (checkout) / skip | ⬜ |
 | O5 | Pastor verification pending page | ⬜ |
-| O6 | Org invite link /join/:code (lookup, expired, used up, redeem, already member, signed-out resume) | ⬜ |
+| O6 | Org invite link /join/:code (lookup, expired, used up, redeem, already member, signed-out resume) | ✅ invalid, already member, redeem (+ use count) |
 
 ## 3. Home & feed
 | ID | Function | Status |
@@ -66,9 +66,9 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | ID | Function | Status |
 |---|---|---|
 | PA1 | Dashboard stats | ✅ |
-| PA2 | Announcements: publish, schedule, send now, delete | ✅ (publish, schedule) ⬜ (send now, delete) |
+| PA2 | Announcements: publish, schedule, send now, delete | ✅ (publish, schedule) 🔧 delete asks first, checks result |
 | PA3 | Scheduled delivery cron | ✅ |
-| PA4 | Events: create (validation), delete, attendee list | ✅ (create) ⬜ (delete, attendee list) |
+| PA4 | Events: create (validation), delete, attendee list | ✅ (create) 🔧 delete asks first, checks result |
 | PA5 | Mass times editor | ⬜ |
 | PA6 | Parishioners list + CSV export | ✅ (list) |
 | PA7 | Messages inbox: read, mark read, mark all read, reply | ✅ |
@@ -94,16 +94,16 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 7. Organizations
 | ID | Function | Status |
 |---|---|---|
-| OR1 | Organizations list: search, category, state filters | ⬜ |
+| OR1 | Organizations list: search, category, state filters | 🔧 chapters saved as 'other' matched no filter (075) |
 | OR2 | Create organization (standalone / chapter request) | ⬜ |
-| OR3 | Org page: join, announcements, events, chapters, about, contact | ⬜ |
-| OR4 | Org admin overview, members (roles, remove, last-admin guard) | ⬜ |
-| OR5 | Org announcements: publish, schedule, send now, delete (+ cron) | ⬜ |
-| OR6 | Org events + attendees | ⬜ |
-| OR7 | Invites: create, copy link, delete | ⬜ |
-| OR8 | Chapters: approve/deny requests, provision chapter | ⬜ |
-| OR9 | Org settings (hours editor, validation) | ⬜ |
-| OR10 | Org billing (trial, manage, tier upgrade banner) | ⬜ |
+| OR3 | Org page: join, announcements, events, chapters, about, contact | 🔧 visitors saw "0 members" (076); join/leave ✅ |
+| OR4 | Org admin overview, members (roles, remove, last-admin guard) | ✅ 🔧 remove now asks first; named buttons |
+| OR5 | Org announcements: publish, schedule, send now, delete (+ cron) | ✅ publish, notify, delete 🔧 delete asks first |
+| OR6 | Org events + attendees | ✅ create, validation, RSVP, attendees, delete 🔧 delete asks first |
+| OR7 | Invites: create, copy link, delete | ✅ 🔧 delete asks first |
+| OR8 | Chapters: approve/deny requests, provision chapter | ✅ list 🔧 chapter counts (076), category inherited ⬜ provision (creates a real org) |
+| OR9 | Org settings (hours editor, validation) | ✅ |
+| OR10 | Org billing (trial, manage, tier upgrade banner) | ✅ status + banner 🚫 Stripe portal |
 
 ## 8. Messages
 | ID | Function | Status |

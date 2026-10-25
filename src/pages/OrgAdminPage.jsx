@@ -28,6 +28,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
 import { toast } from '../components/shared/Toast'
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import { checkEmail, checkUrl, safeImageUrl } from '../utils/validate'
@@ -466,9 +467,11 @@ function OrgEventsTab({ orgId, user }) {
   }
 
   async function handleDelete(id) {
-    const { error } = await supabase.from('events').delete().eq('id', id)
-    if (error) { toast.error('Could not delete event.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from('events').delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete event.'); return }
     setEvents(prev => prev.filter(e => e.id !== id))
+    toast.success('Deleted.')
   }
 
   return (
@@ -558,11 +561,13 @@ function OrgEventsTab({ orgId, user }) {
                   {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
                   {ev.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{ev.description}</p>}
                 </div>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(ev.id)}
+                <ConfirmDeleteButton
+                  title="Delete this event?"
+                  message="Everyone's RSVPs will be removed too. This can't be undone."
+                  onConfirm={() => handleDelete(ev.id)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <EventRsvpButtons eventId={ev.id} showCount={true} />
               <button
@@ -631,9 +636,11 @@ function OrgAnnouncementsTab({ orgId, user }) {
   }
 
   async function handleDelete(id) {
-    const { error } = await supabase.from('org_announcements').delete().eq('id', id)
-    if (error) { toast.error('Could not delete.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from('org_announcements').delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete.'); return }
     setPosts(prev => prev.filter(p => p.id !== id))
+    toast.success('Deleted.')
   }
 
   async function handleSendNow(post) {
@@ -715,11 +722,13 @@ function OrgAnnouncementsTab({ orgId, user }) {
                   {post.title && <p className="font-semibold text-navy text-sm mb-1">{post.title}</p>}
                   <p className="text-sm text-navy leading-relaxed">{post.content}</p>
                 </div>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(post.id)}
+                <ConfirmDeleteButton
+                  title="Delete this announcement?"
+                  message="Members will no longer see it. This can't be undone."
+                  onConfirm={() => handleDelete(post.id)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {post.published ? (
@@ -794,8 +803,8 @@ function MembersTab({ orgId }) {
   }
 
   const removeMember = async (userId) => {
-    const { error } = await supabase.from('organization_members').delete().eq('org_id', orgId).eq('user_id', userId)
-    if (error) toast.error(error.code === 'P0001' ? error.message : 'Failed to remove member.')
+    const { data, error } = await supabase.from('organization_members').delete().eq('org_id', orgId).eq('user_id', userId).select('user_id')
+    if (error || !data?.length) toast.error(error?.code === 'P0001' ? error.message : 'Failed to remove member.')
     else { setMembers(prev => prev.filter(m => m.id !== userId)); toast.success('Member removed.') }
   }
 
@@ -833,9 +842,15 @@ function MembersTab({ orgId }) {
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                 </select>
-                <button aria-label="Delete" onClick={() => removeMember(m.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors">
+                <ConfirmDeleteButton
+                  aria-label={`Remove ${m.full_name || 'member'}`}
+                  title="Remove this member?"
+                  message={`${m.full_name || 'This member'} will lose access to members-only content. They can rejoin later.`}
+                  confirmLabel="Remove"
+                  onConfirm={() => removeMember(m.id)}
+                  className="p-1 text-gray-500 hover:text-red-400 transition-colors">
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
             </div>
           ))}
@@ -903,12 +918,17 @@ function InvitesTab({ orgId, user, hasActiveSub }) {
                 <p className="text-sm font-mono font-bold text-navy">{inv.invite_code}</p>
                 <p className="text-xs text-gray-500">{inv.use_count ?? 0} use{inv.use_count !== 1 ? 's' : ''}</p>
               </div>
-              <button aria-label="Copy" onClick={() => copyLink(inv.invite_code)} className="p-1.5 text-gray-500 hover:text-navy transition-colors">
+              <button aria-label={`Copy invite link ${inv.invite_code}`} onClick={() => copyLink(inv.invite_code)} className="p-1.5 text-gray-500 hover:text-navy transition-colors tap-target">
                 <ClipboardDocumentIcon className="w-4 h-4" />
               </button>
-              <button aria-label="Delete" onClick={() => deleteInvite(inv.id)} className="p-1.5 text-gray-500 hover:text-red-400 transition-colors">
+              <ConfirmDeleteButton
+                aria-label={`Delete invite ${inv.invite_code}`}
+                title="Delete this invite link?"
+                message="Anyone who has this link won't be able to use it to join."
+                onConfirm={() => deleteInvite(inv.id)}
+                className="p-1.5 text-gray-500 hover:text-red-400 transition-colors">
                 <TrashIcon className="w-4 h-4" />
-              </button>
+              </ConfirmDeleteButton>
             </div>
           ))}
         </div>
@@ -936,10 +956,11 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
     const chapterIds = (chaptersRes.data ?? []).map(c => c.id)
     let memberCounts = {}
     if (chapterIds.length > 0) {
-      const { data: counts } = await supabase.from('organization_members')
-        .select('org_id').in('org_id', chapterIds)
+      // The national admin isn't a member of most chapters, so it can't list
+      // their members; the RPC returns just the counts
+      const { data: counts } = await supabase.rpc('org_member_counts', { p_org_ids: chapterIds })
       if (counts) {
-        counts.forEach(r => { memberCounts[r.org_id] = (memberCounts[r.org_id] || 0) + 1 })
+        counts.forEach(r => { memberCounts[r.org_id] = Number(r.members) })
       }
     }
 
@@ -1046,7 +1067,7 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
                   <p className="text-sm font-semibold text-navy truncate">{ch.name}</p>
                   <p className="text-xs text-gray-500">
                     {[ch.city, ch.state].filter(Boolean).join(', ')}
-                    {ch.memberCount > 0 && ` · ${ch.memberCount} members`}
+                    {` · ${ch.memberCount} member${ch.memberCount === 1 ? '' : 's'}`}
                   </p>
                 </div>
                 <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
@@ -1082,8 +1103,13 @@ function ProvisionChapterModal({ parentOrgId, parentOrgName, user, onClose, onCr
     const suffix = Array.from(crypto.getRandomValues(new Uint8Array(3))).map(b => b.toString(36)).join('').slice(0, 5)
     const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + suffix
 
+    // A chapter shares its parent's category, so it shows up under the same
+    // filter (this used to hard-code 'other', which matched no filter option)
+    const { data: parent } = await supabase.from('organizations')
+      .select('category').eq('id', parentOrgId).maybeSingle()
+
     const { data: org, error } = await supabase.from('organizations').insert({
-      name: name.trim(), slug, category: 'other',
+      name: name.trim(), slug, category: parent?.category || 'Other',
       city: city.trim() || null, state: state.trim() || null,
       parent_org_id: parentOrgId, org_type: 'chapter', created_by: user.id,
     }).select('id').single()

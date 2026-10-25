@@ -50,7 +50,8 @@ function useOrganization(orgId) {
 
     Promise.all([
       supabase.from('organizations').select('*').eq('id', orgId).single(),
-      supabase.from('organization_members').select('user_id', { count: 'exact', head: true }).eq('org_id', orgId),
+      // Only members can list members, so the count comes from an RPC
+      supabase.rpc('org_member_counts', { p_org_ids: [orgId] }),
       memberCheck,
       supabase.from('org_subscriptions').select('status').eq('org_id', orgId).maybeSingle(),
     ]).then(async ([orgRes, countRes, memberRes, subRes]) => {
@@ -59,7 +60,7 @@ function useOrganization(orgId) {
 
       const orgData = orgRes.data
       setOrg(orgData)
-      setMemberCount(countRes.count ?? 0)
+      setMemberCount(Number(countRes.data?.[0]?.members ?? 0))
       setIsMember(!!memberRes.data)
       setMyRole(memberRes.data?.role ?? null)
       setIsSubscribed(['trialing', 'active'].includes(subRes.data?.status))
