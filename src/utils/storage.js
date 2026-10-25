@@ -74,31 +74,6 @@ export async function uploadPostImage(userId, file) {
 }
 
 /**
- * Uploads a group avatar.
- * Bucket: groups   Path: {groupId}/avatar.{ext}
- * RLS policy: authenticated users can insert (group membership check
- * is enforced at the application layer)
- */
-export async function uploadGroupAvatar(groupId, file) {
-  const err = validateImage(file, AVATAR_MAX_BYTES)
-  if (err) return { url: null, error: err }
-
-  await ensureSession()
-
-  const ext = getExtension(file)
-  const path = `${groupId}/avatar.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from('groups')
-    .upload(path, file, { upsert: true, contentType: file.type })
-
-  if (uploadError) return { url: null, error: uploadError.message }
-
-  const { data } = supabase.storage.from('groups').getPublicUrl(path)
-  return { url: data.publicUrl, error: null }
-}
-
-/**
  * Returns a Supabase Storage public URL with optional transform params.
  */
 export function getAvatarUrl(avatarUrl, size = 200) {
