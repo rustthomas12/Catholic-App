@@ -269,7 +269,7 @@ export default function CreateOrganizationPage() {
                         <p className="text-xs text-gray-500">{[selectedParent.city, selectedParent.state].filter(Boolean).join(', ')}</p>
                       )}
                     </div>
-                    <button aria-label="Close"
+                    <button aria-label="Clear selected organization"
                       type="button"
                       onClick={() => { setSelectedParent(null); setParentSearch('') }}
                       className="p-1 rounded-lg hover:bg-navy/10 text-gray-500 hover:text-navy transition-colors"

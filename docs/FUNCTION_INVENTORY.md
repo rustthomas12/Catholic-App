@@ -148,13 +148,13 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 12. Platform admin
 | ID | Function | Status |
 |---|---|---|
-| AD1 | Stats | ⬜ |
+| AD1 | Stats | ✅ 🔧 "Posts today" counted deleted posts |
 | AD2 | Users search/filter, suspend/unsuspend (self/admin guarded) | ✅ |
-| AD3 | Flagged posts: dismiss, hide, suspend author | ⬜ |
+| AD3 | Flagged posts: dismiss, hide, suspend author | 🔧 Hide Post silently did nothing and closed the flag (079) |
 | AD4 | Other reports: dismiss, remove, suspend | ✅ |
 | AD5 | Assign parish pastor / org admin | ⬜ |
 | AD6 | Pending pastors approve / decline | ⬜ |
-| AD7 | Parish clusters: create, add/remove parish, delete | ⬜ |
+| AD7 | Parish clusters: create, add/remove parish, delete | ✅ 🔧 delete had no confirmation; remove button was labelled "Close" |
 
 ## 13. Marketing site & public pages
 | ID | Function | Status |
@@ -193,5 +193,5 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | X3 | Phone layout at 390px, 200% text | ✅ |
 | X4 | Offline banner / reconnect | ⬜ |
 | X5 | Error boundaries (route crash shows recovery) | ✅ all 45 routes open with no crash or failed request |
-| X6 | Spanish translation coverage | ⬜ |
+| X6 | Spanish translation coverage | ⚠️ all 516 keys translated, but ~30 screens don't use translations (decision for owner) |
 | X7 | Unused code removal (verified) | 🔧 6 files, 9 functions, 5 packages, 7 DB functions (074, unapplied) |
