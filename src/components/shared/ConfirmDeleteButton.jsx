@@ -6,6 +6,7 @@ export default function ConfirmDeleteButton({
   title,
   message,
   confirmLabel = 'Delete',
+  cancelLabel = 'Cancel',
   onConfirm,
   className = '',
   children,
@@ -34,7 +35,7 @@ export default function ConfirmDeleteButton({
         <div className="flex gap-3">
           <button type="button" onClick={() => setOpen(false)} disabled={busy}
             className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">
-            Cancel
+            {cancelLabel}
           </button>
           <button type="button" onClick={handleConfirm} disabled={busy}
             className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold disabled:opacity-60">

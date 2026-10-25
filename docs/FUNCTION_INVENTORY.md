@@ -40,8 +40,8 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | F5 | Word filter on posts & comments | ✅ |
 | F6 | Like / unlike; counts; notification to author | ✅ |
 | F7 | Comment / delete own comment; notification | ✅ |
-| F8 | Edit own post | ⬜ |
-| F9 | Delete own post (confirm) | ⬜ |
+| F8 | Edit own post | ✅ (word filter applies to edits) |
+| F9 | Delete own post (confirm) | ✅ |
 | F10 | Report post / block author from post menu | ✅ (report) ⬜ (block from post) |
 | F11 | Share post (native share / copy link) | ✅ |
 | F12 | Fullscreen photo viewer (Escape, close) | 🔧 |
@@ -82,13 +82,13 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 |---|---|---|
 | G1 | Groups page: search, category chips, my groups, suggested, all | ⬜ |
 | G2 | Create group (3 steps, photo, public/private) | ✅ |
-| G3 | Join public / request private / leave (confirm) / cancel request | ✅ (join) ⬜ (private request, leave) |
-| G4 | Admin approves/denies join requests (+ notifications) | ⬜ |
-| G5 | Group feed posts | ⬜ |
+| G3 | Join public / request private / leave (confirm) / cancel request | ✅ 🔧 a request couldn't be withdrawn (new Cancel request) |
+| G4 | Admin approves/denies join requests (+ notifications) | ✅ 🔧 results unchecked; pending dot only appeared after opening Members |
+| G5 | Group feed posts | ✅ |
 | G6 | Group chat live; delete own; report others; word filter | ✅ |
-| G7 | Group events: create, RSVP | ⬜ |
-| G8 | Members: promote, remove (header count) | ✅ |
-| G9 | Settings: edit, delete (type name) | ✅ |
+| G7 | Group events: create, RSVP | ✅ 🔧 private-group events readable by everyone (077) |
+| G8 | Members: promote, remove (header count) | ✅ ⚠️ "Moderator" role grants nothing; private rosters were public (077) |
+| G9 | Settings: edit, delete (type name) | ✅ 🔧 notifications left pointing at deleted groups (078) |
 | G10 | Report group | ✅ (UI) |
 
 ## 7. Organizations
