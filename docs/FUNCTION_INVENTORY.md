@@ -159,9 +159,9 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 13. Marketing site & public pages
 | ID | Function | Status |
 |---|---|---|
-| W1 | Marketing home, features, for parishes (application form), about, contact form | ⬜ |
+| W1 | Marketing home, features, for parishes (application form), about, contact form | ✅ pages, images, links 🚫 form submit sends real email |
 | W2 | Terms, privacy, content policy, delete-account info, 404 | ⬜ |
-| W3 | Pitch deck page | ⬜ |
+| W3 | Pitch deck page | ✅ |
 
 ## 14. Server: API endpoints (Vercel)
 | ID | Function | Status |
@@ -171,9 +171,9 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | S3 | stripe-webhook (signature, checkout, created/updated/deleted, payment failed) | ✅ (unit tests + live resend) |
 | S4 | delete-account | 🚫 |
 | S5 | integrations (facebook start/callback, flocknote, webhook — SSRF guarded) | ✅ |
-| S6 | readings (date validation, caching) | ⬜ |
-| S7 | morning-offering / readings reminders (cron secret) | ⬜ |
-| S8 | claim-sponsorship-code, track-return, native-return | ⬜ |
+| S6 | readings (date validation, caching) | ✅ 🔧 impossible dates (2026-13-99) went to the upstream sites; now 400 |
+| S7 | morning-offering / readings reminders (cron secret) | ✅ refuse callers without the secret (401) |
+| S8 | claim-sponsorship-code, track-return, native-return | ✅ auth enforced; native-return can't redirect off-site |
 
 ## 15. Server: edge functions, cron, triggers
 | ID | Function | Status |
@@ -191,7 +191,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | X1 | Speed: time to content on every main screen; slow queries; bundle sizes | 🔧 data loaded twice at startup + hourly; screens < ~350 ms |
 | X2 | Accessibility (axe) on every screen | ✅ (24 screens) |
 | X3 | Phone layout at 390px, 200% text | ✅ |
-| X4 | Offline banner / reconnect | ⬜ |
+| X4 | Offline banner / reconnect | 🔧 two offline messages, one promising changes would sync (nothing is queued) |
 | X5 | Error boundaries (route crash shows recovery) | ✅ all 45 routes open with no crash or failed request |
 | X6 | Spanish translation coverage | ⚠️ all 516 keys translated, but ~30 screens don't use translations (decision for owner) |
 | X7 | Unused code removal (verified) | 🔧 6 files, 9 functions, 5 packages, 7 DB functions (074, unapplied) |
