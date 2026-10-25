@@ -91,15 +91,22 @@ export default function ConfessionTrackerPage() {
   // The server sends the reminders, so the interval is saved to the account
   // (notification_preferences); "Off" turns the confession reminder off.
   async function handleReminderChange(val) {
+    const prev = reminderDays
     setReminderDays(val)
-    localStorage.setItem(REMINDER_KEY, String(val))
     if (!user) return
-    await supabase.from('notification_preferences').upsert({
+    const { error } = await supabase.from('notification_preferences').upsert({
       user_id: user.id,
       confession_reminder: val !== null,
       ...(val !== null ? { reminder_interval_days: val } : {}),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' })
+    if (error) {
+      // Don't show a reminder setting the server never received
+      setReminderDays(prev)
+      toast.error('Could not save your reminder. Please try again.')
+      return
+    }
+    localStorage.setItem(REMINDER_KEY, String(val))
   }
 
   // Load the saved interval from the account (falls back to this device's choice)
@@ -186,6 +193,7 @@ export default function ConfessionTrackerPage() {
                 <button
                   key={String(val)}
                   onClick={() => handleReminderChange(val)}
+                  aria-pressed={reminderDays === val}
                   className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
                     reminderDays === val
                       ? 'bg-gold text-navy'

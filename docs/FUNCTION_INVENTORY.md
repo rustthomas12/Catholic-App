@@ -43,7 +43,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | F8 | Edit own post | ⬜ |
 | F9 | Delete own post (confirm) | ⬜ |
 | F10 | Report post / block author from post menu | ✅ (report) ⬜ (block from post) |
-| F11 | Share post (native share / copy link) | ⬜ |
+| F11 | Share post (native share / copy link) | ✅ |
 | F12 | Fullscreen photo viewer (Escape, close) | 🔧 |
 | F13 | Post page /post/:id (found / not found / back) | ✅ |
 | F14 | Announcement styling (title + body, badge) | ⬜ |
@@ -115,17 +115,17 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 9. Faith
 | ID | Function | Status |
 |---|---|---|
-| FA1 | Faith hub, readings (Ordinary / Traditional toggle), share readings | ✅ (readings) ⬜ (toggle, share) |
+| FA1 | Faith hub, readings (Ordinary / Traditional toggle), share readings | ✅ 🔧 toggle state for screen readers |
 | FA2 | Prayer requests: post (anonymous), pray, load more, report; anonymity | ✅ |
 | FA3 | Prayer journal (end-to-end encrypted) | ✅ |
 | FA4 | Rosary tracker: log, streak, mysteries of the day | ✅ |
-| FA5 | Liturgy of the Hours (hour tabs, current hour) | ⬜ |
-| FA6 | Formation programs (Advent / Lent): mark day complete / incomplete | ⬜ |
-| FA7 | Morning offering: mark prayed | ⬜ |
-| FA8 | Examination of conscience (sections toggle) | ⬜ |
+| FA5 | Liturgy of the Hours (hour tabs, current hour) | ✅ 🔧 tab state for screen readers |
+| FA6 | Formation programs (Advent / Lent): mark day complete / incomplete | 🔧 button nested in button; ✅ after |
+| FA7 | Morning offering: mark prayed | 🔧 stored a new key every day; ✅ after |
+| FA8 | Examination of conscience (sections toggle) | ✅ 🔧 expanded state for screen readers |
 | FA9 | Private intentions: add, prayed, answered, back to praying, remove (confirm) | ✅ |
-| FA10 | Confession tracker: log, history, clear (confirm), reminder interval | ⬜ |
-| FA11 | Saints: today's saint, library, search, saint page, favourite, share | ⬜ |
+| FA10 | Confession tracker: log, history, clear (confirm), reminder interval | ✅ 🔧 reminder save errors were ignored |
+| FA11 | Saints: today's saint, library, search, saint page, favourite, share | ✅ |
 
 ## 10. Notifications
 | ID | Function | Status |
@@ -188,10 +188,10 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 16. Cross-cutting
 | ID | Function | Status |
 |---|---|---|
-| X1 | Speed: time to content on every main screen; slow queries; bundle sizes | ⬜ |
+| X1 | Speed: time to content on every main screen; slow queries; bundle sizes | 🔧 data loaded twice at startup + hourly; screens < ~350 ms |
 | X2 | Accessibility (axe) on every screen | ✅ (24 screens) |
 | X3 | Phone layout at 390px, 200% text | ✅ |
 | X4 | Offline banner / reconnect | ⬜ |
-| X5 | Error boundaries (route crash shows recovery) | ⬜ |
+| X5 | Error boundaries (route crash shows recovery) | ✅ all 45 routes open with no crash or failed request |
 | X6 | Spanish translation coverage | ⬜ |
-| X7 | Unused code removal (verified) | ⬜ |
+| X7 | Unused code removal (verified) | 🔧 6 files, 9 functions, 5 packages, 7 DB functions (074, unapplied) |
