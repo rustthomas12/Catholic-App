@@ -1,48 +1,55 @@
 /**
- * Builds the source images for the iOS / Android app icons and splash
- * screens from the inFold brand mark (public/icons/icon-512.svg), then
- * `npm run mobile:assets` turns them into every size the stores need.
+ * Builds every app icon from the inFold logo pack in brand/ (the source of
+ * truth — replace those files to rebrand, then rerun):
+ *   - web: public/icons/icon-*.png|svg (manifest, push notifications),
+ *     maskable icon
+ *   - iOS / Android source images in assets/, which
+ *     `npm run mobile:assets` turns into every size the stores need
  *
  *   node scripts/generate-app-assets.mjs
  */
 import sharp from 'sharp'
-import { mkdirSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 
-const NAVY = '#1B2A4A'
-const GOLD = '#C9A84C'
+const BLUE = '#03A6FF' // inFold Blue (brand/README.md)
 const OUT = 'assets'
 mkdirSync(OUT, { recursive: true })
 
-// The cross from icon-512.svg, in its own 512×512 coordinate space
-const cross = `
-  <rect x="209.9" y="51.2" width="92.2" height="409.6" rx="18.4" fill="${GOLD}"/>
-  <rect x="71.7" y="163.8" width="368.6" height="92.2" rx="18.4" fill="${GOLD}"/>`
+const roundedIcon = readFileSync('brand/svg/infold-icon.svg')        // steeple on rounded tile
+const squareIcon = readFileSync('brand/svg/infold-icon-square.svg')  // full-bleed tile (stores)
+const logo = readFileSync('brand/svg/infold-logo-no-background.svg') // steeple + wordmark
 
-// size: canvas px, scale: share of the canvas the 512 artwork occupies
-function svg({ size, scale, background }) {
-  const art = size * scale
-  const offset = (size - art) / 2
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  ${background ? `<rect width="${size}" height="${size}" fill="${background}"/>` : ''}
-  <g transform="translate(${offset} ${offset}) scale(${art / 512})">${cross}</g>
-</svg>`)
+// The steeple alone on transparent: the square icon without its tile
+const steeple = Buffer.from(squareIcon.toString().replace(/<rect[^>]*\/>/, ''))
+
+// ── Web icons (same paths as before, so every reference keeps working) ──
+for (const size of [72, 96, 128, 144, 152, 192, 384, 512]) {
+  await sharp(roundedIcon, { density: 300 }).resize(size, size).png().toFile(`public/icons/icon-${size}.png`)
+  writeFileSync(`public/icons/icon-${size}.svg`, roundedIcon)
+  console.log(`public/icons/icon-${size}.png|svg`)
+}
+// Maskable (Android home screen crops to a circle): full-bleed tile
+await sharp(squareIcon, { density: 300 }).resize(512, 512).png().toFile('public/icons/maskable-512.png')
+console.log('public/icons/maskable-512.png')
+
+// ── Native source images ──
+async function onCanvas(art, { size, share, background }) {
+  const inner = Math.round(size * share)
+  const artPng = await sharp(art, { density: 600 })
+    .resize(inner, inner, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png().toBuffer()
+  return sharp({ create: { width: size, height: size, channels: 4,
+    background: background ?? { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: artPng, gravity: 'center' }])
+    .png()
 }
 
-const jobs = [
-  // iOS app icon: square, opaque, no rounded corners (iOS applies the mask)
-  ['icon-only.png', { size: 1024, scale: 0.8, background: NAVY }],
-  // Android adaptive icon layers: keep the mark inside the 66% safe zone
-  ['icon-foreground.png', { size: 1024, scale: 0.55 }],
-  ['icon-background.png', { size: 1024, scale: 0, background: NAVY }],
-  // Splash screens
-  ['splash.png', { size: 2732, scale: 0.2, background: NAVY }],
-  ['splash-dark.png', { size: 2732, scale: 0.2, background: NAVY }],
-]
-
-for (const [name, opts] of jobs) {
-  const img = opts.scale === 0
-    ? sharp({ create: { width: opts.size, height: opts.size, channels: 3, background: NAVY } })
-    : sharp(svg(opts))
-  await img.png().toFile(`${OUT}/${name}`)
-  console.log(`${OUT}/${name}`)
-}
+// iOS app icon: square and opaque (iOS rounds the corners itself)
+await sharp(squareIcon, { density: 600 }).resize(1024, 1024).flatten({ background: BLUE }).png().toFile(`${OUT}/icon-only.png`)
+// Android adaptive icon: steeple inside the 66% safe zone over a blue layer
+await (await onCanvas(steeple, { size: 1024, share: 0.7 })).toFile(`${OUT}/icon-foreground.png`)
+await sharp({ create: { width: 1024, height: 1024, channels: 3, background: BLUE } }).png().toFile(`${OUT}/icon-background.png`)
+// Splash screens: logo on inFold Blue
+await (await onCanvas(logo, { size: 2732, share: 0.3, background: BLUE })).toFile(`${OUT}/splash.png`)
+await (await onCanvas(logo, { size: 2732, share: 0.3, background: BLUE })).toFile(`${OUT}/splash-dark.png`)
+for (const f of ['icon-only', 'icon-foreground', 'icon-background', 'splash', 'splash-dark']) console.log(`${OUT}/${f}.png`)

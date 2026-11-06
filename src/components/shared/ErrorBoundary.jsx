@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { LogoMark } from './Logo'
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -18,10 +19,7 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
-          {/* Gold cross */}
-          <svg viewBox="0 0 40 56" className="w-12 h-16 mb-6" fill="#C9A84C">
-            <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z" />
-          </svg>
+          <LogoMark className="w-16 h-16 rounded-2xl mb-6" alt="" />
 
           <h1 className="text-2xl font-bold text-navy mb-2">Something went wrong</h1>
           <p className="text-gray-500 mb-6">Please refresh the page to continue.</p>

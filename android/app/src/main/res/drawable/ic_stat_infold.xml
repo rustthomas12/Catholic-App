@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Notification status-bar icon: white inFold cross on transparent
-     (Android tints it; a full-colour launcher icon would show as a blob). -->
+<!-- Notification status-bar icon: white inFold steeple on transparent, from
+     brand/svg/infold-icon.svg (Android tints it; a full-colour launcher
+     icon would show as a blob). The belfry window is cut out. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <group android:translateX="5" android:translateY="3">
+    android:viewportWidth="720"
+    android:viewportHeight="720">
+    <group android:translateX="-640" android:translateY="-436">
+        <!-- Steeple, with the belfry window as a hole -->
         <path
             android:fillColor="#FFFFFFFF"
-            android:pathData="M5.5,0h3v5.5h5.5v3H8.5v9.5h-3V8.5H0v-3h5.5z" />
+            android:fillType="evenOdd"
+            android:pathData="M999.5,560 L865.3,766 L830.54,766 L830.54,790 L843.5,790 L843.5,976 L724.3,976 L724.3,1000 L762.7,1000 L762.7,1125 L1236.3,1125 L1236.3,1000 L1274.7,1000 L1274.7,976 L1155.5,976 L1155.5,790 L1168.46,790 L1168.46,766 L1133.7,766 Z M933.5,962 L933.5,880 A66,66 0 0,1 1065.5,880 L1065.5,962 Z" />
+        <!-- Cross -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M985.5,468 h28 v98 h-28 Z M957.5,494 h84 v27 h-84 Z" />
     </group>
 </vector>

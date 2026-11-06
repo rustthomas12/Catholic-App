@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import { fuzzyIlike } from '../utils/search'
 import { useReadings } from '../hooks/useReadings'
 import { toast } from '../components/shared/Toast'
+import { LogoMark } from '../components/shared/Logo'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -145,11 +146,7 @@ export default function OnboardingPage() {
           {/* ── STEP 1 — Welcome + parish ── */}
           {step === 1 && (
             <div className="flex flex-col items-center text-center gap-5">
-              <svg viewBox="0 0 60 60" className="w-16 h-16">
-                <rect width="60" height="60" rx="30" fill="#1B2A4A"/>
-                <rect x="27" y="12" width="6" height="36" fill="#C9A84C"/>
-                <rect x="15" y="24" width="30" height="6" fill="#C9A84C"/>
-              </svg>
+              <LogoMark className="w-16 h-16 rounded-2xl shadow-md" />
               <div>
                 <h1 className="text-2xl font-bold text-navy">{t('onboarding.step1_title', { name: firstName })}</h1>
                 <p className="text-gray-500 mt-1 text-sm">{t('onboarding.step1_body')}</p>
