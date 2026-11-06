@@ -1,10 +1,6 @@
 import {
-  formatDistanceToNow,
   format,
   differenceInDays,
-  isToday,
-  isTomorrow,
-  isThisWeek,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import i18n from './i18n'
@@ -34,24 +30,6 @@ export function formatRelativeTime(date) {
 }
 
 /**
- * Returns a formatted event date string.
- * @param {Date|string} startTime
- * @param {Date|string} [endTime]
- * @returns {string}
- */
-export function formatEventDate(startTime, endTime) {
-  const start = new Date(startTime)
-  const dateStr = format(start, 'EEEE, MMMM d')
-  const startTimeStr = format(start, 'h:mm a')
-
-  if (!endTime) return `${dateStr} at ${startTimeStr}`
-
-  const end = new Date(endTime)
-  const endTimeStr = format(end, 'h:mm a')
-  return `${dateStr} at ${startTimeStr} – ${endTimeStr}`
-}
-
-/**
  * Returns a full readable date for a confession record.
  * @param {Date|string} date
  * @returns {string}
@@ -69,16 +47,3 @@ export function getDaysAgo(date) {
   return differenceInDays(new Date(), new Date(date))
 }
 
-/**
- * Returns a human-readable scheduled post time.
- * @param {Date|string} scheduledFor
- * @returns {string}
- */
-export function formatScheduledPost(scheduledFor) {
-  const d = new Date(scheduledFor)
-  const timeStr = format(d, 'h:mm a')
-  if (isToday(d)) return `Today at ${timeStr}`
-  if (isTomorrow(d)) return `Tomorrow at ${timeStr}`
-  if (isThisWeek(d)) return `${format(d, 'EEEE')} at ${timeStr}`
-  return `${format(d, 'MMMM d')} at ${timeStr}`
-}

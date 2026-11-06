@@ -4,30 +4,6 @@ import { supabase } from './supabase'
 // Enforced server-side by apply_notification_preferences() (migration 040)
 // — keep the two in sync. The recipient's prefs aren't readable from the
 // actor's browser, so the check can't live here.
-export const PREFERENCE_MAP = {
-  like:                   'likes',
-  comment:                'comments',
-  group_invite:           'group_invites',
-  group_request:          'group_requests',
-  group_request_response: 'group_requests',
-  parish_post:            'parish_posts',
-  prayer_response:        'prayer_responses',
-  confession_reminder:    'confession_reminder',
-  direct_message:         'direct_messages',
-  event_reminder:         'event_reminders',
-  post_flagged:           'post_flagged',
-  new_parish_member:      'new_parish_member',
-  parish_message:         'parish_message',
-  group_post:             'group_posts',
-  new_group_member:       'new_group_member',
-  chapter_request:        'chapter_requests',
-  chapter_request_resolved: 'chapter_requests',
-  new_org_member:            'new_org_member',
-  org_announcement:          'parish_posts',
-  morning_offering_reminder: 'morning_offering_reminder',
-  daily_readings_reminder:   'daily_readings_reminder',
-}
-
 /**
  * Creates an in-app notification for a user.
  *

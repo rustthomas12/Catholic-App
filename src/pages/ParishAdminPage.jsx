@@ -23,6 +23,7 @@ import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { checkEmail, checkUrl } from '../utils/validate'
 import { toast } from '../components/shared/Toast'
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
@@ -222,13 +223,14 @@ function DashboardTab({ parishId }) {
   useEffect(() => {
     async function load() {
       const [followRes, postRes, eventRes, msgRes] = await Promise.all([
-        supabase.from('parish_follows').select('id', { count: 'exact', head: true }).eq('parish_id', parishId),
+        // Same count as the parish page; leaves out deleted accounts (083)
+        supabase.rpc('parish_follower_counts', { p_parish_ids: [parishId] }),
         supabase.from('posts').select('id', { count: 'exact', head: true }).eq('parish_id', parishId).is('deleted_at', null),
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('parish_id', parishId),
         supabase.from('parish_messages').select('id', { count: 'exact', head: true }).eq('parish_id', parishId).eq('is_read', false),
       ])
       setStats({
-        followers: followRes.count ?? 0,
+        followers: Number(followRes.data?.[0]?.followers ?? 0),
         posts: postRes.count ?? 0,
         events: eventRes.count ?? 0,
         unreadMessages: msgRes.count ?? 0,
@@ -374,9 +376,11 @@ function AnnouncementsTab({ parishId }) {
 
   async function handleDelete(id, isPublished) {
     const table = isPublished ? 'posts' : 'scheduled_posts'
-    const { error } = await supabase.from(table).delete().eq('id', id)
-    if (error) { toast.error('Could not delete.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from(table).delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete.'); return }
     setPosts(prev => prev.filter(p => p.id !== id))
+    toast.success('Deleted.')
   }
 
   async function handleSendNow(scheduledPost) {
@@ -464,13 +468,16 @@ function AnnouncementsTab({ parishId }) {
           {posts.map(post => (
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm text-navy flex-1">{post.content}</p>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(post.id, post.published)}
+                <p className="text-sm text-navy flex-1 whitespace-pre-line">{post.content}</p>
+                <ConfirmDeleteButton
+                  aria-label="Delete announcement"
+                  title="Delete this announcement?"
+                  message="It will be removed from the parish feed. This can't be undone."
+                  onConfirm={() => handleDelete(post.id, post.published)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {post.published ? (
@@ -599,9 +606,11 @@ function EventsTab({ parishId }) {
   }
 
   async function handleDelete(id) {
-    const { error } = await supabase.from('events').delete().eq('id', id)
-    if (error) { toast.error('Could not delete event.'); return }
+    // RLS turns a refused delete into 0 rows rather than an error
+    const { data, error } = await supabase.from('events').delete().eq('id', id).select('id')
+    if (error || !data?.length) { toast.error('Could not delete event.'); return }
     setEvents(prev => prev.filter(e => e.id !== id))
+    toast.success('Deleted.')
   }
 
   return (
@@ -691,12 +700,14 @@ function EventsTab({ parishId }) {
                   )}
                   {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
                 </div>
-                <button aria-label="Delete"
-                  onClick={() => handleDelete(ev.id)}
+                <ConfirmDeleteButton
+                  title="Delete this event?"
+                  message="Everyone's RSVPs will be removed too. This can't be undone."
+                  onConfirm={() => handleDelete(ev.id)}
                   className="text-red-600 hover:text-red-700 transition-colors flex-shrink-0"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </ConfirmDeleteButton>
               </div>
               <EventRsvpButtons eventId={ev.id} showCount={true} />
               <button
@@ -767,12 +778,18 @@ function MassTimesTab({ parishId, parish, setParish }) {
 
   async function handleSave() {
     setSaving(true)
-    const massTimesObj = Object.fromEntries(
-      rows.filter(r => r.day.trim() && r.time.trim()).map(r => [r.day.trim(), r.time.trim()])
-    )
+    // Two rows for the same day are combined (one used to overwrite the
+    // other), and an empty list is saved as "not listed" rather than {},
+    // which showed an empty Mass Times box on the parish page
+    const massTimesObj = {}
+    for (const r of rows) {
+      const day = r.day.trim(), time = r.time.trim()
+      if (!day || !time) continue
+      massTimesObj[day] = massTimesObj[day] ? `${massTimesObj[day]}, ${time}` : time
+    }
     const { data, error } = await supabase
       .from('parishes')
-      .update({ mass_times: massTimesObj })
+      .update({ mass_times: Object.keys(massTimesObj).length ? massTimesObj : null })
       .eq('id', parishId)
       .select()
       .single()
@@ -811,12 +828,14 @@ function MassTimesTab({ parishId, parish, setParish }) {
                   value={row.day}
                   onChange={e => updateRow(i, 'day', e.target.value)}
                   placeholder="Day"
+                  aria-label={`Day, row ${i + 1}`}
                   className="w-32 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
                 />
                 <input
                   value={row.time}
                   onChange={e => updateRow(i, 'time', e.target.value)}
                   placeholder="e.g. 7:00 AM, 10:00 AM, 12:00 PM"
+                  aria-label={`Times, row ${i + 1}`}
                   className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
                 />
                 <button onClick={() => removeRow(i)} aria-label="Remove this row" className="text-red-600 hover:text-red-700 transition-colors min-w-[24px] min-h-[24px] flex items-center justify-center">
@@ -838,7 +857,7 @@ function MassTimesTab({ parishId, parish, setParish }) {
               </button>
             </div>
           </div>
-        ) : parish?.mass_times && typeof parish.mass_times === 'object' ? (
+        ) : parish?.mass_times && typeof parish.mass_times === 'object' && !Array.isArray(parish.mass_times) && Object.keys(parish.mass_times).length ? (
           <div className="divide-y divide-gray-50">
             {Object.entries(parish.mass_times).map(([day, time]) => (
               <div key={day} className="px-4 py-3 flex items-start gap-4">

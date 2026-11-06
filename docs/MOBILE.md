@@ -237,8 +237,8 @@ visual emulator and one-click runs; it reuses the same SDK.
       Settings → Notifications → enable. Have another account like or comment
       → push arrives → tapping it opens the right screen. Test with the app
       closed, in the background and open.
-- [ ] Daily readings and morning offering reminders arrive (or call the cron
-      URLs with `CRON_SECRET` to test)
+- [ ] Daily readings and morning offering reminders arrive at the times set
+      in Settings → Notifications → Reminder times (device's local time zone)
 - [ ] Directory: "near me" asks for location permission, map tiles load
       (⚠ see §7), list and map views work
 - [ ] Groups, group chat, messages, prayer requests, saints, rosary, journal,

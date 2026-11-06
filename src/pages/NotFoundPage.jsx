@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useGoBack from '../hooks/useGoBack'
 
 export default function NotFoundPage() {
   useEffect(() => { document.title = '404 — Page Not Found | inFold' }, [])
   const navigate = useNavigate()
+  const goBack = useGoBack()
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 text-center">
@@ -26,7 +28,7 @@ export default function NotFoundPage() {
           Go home
         </button>
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="flex-1 bg-white border border-gray-200 text-navy text-sm font-semibold py-3 rounded-xl min-h-[44px] hover:bg-lightbg transition-colors"
         >
           Go back

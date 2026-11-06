@@ -106,6 +106,7 @@ function RiteToggle({ rite, onChange }) {
     <div className="flex bg-gray-100 rounded-lg p-0.5 mb-4">
       <button
         onClick={() => onChange('of')}
+        aria-pressed={rite === 'of'}
         className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-colors ${
           rite === 'of' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'
         }`}
@@ -114,6 +115,7 @@ function RiteToggle({ rite, onChange }) {
       </button>
       <button
         onClick={() => onChange('tlm')}
+        aria-pressed={rite === 'tlm'}
         className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-colors ${
           rite === 'tlm' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'
         }`}

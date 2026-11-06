@@ -31,28 +31,3 @@ export function formatDistance(meters) {
   return `${miles.toFixed(1)} miles`
 }
 
-/**
- * Strips HTML tags from user input to prevent XSS in displayed content.
- * @param {string} text
- * @returns {string}
- */
-export function sanitizeInput(text) {
-  if (!text) return ''
-  return text.replace(/<[^>]*>/g, '')
-}
-
-/**
- * Generates a URL-safe slug from text.
- * e.g. "St. Patrick's Parish" → "st-patricks-parish"
- * @param {string} text
- * @returns {string}
- */
-export function generateSlug(text) {
-  return text
-    .toLowerCase()
-    .replace(/['']/g, '')       // remove apostrophes
-    .replace(/[^a-z0-9\s-]/g, '') // remove special chars
-    .trim()
-    .replace(/\s+/g, '-')       // spaces to hyphens
-    .replace(/-+/g, '-')        // collapse multiple hyphens
-}

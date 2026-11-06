@@ -69,7 +69,6 @@ export function getLiturgicalSeason(date = new Date()) {
   pentecost.setDate(easter.getDate() + 49)
 
   const adventStart = getAdventStart(year)
-  const adventStartPrev = getAdventStart(year - 1)
 
   const d = date.getTime()
 
@@ -113,17 +112,6 @@ export function getLiturgicalSeason(date = new Date()) {
 
   // Ordinary Time
   return { season: 'ordinary', color: '#15803D', textColor: '#fff', label: 'Ordinary Time' }
-}
-
-/**
- * Returns a human-readable liturgical date string.
- * @param {Date} [date=new Date()]
- * @returns {string}
- */
-export function formatLiturgicalDate(date = new Date()) {
-  const { label } = getLiturgicalSeason(date)
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  return `${days[date.getDay()]}, ${label}`
 }
 
 /**

@@ -164,7 +164,8 @@ export function useFeed(options = {}) {
   const joinedGroupIds    = useRef(_storedGraph?.groupIds     ?? [])
   const parentOrgIds      = useRef(_storedGraph?.parentOrgIds ?? [])
 
-  const offsetRef    = useRef(_init.posts.length)
+  // Bumped when a background rebuild finds different parishes/groups
+  const [graphVersion, setGraphVersion] = useState(0)
 
   // ── Social graph builder ──────────────────────────────────
   async function _buildGraph(uid) {
@@ -216,11 +217,18 @@ export function useFeed(options = {}) {
       _graphCache.set(user.id, stored)
       // Revalidate silently in background
       _buildGraph(user.id).then(g => {
+        const changed = [
+          [stored.parishIds, g.parishIds], [stored.groupIds, g.groupIds], [stored.parentOrgIds ?? [], g.parentOrgIds],
+        ].some(([a, b]) => a.length !== b.length || a.some(id => !b.includes(id)))
         followedParishIds.current = g.parishIds
         joinedGroupIds.current    = g.groupIds
         parentOrgIds.current      = g.parentOrgIds
         _graphCache.set(user.id, { ...g, ts: Date.now() })
         _setStoredGraph(user.id, g.parishIds, g.groupIds, g.parentOrgIds)
+        // The posts were fetched with the old parish/group list; when it
+        // changed (e.g. it was cached while signed-out requests came back
+        // empty) the feed stayed wrong until the next visit
+        if (changed) setGraphVersion(v => v + 1)
       })
       return
     }
@@ -312,7 +320,12 @@ export function useFeed(options = {}) {
       _setStoredFeed(cacheKey, normalised, newHasMore)
     }
 
-    setPosts((prev) => append ? [...prev, ...normalised] : normalised)
+    // A post added or removed meanwhile shifts the pages by one; skip repeats
+    setPosts((prev) => {
+      if (!append) return normalised
+      const seen = new Set(prev.map((p) => p.id))
+      return [...prev, ...normalised.filter((p) => !seen.has(p.id))]
+    })
     setHasMore(newHasMore)
     setError(null)
     if (!append) setTotalCount(normalised.length)
@@ -325,7 +338,6 @@ export function useFeed(options = {}) {
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
-    offsetRef.current = 0
     await loadSocialGraph()
     fetchPage(0, false)
   }, [loadSocialGraph, fetchPage])
@@ -350,7 +362,6 @@ export function useFeed(options = {}) {
       setPosts(mc.posts)
       setHasMore(mc.hasMore)
       setLoading(false)
-      offsetRef.current = mc.posts.length
       loadSocialGraph().then(() => fetchPage(0, false, true))
       return
     }
@@ -362,16 +373,20 @@ export function useFeed(options = {}) {
       setPosts(ls.posts)
       setHasMore(ls.hasMore)
       setLoading(false)
-      offsetRef.current = ls.posts.length
       loadSocialGraph().then(() => fetchPage(0, false, true))
       return
     }
 
     // Nothing cached — show skeleton and fetch
     setLoading(true)
-    offsetRef.current = 0
     loadSocialGraph().then(() => fetchPage(0, false))
   }, [userId_stable, filter, parishId, groupId, orgId, loadSocialGraph, fetchPage])
+
+  // ── Refetch when the parish/group list changed underneath ──
+  useEffect(() => {
+    if (graphVersion === 0) return
+    fetchPage(0, false, true)
+  }, [graphVersion]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Foreground refresh (iOS / PWA background→foreground) ──
   // When the app is backgrounded on iOS, module-level Maps may be GC'd and the
@@ -397,12 +412,14 @@ export function useFeed(options = {}) {
 
   // ── Public API ────────────────────────────────────────────
 
+  // The next page starts after the posts already shown. A separate running
+  // offset drifted: opened from the cache it started at 20, so the first
+  // "load more" asked for posts 40-59 and posts 21-40 never appeared.
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return
     setLoadingMore(true)
-    offsetRef.current += pageSize
-    fetchPage(offsetRef.current, true)
-  }, [loadingMore, hasMore, pageSize, fetchPage])
+    fetchPage(posts.length, true)
+  }, [loadingMore, hasMore, posts.length, fetchPage])
 
   const addPost = useCallback((post) => {
     setPosts((prev) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -9,6 +9,8 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { getLiturgicalSeason } from '../utils/liturgical'
 import { format } from 'date-fns'
 import { fuzzyIlike } from '../utils/search'
+import { useReadings } from '../hooks/useReadings'
+import { toast } from '../components/shared/Toast'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -20,6 +22,13 @@ export default function OnboardingPage() {
   const totalSteps = isClergy ? 4 : 3
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
   const season = getLiturgicalSeason()
+  // Real references for today (this preview used to show fixed Advent ones)
+  const { readings } = useReadings()
+  const todaysRefs = [
+    ['First Reading', readings?.firstReading?.reference],
+    ['Responsorial Psalm', readings?.psalm?.reference],
+    ['Gospel', readings?.gospel?.reference],
+  ].filter(([, ref]) => ref)
 
   const [step, setStep] = useState(1)
   const [parish, setParish] = useState(null)
@@ -83,6 +92,8 @@ export default function OnboardingPage() {
     supabase.from('groups')
       .select('id, name, category, member_count, parish_id')
       .eq('parish_id', profile.parish_id)
+      // Private groups need a join request, which this one-tap list can't make
+      .eq('is_private', false)
       .limit(6)
       .then(({ data }) => { setSuggestedGroups(data || []); setGroupsLoading(false) })
   }, [step, profile])
@@ -91,7 +102,8 @@ export default function OnboardingPage() {
     if (!profile?.id || joinedGroups.has(groupId)) return
     setJoiningGroup(groupId)
     const { error } = await supabase.from('group_members').insert({ group_id: groupId, user_id: profile.id, role: 'member' })
-    if (!error) setJoinedGroups(prev => new Set([...prev, groupId]))
+    if (!error || error.code === '23505') setJoinedGroups(prev => new Set([...prev, groupId]))
+    else toast.error("Couldn't join that group. Please try again.")
     setJoiningGroup(null)
   }
 
@@ -229,7 +241,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{g.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count||0} members</p>
+                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count || 0} member{g.member_count === 1 ? '' : 's'}</p>
                     </div>
                     <button
                       onClick={() => joinGroup(g.id)}
@@ -282,9 +294,9 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <p className="text-xs text-gray-500 mb-3">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+                  <p className={`text-xs text-gray-500 ${todaysRefs.length ? 'mb-3' : ''}`}>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
                   <div className="flex flex-col gap-2">
-                    {[['First Reading','Isaiah 40:1-5'],['Responsorial Psalm','Psalm 85'],['Gospel','Mark 1:1-8']].map(([label,ref]) => (
+                    {todaysRefs.map(([label,ref]) => (
                       <div key={label} className="flex items-center gap-2">
                         <span className="text-xs text-gray-500 w-28 flex-shrink-0">{label}</span>
                         <span className="text-sm text-navy font-medium">{ref}</span>

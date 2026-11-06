@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { fuzzyIlike, containsIlike } from '../utils/search'
+import { toast } from '../components/shared/Toast'
+import { clearFeedCaches } from './useFeed.js'
 
 // Haversine distance in miles
 export function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -205,6 +207,9 @@ let _followedPromise = null  // in-flight fetch
 
 export function invalidateFollowedParishesCache() {
   _followedCache = null
+  // The feed caches which parishes you follow for 10 minutes; without this
+  // a parish you just followed stayed out of My Feed until then
+  clearFeedCaches()
 }
 
 export function clearParishCaches() {
@@ -295,10 +300,8 @@ export function useParish(parishId) {
 
     Promise.all([
       supabase.from('parishes').select(PARISH_SELECT).eq('id', parishId).single(),
-      supabase
-        .from('parish_follows')
-        .select('user_id', { count: 'exact', head: true })
-        .eq('parish_id', parishId),
+      // Counted server-side: other people's follows aren't readable (083)
+      supabase.rpc('parish_follower_counts', { p_parish_ids: [parishId] }),
       followCheck,
       // Which cluster (if any) does this parish belong to?
       supabase
@@ -311,7 +314,7 @@ export function useParish(parishId) {
       if (parishRes.error) setError(parishRes.error.message)
       else setParish(parishRes.data)
 
-      setFollowerCount(countRes.count ?? 0)
+      setFollowerCount(Number(countRes.data?.[0]?.followers ?? 0))
       setIsFollowing(!!followRes.data)
       setIsMyParish(profileParishId === parishId)
       setLoading(false)
@@ -342,7 +345,8 @@ export function useParish(parishId) {
   const unsetMyParish = useCallback(async () => {
     if (!userId) return
     const { error: err } = await updateProfile({ parish_id: null })
-    if (!err) setIsMyParish(false)
+    if (err) toast.error(err)
+    else setIsMyParish(false)
     return { error: err }
   }, [userId, updateProfile])
 
@@ -365,6 +369,8 @@ export function useParish(parishId) {
           await updateProfile({ parish_id: null })
           setIsMyParish(false)
         }
+      } else {
+        toast.error('Could not unfollow this parish. Please try again.')
       }
     } else {
       const { error: err } = await supabase
@@ -376,6 +382,8 @@ export function useParish(parishId) {
         invalidateFollowedParishesCache()
 
         // Parish admins are notified by a database trigger (migration 034)
+      } else {
+        toast.error('Could not follow this parish. Please try again.')
       }
     }
 
@@ -385,7 +393,8 @@ export function useParish(parishId) {
   const setAsMyParish = useCallback(async () => {
     if (!userId) return { error: 'Not authenticated' }
     const { error: err } = await updateProfile({ parish_id: parishId })
-    if (!err) {
+    if (err) toast.error(err)
+    else {
       setIsMyParish(true)
       if (!isFollowing) {
         const { error: fErr } = await supabase

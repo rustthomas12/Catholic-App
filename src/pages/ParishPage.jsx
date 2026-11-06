@@ -22,7 +22,7 @@ import Feed from '../components/feed/Feed'
 import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleton'
 import ParishEvents from '../components/parish/ParishEvents'
 import ParishGroups from '../components/parish/ParishGroups'
-import { format, isPast } from 'date-fns'
+import useGoBack from '../hooks/useGoBack'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -34,6 +34,7 @@ const TABS = [
 export default function ParishPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const goBack = useGoBack('/directory')
   const { profile } = useAuth()
   const { parishAdminRecords } = useAdminAccess()
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
@@ -96,11 +97,12 @@ export default function ParishPage() {
       <div className="bg-navy relative">
         {/* Back button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
+          aria-label="Back"
           className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">Directory</span>
+          <span className="hidden sm:inline" aria-hidden="true">Back</span>
         </button>
 
         <div className="px-4 pt-14 pb-5 max-w-3xl mx-auto">
@@ -158,13 +160,14 @@ export default function ParishPage() {
             <button
               onClick={follow}
               disabled={followLoading}
+              aria-pressed={isFollowing}
               className={`flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
-                isFollowing || isMyParish
+                isFollowing
                   ? 'bg-white/20 text-white hover:bg-red-600/80'
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
-              {followLoading ? '…' : isFollowing || isMyParish ? 'Unfollow' : 'Follow Parish'}
+              {followLoading ? '…' : isFollowing ? 'Unfollow' : 'Follow Parish'}
             </button>
 
             {!isMyParish && (
@@ -345,14 +348,13 @@ function ParishAbout({ parish, cluster, isManaged }) {
               Limited information available
             </p>
             <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
-              This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.{' '}
-              {parish.website ? null : 'Know the details? '}
+              This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.
             </p>
-            {!parish.website && !parish.phone && (
-              <p className="text-amber-700 text-xs mt-0.5">
-                Help us improve — <a href="mailto:info@getinfold.app" className="underline font-semibold">send a correction</a>.
-              </p>
-            )}
+            <p className="text-amber-700 text-xs mt-0.5">
+              Know the details? Help us improve — <a
+                href={`mailto:info@getinfold.app?subject=${encodeURIComponent(`Correction: ${parish.name} (${parish.city}, ${parish.state})`)}&body=${encodeURIComponent(`Parish ID: ${parish.id}\n\nWhat should change:\n`)}`}
+                className="underline font-semibold">send a correction</a>.
+            </p>
           </div>
         </div>
       )}
@@ -407,7 +409,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
       )}
 
       {/* Mass Times */}
-      {parish.mass_times ? (
+      {parish.mass_times && Object.keys(parish.mass_times).length ? (
         <MassTimes massTimes={parish.mass_times} />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">

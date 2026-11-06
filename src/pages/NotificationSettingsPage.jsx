@@ -168,6 +168,39 @@ function PushSection({ userId }) {
 }
 
 // ── Page ─────────────────────────────────────────────────
+// ── Reminder times (local; migration 082) ──────────────────
+// Every half hour from 4 AM to 10 PM, as 'HH:MM:00' (Postgres time)
+const TIME_OPTIONS = Array.from({ length: 37 }, (_, i) => {
+  const mins = 4 * 60 + i * 30
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}:00`
+})
+
+function formatTime(value) {
+  const [h, m] = String(value || '00:00').split(':').map(Number)
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
+}
+
+function deviceTimezone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'your local time' } catch { return 'your local time' }
+}
+
+function ReminderTimeRow({ label, value, onChange, disabled }) {
+  return (
+    <label className="flex items-center justify-between gap-3 px-4 py-3">
+      <span className={`text-sm font-medium ${disabled ? 'text-gray-500' : 'text-navy'}`}>{label}</span>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+        className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-navy bg-white disabled:opacity-50 min-h-[40px]"
+      >
+        {!TIME_OPTIONS.includes(value) && <option value={value}>{formatTime(value)}</option>}
+        {TIME_OPTIONS.map(t => <option key={t} value={t}>{formatTime(t)}</option>)}
+      </select>
+    </label>
+  )
+}
+
 export default function NotificationSettingsPage() {
   useEffect(() => { document.title = 'Notification Settings | inFold' }, [])
 
@@ -261,13 +294,13 @@ export default function NotificationSettingsPage() {
     {
       icon: BookOpenIcon,
       label: 'Morning Offering reminder',
-      description: 'Notified at 6 AM every day to offer your morning to God',
+      description: `Every day at ${formatTime(preferences.morning_offering_time)} to offer your morning to God`,
       column: 'morning_offering_reminder',
     },
     {
       icon: BookOpenIcon,
       label: 'Daily Readings reminder',
-      description: 'Notified at 12 PM every day to read the daily Mass readings',
+      description: `Every day at ${formatTime(preferences.daily_readings_time)} to read the daily Mass readings`,
       column: 'daily_readings_reminder',
     },
   ]
@@ -319,6 +352,36 @@ export default function NotificationSettingsPage() {
                 />
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Reminder times ── */}
+        {!loading && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Reminder times</p>
+            <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+              <ReminderTimeRow
+                label="Morning Offering"
+                value={preferences.morning_offering_time}
+                disabled={!preferences.morning_offering_reminder}
+                onChange={(v) => updatePreference('morning_offering_time', v, preferences.morning_offering_time)}
+              />
+              <ReminderTimeRow
+                label="Daily Readings"
+                value={preferences.daily_readings_time}
+                disabled={!preferences.daily_readings_reminder}
+                onChange={(v) => updatePreference('daily_readings_time', v, preferences.daily_readings_time)}
+              />
+              <ReminderTimeRow
+                label="Confession"
+                value={preferences.confession_reminder_time}
+                disabled={!preferences.confession_reminder}
+                onChange={(v) => updatePreference('confession_reminder_time', v, preferences.confession_reminder_time)}
+              />
+            </div>
+            <p className="text-xs text-gray-500 px-4 mt-2">
+              Times are in your time zone ({deviceTimezone().replace(/_/g, ' ')}), which follows your device.
+            </p>
           </div>
         )}
 

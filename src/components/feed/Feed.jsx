@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useFeed } from '../../hooks/useFeed'
 import PostCard from './PostCard'
 import CreatePost from './CreatePost'
+import MyEvents from './MyEvents'
 import { PostCardSkeleton } from '../shared/skeletons'
 
 /**
@@ -23,6 +24,7 @@ export default function Feed({
   orgId = null,
   userId = null,
   showCreatePost = true,
+  showFindParish = true,
   emptyMessage,
   emptySubtext,
   emptyAction = null,
@@ -83,6 +85,9 @@ export default function Feed({
     window.scrollTo({ top: 0, behavior: 'smooth' })
     setNewPostPending(false)
   }
+
+  // The "Events" filter lists events, not posts
+  if (filter === 'events') return <MyEvents />
 
   // ── Loading state ────────────────────────────────────────
   if (feed.loading) {
@@ -150,7 +155,7 @@ export default function Feed({
               {emptyAction.label}
             </button>
           )}
-          {!emptyAction && !parishId && !groupId && !orgId && !userId && (
+          {showFindParish && !emptyAction && !parishId && !groupId && !orgId && !userId && (
             <button
               onClick={() => navigate('/directory')}
               className="bg-navy text-white px-4 py-2 rounded-lg text-sm font-semibold min-h-[44px]"

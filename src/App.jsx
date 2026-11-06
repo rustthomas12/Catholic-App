@@ -100,17 +100,41 @@ function LastActiveUpdater() {
   return null
 }
 
-// ── Offline detector ───────────────────────────────────────
+// ── Time zone for reminders ───────────────────────────────
+// Morning Offering, Daily Readings and Confession reminders are sent at the
+// person's local time (migration 082), so keep their zone up to date —
+// written only when it changes (new device, travel, first run).
+function TimezoneSync() {
+  const { user } = useAuth()
+  const userId = user?.id
+
+  useEffect(() => {
+    if (!userId) return
+    let tz
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone } catch { return }
+    if (!tz) return
+    const key = `infold-tz-${userId}`
+    try { if (localStorage.getItem(key) === tz) return } catch { /* storage unavailable */ }
+    supabase
+      .from('notification_preferences')
+      .upsert({ user_id: userId, timezone: tz }, { onConflict: 'user_id' })
+      .then(({ error }) => {
+        if (!error) { try { localStorage.setItem(key, tz) } catch { /* ignore */ } }
+      })
+  }, [userId])
+
+  return null
+}
+
+// ── Back-online notice ─────────────────────────────────────
+// While offline, ConnectionBanner says so; this only confirms reconnection.
+// (An offline toast duplicated the banner and promised that changes would
+// sync later, which they don't: nothing is queued.)
 function OfflineDetector() {
   useEffect(() => {
-    const handleOffline = () => toast.offline()
     const handleOnline = () => toast.online()
-    window.addEventListener('offline', handleOffline)
     window.addEventListener('online', handleOnline)
-    return () => {
-      window.removeEventListener('offline', handleOffline)
-      window.removeEventListener('online', handleOnline)
-    }
+    return () => window.removeEventListener('online', handleOnline)
   }, [])
   return null
 }
@@ -132,6 +156,7 @@ function AppInner() {
     <>
       <OfflineDetector />
       <LastActiveUpdater />
+      <TimezoneSync />
       <SuspendedBanner />
       {/* "Add to Home Screen" makes no sense inside the installed app */}
       {!isNative && <InstallPrompt />}
@@ -147,7 +172,7 @@ function AppInner() {
           {/* Public */}
           <Route path="/login"           element={<LoginPage />} />
           <Route path="/signup"          element={<SignupPage />} />
-          <Route path="/onboarding"      element={<OnboardingPage />} />
+          <Route path="/onboarding"      element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
           <Route path="/check-email"      element={<CheckEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />

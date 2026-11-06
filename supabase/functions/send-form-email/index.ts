@@ -30,6 +30,10 @@ serve(async (req) => {
       .maybeSingle()
     if (!payload) return new Response('ignored', { status: 200 })
 
+    // Not sent after all: release the claim so the row shows as not emailed
+    // (it used to be marked emailed even when sending failed)
+    const release = () => supabase.from(table).update({ emailed_at: null }).eq('id', request.id)
+
     let subject = ''
     let body = ''
 
@@ -82,6 +86,7 @@ serve(async (req) => {
     if (!resendKey || resendKey === 're_placeholder') {
       // Fallback: log only (Resend not configured yet)
       console.log('Form submission received (Resend not configured):', subject)
+      await release()
       return new Response('logged', { status: 200 })
     }
 
@@ -100,6 +105,7 @@ serve(async (req) => {
     if (!res.ok) {
       const err = await res.text()
       console.error('Resend error:', err)
+      await release()
       return new Response('email failed', { status: 500 })
     }
 

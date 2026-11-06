@@ -78,11 +78,15 @@ export default function IntegrationsTab({ parishId }) {
   }
 
   async function handleToggle(platformId, enabled) {
-    await supabase
+    const { data, error } = await supabase
       .from('parish_integrations')
       .update({ is_enabled: enabled, updated_at: new Date().toISOString() })
       .eq('parish_id', parishId)
       .eq('platform', platformId)
+      .select('id')
+    // Showing "paused" when the change wasn't saved would let announcements
+    // keep going out unexpectedly
+    if (error || !data?.length) { toast.error('Could not save that change. Please try again.'); return }
     setIntegrations(prev => ({
       ...prev,
       [platformId]: { ...prev[platformId], is_enabled: enabled },

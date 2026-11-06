@@ -109,6 +109,7 @@ export function useNativePushNotifications(userId) {
       await saveToken(token)
       setDisabledLocally(false)
       setIsSubscribed(true)
+      return true
     } catch (err) {
       console.error('[useNativePushNotifications] subscribe error:', err)
       setError('Failed to enable notifications. Please try again.')

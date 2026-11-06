@@ -29,16 +29,7 @@ export const toast = {
       style: { ...baseStyle, background: '#1B2A4A', color: '#fff' },
     }),
 
-  offline: () =>
-    hotToast('You are offline. Changes will sync when you reconnect.', {
-      id: 'offline',
-      duration: Infinity,
-      icon: '📡',
-      style: { ...baseStyle, background: '#6b7280', color: '#fff' },
-    }),
-
   online: () => {
-    hotToast.dismiss('offline')
     hotToast.success('You are back online.', {
       duration: 3000,
       style: { ...baseStyle, background: '#fff', color: '#1B2A4A', border: '1px solid #C9A84C' },

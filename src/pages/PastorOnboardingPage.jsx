@@ -89,14 +89,18 @@ function StepParish({ onSelect }) {
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
   const [managedIds, setManagedIds] = useState(() => new Set())
+  const [checkingId, setCheckingId] = useState(null)
 
   // A parish that already has an admin can't be claimed here
   async function pick(parish) {
     setSelected(parish)
+    setCheckingId(parish.id)
     const { data } = await supabase.rpc('parish_is_managed', { p_parish_id: parish.id })
     if (data) setManagedIds(prev => new Set(prev).add(parish.id))
+    setCheckingId(id => (id === parish.id ? null : id))
   }
   const selectedIsManaged = selected && managedIds.has(selected.id)
+  const checking = selected && checkingId === selected.id
 
   const search = useCallback(async (q) => {
     if (q.trim().length < 2) { setResults([]); return }
@@ -175,8 +179,8 @@ function StepParish({ onSelect }) {
       )}
 
       <button
-        onClick={() => selected && !selectedIsManaged && onSelect(selected)}
-        disabled={!selected || selectedIsManaged}
+        onClick={() => selected && !selectedIsManaged && !checking && onSelect(selected)}
+        disabled={!selected || selectedIsManaged || checking}
         className="w-full bg-navy text-white font-bold py-4 rounded-2xl disabled:opacity-40 hover:bg-navy/90 transition-colors"
       >
         {selected ? `Continue with ${selected.name}` : 'Select a parish to continue'}
@@ -284,7 +288,7 @@ function StepSize({ parish, onSelect }) {
 }
 
 // ── Step 4: Trial + checkout ────────────────────────────────
-function StepTrial({ parish, tier, user, onBack }) {
+function StepTrial({ parish, tier, onBack }) {
   const [loading, setLoading] = useState(false)
 
   async function startTrial() {
@@ -397,7 +401,7 @@ export default function PastorOnboardingPage() {
   useEffect(() => { document.title = 'Set Up Your Parish | inFold' }, [])
 
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { profile } = useAuth()
 
   // Support pre-selecting a parish via ?parish_id= (from ParishPage "Apply" button)
   const preselectedParishId = new URLSearchParams(window.location.search).get('parish_id')
@@ -420,6 +424,7 @@ export default function PastorOnboardingPage() {
         return
       }
       if (data) setSelectedParish(data)
+      else setStep(2) // unknown id: pick from the list instead of a blank card
     })
   }, [preselectedParishId])
 
@@ -473,11 +478,15 @@ export default function PastorOnboardingPage() {
             onSelect={tier => { setSelectedTier(tier); setStep(4) }}
           />
         )}
+        {step === 3 && selectedParish && (
+          <button onClick={() => setStep(2)} className="w-full text-sm text-gray-500 hover:text-navy transition-colors text-center mt-4 py-1">
+            ← Change parish
+          </button>
+        )}
         {step === 4 && selectedParish && selectedTier && (
           <StepTrial
             parish={selectedParish}
             tier={selectedTier}
-            user={user}
             onBack={() => setStep(3)}
           />
         )}
@@ -486,7 +495,7 @@ export default function PastorOnboardingPage() {
       {/* Skip link */}
       {step === 1 && (
         <p className="text-xs text-gray-500 mt-6">
-          You can set up your parish later from Settings.
+          You can set up your parish later from its page in the Directory.
         </p>
       )}
     </div>

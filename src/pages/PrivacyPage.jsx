@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
+import useGoBack from '../hooks/useGoBack'
 
 function Section({ title, children }) {
   return (
@@ -13,12 +13,12 @@ function Section({ title, children }) {
 
 export default function PrivacyPage() {
   useEffect(() => { document.title = 'Privacy Policy | inFold' }, [])
-  const navigate = useNavigate()
+  const goBack = useGoBack()
 
   return (
     <div className="min-h-screen bg-cream">
       <div className="max-w-2xl mx-auto px-4 py-8 pb-16">
-        <button onClick={() => navigate(-1)}
+        <button onClick={goBack}
           className="flex items-center gap-1 text-navy text-sm font-medium mb-6 min-h-[44px]">
           <ArrowLeftIcon className="w-4 h-4" /> Back
         </button>

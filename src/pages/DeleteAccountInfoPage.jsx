@@ -1,17 +1,18 @@
 import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import useGoBack from '../hooks/useGoBack'
 
 // Public page explaining account deletion — Google Play requires a web
 // link where people can learn how to delete their account and data.
 export default function DeleteAccountInfoPage() {
   useEffect(() => { document.title = 'Delete Your Account | inFold' }, [])
-  const navigate = useNavigate()
+  const goBack = useGoBack()
 
   return (
     <div className="min-h-screen bg-cream">
       <div className="max-w-2xl mx-auto px-4 py-8 pb-16">
-        <button onClick={() => navigate(-1)}
+        <button onClick={goBack}
           className="flex items-center gap-1 text-navy text-sm font-medium mb-6 min-h-[44px]">
           <ArrowLeftIcon className="w-4 h-4" /> Back
         </button>

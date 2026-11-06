@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth.jsx'
 
 const SESSION_COUNT_KEY = 'infold-session-count'
 const DISMISSED_KEY = 'infold-push-dismissed'
+const SESSION_COUNTED_KEY = 'infold-session-counted'
 const MIN_SESSIONS = 3
 
 export default function PushPrompt() {
@@ -17,11 +18,18 @@ export default function PushPrompt() {
   useEffect(() => {
     if (!isSupported || permission !== 'default' || isSubscribed || !user) return
     try {
-      const count = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || '0', 10) + 1
-      localStorage.setItem(SESSION_COUNT_KEY, count.toString())
+      // Count each app session once. This effect re-runs as the push state
+      // loads, and it used to add a "session" every time — so the prompt
+      // could appear on someone's first visit.
+      let count = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || '0', 10)
+      if (!sessionStorage.getItem(SESSION_COUNTED_KEY)) {
+        sessionStorage.setItem(SESSION_COUNTED_KEY, '1')
+        count += 1
+        localStorage.setItem(SESSION_COUNT_KEY, count.toString())
+      }
       const dismissed = localStorage.getItem(DISMISSED_KEY)
       if (count >= MIN_SESSIONS && !dismissed) setShow(true)
-    } catch { /* localStorage unavailable */ }
+    } catch { /* storage unavailable */ }
   }, [isSupported, permission, isSubscribed, user])
 
   if (!show) return null
@@ -32,7 +40,12 @@ export default function PushPrompt() {
   }
 
   async function handleEnable() {
-    await subscribe()
+    const ok = await subscribe()
+    if (!ok) {
+      // Declined, or it failed: don't claim it worked, and don't ask again
+      dismiss()
+      return
+    }
     setSuccess(true)
     setTimeout(() => setShow(false), 1800)
   }

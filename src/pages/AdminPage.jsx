@@ -15,11 +15,13 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { supabase } from '../lib/supabase';
+import { supabase, authJsonHeaders } from '../lib/supabase';
+import { apiUrl } from '../lib/platform';
 import { fuzzyIlike, containsIlike } from '../utils/search';
 import Avatar from '../components/shared/Avatar';
 import Modal from '../components/shared/Modal';
 import { toast } from '../components/shared/Toast';
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 
 function StatCard({ label, value, icon: Icon }) {
@@ -245,13 +247,18 @@ function AssignParishPastor() {
     )
 
     // Also mark the user as verified clergy if they aren't already
+    let verified = true
     if (!error) {
-      await supabase.from('profiles').update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', user.id)
+      const { data: updated } = await supabase.from('profiles')
+        .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', user.id).select('id')
+      verified = !!updated?.length
     }
 
     setSaving(false)
     if (error) {
       toast.error('Failed to assign pastor: ' + error.message)
+    } else if (!verified) {
+      toast.error(`${user.full_name} can now manage ${parish.name}, but could not be marked as verified clergy.`)
     } else {
       toast.success(`${user.full_name} is now pastor/admin of ${parish.name}`)
       setParish(null)
@@ -359,7 +366,7 @@ export default function AdminPage() {
 
       const [usersRes, postsRes, flagsRes, parishesRes] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).is('deleted_at', null),
-        supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso),
+        supabase.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', todayIso).is('deleted_at', null),
         supabase.from('post_flags').select('id', { count: 'exact', head: true }).neq('is_resolved', true),
         supabase.from('parishes').select('id', { count: 'exact', head: true }),
       ]);
@@ -471,18 +478,19 @@ export default function AdminPage() {
     }
   }
 
+  // Through an RPC: RLS only lets a post's author update it, so a direct
+  // update here silently changed nothing and the flag was closed anyway
   async function hidePost(flagId, postId) {
-    try {
-      const { error: postError } = await supabase
-        .from('posts')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', postId);
-      if (postError) throw postError;
-      await dismissFlag(flagId);
-      toast.success('Post hidden');
-    } catch (err) {
+    const { error } = await supabase.rpc('admin_hide_flagged_post', { p_flag_id: flagId });
+    if (error) {
       toast.error('Failed to hide post');
+      return;
     }
+    toast.success('Post hidden');
+    // Hiding settles every open flag on that post
+    const settled = flaggedPosts.filter((f) => f.id === flagId || f.post?.id === postId).length;
+    setFlaggedPosts((prev) => prev.filter((f) => f.id !== flagId && f.post?.id !== postId));
+    setStats((prev) => ({ ...prev, openFlags: Math.max(0, prev.openFlags - settled) }));
   }
 
   function openBanModal(flagId, user) {
@@ -854,8 +862,10 @@ function PendingPastors() {
     const parishId = row.pending_pastor_parish_id
     const { error } = await supabase.from('parish_admins').upsert(
       { parish_id: parishId, user_id: row.id, role: 'admin' }, { onConflict: 'parish_id,user_id' })
-    const { error: pErr } = error ? { error } : await supabase.from('profiles')
-      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id)
+    // A refused update returns no rows rather than an error
+    const { data: updated, error: pErr0 } = error ? { error } : await supabase.from('profiles')
+      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id).select('id')
+    const pErr = pErr0 || (!error && !updated?.length ? { message: 'their profile could not be updated' } : null)
     setBusy(null)
     if (error || pErr) { toast.error('Could not approve: ' + (error || pErr).message); return }
     await supabase.from('notifications').insert({
@@ -866,13 +876,25 @@ function PendingPastors() {
     load()
   }
 
+  // Server-side: also cancels the trial the pastor started at checkout,
+  // which otherwise bills them on day 91
   async function decline(row) {
     setBusy(row.id)
-    const { error } = await supabase.from('profiles').update({ pending_pastor_parish_id: null }).eq('id', row.id)
-    setBusy(null)
-    if (error) { toast.error('Could not decline: ' + error.message); return }
-    toast.success('Application declined')
-    load()
+    try {
+      const res = await fetch(apiUrl('/api/create-portal-session'), {
+        method: 'POST',
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ action: 'decline-pastor', applicantId: row.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error('Could not decline: ' + (data.error || res.status)); return }
+      toast.success(data.canceled ? 'Application declined and their trial canceled' : 'Application declined')
+      load()
+    } catch {
+      toast.error('Could not decline. Check your connection and try again.')
+    } finally {
+      setBusy(null)
+    }
   }
 
   if (!rows?.length) return null
@@ -888,8 +910,13 @@ function PendingPastors() {
             </div>
             <button disabled={busy === r.id} onClick={() => approve(r)}
               className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve</button>
-            <button disabled={busy === r.id} onClick={() => decline(r)}
-              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50'>Decline</button>
+            <ConfirmDeleteButton
+              title='Decline this application?'
+              message={`${r.full_name} will not manage ${r.parish?.name || 'this parish'}, and the free trial they started at checkout is canceled so they are never charged.`}
+              confirmLabel='Decline'
+              aria-label={`Decline ${r.full_name}'s application`}
+              onConfirm={() => decline(r)}
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50'>Decline</ConfirmDeleteButton>
           </div>
         ))}
       </div>
@@ -926,8 +953,8 @@ function ParishClusters() {
   }
 
   async function deleteCluster(clusterId) {
-    const { error } = await supabase.from('parish_clusters').delete().eq('id', clusterId)
-    if (error) toast.error('Could not delete cluster')
+    const { data, error } = await supabase.from('parish_clusters').delete().eq('id', clusterId).select('id')
+    if (error || !data?.length) toast.error('Could not delete cluster')
     else setClusters(prev => prev.filter(c => c.id !== clusterId))
   }
 
@@ -1008,13 +1035,16 @@ function ParishClusters() {
                 <div key={cluster.id} className='border border-gray-100 rounded-2xl overflow-hidden'>
                   <div className='bg-lightbg px-4 py-3 flex items-center justify-between'>
                     <p className='font-bold text-navy text-sm'>{cluster.name}</p>
-                    <button
-                      onClick={() => deleteCluster(cluster.id)}
+                    <ConfirmDeleteButton
+                      aria-label={`Delete cluster ${cluster.name}`}
+                      title='Delete this cluster?'
+                      message={`${cluster.name} will be removed. Its parishes stay in the directory, no longer grouped. This can't be undone.`}
+                      onConfirm={() => deleteCluster(cluster.id)}
                       className='text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors'
                     >
                       <TrashIcon className='w-3.5 h-3.5' />
                       Delete
-                    </button>
+                    </ConfirmDeleteButton>
                   </div>
 
                   <div className='divide-y divide-gray-50'>
@@ -1027,9 +1057,9 @@ function ParishClusters() {
                             <p className='text-xs text-gray-500'>{m.parishes.city}, {m.parishes.state}</p>
                           )}
                         </div>
-                        <button aria-label="Close"
+                        <button aria-label={`Remove ${m.parishes.name} from ${cluster.name}`}
                           onClick={() => removeParish(cluster.id, m.parishes.id)}
-                          className='text-gray-500 hover:text-red-700 transition-colors p-1'
+                          className='text-gray-500 hover:text-red-700 transition-colors p-1 tap-target'
                         >
                           <XMarkIcon className='w-4 h-4' />
                         </button>

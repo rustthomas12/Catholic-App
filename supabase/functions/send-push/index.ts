@@ -53,6 +53,10 @@ function notificationPath(type: string, ref: string | null): string {
       return ref ? `/messages?to=${ref}` : '/messages'
     case 'event_reminder':
       return ref ? `/event/${ref}` : '/notifications'
+    case 'morning_offering_reminder':
+      return '/faith/morning-offering'
+    case 'daily_readings_reminder':
+      return '/faith'
     default:
       return '/'
   }
@@ -88,6 +92,8 @@ function formatNotification(type: string, message: string | null, actorName: str
     org_announcement:         { title: '📢 Announcement',            body: body || 'New announcement from your organization' },
     chapter_request:          { title: '📋 Chapter request',         body: body || `${actor} requested a chapter` },
     chapter_request_resolved: { title: '📋 Chapter request update',  body: body || `Your chapter request was reviewed` },
+    morning_offering_reminder: { title: '☀️ Morning Offering',       body: body || 'Offer your day to God before it begins.' },
+    daily_readings_reminder:   { title: '✝ Daily Readings',          body: body || "Today's Mass readings are ready." },
   }
 
   const format = formats[type] ?? { title: 'inFold', body: body }

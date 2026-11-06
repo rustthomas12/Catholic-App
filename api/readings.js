@@ -198,6 +198,20 @@ async function fetchLiturgicalDay(yyyy, mm, dd) {
   }
 }
 
+// YYYYMMDD or YYYY-MM-DD for a date that exists (not 2026-13-99), within a
+// sane range; returns the ISO form or null. Bad dates used to be passed on
+// to the upstream sites before failing.
+function parseDate(date) {
+  let iso
+  if (/^\d{8}$/.test(date ?? '')) iso = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`
+  else if (/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) iso = date
+  else return null
+  const d = new Date(`${iso}T00:00:00Z`)
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== iso) return null
+  const year = d.getUTCFullYear()
+  return year >= 1900 && year <= 2200 ? iso : null
+}
+
 // ── Handler ────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (applyNativeCors(req, res, { publicData: true })) return
@@ -207,14 +221,8 @@ export default async function handler(req, res) {
   if (lang === 'es') return handleSpanish(req, res)
   if (rite === 'tlm') return handleTLM(req, res)
 
-  let isoDate
-  if (/^\d{8}$/.test(date)) {
-    isoDate = `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    isoDate = date
-  } else {
-    return res.status(400).json({ success: false, error: 'Invalid date format' })
-  }
+  const isoDate = parseDate(date)
+  if (!isoDate) return res.status(400).json({ success: false, error: 'Invalid date format' })
 
   const [yyyy, mm, dd] = isoDate.split('-')
   const cpbjrUrl = `https://cpbjr.github.io/catholic-readings-api/readings/${yyyy}/${mm}-${dd}.json`
@@ -292,7 +300,7 @@ export default async function handler(req, res) {
 // ── Spanish readings (Universalis) ─────────────────────────
 async function handleSpanish(req, res) {
   const { date } = req.query
-  if (!date || !/^\d{8}$/.test(date)) {
+  if (!/^\d{8}$/.test(date ?? '') || !parseDate(date)) {
     return res.status(400).json({ success: false, error: 'Invalid date format, expected YYYYMMDD' })
   }
   try {
@@ -312,14 +320,8 @@ async function handleSpanish(req, res) {
 // ── TLM readings (Missale Meum) ─────────────────────────────
 async function handleTLM(req, res) {
   const { date } = req.query
-  let isoDate
-  if (/^\d{8}$/.test(date)) {
-    isoDate = date.slice(0,4) + '-' + date.slice(4,6) + '-' + date.slice(6,8)
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    isoDate = date
-  } else {
-    return res.status(400).json({ success: false, error: 'Invalid date format' })
-  }
+  const isoDate = parseDate(date)
+  if (!isoDate) return res.status(400).json({ success: false, error: 'Invalid date format' })
   try {
     const response = await fetch('https://www.missalemeum.com/en/api/v5/proper/' + isoDate, {
       headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' },

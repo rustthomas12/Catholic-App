@@ -3,7 +3,20 @@ import TopBar from '../components/shared/TopBar'
 import { SunIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 
-const TODAY_KEY = () => `morning_offering_${new Date().toDateString()}`
+// One key holding the date last prayed (this used to add a new key every day)
+const PRAYED_KEY = 'morning_offering_last'
+const today = () => new Date().toDateString()
+
+function readPrayedToday() {
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('morning_offering_') && k !== PRAYED_KEY) localStorage.removeItem(k)
+    }
+    return localStorage.getItem(PRAYED_KEY) === today()
+  } catch {
+    return false
+  }
+}
 
 const PRAYERS = [
   {
@@ -31,11 +44,11 @@ const PRAYERS = [
 export default function MorningOfferingPage() {
   useEffect(() => { document.title = 'Morning Offering | inFold' }, [])
 
-  const [prayedToday, setPrayedToday] = useState(() => !!localStorage.getItem(TODAY_KEY()))
+  const [prayedToday, setPrayedToday] = useState(readPrayedToday)
   const [selected, setSelected] = useState('traditional')
 
   function markPrayed() {
-    localStorage.setItem(TODAY_KEY(), '1')
+    try { localStorage.setItem(PRAYED_KEY, today()) } catch {}
     setPrayedToday(true)
   }
 
@@ -74,6 +87,7 @@ export default function MorningOfferingPage() {
                 <button
                   key={p.id}
                   onClick={() => setSelected(p.id)}
+                  aria-pressed={selected === p.id}
                   className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
                     selected === p.id ? 'bg-lightbg' : 'hover:bg-lightbg/50'
                   }`}

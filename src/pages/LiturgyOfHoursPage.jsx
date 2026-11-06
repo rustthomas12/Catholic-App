@@ -46,6 +46,7 @@ export default function LiturgyOfHoursPage() {
                 <button
                   key={id}
                   onClick={() => setActiveId(id)}
+                  aria-pressed={activeId === id}
                   className={`flex-1 py-3 text-xs font-semibold border-b-2 transition-colors leading-tight ${
                     activeId === id
                       ? 'border-navy text-navy'
