@@ -300,10 +300,8 @@ export function useParish(parishId) {
 
     Promise.all([
       supabase.from('parishes').select(PARISH_SELECT).eq('id', parishId).single(),
-      supabase
-        .from('parish_follows')
-        .select('user_id', { count: 'exact', head: true })
-        .eq('parish_id', parishId),
+      // Counted server-side: other people's follows aren't readable (083)
+      supabase.rpc('parish_follower_counts', { p_parish_ids: [parishId] }),
       followCheck,
       // Which cluster (if any) does this parish belong to?
       supabase
@@ -316,7 +314,7 @@ export function useParish(parishId) {
       if (parishRes.error) setError(parishRes.error.message)
       else setParish(parishRes.data)
 
-      setFollowerCount(countRes.count ?? 0)
+      setFollowerCount(Number(countRes.data?.[0]?.followers ?? 0))
       setIsFollowing(!!followRes.data)
       setIsMyParish(profileParishId === parishId)
       setLoading(false)

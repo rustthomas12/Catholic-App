@@ -19,6 +19,15 @@ import useMediaQuery from '../hooks/useMediaQuery'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
+// Empty-feed wording per filter (a parish member looking at an empty Prayer
+// filter was told to "find my parish")
+const EMPTY = {
+  all:    ['Nothing posted yet', 'Be the first to post in your parish or group'],
+  parish: ['No parish posts yet', 'Posts and announcements from your parishes show up here'],
+  groups: ['No group posts yet', 'Posts from groups you belong to show up here'],
+  prayer: ['No prayer requests yet', 'Turn on "Prayer request" when you post to ask your community to pray'],
+}
+
 // Module-level cache — persists across navigations within the same session
 let _homeParishCache = null  // { parishId, data }
 
@@ -240,8 +249,9 @@ export default function HomePage() {
             <Feed
               filter={activeFilter}
               showCreatePost
-              emptyMessage="Nothing posted yet"
-              emptySubtext="Be the first to post in your parish or group"
+              emptyMessage={EMPTY[activeFilter]?.[0] ?? EMPTY.all[0]}
+              emptySubtext={EMPTY[activeFilter]?.[1] ?? EMPTY.all[1]}
+              showFindParish={activeFilter === 'all'}
             />
           </div>
         )}
@@ -285,8 +295,9 @@ export default function HomePage() {
                 <Feed
                   filter={activeFilter}
                   showCreatePost
-                  emptyMessage="Nothing posted yet"
-                  emptySubtext="Be the first to post in your parish or group"
+                  emptyMessage={EMPTY[activeFilter]?.[0] ?? EMPTY.all[0]}
+                  emptySubtext={EMPTY[activeFilter]?.[1] ?? EMPTY.all[1]}
+                  showFindParish={activeFilter === 'all'}
                 />
               </div>
             </>

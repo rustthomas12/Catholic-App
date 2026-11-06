@@ -223,13 +223,14 @@ function DashboardTab({ parishId }) {
   useEffect(() => {
     async function load() {
       const [followRes, postRes, eventRes, msgRes] = await Promise.all([
-        supabase.from('parish_follows').select('id', { count: 'exact', head: true }).eq('parish_id', parishId),
+        // Same count as the parish page; leaves out deleted accounts (083)
+        supabase.rpc('parish_follower_counts', { p_parish_ids: [parishId] }),
         supabase.from('posts').select('id', { count: 'exact', head: true }).eq('parish_id', parishId).is('deleted_at', null),
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('parish_id', parishId),
         supabase.from('parish_messages').select('id', { count: 'exact', head: true }).eq('parish_id', parishId).eq('is_read', false),
       ])
       setStats({
-        followers: followRes.count ?? 0,
+        followers: Number(followRes.data?.[0]?.followers ?? 0),
         posts: postRes.count ?? 0,
         events: eventRes.count ?? 0,
         unreadMessages: msgRes.count ?? 0,
