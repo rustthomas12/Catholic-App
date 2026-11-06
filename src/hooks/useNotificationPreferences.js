@@ -22,6 +22,11 @@ const DEFAULTS = {
   morning_offering_reminder: true,
   daily_readings_reminder:  true,
   reminder_interval_days:   30,
+  // Local times in `timezone` (migration 082); the app keeps the zone current
+  morning_offering_time:    '06:00:00',
+  daily_readings_time:      '12:00:00',
+  confession_reminder_time: '10:00:00',
+  timezone:                 'America/New_York',
 }
 
 const LINKED_COLUMNS = {
@@ -53,7 +58,8 @@ export function useNotificationPreferences() {
   }, [user])
 
   // ── Update a single column ────────────────────────────────
-  const updatePreference = useCallback(async (column, value) => {
+  // `previous` is what to restore if saving fails (switches: the opposite)
+  const updatePreference = useCallback(async (column, value, previous = !value) => {
     if (!user) return
 
     // One switch can drive several columns (e.g. "Group Activity" covers
@@ -72,7 +78,7 @@ export function useNotificationPreferences() {
 
     if (error) {
       // Revert on failure
-      setPreferences(prev => ({ ...prev, ...Object.fromEntries(Object.keys(changes).map(c => [c, !value])) }))
+      setPreferences(prev => ({ ...prev, ...Object.fromEntries(Object.keys(changes).map(c => [c, previous])) }))
       console.error('Failed to update notification preference:', error.message)
     }
   }, [user])

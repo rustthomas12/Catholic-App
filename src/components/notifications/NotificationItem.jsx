@@ -14,6 +14,8 @@ import {
   UserPlusIcon,
   BuildingOffice2Icon,
   DocumentTextIcon,
+  SunIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline'
 import Avatar from '../shared/Avatar'
 import { formatRelativeTime } from '../../utils/dates'
@@ -35,6 +37,8 @@ function TypeIcon({ type, message }) {
   if (type === 'prayer_response') return <HandRaisedIcon className={`${base} text-gold`} />
   if (type === 'confession_reminder') return <ClipboardDocumentCheckIcon className={`${base} text-navy`} />
   if (type === 'event_reminder') return <CalendarIcon className={`${base} text-navy`} />
+  if (type === 'morning_offering_reminder') return <SunIcon className={`${base} text-gold`} />
+  if (type === 'daily_readings_reminder') return <BookOpenIcon className={`${base} text-navy`} />
   if (type === 'direct_message') return <EnvelopeIcon className={`${base} text-navy`} />
   if (type === 'post_flagged') return <ShieldExclamationIcon className={`${base} text-red-500`} />
   if (type === 'new_parish_member') return <UserPlusIcon className={`${base} text-gold`} />

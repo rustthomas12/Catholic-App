@@ -100,6 +100,32 @@ function LastActiveUpdater() {
   return null
 }
 
+// ── Time zone for reminders ───────────────────────────────
+// Morning Offering, Daily Readings and Confession reminders are sent at the
+// person's local time (migration 082), so keep their zone up to date —
+// written only when it changes (new device, travel, first run).
+function TimezoneSync() {
+  const { user } = useAuth()
+  const userId = user?.id
+
+  useEffect(() => {
+    if (!userId) return
+    let tz
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone } catch { return }
+    if (!tz) return
+    const key = `infold-tz-${userId}`
+    try { if (localStorage.getItem(key) === tz) return } catch { /* storage unavailable */ }
+    supabase
+      .from('notification_preferences')
+      .upsert({ user_id: userId, timezone: tz }, { onConflict: 'user_id' })
+      .then(({ error }) => {
+        if (!error) { try { localStorage.setItem(key, tz) } catch { /* ignore */ } }
+      })
+  }, [userId])
+
+  return null
+}
+
 // ── Back-online notice ─────────────────────────────────────
 // While offline, ConnectionBanner says so; this only confirms reconnection.
 // (An offline toast duplicated the banner and promised that changes would
@@ -130,6 +156,7 @@ function AppInner() {
     <>
       <OfflineDetector />
       <LastActiveUpdater />
+      <TimezoneSync />
       <SuspendedBanner />
       {/* "Add to Home Screen" makes no sense inside the installed app */}
       {!isNative && <InstallPrompt />}
