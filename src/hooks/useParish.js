@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { fuzzyIlike, containsIlike } from '../utils/search'
+import { toast } from '../components/shared/Toast'
 
 // Haversine distance in miles
 export function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -342,7 +343,8 @@ export function useParish(parishId) {
   const unsetMyParish = useCallback(async () => {
     if (!userId) return
     const { error: err } = await updateProfile({ parish_id: null })
-    if (!err) setIsMyParish(false)
+    if (err) toast.error(err)
+    else setIsMyParish(false)
     return { error: err }
   }, [userId, updateProfile])
 
@@ -365,6 +367,8 @@ export function useParish(parishId) {
           await updateProfile({ parish_id: null })
           setIsMyParish(false)
         }
+      } else {
+        toast.error('Could not unfollow this parish. Please try again.')
       }
     } else {
       const { error: err } = await supabase
@@ -376,6 +380,8 @@ export function useParish(parishId) {
         invalidateFollowedParishesCache()
 
         // Parish admins are notified by a database trigger (migration 034)
+      } else {
+        toast.error('Could not follow this parish. Please try again.')
       }
     }
 
@@ -385,7 +391,8 @@ export function useParish(parishId) {
   const setAsMyParish = useCallback(async () => {
     if (!userId) return { error: 'Not authenticated' }
     const { error: err } = await updateProfile({ parish_id: parishId })
-    if (!err) {
+    if (err) toast.error(err)
+    else {
       setIsMyParish(true)
       if (!isFollowing) {
         const { error: fErr } = await supabase

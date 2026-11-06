@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const DISMISSED_KEY = 'infold-directory-banner-dismissed'
 
 export default function DirectoryDiscoveryBanner({ followedCount }) {
-  const [dismissed, setDismissed] = useState(false)
-
-  useEffect(() => {
-    setDismissed(localStorage.getItem(DISMISSED_KEY) === 'true')
-  }, [])
+  // Read on first render: reading it in an effect flashed the banner
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem(DISMISSED_KEY) === 'true' } catch { return false }
+  })
 
   function dismiss() {
-    localStorage.setItem(DISMISSED_KEY, 'true')
+    try { localStorage.setItem(DISMISSED_KEY, 'true') } catch { /* private mode */ }
     setDismissed(true)
   }
 
