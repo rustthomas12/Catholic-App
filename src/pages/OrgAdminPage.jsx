@@ -23,7 +23,7 @@ import {
   ClockIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline'
-import { format, parseISO, addDays } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
@@ -295,7 +295,11 @@ export default function OrgAdminPage() {
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 pt-4 pb-24 md:pb-8">
         {activeTab !== 'billing' && !subLoading && !hasActiveSub
-          ? <SubscriptionPrompt onBilling={goToBilling} />
+          ? <>
+              <SubscriptionPrompt onBilling={goToBilling} />
+              {/* An organization made by mistake can be deleted without starting a trial */}
+              {activeTab === 'settings' && org && <DeleteOrganization org={org} orgId={orgId} />}
+            </>
           : (
             <>
               {activeTab !== 'billing' && !subLoading && (
@@ -1368,6 +1372,60 @@ function SettingsTab({ org, setOrg, orgId }) {
         className="w-full bg-navy text-white text-sm font-bold py-3 rounded-xl hover:bg-navy/90 transition-colors disabled:opacity-60">
         {saving ? 'Saving…' : 'Save changes'}
       </button>
+
+      <DeleteOrganization org={org} orgId={orgId} />
+    </div>
+  )
+}
+
+// ── Delete organization (migration 081) ────────────────────
+// Typing the name guards against deleting the wrong one; the server refuses
+// while there are chapters or a live subscription.
+function DeleteOrganization({ org, orgId }) {
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const matches = typed.trim() === (org.name || '').trim()
+
+  async function handleDelete() {
+    if (!matches) return
+    setBusy(true)
+    const { error } = await supabase.rpc('delete_organization', { p_org_id: orgId })
+    setBusy(false)
+    if (error) {
+      toast.error(error.code === 'P0001' || error.code === '42501' ? error.message : 'Could not delete the organization.')
+      return
+    }
+    toast.success(`${org.name} was deleted.`)
+    navigate('/organizations', { replace: true })
+  }
+
+  return (
+    <div className="border border-red-200 rounded-2xl p-4 mt-6">
+      <h3 className="text-sm font-bold text-red-700">Delete organization</h3>
+      <p className="text-xs text-gray-500 mt-1">
+        Removes {org.name}, its posts, events, announcements, groups and member list. This can't be undone.
+      </p>
+      <button type="button" onClick={() => { setTyped(''); setOpen(true) }}
+        className="mt-3 text-sm font-semibold px-4 min-h-[44px] rounded-xl border border-red-300 text-red-700 hover:bg-red-50">
+        Delete organization…
+      </button>
+      <Modal isOpen={open} onClose={() => !busy && setOpen(false)} title={`Delete ${org.name}?`} size="sm">
+        <p className="text-sm text-gray-600 mb-3">
+          Everything in this organization is removed for everyone. Type <strong>{org.name}</strong> to confirm.
+        </p>
+        <input value={typed} onChange={e => setTyped(e.target.value)} aria-label="Organization name"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-4 focus:outline-none focus:border-navy" />
+        <div className="flex gap-3">
+          <button type="button" onClick={() => setOpen(false)} disabled={busy}
+            className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">Cancel</button>
+          <button type="button" onClick={handleDelete} disabled={!matches || busy}
+            className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40">
+            {busy ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -1392,7 +1450,6 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
 
   // Canceled / expired plans can't be restarted from Stripe's portal — offer checkout again
   const hasSubscription = !!subscription && !['canceled', 'incomplete_expired'].includes(subscription.status)
-  const isActive = ['trialing', 'active'].includes(subscription?.status)
   const isLegacy = hasSubscription && ['small', 'mid', 'large'].includes(subscription?.tier)
 
   useEffect(() => {
