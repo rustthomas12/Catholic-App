@@ -1,6 +1,6 @@
 import Modal from '../components/shared/Modal'
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeftIcon,
   BuildingOffice2Icon,
@@ -23,6 +23,7 @@ import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
 import { safeImageUrl } from '../utils/validate'
+import useGoBack from '../hooks/useGoBack'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
@@ -139,7 +140,7 @@ function useOrganization(orgId) {
 
 export default function OrganizationPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
+  const goBack = useGoBack('/organizations')
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
   const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
@@ -185,7 +186,7 @@ export default function OrganizationPage() {
       {/* Header */}
       <div className="bg-navy relative">
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />

@@ -32,6 +32,7 @@ import { GroupPageSkeleton } from '../components/shared/skeletons'
 import Feed from '../components/feed/Feed'
 import Modal from '../components/shared/Modal'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
+import useGoBack from '../hooks/useGoBack'
 
 const TABS = [
   { id: 'feed',    label: 'tab_feed' },
@@ -45,6 +46,7 @@ export default function GroupPage() {
   const { t } = useTranslation('groups')
   const { id } = useParams()
   const navigate = useNavigate()
+  const goBack = useGoBack('/groups')
   const { user, profile } = useAuth()
 
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
@@ -225,7 +227,7 @@ export default function GroupPage() {
       {/* ── Header ── */}
       <div className="bg-navy relative">
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="absolute top-2 left-2 text-white/80 hover:text-white min-w-[44px] min-h-[44px] px-2 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />

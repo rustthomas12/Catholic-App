@@ -67,16 +67,20 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
 
-  // Reset when modal opens
+  // Reset when modal opens (only then: the destinations can finish loading
+  // after it opens, and that used to wipe what had been typed)
   useEffect(() => {
     if (isOpen) {
       setContent('')
       setImage(null)
       setImagePreview(null)
       setIsPrayerRequest(false)
-      setDestination(defaultDestination ?? null)
       setTimeout(() => textareaRef.current?.focus(), 100)
     }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) setDestination(defaultDestination ?? null)
   }, [isOpen, defaultDestination])
 
   // Auto-grow textarea
@@ -362,6 +366,16 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
     async function loadDestinations() {
       const opts = []
 
+      // On an organization page the post belongs to that organization only
+      // (it used to also carry the home parish and show in that parish's feed)
+      if (contextOrgId) {
+        const { data: org } = await supabase.from('organizations').select('id, name').eq('id', contextOrgId).single()
+        const only = { value: `org-${contextOrgId}`, type: 'org', label: org?.name ?? 'This organization' }
+        setDestinations([only])
+        setDefaultDestination(only)
+        return
+      }
+
       // Parish
       if (profile?.parish_id) {
         const { data: parish } = await supabase
@@ -400,6 +414,18 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
         })
       }
 
+      // The parish or group whose page this is, when it isn't already listed
+      // (a followed parish that isn't your home parish, or a group past the
+      // first 10). Otherwise the post silently went somewhere else.
+      if (contextParishId && !opts.some(o => o.parishId === contextParishId)) {
+        const { data: p } = await supabase.from('parishes').select('id, name').eq('id', contextParishId).single()
+        if (p) opts.unshift({ value: `parish-${p.id}`, type: 'parish', label: p.name, parishId: p.id })
+      }
+      if (contextGroupId && !opts.some(o => o.groupId === contextGroupId)) {
+        const { data: g } = await supabase.from('groups').select('id, name').eq('id', contextGroupId).single()
+        if (g) opts.unshift({ value: `group-${g.id}`, type: 'group', label: `${g.name} group`, groupId: g.id, groupName: g.name })
+      }
+
       if (opts.length === 0) {
         opts.push({ value: 'public', type: 'public', label: t('post.destination_public') })
       }
@@ -418,7 +444,7 @@ export default function CreatePost({ onPost, groupId: contextGroupId = null, par
       }
     }
     loadDestinations()
-  }, [user, profile?.parish_id, contextGroupId, contextParishId, t])
+  }, [user, profile?.parish_id, contextGroupId, contextParishId, contextOrgId, t])
 
   function handlePost(rawPost) {
     if (!rawPost) return

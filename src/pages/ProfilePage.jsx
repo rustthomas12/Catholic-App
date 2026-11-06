@@ -17,6 +17,7 @@ import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import Feed from '../components/feed/Feed'
 import { format } from 'date-fns'
+import useGoBack from '../hooks/useGoBack'
 
 
 function ProfileSkeleton() {
@@ -40,6 +41,7 @@ export default function ProfilePage() {
   const { id } = useParams()
   const { user, profile: currentProfile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+  const goBack = useGoBack()
 
   const [profile, setProfile] = useState(null)
   const [parish, setParish] = useState(null)
@@ -142,7 +144,7 @@ export default function ProfilePage() {
       </div>
       <h1 className="text-lg font-bold text-navy">Profile not found</h1>
       <p className="text-gray-500 text-sm text-center">This user does not exist or has been removed.</p>
-      <Button variant="secondary" onClick={() => navigate(-1)}>
+      <Button variant="secondary" onClick={goBack}>
         <ArrowLeftIcon className="w-4 h-4" /> Go back
       </Button>
     </div>
@@ -170,7 +172,7 @@ export default function ProfilePage() {
         <div className="relative">
           {/* Back button (mobile) — not on the Me tab itself, which is a tab root */}
           {!isMeTab && (
-            <button aria-label="Back" onClick={() => navigate(-1)}
+            <button aria-label="Back" onClick={goBack}
               className="absolute top-3 left-3 z-10 w-11 h-11 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm md:hidden">
               <ArrowLeftIcon className="w-5 h-5 text-navy" />
             </button>

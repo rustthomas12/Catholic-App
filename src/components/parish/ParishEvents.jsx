@@ -99,7 +99,8 @@ export default function ParishEvents({ parishId, orgId }) {
   )
 }
 
-function EventCard({ event }) {
+// source: optional "where it's from" line (the Home feed's Events filter)
+export function EventCard({ event, source = null }) {
   const start = new Date(event.start_time)
   const end = event.end_time ? new Date(event.end_time) : null
   const past = isPast(start)
@@ -118,6 +119,11 @@ function EventCard({ event }) {
 
         {/* Content */}
         <div className="flex-1 px-4 py-3 min-w-0">
+          {source && (
+            <Link to={source.to} className="text-xs text-gray-500 hover:text-navy hover:underline truncate block">
+              {source.label}
+            </Link>
+          )}
           <p className="font-bold text-navy text-sm leading-snug">{event.title}</p>
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-gray-500">

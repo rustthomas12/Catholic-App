@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
 import TopBar, { TopBarAction } from '../components/shared/TopBar'
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useAdminAccess } from '../hooks/useAdminAccess'
 import { useFollowedParishes } from '../hooks/useParish.js'
+import { useGroupMemberships } from '../hooks/useGroups.js'
 import { supabase } from '../lib/supabase'
 import { differenceInDays } from 'date-fns'
 import Feed from '../components/feed/Feed'
@@ -14,12 +15,12 @@ import FeedFilters from '../components/feed/FeedFilters'
 import ReadingsCard from '../components/faith/ReadingsCard'
 import { useReadings } from '../hooks/useReadings'
 import GroupCard from '../components/groups/GroupCard'
+import useMediaQuery from '../hooks/useMediaQuery'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
 // Module-level cache — persists across navigations within the same session
 let _homeParishCache = null  // { parishId, data }
-let _homeGroupsCache = null  // { userId, data }
 
 export default function HomePage() {
   useEffect(() => { document.title = 'Home | inFold' }, [])
@@ -29,6 +30,7 @@ export default function HomePage() {
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
   const hasAnyAdminAccess = isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0
   const navigate = useNavigate()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   // Resume an org invite opened while signed out (set by JoinPage; survives
   // the sign-up email confirmation, which may open in a new tab)
@@ -43,14 +45,10 @@ export default function HomePage() {
       ? _homeParishCache.data
       : null
   )
-  const [groups, setGroups] = useState(() =>
-    profile?.id && _homeGroupsCache?.userId === profile.id
-      ? _homeGroupsCache.data
-      : []
-  )
-  const [groupsLoaded, setGroupsLoaded] = useState(() =>
-    !!(profile?.id && _homeGroupsCache?.userId === profile.id)
-  )
+  // Shared membership list: joining or leaving a group refreshes it
+  const { memberships, loading: groupsLoading } = useGroupMemberships()
+  const groups = useMemo(() => memberships.slice(0, 6).map(m => m.group), [memberships])
+  const groupsLoaded = !groupsLoading
   const [dismissed, setDismissed] = useState(() =>
     localStorage.getItem(WELCOME_DISMISSED_KEY) === '1'
   )
@@ -88,24 +86,8 @@ export default function HomePage() {
             }
           })
       }
-    }
-
-    // Groups — only fetch if userId changed or cache is missing
-    if (_homeGroupsCache?.userId === profileId) {
-      setGroups(_homeGroupsCache.data)
     } else {
-      supabase.from('group_members')
-        .select('groups(id, name, member_count, category)')
-        .eq('user_id', profileId)
-        .limit(6)
-        .then(({ data, error: err }) => {
-          if (!err) {
-            const result = (data ?? []).map(d => d.groups).filter(Boolean)
-            _homeGroupsCache = { userId: profileId, data: result }
-            setGroups(result)
-          }
-          setGroupsLoaded(true)
-        })
+      setParish(null)
     }
   }, [parishId, profileId])
 
@@ -118,7 +100,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-cream md:pl-60">
       <h1 className="sr-only hidden md:block">{i18n.t('common:nav.home')}</h1>
       {/* ── Mobile: single column ── */}
-      <div className="md:hidden max-w-2xl mx-auto pb-24">
+      {/* Only one layout is mounted: hiding the other with CSS still ran a
+          second feed (its own queries and 20 more post cards) */}
+      {!isDesktop && <div className="md:hidden max-w-2xl mx-auto pb-24">
         <TopBar
           variant="navy"
           title={
@@ -252,15 +236,6 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="border-t-4 border-gray-100">
-            {hasAnyAdminAccess && (
-              <div className="hidden md:block">
-                <AdminQuickAccess
-                  isPlatformAdmin={isPlatformAdmin}
-                  parishAdminRecords={parishAdminRecords}
-                  orgAdminRecords={orgAdminRecords}
-                />
-              </div>
-            )}
             <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
             <Feed
               filter={activeFilter}
@@ -270,10 +245,10 @@ export default function HomePage() {
             />
           </div>
         )}
-      </div>
+      </div>}
 
       {/* ── Desktop: two-column layout ── */}
-      <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-6 pt-6 pb-12">
+      {isDesktop && <div className="hidden md:flex gap-6 max-w-5xl mx-auto px-6 pt-6 pb-12">
         {/* Left: feed */}
         <div className="flex-1 min-w-0">
           {groupsLoaded && !hasAnyMembership ? (
@@ -399,7 +374,7 @@ export default function HomePage() {
             </div>
           )}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -38,16 +38,10 @@ export default function PostPage() {
     return () => { cancelled = true }
   }, [id, user?.id])
 
-  function goBack() {
-    // Opened straight from a shared link there's no in-app history
-    if (window.history.length > 1) navigate(-1)
-    else navigate('/', { replace: true })
-  }
-
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
-        <TopBar title="Post" back onBack={goBack} />
+        <TopBar title="Post" back />
 
         <div className="pt-3">
           {status === 'loading' && <PostCardSkeleton />}

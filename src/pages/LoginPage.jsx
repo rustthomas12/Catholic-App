@@ -14,7 +14,9 @@ export default function LoginPage() {
   const { signIn, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const returnUrl = searchParams.get('returnUrl') || '/'
+  // Only same-app paths: "//host" or "/\host" would leave the app
+  const requested = searchParams.get('returnUrl') || '/'
+  const returnUrl = /^\/(?![/\\])/.test(requested) ? requested : '/'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

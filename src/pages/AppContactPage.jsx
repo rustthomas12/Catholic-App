@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
 import { EnvelopeIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
+import useGoBack from '../hooks/useGoBack'
 
 const REASONS = [
   'I found a bug',
@@ -18,7 +18,7 @@ const REASONS = [
 export default function AppContactPage() {
   useEffect(() => { document.title = 'Contact Us | inFold' }, [])
 
-  const navigate = useNavigate()
+  const goBack = useGoBack('/settings')
   const { user, profile } = useAuth()
 
   const [reason, setReason] = useState('')
@@ -66,7 +66,7 @@ export default function AppContactPage() {
                 We'll get back to you within 1–2 business days.
               </p>
               <button
-                onClick={() => navigate(-1)}
+                onClick={goBack}
                 className="text-navy font-semibold text-sm hover:underline"
               >
                 ← Back to settings

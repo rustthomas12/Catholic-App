@@ -12,6 +12,7 @@ import { useSaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import { currentPublicUrl } from '../lib/platform'
+import useGoBack from '../hooks/useGoBack'
 
 function formatFeastDay(feastDay) {
   if (!feastDay) return null
@@ -41,6 +42,7 @@ function getSaintMonthName(feastDay) {
 export default function SaintPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const goBack = useGoBack('/saints')
   const { t } = useTranslation('faith')
   const { saint, loading, error } = useSaint(id)
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()
@@ -154,7 +156,7 @@ export default function SaintPage() {
         {/* ── Top nav ── */}
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="flex items-center gap-1 text-gray-500 hover:text-navy text-sm transition-colors"
           >
             <ChevronLeftIcon className="w-4 h-4" />

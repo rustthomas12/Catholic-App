@@ -145,7 +145,7 @@ function AppInner() {
           {/* Public */}
           <Route path="/login"           element={<LoginPage />} />
           <Route path="/signup"          element={<SignupPage />} />
-          <Route path="/onboarding"      element={<OnboardingPage />} />
+          <Route path="/onboarding"      element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
           <Route path="/check-email"      element={<CheckEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />

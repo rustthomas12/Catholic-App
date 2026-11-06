@@ -23,6 +23,7 @@ import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleto
 import ParishEvents from '../components/parish/ParishEvents'
 import ParishGroups from '../components/parish/ParishGroups'
 import { format, isPast } from 'date-fns'
+import useGoBack from '../hooks/useGoBack'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -34,6 +35,7 @@ const TABS = [
 export default function ParishPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const goBack = useGoBack('/directory')
   const { profile } = useAuth()
   const { parishAdminRecords } = useAdminAccess()
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
@@ -96,7 +98,7 @@ export default function ParishPage() {
       <div className="bg-navy relative">
         {/* Back button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />

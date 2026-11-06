@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useFeed } from '../../hooks/useFeed'
 import PostCard from './PostCard'
 import CreatePost from './CreatePost'
+import MyEvents from './MyEvents'
 import { PostCardSkeleton } from '../shared/skeletons'
 
 /**
@@ -83,6 +84,9 @@ export default function Feed({
     window.scrollTo({ top: 0, behavior: 'smooth' })
     setNewPostPending(false)
   }
+
+  // The "Events" filter lists events, not posts
+  if (filter === 'events') return <MyEvents />
 
   // ── Loading state ────────────────────────────────────────
   if (feed.loading) {

@@ -10,6 +10,7 @@ import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
 import { fuzzyIlike } from '../utils/search'
+import useGoBack from '../hooks/useGoBack'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
@@ -24,6 +25,7 @@ export default function EditProfilePage() {
   useEffect(() => { document.title = 'Edit Profile | inFold' }, [])
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
+  const goBack = useGoBack('/settings')
   const fileRef = useRef(null)
 
   const [fullName, setFullName] = useState('')
@@ -202,7 +204,7 @@ export default function EditProfilePage() {
     if (hasChanges) {
       setShowDiscardModal(true)
     } else {
-      navigate(-1)
+      goBack()
     }
   }
 
@@ -401,7 +403,7 @@ export default function EditProfilePage() {
       <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="Discard changes?">
         <p className="text-gray-500 text-sm mb-5">Your changes have not been saved.</p>
         <div className="flex flex-col gap-2">
-          <Button variant="danger" fullWidth onClick={() => navigate(-1)}>Discard</Button>
+          <Button variant="danger" fullWidth onClick={goBack}>Discard</Button>
           <Button variant="secondary" fullWidth onClick={() => setShowDiscardModal(false)}>Keep editing</Button>
         </div>
       </Modal>

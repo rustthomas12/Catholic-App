@@ -2,7 +2,6 @@ import { friendlyError } from '../utils/errors'
 import ReportModal from '../components/shared/ReportModal'
 import { reportContent } from '../lib/reports'
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ChevronLeftIcon, UserCircleIcon, FlagIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -11,6 +10,7 @@ import Avatar from '../components/shared/Avatar'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { formatRelativeTime } from '../utils/dates'
 import { toast } from '../components/shared/Toast'
+import useGoBack from '../hooks/useGoBack'
 
 const PAGE_SIZE = 30
 
@@ -27,7 +27,7 @@ export default function PrayerRequestsPage() {
   const { t } = useTranslation('feed')
   const { user } = useAuth()
   const [reportId, setReportId] = useState(null)
-  const navigate = useNavigate()
+  const goBack = useGoBack('/faith')
 
   useEffect(() => { document.title = `${t('prayer.title')} | inFold` }, [t])
 
@@ -153,7 +153,7 @@ export default function PrayerRequestsPage() {
         {/* Header */}
         <div className="bg-navy px-4 py-4 flex items-center gap-3 sticky sticky-top z-10">
           <button aria-label="Back"
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-white/70 hover:text-white"
           >
             <ChevronLeftIcon className="w-5 h-5" />
