@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useGoBack from '../hooks/useGoBack'
+import { LogoMark } from '../components/shared/Logo'
 
 export default function NotFoundPage() {
   useEffect(() => { document.title = '404 — Page Not Found | inFold' }, [])
@@ -9,10 +10,7 @@ export default function NotFoundPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 text-center">
-      {/* Gold cross */}
-      <svg viewBox="0 0 40 56" className="w-10 h-14 mb-6 fill-gold" aria-hidden="true">
-        <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z" />
-      </svg>
+      <LogoMark className="w-16 h-16 rounded-2xl mb-6" alt="" />
 
       <p className="text-6xl font-bold text-navy mb-3">404</p>
       <p className="text-xl font-semibold text-navy mb-2">Page not found</p>

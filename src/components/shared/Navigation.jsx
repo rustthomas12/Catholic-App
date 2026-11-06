@@ -22,6 +22,7 @@ import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { setUnreadDMCount } from '../../lib/dmBadge'
 import { supabase } from '../../lib/supabase'
+import { LogoMark } from './Logo'
 
 const PUBLIC_PATHS = [
   '/login', '/signup', '/onboarding',
@@ -261,11 +262,7 @@ function Navigation() {
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3 overflow-y-auto overscroll-contain" aria-label="Main">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 px-3 mb-8">
-          <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 20 20" className="w-5 h-5 fill-navy">
-              <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
-            </svg>
-          </div>
+          <LogoMark className="w-9 h-9 rounded-lg" alt="" />
           <span className="text-white font-bold text-lg tracking-tight">inFold</span>
         </Link>
 

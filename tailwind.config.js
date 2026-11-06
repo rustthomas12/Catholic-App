@@ -10,6 +10,8 @@ export default {
       colors: {
         navy: '#1B2A4A',
         gold: '#C9A84C',
+        // Logo pack (brand/README.md)
+        brand: { blue: '#03A6FF', navy: '#005C96', ink: '#000000' },
         cream: '#FAF7F2',
         lightbg: '#F0EDE8',
       },

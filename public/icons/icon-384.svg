@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" width="384" height="384">
-  <rect width="384" height="384" rx="69.12" fill="#1B2A4A"/>
-  <!-- Vertical bar -->
-  <rect x="157.4" y="38.4" width="69.1" height="307.2" rx="13.8" fill="#C9A84C"/>
-  <!-- Horizontal bar -->
-  <rect x="53.8" y="122.9" width="276.5" height="69.1" rx="13.8" fill="#C9A84C"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="385 385 1230 1230"><path fill="#03A6FF" d="M587 385 H1413 C1544.3 385 1615 455.7 1615 587 V1413 C1615 1544.3 1544.3 1615 1413 1615 H587 C455.7 1615 385 1544.3 385 1413 V587 C385 455.7 455.7 385 587 385 Z"/><g transform="translate(999.5 1000) scale(1.42) translate(-999.5 -810)"><g transform="translate(999.5 1125) scale(1.0) translate(-999.5 -1125)"><path fill="#000" d="M999.5 1125 L762.7 1125 L762.7 1000 L724.3 1000 L724.3 976 L843.5 976 L843.5 790 L830.54 790 L830.54 766 L865.3 766 L999.5 560 Z"/><path fill="rgb(0,92,150)" d="M999.5 1125 L1236.3 1125 L1236.3 1000 L1274.7 1000 L1274.7 976 L1155.5 976 L1155.5 790 L1168.46 790 L1168.46 766 L1133.7 766 L999.5 560 Z"/></g><g transform="translate(999.5 1125) scale(1.0) translate(-999.5 -1125)"><path fill="rgb(3,166,255)" d="M933.5 962 V880 A66 66 0 0 1 1065.5 880 V962 Z"/><g transform="translate(999.5 948) scale(1.35) translate(-999.5 -948)"><path fill="#000" d="M975.5 942 Q975.5 896 999.5 894 Q1023.5 896 1023.5 942 L1031.5 948 L967.5 948 Z"/></g><rect x="996.5" y="814" width="6" height="65.10000000000002" fill="#000"/><rect x="985.5" y="468" width="28" height="98" fill="#000"/><rect x="957.5" y="494" width="84" height="27" fill="#000"/></g></g></svg>

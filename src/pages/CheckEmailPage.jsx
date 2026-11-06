@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { LogoMark } from '../components/shared/Logo'
 
 export default function CheckEmailPage() {
   useEffect(() => { document.title = 'Check your email | inFold' }, [])
@@ -25,13 +26,7 @@ export default function CheckEmailPage() {
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
 
       {/* Logo */}
-      <div className="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center mb-8 shadow-md">
-        <svg viewBox="0 0 40 40" className="w-9 h-9">
-          <rect width="40" height="40" rx="20" fill="#1B2A4A"/>
-          <rect x="18" y="8" width="4" height="24" fill="#C9A84C"/>
-          <rect x="10" y="16" width="20" height="4" fill="#C9A84C"/>
-        </svg>
-      </div>
+      <LogoMark className="w-14 h-14 rounded-2xl shadow-md mb-8" />
 
       <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-md p-8 text-center">
 

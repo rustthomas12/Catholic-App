@@ -16,6 +16,7 @@ import ReadingsCard from '../components/faith/ReadingsCard'
 import { useReadings } from '../hooks/useReadings'
 import GroupCard from '../components/groups/GroupCard'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { LogoMark } from '../components/shared/Logo'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -116,9 +117,7 @@ export default function HomePage() {
           variant="navy"
           title={
             <span className="flex items-center gap-2">
-              <span className="w-7 h-7 bg-gold rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                <svg viewBox="0 0 20 20" className="w-4 h-4 fill-navy"><path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/></svg>
-              </span>
+              <LogoMark className="w-7 h-7 rounded-lg" alt="" />
               <span aria-hidden="true" className="tracking-tight">inFold</span>
               <span className="sr-only">{i18n.t('common:nav.home')}</span>
             </span>
