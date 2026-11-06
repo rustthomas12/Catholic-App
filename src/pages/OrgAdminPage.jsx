@@ -990,9 +990,11 @@ function ChaptersTab({ orgId, org, user, chapterCount, setChapterCount }) {
   }
 
   async function denyRequest(req) {
-    await supabase.from('chapter_requests').update({
+    const { data, error } = await supabase.from('chapter_requests').update({
       status: 'denied', reviewed_by: user.id, reviewed_at: new Date().toISOString(),
-    }).eq('id', req.id)
+    }).eq('id', req.id).select('id')
+    // A refused update returns no rows rather than an error
+    if (error || !data?.length) { toast.error('Could not deny the request. Please try again.'); return }
     toast.success('Request denied.')
     load()
   }

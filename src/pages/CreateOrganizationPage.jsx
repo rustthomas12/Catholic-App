@@ -71,6 +71,12 @@ export default function CreateOrganizationPage() {
       return
     }
     if (!user) return
+    // Ticked "chapter" without choosing the national organization used to
+    // create a standalone one without saying so
+    if (isChapter && !selectedParent) {
+      toast.error('Choose the national organization this chapter belongs to.')
+      return
+    }
     const email = checkEmail(form.email)
     const website = checkUrl(form.website, 'website')
     if (email.error || website.error) { toast.error(email.error || website.error); return }
@@ -123,7 +129,7 @@ export default function CreateOrganizationPage() {
 
     // Chapter of a national org: always ask the national org's admins
     if (isChapter && selectedParent) {
-      await supabase.from('chapter_requests').insert({
+      const { error: requestError } = await supabase.from('chapter_requests').insert({
         requesting_org_id: org.id,
         target_national_org_id: selectedParent.id,
         requested_by: user.id,
@@ -133,7 +139,8 @@ export default function CreateOrganizationPage() {
 
       // National org admins are notified by a DB trigger (migration 036)
 
-      toast.success('Organization created! Your chapter request has been sent.')
+      if (requestError) toast.error(`Organization created, but the chapter request to ${selectedParent.name} could not be sent. Please contact info@getinfold.app and we'll link it.`)
+      else toast.success('Organization created! Your chapter request has been sent.')
     } else {
       toast.success('Organization created!')
     }

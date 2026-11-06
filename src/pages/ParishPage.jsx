@@ -409,7 +409,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
       )}
 
       {/* Mass Times */}
-      {parish.mass_times ? (
+      {parish.mass_times && Object.keys(parish.mass_times).length ? (
         <MassTimes massTimes={parish.mass_times} />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">

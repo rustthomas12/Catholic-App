@@ -15,7 +15,8 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { supabase } from '../lib/supabase';
+import { supabase, authJsonHeaders } from '../lib/supabase';
+import { apiUrl } from '../lib/platform';
 import { fuzzyIlike, containsIlike } from '../utils/search';
 import Avatar from '../components/shared/Avatar';
 import Modal from '../components/shared/Modal';
@@ -246,13 +247,18 @@ function AssignParishPastor() {
     )
 
     // Also mark the user as verified clergy if they aren't already
+    let verified = true
     if (!error) {
-      await supabase.from('profiles').update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', user.id)
+      const { data: updated } = await supabase.from('profiles')
+        .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', user.id).select('id')
+      verified = !!updated?.length
     }
 
     setSaving(false)
     if (error) {
       toast.error('Failed to assign pastor: ' + error.message)
+    } else if (!verified) {
+      toast.error(`${user.full_name} can now manage ${parish.name}, but could not be marked as verified clergy.`)
     } else {
       toast.success(`${user.full_name} is now pastor/admin of ${parish.name}`)
       setParish(null)
@@ -856,8 +862,10 @@ function PendingPastors() {
     const parishId = row.pending_pastor_parish_id
     const { error } = await supabase.from('parish_admins').upsert(
       { parish_id: parishId, user_id: row.id, role: 'admin' }, { onConflict: 'parish_id,user_id' })
-    const { error: pErr } = error ? { error } : await supabase.from('profiles')
-      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id)
+    // A refused update returns no rows rather than an error
+    const { data: updated, error: pErr0 } = error ? { error } : await supabase.from('profiles')
+      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id).select('id')
+    const pErr = pErr0 || (!error && !updated?.length ? { message: 'their profile could not be updated' } : null)
     setBusy(null)
     if (error || pErr) { toast.error('Could not approve: ' + (error || pErr).message); return }
     await supabase.from('notifications').insert({
@@ -868,13 +876,25 @@ function PendingPastors() {
     load()
   }
 
+  // Server-side: also cancels the trial the pastor started at checkout,
+  // which otherwise bills them on day 91
   async function decline(row) {
     setBusy(row.id)
-    const { error } = await supabase.from('profiles').update({ pending_pastor_parish_id: null }).eq('id', row.id)
-    setBusy(null)
-    if (error) { toast.error('Could not decline: ' + error.message); return }
-    toast.success('Application declined')
-    load()
+    try {
+      const res = await fetch(apiUrl('/api/create-portal-session'), {
+        method: 'POST',
+        headers: await authJsonHeaders(),
+        body: JSON.stringify({ action: 'decline-pastor', applicantId: row.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error('Could not decline: ' + (data.error || res.status)); return }
+      toast.success(data.canceled ? 'Application declined and their trial canceled' : 'Application declined')
+      load()
+    } catch {
+      toast.error('Could not decline. Check your connection and try again.')
+    } finally {
+      setBusy(null)
+    }
   }
 
   if (!rows?.length) return null
@@ -890,8 +910,13 @@ function PendingPastors() {
             </div>
             <button disabled={busy === r.id} onClick={() => approve(r)}
               className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve</button>
-            <button disabled={busy === r.id} onClick={() => decline(r)}
-              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50'>Decline</button>
+            <ConfirmDeleteButton
+              title='Decline this application?'
+              message={`${r.full_name} will not manage ${r.parish?.name || 'this parish'}, and the free trial they started at checkout is canceled so they are never charged.`}
+              confirmLabel='Decline'
+              aria-label={`Decline ${r.full_name}'s application`}
+              onConfirm={() => decline(r)}
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50'>Decline</ConfirmDeleteButton>
           </div>
         ))}
       </div>

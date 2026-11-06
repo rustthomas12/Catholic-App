@@ -776,12 +776,18 @@ function MassTimesTab({ parishId, parish, setParish }) {
 
   async function handleSave() {
     setSaving(true)
-    const massTimesObj = Object.fromEntries(
-      rows.filter(r => r.day.trim() && r.time.trim()).map(r => [r.day.trim(), r.time.trim()])
-    )
+    // Two rows for the same day are combined (one used to overwrite the
+    // other), and an empty list is saved as "not listed" rather than {},
+    // which showed an empty Mass Times box on the parish page
+    const massTimesObj = {}
+    for (const r of rows) {
+      const day = r.day.trim(), time = r.time.trim()
+      if (!day || !time) continue
+      massTimesObj[day] = massTimesObj[day] ? `${massTimesObj[day]}, ${time}` : time
+    }
     const { data, error } = await supabase
       .from('parishes')
-      .update({ mass_times: massTimesObj })
+      .update({ mass_times: Object.keys(massTimesObj).length ? massTimesObj : null })
       .eq('id', parishId)
       .select()
       .single()
@@ -820,12 +826,14 @@ function MassTimesTab({ parishId, parish, setParish }) {
                   value={row.day}
                   onChange={e => updateRow(i, 'day', e.target.value)}
                   placeholder="Day"
+                  aria-label={`Day, row ${i + 1}`}
                   className="w-32 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
                 />
                 <input
                   value={row.time}
                   onChange={e => updateRow(i, 'time', e.target.value)}
                   placeholder="e.g. 7:00 AM, 10:00 AM, 12:00 PM"
+                  aria-label={`Times, row ${i + 1}`}
                   className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-navy"
                 />
                 <button onClick={() => removeRow(i)} aria-label="Remove this row" className="text-red-600 hover:text-red-700 transition-colors min-w-[24px] min-h-[24px] flex items-center justify-center">
@@ -847,7 +855,7 @@ function MassTimesTab({ parishId, parish, setParish }) {
               </button>
             </div>
           </div>
-        ) : parish?.mass_times && typeof parish.mass_times === 'object' ? (
+        ) : parish?.mass_times && typeof parish.mass_times === 'object' && !Array.isArray(parish.mass_times) && Object.keys(parish.mass_times).length ? (
           <div className="divide-y divide-gray-50">
             {Object.entries(parish.mass_times).map(([day, time]) => (
               <div key={day} className="px-4 py-3 flex items-start gap-4">
