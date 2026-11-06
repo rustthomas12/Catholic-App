@@ -467,8 +467,9 @@ function AnnouncementsTab({ parishId }) {
           {posts.map(post => (
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm text-navy flex-1">{post.content}</p>
+                <p className="text-sm text-navy flex-1 whitespace-pre-line">{post.content}</p>
                 <ConfirmDeleteButton
+                  aria-label="Delete announcement"
                   title="Delete this announcement?"
                   message="It will be removed from the parish feed. This can't be undone."
                   onConfirm={() => handleDelete(post.id, post.published)}

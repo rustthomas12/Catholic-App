@@ -14,17 +14,31 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-a
 // persists it) with no lock, no network call. autoRefreshToken still runs on
 // the auth client and updates localStorage; our next call picks up the new
 // token automatically.
-function _getAccessToken() {
+function _readStoredSession() {
   try {
     const raw = localStorage.getItem('parish-app-auth')
     if (!raw) return null
     const session = JSON.parse(raw)
-    if (!session?.access_token) return null
-    // If token has < 30 s left, return null so the request falls back to the
-    // anon key (the auth client's autoRefreshToken will write a fresh token
-    // within seconds, restoring authenticated access on the next query).
-    if (session.expires_at && session.expires_at * 1000 - Date.now() < 30_000) return null
+    return session?.access_token ? session : null
+  } catch { return null }
+}
+
+async function _getAccessToken() {
+  const session = _readStoredSession()
+  if (!session) return null // signed out
+  if (!session.expires_at || session.expires_at * 1000 - Date.now() >= 30_000) {
     return session.access_token
+  }
+  // Expired or about to (e.g. the app reopened after an hour). Sending the
+  // request signed-out made every permission-checked query come back empty —
+  // no admin links, no notifications — until a reload. Wait for the auth
+  // client's refresh instead, bounded so a stuck refresh can't hang the app.
+  try {
+    const result = await Promise.race([
+      supabaseAuth.auth.getSession(),
+      new Promise(resolve => setTimeout(() => resolve(null), 8000)),
+    ])
+    return result?.data?.session?.access_token ?? null
   } catch { return null }
 }
 
@@ -73,7 +87,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: false,
     detectSessionInUrl: false,
   },
-  accessToken: async () => _getAccessToken(),
+  accessToken: _getAccessToken,
   global: { fetch: trackedFetch },
 })
 
