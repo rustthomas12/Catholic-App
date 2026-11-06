@@ -41,22 +41,12 @@ function useConversations(userId) {
 
   const load = useCallback(async () => {
     if (!userId) { setLoading(false); return }
-    // Get latest message per partner
-    const { data } = await supabase
-      .from('direct_messages')
-      .select('id, sender_id, recipient_id, content, is_read, created_at, profiles!direct_messages_sender_id_fkey(id, full_name, avatar_url)')
-      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
-      .order('created_at', { ascending: false })
-      .limit(200)
+    // Newest message with each person (migration 080), newest first
+    const { data } = await supabase.rpc('my_conversations')
 
     if (!data) { setLoading(false); return }
 
-    // Deduplicate: keep most-recent message per partner
-    const seen = new Map()
-    for (const msg of data) {
-      const partnerId = msg.sender_id === userId ? msg.recipient_id : msg.sender_id
-      if (!seen.has(partnerId)) seen.set(partnerId, msg)
-    }
+    const seen = new Map(data.map(msg => [msg.partner_id, msg]))
 
     // Fetch partner profiles
     const partnerIds = [...seen.keys()]
@@ -194,52 +184,16 @@ function NewConversationModal({ userId, onSelect, onClose }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function load() {
-      // Step 1: get the user's parishes, groups, and orgs in parallel
-      const [parishRes, groupRes, orgRes] = await Promise.all([
-        supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
-        supabase.from('group_members').select('group_id').eq('user_id', userId),
-        supabase.from('organization_members').select('org_id').eq('user_id', userId),
-      ])
-
-      const parishIds = (parishRes.data ?? []).map(d => d.parish_id)
-      const groupIds  = (groupRes.data  ?? []).map(d => d.group_id)
-      const orgIds    = (orgRes.data    ?? []).map(d => d.org_id)
-
-      // Step 2: get all other users in those same communities in parallel
-      // Parish: query profiles.parish_id (publicly readable) instead of parish_follows (RLS blocks other users' rows)
-      const [parishUsers, groupUsers, orgUsers] = await Promise.all([
-        parishIds.length
-          ? supabase.from('profiles').select('id').in('parish_id', parishIds).neq('id', userId)
-          : Promise.resolve({ data: [] }),
-        groupIds.length
-          ? supabase.from('group_members').select('user_id').in('group_id', groupIds).neq('user_id', userId)
-          : Promise.resolve({ data: [] }),
-        orgIds.length
-          ? supabase.from('organization_members').select('user_id').in('org_id', orgIds).neq('user_id', userId)
-          : Promise.resolve({ data: [] }),
-      ])
-
-      const connectedIds = new Set([
-        ...(parishUsers.data ?? []).map(d => d.id),
-        ...(groupUsers.data  ?? []).map(d => d.user_id),
-        ...(orgUsers.data    ?? []).map(d => d.user_id),
-      ])
-
-      if (connectedIds.size === 0) { setConnectedUsers([]); setLoading(false); return }
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', [...connectedIds])
-        .is('deleted_at', null)
-        .order('full_name')
-        .limit(200)
-
-      setConnectedUsers(profiles ?? [])
+    // Everyone sharing a parish, group or organization with you (migration
+    // 080). Fellow parishioners can't be looked up from the client: their
+    // home parish and follows are private.
+    let cancelled = false
+    supabase.rpc('my_message_contacts').then(({ data }) => {
+      if (cancelled) return
+      setConnectedUsers(data ?? [])
       setLoading(false)
-    }
-    load()
+    })
+    return () => { cancelled = true }
   }, [userId])
 
   const filtered = query.trim().length >= 1

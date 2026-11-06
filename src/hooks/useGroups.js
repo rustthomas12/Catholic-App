@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
 import { toast } from '../components/shared/Toast'
+import { containsIlike } from '../utils/search'
 
 // ── Memberships module-level cache (shared across all hook instances) ──────
 let _membershipsCache = null        // { userId, data, ts }
@@ -148,46 +149,49 @@ export function useGroupSearch(query = '', categoryFilter = null) {
   const debounceRef = useRef(null)
 
   useEffect(() => {
+    let cancelled = false
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       if (!user) { setGroups([]); setLoading(false); return }
       setLoading(true)
       setError(null)
 
-      // Fetch user's access in parallel with the group query
       const accessCached = _accessCache
       const accessFresh = accessCached && accessCached.userId === user.id && Date.now() - accessCached.ts < ACCESS_TTL
-      const [access, queryResult] = await Promise.all([
-        accessFresh ? Promise.resolve(accessCached) : _fetchUserAccess(user.id, profile?.parish_id),
-        (() => {
-          let q = supabase
-            .from('groups')
-            .select(`
-              id, name, category, avatar_url, description,
-              is_private, parish_id, org_id, member_count,
-              parishes(name, city)
-            `)
-            .order('member_count', { ascending: false })
-            .limit(100)
+      const access = accessFresh ? accessCached : await _fetchUserAccess(user.id, profile?.parish_id)
 
-          if (query.trim().length >= 2) q = q.ilike('name', `%${query.trim()}%`)
-          if (categoryFilter) q = q.eq('category', categoryFilter)
-          return q
-        })(),
-      ])
+      // Only groups of parishes you follow or organizations you belong to.
+      // Filtered in the query: taking the 100 largest groups platform-wide
+      // and filtering afterwards dropped yours once there were more than 100.
+      const parts = []
+      if (access.parishIds.size) parts.push(`parish_id.in.(${[...access.parishIds].join(',')})`)
+      if (access.orgIds.size) parts.push(`org_id.in.(${[...access.orgIds].join(',')})`)
+      if (!parts.length) {
+        if (!cancelled) { setGroups([]); setLoading(false) }
+        return
+      }
 
-      if (queryResult.error) { setError(queryResult.error.message); setLoading(false); return }
+      let q = supabase
+        .from('groups')
+        .select(`
+          id, name, category, avatar_url, description,
+          is_private, parish_id, org_id, member_count,
+          parishes(name, city)
+        `)
+        .or(parts.join(','))
+        .order('member_count', { ascending: false })
+        .limit(100)
+      if (query.trim().length >= 2) q = q.ilike('name', containsIlike(query.trim()))
+      if (categoryFilter) q = q.eq('category', categoryFilter)
 
-      // Only show groups the user has access to (follows parish or member of org)
-      const filtered = (queryResult.data ?? []).filter(g =>
-        (g.parish_id && access.parishIds.has(g.parish_id)) ||
-        (g.org_id && access.orgIds.has(g.org_id))
-      )
-      setGroups(filtered)
+      const { data, error: err } = await q
+      if (cancelled) return // a newer search has started
+      if (err) { setError(err.message); setLoading(false); return }
+      setGroups(data ?? [])
       setLoading(false)
     }, 350)
 
-    return () => clearTimeout(debounceRef.current)
+    return () => { cancelled = true; clearTimeout(debounceRef.current) }
   }, [query, categoryFilter, user?.id, profile?.parish_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { groups, loading, error }
