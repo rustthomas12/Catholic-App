@@ -1,4 +1,4 @@
-🔧 Back on a directly opened page did nothing (13 pages, shared useGoBack) — verified
+# inFold — complete function inventory
 
 Every user-facing action, background job and server piece, built from the code
 (54 routes, 51 pages, 52 components, 19 hooks, 15 API files, 4 edge functions,
@@ -33,20 +33,20 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 ## 3. Home & feed
 | ID | Function | Status |
 |---|---|---|
-| F1 | Home loads: readings card, my groups row, feed filters, admin quick access, welcome card (new users) | 🔧 both layouts were mounted (hidden second feed ran its own queries); My Groups ignored join/leave; onboarding showed fixed Advent readings as "today" |
-| F2 | Feed filters: My Feed / My Parish / My Groups / Prayer / Events | 🔧 Events filter always empty (now lists upcoming events from your parishes, groups, organizations) |
-| F3 | Infinite scroll / load more; new-posts pill; pull to top | ✅ reviewed in code |
+| F1 | Home loads: readings card, my groups row, feed filters, admin quick access, welcome card (new users) | 🔧 both layouts were mounted (hidden second feed ran its own queries); My Groups ignored join/leave; onboarding showed fixed Advent readings as "today" 🔧 (browser) reopening with an expired token loaded everything signed-out: no admin links, notifications or feed until reload |
+| F2 | Feed filters: My Feed / My Parish / My Groups / Prayer / Events | 🔧 Events filter always empty (now lists upcoming events — verified with a test event) |
+| F3 | Infinite scroll / load more; new-posts pill; pull to top | ✅ reviewed in code 🔧 (browser) a changed cached parish/group list never refetched posts |
 | F4 | Create post: text, photo (type/size checks), destination picker (parish / group / org), prayer-request toggle | 🔧 posted to the wrong place from a followed (non-home) parish, an 11th+ group, or an organization (also tagged with home parish); typed text wiped when destinations loaded |
 | F5 | Word filter on posts & comments | ✅ |
 | F6 | Like / unlike; counts; notification to author | ✅ |
 | F7 | Comment / delete own comment; notification | ✅ |
 | F8 | Edit own post | ✅ (word filter applies to edits) |
 | F9 | Delete own post (confirm) | ✅ |
-| F10 | Report post / block author from post menu | ✅ (report) ⬜ (block from post) |
+| F10 | Report post / block author from post menu | ✅ report; ✅ block from post menu (posts hide at once, unblock in Settings restores) |
 | F11 | Share post (native share / copy link) | ✅ |
 | F12 | Fullscreen photo viewer (Escape, close) | 🔧 |
 | F13 | Post page /post/:id (found / not found / back) | ✅ |
-| F14 | Announcement styling (title + body, badge) | ⬜ needs browser |
+| F14 | Announcement styling (title + body, badge) | ✅ header bar, bold title, body in the feed 🔧 dashboard list ran the title into the body |
 | F15 | Home top bar: Search → directory, Messages badge | ✅ reviewed in code |
 
 ## 4. Parishes & directory
@@ -73,7 +73,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | PA6 | Parishioners list + CSV export | ✅ (list) |
 | PA7 | Messages inbox: read, mark read, mark all read, reply | ✅ |
 | PA8 | Billing: tier picker, start trial, manage (portal), history | ✅ (status) |
-| PA9 | Integrations: Facebook start, Flocknote, website webhook, custom email; toggle; disconnect | ✅ (Facebook start) ⬜ (others) |
+| PA9 | Integrations: Facebook start, Flocknote, website webhook, custom email; toggle; disconnect | ✅ Facebook start; ✅ webhook URLs are test-pinged and refused if they reject posts 🔧 pause showed even when not saved; ⚠️ connecting needs a real endpoint / Flocknote key |
 | PA10 | Settings: edit details (validation) | ✅ |
 | PA11 | Access check (non-admin redirected, retry on failure) | ✅ |
 
@@ -101,7 +101,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | OR5 | Org announcements: publish, schedule, send now, delete (+ cron) | ✅ publish, notify, delete 🔧 delete asks first |
 | OR6 | Org events + attendees | ✅ create, validation, RSVP, attendees, delete 🔧 delete asks first |
 | OR7 | Invites: create, copy link, delete | ✅ 🔧 delete asks first |
-| OR8 | Chapters: approve/deny requests, provision chapter | ✅ list 🔧 chapter counts (076), category inherited ⬜ provision (creates a real org) |
+| OR8 | Chapters: approve/deny requests, provision chapter | ✅ list, approve/deny 🔧 chapter counts (076), category inherited ✅ provision (test chapter inherits category, creator is admin) ⚠️ organizations can't be deleted anywhere, even by a platform admin |
 | OR9 | Org settings (hours editor, validation) | ✅ |
 | OR10 | Org billing (trial, manage, tier upgrade banner) | ✅ status + banner 🚫 Stripe portal |
 
@@ -142,7 +142,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | P1 | Me tab: profile, "You manage", shortcuts | ✅ |
 | P2 | Other profile: limited/private view, message, block, report | ✅ (report, block) |
 | P3 | Edit profile: name, username (availability), bio, avatar, vocation, parish | 🔧 home parish chosen here wasn't followed (posts missing from feed) |
-| P4 | Settings: visibility, blocked users, language, about links, sign out (confirm) | ✅ (language, blocked) ⬜ (visibility) |
+| P4 | Settings: visibility, blocked users, language, about links, sign out (confirm) | ✅ language, blocked, visibility (saved; limited profile and hidden bio for people outside your communities) |
 | P5 | Contact us form | ✅ reviewed in code |
 
 ## 12. Platform admin
@@ -160,7 +160,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | ID | Function | Status |
 |---|---|---|
 | W1 | Marketing home, features, for parishes (application form), about, contact form | ✅ pages, images, links 🚫 form submit sends real email |
-| W2 | Terms, privacy, content policy, delete-account info, 404 | 🔧 Back on a directly opened page did nothing (13 pages, shared useGoBack) |
+| W2 | Terms, privacy, content policy, delete-account info, 404 | 🔧 Back on a directly opened page did nothing (13 pages, shared useGoBack) — verified |
 | W3 | Pitch deck page | ✅ |
 
 ## 14. Server: API endpoints (Vercel)
@@ -182,8 +182,8 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | E2 | distribute-post (integrations, webhook re-check) | ✅ deployed v9 |
 | E3 | deliver-scheduled-posts | ✅ |
 | E4 | send-form-email (contact / parish application emails) | 🔧 a failed/unsent email was still marked emailed (code only — redeploy needed) |
-| E5 | Cron: event reminders, confession reminders, org announcements, scheduled posts, purge deleted accounts | ✅ (event, scheduled) ⬜ (others) |
-| E6 | Triggers: word filter, counts (likes, comments, members, RSVPs, prayers), guards (post/comment/DM/group/org/parish/profile updates), notification preferences / repeats / blocked, last-admin guards, deleted-profile content hiding, notification cleanup | ⬜ systematic check |
+| E5 | Cron: event reminders, confession reminders, org announcements, scheduled posts, purge deleted accounts | ✅ all 5 database jobs ran on schedule, 0 failures in 7 days |
+| E6 | Triggers: word filter, counts (likes, comments, members, RSVPs, prayers), guards (post/comment/DM/group/org/parish/profile updates), notification preferences / repeats / blocked, last-admin guards, deleted-profile content hiding, notification cleanup | ✅ all 45 triggers enabled; like/comment/member/RSVP/prayer counts match; no hidden-user content visible; no notifications to missing posts or from blocked users; no banned words in posts ⚠️ 3 Civitas Dei chapters from May have no admin (predate the last-admin guard) |
 
 ## 16. Cross-cutting
 | ID | Function | Status |
