@@ -1,4 +1,4 @@
-# inFold — complete function inventory
+🔧 Back on a directly opened page did nothing (13 pages, shared useGoBack) — verified
 
 Every user-facing action, background job and server piece, built from the code
 (54 routes, 51 pages, 52 components, 19 hooks, 15 API files, 4 edge functions,
