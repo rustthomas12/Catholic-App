@@ -139,6 +139,7 @@ function useWebPushNotifications(userId) {
       }
 
       setIsSubscribed(true)
+      return true // callers check this: false/undefined means it didn't work
     } catch (err) {
       console.error('[usePushNotifications] subscribe error:', err)
       setError('Failed to enable notifications. Please try again.')

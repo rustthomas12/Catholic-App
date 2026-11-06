@@ -4,6 +4,7 @@ import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
 import { toast } from '../components/shared/Toast'
 import { containsIlike } from '../utils/search'
+import { clearFeedCaches } from './useFeed.js'
 
 // ── Memberships module-level cache (shared across all hook instances) ──────
 let _membershipsCache = null        // { userId, data, ts }
@@ -45,6 +46,9 @@ function _invalidateAccess() {
 function _invalidateMemberships() {
   _membershipsCache = null
   _membershipsPromise = null
+  // The feed caches which groups you're in for 10 minutes; without this a
+  // group you just joined stayed out of My Feed until then
+  clearFeedCaches()
 }
 
 export function clearGroupCaches() {

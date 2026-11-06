@@ -11,6 +11,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
 import { fuzzyIlike } from '../utils/search'
 import useGoBack from '../hooks/useGoBack'
+import { invalidateFollowedParishesCache } from '../hooks/useParish.js'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
@@ -191,6 +192,15 @@ export default function EditProfilePage() {
       if (error) {
         toast.error(error)
       } else {
+        // A home parish is also followed (as in onboarding and "Set as my
+        // parish"); the feed shows posts from followed parishes only
+        if (parish?.id && parish.id !== profile.parish_id) {
+          await supabase.from('parish_follows').upsert(
+            { parish_id: parish.id, user_id: user.id },
+            { onConflict: 'parish_id,user_id', ignoreDuplicates: true }
+          )
+          invalidateFollowedParishesCache()
+        }
         toast.success('Profile saved')
         setAvatarPreview(null)
         navigate(`/profile/${user.id}`, { replace: true })

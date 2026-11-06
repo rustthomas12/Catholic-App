@@ -148,6 +148,8 @@ export function useNotifications() {
   // ── Mark one as read ─────────────────────────────────────
   const markAsRead = useCallback(async (notificationId) => {
     if (!userId) return
+    // Swiping away an already-read item used to lower the badge as well
+    if (notifications.find(n => n.id === notificationId)?.is_read) return
     // Optimistic
     setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
@@ -160,7 +162,7 @@ export function useNotifications() {
       .eq('id', notificationId)
       .eq('user_id', userId)
     window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: channelSuffix.current }))
-  }, [userId])
+  }, [userId, notifications])
 
   // ── Mark all as read ─────────────────────────────────────
   const markAllAsRead = useCallback(async () => {
