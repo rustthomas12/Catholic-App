@@ -52,6 +52,7 @@ function notificationPath(type: string, ref: string | null): string {
     case 'direct_message':
       return ref ? `/messages?to=${ref}` : '/messages'
     case 'event_reminder':
+    case 'new_event':
       return ref ? `/event/${ref}` : '/notifications'
     case 'morning_offering_reminder':
       return '/faith/morning-offering'
@@ -82,6 +83,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     confession_reminder:    { title: '✝ Confession reminder',  body: body || `Time to prepare for confession` },
     direct_message:         { title: '💬 New message',         body: `${actor} sent you a message` },
     event_reminder:         { title: '📅 Event reminder',      body: body || `You have an upcoming event` },
+    new_event:              { title: '📅 New event',           body: body || `A new event was added` },
     post_flagged:             { title: '🚩 New report',             body: body || `Something was reported for review` },
     new_parish_member:        { title: '⛪ New parish follower',     body: `${actor} is following your parish` },
     parish_message:           { title: '✉️ New parish message',      body: body || `${actor} sent your parish a message` },
@@ -186,8 +188,9 @@ serve(async (req) => {
   const pushPayload = JSON.stringify({
     title: notification.title,
     body: notification.body,
-    icon: '/icons/icon-192.svg',
-    badge: '/icons/icon-72.svg',
+    // PNG: Android Chrome shows nothing for an SVG notification icon
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-72.png',
     url: notification.url,
     tag: notification.tag,
   })
@@ -201,8 +204,15 @@ serve(async (req) => {
           pushPayload
         )
       } catch (err: any) {
-        // 410 Gone / 404 Not Found = subscription expired or revoked — remove it
-        if (err.statusCode === 410 || err.statusCode === 404) {
+        // 410 Gone / 404 Not Found = subscription expired or revoked. Apple
+        // also answers 403 / 400 for subscriptions made with another VAPID key
+        // or for a device that no longer exists — remove those too, or they
+        // fail on every notification.
+        const reason = String(err.body ?? err.message ?? '')
+        console.log(`Push to ${new URL(sub.endpoint).host} failed: ${err.statusCode} ${reason.slice(0, 200)}`)
+        const dead = err.statusCode === 410 || err.statusCode === 404 ||
+          /VapidPkHashMismatch|BadDeviceToken|Unregistered|ExpiredSubscription|BadWebPushTopic/i.test(reason)
+        if (dead) {
           await supabase
             .from('push_subscriptions')
             .delete()

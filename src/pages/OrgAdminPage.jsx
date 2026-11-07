@@ -1524,7 +1524,7 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="text-center mb-5">
             <p className="font-bold text-navy text-base mb-1">Start your free 90-day trial</p>
-            <p className="text-gray-500 text-sm">No credit card required until day 90.</p>
+            <p className="text-gray-500 text-sm">A card is required at checkout; you won't be charged until day 91. Cancel anytime.</p>
           </div>
 
           <div className="flex gap-2 mb-5">

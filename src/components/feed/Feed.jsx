@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -35,19 +35,8 @@ export default function Feed({
   const feed = useFeed({ filter, parishId, groupId, orgId, userId, pageSize: 20 })
 
   const sentinelRef = useRef(null)
-  const [newPostPending, setNewPostPending] = useState(false)
-  const isAtTopRef = useRef(true)
 
   const handleDelete = useCallback((id) => feed.removePost(id), [feed.removePost])
-
-  // Track scroll position to know if user is at top
-  useEffect(() => {
-    function handleScroll() {
-      isAtTopRef.current = window.scrollY < 100
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   // Infinite scroll via IntersectionObserver
   // Use stable primitive deps so the observer isn't torn down on every render
@@ -72,18 +61,11 @@ export default function Feed({
     return () => observer.disconnect()
   }, [loadMore, hasMore, loadingMore, feedLoading])
 
-  // When a new real-time post arrives while user has scrolled down,
-  // show a floating "new post" pill instead of silently prepending
+  // Your own new post goes on top. (A "new post" pill used to appear for it
+  // when scrolled down; the feed has no live updates, so it only ever
+  // announced the post you had just written.)
   function handleNewPost(post) {
-    if (!isAtTopRef.current) {
-      setNewPostPending(true)
-    }
     feed.addPost(post)
-  }
-
-  function scrollToTopAndClear() {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    setNewPostPending(false)
   }
 
   // The "Events" filter lists events, not posts
@@ -122,17 +104,6 @@ export default function Feed({
 
   return (
     <div className="relative">
-      {/* New post floating pill */}
-      {newPostPending && (
-        <div className="sticky top-2 z-10 flex justify-center mb-2 pointer-events-none">
-          <button
-            onClick={scrollToTopAndClear}
-            className="pointer-events-auto bg-gold text-navy text-sm font-bold px-4 py-2 rounded-full shadow-lg"
-          >
-            {t('feed.new_post_available')}
-          </button>
-        </div>
-      )}
 
       {/* Compose bar */}
       {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} orgId={orgId} />}

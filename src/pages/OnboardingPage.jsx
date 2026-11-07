@@ -326,7 +326,7 @@ export default function OnboardingPage() {
               </div>
               <div className="w-full bg-gold/10 border border-gold/20 rounded-2xl px-4 py-3 text-left">
                 <p className="text-navy text-xs font-semibold mb-1">Includes a 90-day free trial</p>
-                <p className="text-gray-500 text-xs">No credit card charged until day 91. Cancel any time.</p>
+                <p className="text-gray-500 text-xs">A card is required at checkout; you're not charged until day 91. Cancel any time.</p>
               </div>
               <div className="w-full space-y-3">
                 <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold"
