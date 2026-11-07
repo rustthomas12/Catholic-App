@@ -335,7 +335,9 @@ export function AuthProvider({ children }) {
     clearParishCaches()
     clearFeedCaches()
     clearGroupCaches()
-    await supabaseAuth.auth.signOut()
+    // This device only. The default ('global') ended the session on every
+    // device, so signing out on a laptop also signed you out of the phone app.
+    await supabaseAuth.auth.signOut({ scope: 'local' })
   }
 
   async function updateProfile(updates) {
