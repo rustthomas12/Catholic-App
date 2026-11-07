@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, UserGroupIcon, XMarkIcon, BuildingOffice2Icon, ShieldExclamationIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import TopBar, { TopBarAction } from '../components/shared/TopBar'
 import { useUnreadDMCount } from '../lib/dmBadge'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useAdminAccess } from '../hooks/useAdminAccess'
-import { useFollowedParishes } from '../hooks/useParish.js'
+import { useMyCommunities } from '../hooks/useMyCommunities'
 import { useGroupMemberships } from '../hooks/useGroups.js'
-import { supabase } from '../lib/supabase'
 import { differenceInDays } from 'date-fns'
 import Feed from '../components/feed/Feed'
 import FeedFilters from '../components/feed/FeedFilters'
@@ -30,7 +29,6 @@ const EMPTY = {
 }
 
 // Module-level cache — persists across navigations within the same session
-let _homeParishCache = null  // { parishId, data }
 
 export default function HomePage() {
   useEffect(() => { document.title = 'Home | inFold' }, [])
@@ -50,11 +48,6 @@ export default function HomePage() {
     if (code && profile?.onboarding_completed !== false) navigate(`/join/${code}`, { replace: true })
   }, [profile?.onboarding_completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [parish, setParish] = useState(() =>
-    profile?.parish_id && _homeParishCache?.parishId === profile.parish_id
-      ? _homeParishCache.data
-      : null
-  )
   // Shared membership list: joining or leaving a group refreshes it
   const { memberships, loading: groupsLoading } = useGroupMemberships()
   const groups = useMemo(() => memberships.slice(0, 6).map(m => m.group), [memberships])
@@ -64,9 +57,10 @@ export default function HomePage() {
   )
   const [activeFilter, setActiveFilter] = useState('all')
 
-  const { parishes: followedParishes } = useFollowedParishes()
-  const hasParish = !!parish || followedParishes.length > 0
-  const hasAnyMembership = hasParish || groups.length > 0
+  // Parishes you follow or run, and organizations you belong to
+  const { parishes: myParishes, orgs: myOrgs, loading: communitiesLoading } = useMyCommunities()
+  const hasCommunity = myParishes.length > 0 || myOrgs.length > 0
+  const hasAnyMembership = hasCommunity || groups.length > 0
 
   const { readings: homeReadings, loading: readingsLoading, error: readingsError,
           liturgicalInfo, feastInfo, todayFormatted } = useReadings(i18n.language)
@@ -74,32 +68,6 @@ export default function HomePage() {
   const isNewUser = profile?.created_at &&
     differenceInDays(new Date(), new Date(profile.created_at)) <= 7
 
-  const parishId = profile?.parish_id
-  const profileId = profile?.id
-
-  useEffect(() => {
-    if (!profileId) return
-
-    // Parish — only fetch if parishId changed or cache is missing
-    if (parishId) {
-      if (_homeParishCache?.parishId === parishId) {
-        setParish(_homeParishCache.data)
-      } else {
-        supabase.from('parishes')
-          .select('id, name, city, state')
-          .eq('id', parishId)
-          .single()
-          .then(({ data, error: err }) => {
-            if (!err && data) {
-              _homeParishCache = { parishId, data }
-              setParish(data)
-            }
-          })
-      }
-    } else {
-      setParish(null)
-    }
-  }, [parishId, profileId])
 
   function dismissWelcome() {
     localStorage.setItem(WELCOME_DISMISSED_KEY, '1')
@@ -168,36 +136,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Parish card */}
-        {parish ? (
-          <div className="bg-white border-b border-gray-100 p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
-                <BuildingLibraryIcon className="w-5 h-5 text-navy" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-navy text-sm">{parish.name}</p>
-                <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
-                <Link to={`/parish/${parish.id}`}
-                  className="text-xs text-navy font-medium hover:underline mt-1 inline-flex items-center min-h-[24px]">
-                  View your parish community →
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : !hasParish ? (
-          <div className="bg-white border-b border-gray-100 p-5 text-center">
-            <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-            <p className="font-semibold text-navy text-sm mb-1">Connect with your parish</p>
-            <p className="text-gray-500 text-xs mb-3">
-              Find your parish to see announcements, events, and connect with your community.
-            </p>
-            <Link to="/directory"
-              className="inline-flex items-center gap-1 text-sm text-navy font-semibold hover:underline">
-              Find my parish →
-            </Link>
-          </div>
-        ) : null}
+        {/* My parishes & organizations */}
+        {!communitiesLoading && (
+          <CommunitiesCard parishes={myParishes} orgs={myOrgs} className="bg-white border-b border-gray-100" />
+        )}
 
         {/* Groups horizontal scroll */}
         {groups.length > 0 && (
@@ -342,32 +284,10 @@ export default function HomePage() {
             todayFormatted={todayFormatted}
           />
 
-          {/* Parish card */}
-          {parish ? (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
-                  <BuildingLibraryIcon className="w-5 h-5 text-navy" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-navy text-sm">{parish.name}</p>
-                  <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
-                  <Link to={`/parish/${parish.id}`}
-                    className="text-xs text-navy font-medium hover:underline mt-1 inline-flex items-center min-h-[24px]">
-                    View parish →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : !hasParish ? (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
-              <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-              <p className="font-semibold text-navy text-sm mb-2">Connect with your parish</p>
-              <Link to="/directory" className="text-sm text-navy font-semibold hover:underline">
-                Find my parish →
-              </Link>
-            </div>
-          ) : null}
+          {/* My parishes & organizations */}
+          {!communitiesLoading && (
+            <CommunitiesCard parishes={myParishes} orgs={myOrgs} className="bg-white rounded-2xl border border-gray-100 shadow-sm" />
+          )}
 
           {/* Groups */}
           {groups.length > 0 && (
@@ -426,5 +346,47 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
         ))}
       </div>
     </div>
+  )
+}
+
+// ── My parishes & organizations card ───────────────────────
+// One entry point for every parish and organization you're part of; the
+// list itself is on /communities
+function CommunitiesCard({ parishes, orgs, className }) {
+  if (parishes.length === 0 && orgs.length === 0) {
+    return (
+      <div className={`${className} p-5 text-center`}>
+        <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+        <p className="font-semibold text-navy text-sm mb-1">Connect with your parish</p>
+        <p className="text-gray-500 text-xs mb-3">
+          Find your parish to see announcements, events, and connect with your community.
+        </p>
+        <Link to="/directory" className="inline-flex items-center gap-1 text-sm text-navy font-semibold hover:underline">
+          Find my parish →
+        </Link>
+      </div>
+    )
+  }
+
+  const names = [...parishes, ...orgs].map(x => x.name)
+  const preview = names.slice(0, 2).join(' · ')
+  const more = names.length - 2
+  const counts = [
+    parishes.length && `${parishes.length} parish${parishes.length === 1 ? '' : 'es'}`,
+    orgs.length && `${orgs.length} organization${orgs.length === 1 ? '' : 's'}`,
+  ].filter(Boolean).join(' · ')
+
+  return (
+    <Link to="/communities" className={`${className} p-4 flex items-center gap-3 hover:bg-lightbg transition-colors`}>
+      <div className="w-10 h-10 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
+        <BuildingLibraryIcon className="w-5 h-5 text-navy" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-navy text-sm">My parishes &amp; organizations</p>
+        <p className="text-xs text-gray-500 truncate">{preview}{more > 0 ? ` +${more} more` : ''}</p>
+        <p className="text-[11px] text-gray-500">{counts}</p>
+      </div>
+      <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+    </Link>
   )
 }

@@ -50,7 +50,7 @@ export function useAdminAccess() {
 
       const [{ data: parishData }, { data: orgData }] = await Promise.all([
         parishIds.length > 0
-          ? supabase.from('parishes').select('id, name, diocese').in('id', parishIds)
+          ? supabase.from('parishes').select('id, name, diocese, city, state').in('id', parishIds)
           : Promise.resolve({ data: [] }),
         orgIds.length > 0
           ? supabase.from('organizations').select('id, name, category').in('id', orgIds)
