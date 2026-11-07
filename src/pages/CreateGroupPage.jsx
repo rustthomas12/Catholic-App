@@ -397,7 +397,7 @@ export default function CreateGroupPage() {
                   <img src={avatarPreview} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                 ) : (
                   <div className="w-16 h-16 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-                    <span className="text-gold font-bold text-2xl">{name[0]?.toUpperCase() ?? 'G'}</span>
+                    <span className="text-gold font-bold text-2xl">{name.match(/[A-Za-z0-9]/)?.[0]?.toUpperCase() ?? 'G'}</span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">

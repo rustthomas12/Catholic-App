@@ -1,5 +1,5 @@
 -- ============================================================
--- 084: tell people about new events
+-- 084: tell people about new events; stop notifying deleted accounts
 -- Creating an event (organization, group or parish) notified nobody; people
 -- only heard about it from a reminder the day before — if they had already
 -- RSVP'd, which they couldn't without knowing about it.
@@ -88,3 +88,41 @@ BEGIN
   END IF;
   RETURN NEW;
 END $function$;
+
+-- ── Deleted accounts ───────────────────────────────────────
+-- Account deletion kept the person's parish follows and parish-admin role, so
+-- announcements, parish messages and new-follower notices kept going to
+-- accounts nobody can use (seen as duplicate "Beta" notifications in testing).
+CREATE OR REPLACE FUNCTION drop_notifications_to_deleted()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM profiles WHERE id = NEW.user_id AND deleted_at IS NOT NULL) THEN
+    RETURN NULL;
+  END IF;
+  RETURN NEW;
+END $$;
+REVOKE EXECUTE ON FUNCTION drop_notifications_to_deleted() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS trg_drop_notifications_to_deleted ON notifications;
+CREATE TRIGGER trg_drop_notifications_to_deleted BEFORE INSERT ON notifications
+  FOR EACH ROW EXECUTE FUNCTION drop_notifications_to_deleted();
+
+CREATE OR REPLACE FUNCTION release_parish_ties_of_deleted()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.deleted_at IS NOT NULL AND OLD.deleted_at IS NULL THEN
+    DELETE FROM parish_follows WHERE user_id = NEW.id;
+    DELETE FROM parish_admins WHERE user_id = NEW.id;
+  END IF;
+  RETURN NULL;
+END $$;
+REVOKE EXECUTE ON FUNCTION release_parish_ties_of_deleted() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS trg_release_parish_ties_of_deleted ON profiles;
+CREATE TRIGGER trg_release_parish_ties_of_deleted AFTER UPDATE OF deleted_at ON profiles
+  FOR EACH ROW EXECUTE FUNCTION release_parish_ties_of_deleted();
+
+-- One-time cleanup of what already exists
+DELETE FROM parish_follows f USING profiles p WHERE p.id = f.user_id AND p.deleted_at IS NOT NULL;
+DELETE FROM parish_admins a USING profiles p WHERE p.id = a.user_id AND p.deleted_at IS NOT NULL;
+DELETE FROM notifications n USING profiles p WHERE p.id = n.user_id AND p.deleted_at IS NOT NULL;
