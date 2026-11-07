@@ -349,7 +349,7 @@ export default function CreateOrganizationPage() {
             {saving ? 'Creating…' : 'Create Organization'}
           </button>
           <p className="text-xs text-gray-500 text-center mt-3">
-            Organization dashboards include a free 90-day trial. No credit card required to get started.
+            Organization dashboards include a free 90-day trial. You'll add a card at checkout and won't be charged until day 91.
           </p>
         </form>
       </div>

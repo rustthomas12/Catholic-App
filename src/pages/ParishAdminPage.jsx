@@ -1222,7 +1222,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
             <p className="text-sm text-gray-500 mb-3">Your previous plan was canceled. Choose a plan to reactivate your parish dashboard.</p>
           )}
           <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
-          <p className="text-sm text-gray-500 mb-5">No credit card required until day 90. Choose the plan that fits your parish.</p>
+          <p className="text-sm text-gray-500 mb-5">A card is required at checkout; you won't be charged until day 91. Choose the plan that fits your parish.</p>
 
           {/* Tier selector */}
           <div className="grid grid-cols-2 gap-3 mb-5">

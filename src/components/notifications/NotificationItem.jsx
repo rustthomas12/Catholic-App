@@ -36,7 +36,7 @@ function TypeIcon({ type, message }) {
   if (type === 'parish_post') return <BuildingLibraryIcon className={`${base} text-navy`} />
   if (type === 'prayer_response') return <HandRaisedIcon className={`${base} text-gold`} />
   if (type === 'confession_reminder') return <ClipboardDocumentCheckIcon className={`${base} text-navy`} />
-  if (type === 'event_reminder') return <CalendarIcon className={`${base} text-navy`} />
+  if (type === 'event_reminder' || type === 'new_event') return <CalendarIcon className={`${base} text-navy`} />
   if (type === 'morning_offering_reminder') return <SunIcon className={`${base} text-gold`} />
   if (type === 'daily_readings_reminder') return <BookOpenIcon className={`${base} text-navy`} />
   if (type === 'direct_message') return <EnvelopeIcon className={`${base} text-navy`} />
