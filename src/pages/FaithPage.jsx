@@ -10,17 +10,15 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { useReadings } from '../hooks/useReadings'
 import { useTodaySaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
-import { getDaysAgo, formatConfessionDate, formatRelativeTime } from '../utils/dates'
-import { truncate } from '../utils/text'
+import { getDaysAgo } from '../utils/dates'
 import ReadingsCard from '../components/faith/ReadingsCard'
 import SaintCard from '../components/faith/SaintCard'
 import Avatar from '../components/shared/Avatar'
 
-// Module-level caches — shared across mounts/navigations
-let _intentionsCache = null   // { data, fetchedAt }
-let _confessionCache = null   // { data, userId, fetchedAt }
-const INTENTIONS_TTL  = 5 * 60 * 1000  // 5 minutes
-const CONFESSION_TTL  = 5 * 60 * 1000  // 5 minutes
+// Module-level caches so returning to Faith shows the last values at once
+// while they refresh
+let _intentionsCache = null   // { data }
+let _confessionCache = null   // { data, userId }
 
 export default function FaithPage() {
   useEffect(() => { document.title = 'Faith | inFold' }, [])
@@ -33,26 +31,16 @@ export default function FaithPage() {
   const { saint, loading: saintLoading } = useTodaySaint()
   const { isFavorite, addFavorite, removeFavorite } = useSaintFavorites()
 
-  const cachedIntentions = _intentionsCache && (Date.now() - _intentionsCache.fetchedAt) < INTENTIONS_TTL
-
-  const [intentions, setIntentions] = useState(() => cachedIntentions ? _intentionsCache.data : [])
-  const [intentionsLoading, setIntentionsLoading] = useState(() => !cachedIntentions)
-  const cachedConfession = _confessionCache?.userId === user?.id &&
-    (Date.now() - (_confessionCache?.fetchedAt ?? 0)) < CONFESSION_TTL
-
+  const [intentions, setIntentions] = useState(() => _intentionsCache?.data ?? [])
+  const [intentionsLoading, setIntentionsLoading] = useState(() => !_intentionsCache)
   const [lastConfession, setLastConfession] = useState(() =>
-    cachedConfession ? _confessionCache.data : null
+    _confessionCache?.userId === user?.id ? _confessionCache.data : null
   )
   const [confessionLoading, setConfessionLoading] = useState(false)
 
-  // Fetch last 5 prayer requests (cached 5 min)
+  // Last 5 prayer requests: shown from the cache at once, then refreshed so
+  // a request you just shared (or one removed) shows up when you come back
   useEffect(() => {
-    if (_intentionsCache && (Date.now() - _intentionsCache.fetchedAt) < INTENTIONS_TTL) {
-      setIntentions(_intentionsCache.data)
-      setIntentionsLoading(false)
-      return
-    }
-
     supabase
       .from('prayer_request_feed')
       .select('id, content, prayer_count, is_anonymous, created_at, author_name, author_avatar_url')
@@ -65,24 +53,18 @@ export default function FaithPage() {
             ...r,
             author: r.author_name ? { full_name: r.author_name, avatar_url: r.author_avatar_url } : null,
           }))
-          _intentionsCache = { data: result, fetchedAt: Date.now() }
+          _intentionsCache = { data: result }
           setIntentions(result)
         }
         setIntentionsLoading(false)
       })
   }, [])
 
-  // Fetch last confession (cached per user)
+  // Last confession: shown from the cache at once, then refreshed so a
+  // confession logged or edited on the tracker shows up right away
   useEffect(() => {
     if (!user) return
-
-    if (_confessionCache?.userId === user.id &&
-        (Date.now() - (_confessionCache?.fetchedAt ?? 0)) < CONFESSION_TTL) {
-      setLastConfession(_confessionCache.data)
-      return
-    }
-
-    setConfessionLoading(true)
+    if (_confessionCache?.userId !== user.id) setConfessionLoading(true)
     supabase
       .from('confession_tracker')
       .select('confessed_at')
@@ -92,7 +74,7 @@ export default function FaithPage() {
       .maybeSingle()
       .then(({ data, error: err }) => {
         if (!err) {
-          _confessionCache = { data, userId: user.id, fetchedAt: Date.now() }
+          _confessionCache = { data, userId: user.id }
           setLastConfession(data)
         }
         setConfessionLoading(false)

@@ -35,7 +35,6 @@ export default function PrayerRequestsPage() {
   const [intentions, setIntentions] = useState([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(false)
-  const [offset, setOffset] = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
 
   const [content, setContent] = useState('')
@@ -58,7 +57,11 @@ export default function PrayerRequestsPage() {
       toast.error(t('common:status.error', { ns: 'common' }))
     } else {
       const normalised = (data ?? []).map(fromFeed)
-      setIntentions((prev) => (append ? [...prev, ...normalised] : normalised))
+      setIntentions((prev) => {
+        if (!append) return normalised
+        const seen = new Set(prev.map((i) => i.id))
+        return [...prev, ...normalised.filter((i) => !seen.has(i.id))]
+      })
       setHasMore((data ?? []).length === PAGE_SIZE)
     }
 
@@ -135,9 +138,9 @@ export default function PrayerRequestsPage() {
   }
 
   function handleLoadMore() {
-    const newOffset = offset + PAGE_SIZE
-    setOffset(newOffset)
-    fetchIntentions(newOffset, true)
+    // From what's on screen: a refresh resets the list to the first page
+    // and new requests push rows down, so a page counter skipped some
+    fetchIntentions(intentions.length, true)
   }
 
   return (

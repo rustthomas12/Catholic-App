@@ -46,7 +46,7 @@ export default function SaintsPage() {
         {/* ── Header ── */}
         <TopBar variant="navy" title={t('saints_title')} back={true} />
         <div className="bg-navy px-4 pb-5">
-          <p className="text-gray-500 text-sm ml-10">
+          <p className="text-white/75 text-sm ml-10">
             Learn about the men and women who showed us how to live the faith
           </p>
 

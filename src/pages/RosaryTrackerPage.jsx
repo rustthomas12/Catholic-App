@@ -42,7 +42,7 @@ export default function RosaryTrackerPage() {
         {/* Header */}
         <TopBar variant="navy" title="Rosary Tracker" back="/faith" />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gray-500 text-sm ml-10">Pray daily — build the habit</p>
+          <p className="text-white/75 text-sm ml-10">Pray daily — build the habit</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
