@@ -438,6 +438,9 @@ export default function GroupPage() {
 }
 
 // ── GroupChat ──────────────────────────────────────────────
+const CHAT_SELECT = 'id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)'
+const byTime = (list) => list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+
 function GroupChat({ groupId, userId, isMember }) {
   const { t } = useTranslation('groups')
   const [messages, setMessages] = useState([])
@@ -447,6 +450,12 @@ function GroupChat({ groupId, userId, isMember }) {
   const [deletingId, setDeletingId] = useState(null)
   const [reportId, setReportId] = useState(null)
   const bottomRef = useRef(null)
+
+  // Your own message arrives twice (send + realtime echo); keep one, in
+  // the order they were sent rather than the order they reached you
+  const addMessage = useCallback((msg) => {
+    setMessages(prev => prev.some(m => m.id === msg.id) ? prev : byTime([...prev, msg]))
+  }, [])
 
   const deleteMessage = useCallback(async (msgId) => {
     setDeletingId(msgId)
@@ -459,21 +468,28 @@ function GroupChat({ groupId, userId, isMember }) {
     setDeletingId(null)
   }, [userId])
 
-  // Load messages
+  // Load messages: the newest 100, oldest first
   useEffect(() => {
     if (!groupId) return
     setLoading(true)
-    supabase
+    let cancelled = false
+    const fetchMessages = () => supabase
       .from('group_chat_messages')
-      .select('id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)')
+      .select(CHAT_SELECT)
       .eq('group_id', groupId)
       .eq('is_deleted', false)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data }) => {
-        setMessages(data ?? [])
+        if (cancelled) return
+        setMessages((data ?? []).reverse())
         setLoading(false)
       })
+    fetchMessages()
+    // A realtime channel can go quiet in a tab left open for hours; catch
+    // up whenever the app comes back into view
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchMessages() }
+    document.addEventListener('visibilitychange', onVisible)
 
     // Realtime
     const channel = supabase
@@ -486,10 +502,10 @@ function GroupChat({ groupId, userId, isMember }) {
       }, async (payload) => {
         const { data } = await supabase
           .from('group_chat_messages')
-          .select('id, user_id, content, created_at, is_deleted, profiles(id, full_name, avatar_url)')
+          .select(CHAT_SELECT)
           .eq('id', payload.new.id)
           .single()
-        if (data && !data.is_deleted) setMessages(prev => [...prev, data])
+        if (data && !data.is_deleted) addMessage(data)
       })
       .on('postgres_changes', {
         event: 'UPDATE',
@@ -503,8 +519,12 @@ function GroupChat({ groupId, userId, isMember }) {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
-  }, [groupId])
+    return () => {
+      cancelled = true
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [groupId, addMessage])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'auto' })
@@ -516,13 +536,18 @@ function GroupChat({ groupId, userId, isMember }) {
     setSending(true)
     const content = draft.trim()
     setDraft('')
-    const { error } = await supabase.from('group_chat_messages').insert({ group_id: groupId, user_id: userId, content })
+    const { data, error } = await supabase.from('group_chat_messages')
+      .insert({ group_id: groupId, user_id: userId, content })
+      .select(CHAT_SELECT)
+      .single()
     setSending(false)
+    // Show it right away rather than waiting for realtime to echo it back
+    if (data) addMessage(data)
     if (error) {
       setDraft(content) // keep what they wrote
       toast.error(friendlyError(error, 'Message not sent. Please try again.'))
     }
-  }, [draft, userId, isMember, sending, groupId])
+  }, [draft, userId, isMember, sending, groupId, addMessage])
 
   if (!isMember) {
     return (

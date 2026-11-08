@@ -140,7 +140,9 @@ function Navigation() {
       .then(({ count }) => { setUnreadDMs(count ?? 0); setUnreadDMCount(count ?? 0) })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { recountDMs() }, [recountDMs, location.pathname])
+  // Also on any new alert (every message brings one) — the direct_messages
+  // channel below can go quiet in a tab left open for hours
+  useEffect(() => { recountDMs() }, [recountDMs, location.pathname, unreadCount])
 
   // One realtime channel per mount (unique name — re-using a name returns the
   // already-subscribed channel and .on() then throws).
@@ -148,6 +150,8 @@ function Navigation() {
     if (!user) return
     const suffix = Math.random().toString(36).slice(2)
     window.addEventListener('infold:dms-read', recountDMs)
+    const onVisible = () => { if (document.visibilityState === 'visible') recountDMs() }
+    document.addEventListener('visibilitychange', onVisible)
     const channel = supabase
       .channel(`dm_badge_${user.id}_${suffix}`)
       .on('postgres_changes', {
@@ -159,6 +163,7 @@ function Navigation() {
       .subscribe()
     return () => {
       window.removeEventListener('infold:dms-read', recountDMs)
+      document.removeEventListener('visibilitychange', onVisible)
       supabase.removeChannel(channel)
     }
   }, [user?.id, recountDMs]) // eslint-disable-line react-hooks/exhaustive-deps
