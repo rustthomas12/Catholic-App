@@ -11,7 +11,7 @@
 import sharp from 'sharp'
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 
-const BLUE = '#40BCFF' // inFold Blue (brand/README.md)
+const BLUE = '#6FCDFF' // inFold Blue (brand/README.md)
 const OUT = 'assets'
 mkdirSync(OUT, { recursive: true })
 

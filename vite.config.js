@@ -26,7 +26,7 @@ export default defineConfig({
         name: 'inFold',
         short_name: 'inFold',
         description: 'The Catholic parish and community platform',
-        theme_color: '#40BCFF', // inFold Blue (brand/README.md)
+        theme_color: '#6FCDFF', // inFold Blue (brand/README.md)
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
