@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Toaster } from '../components/shared/Toast'
+import { LogoLockup } from '../components/shared/Logo'
 
 export const APP_URL = 'https://app.getinfold.app'
 
@@ -32,10 +33,7 @@ export function MarketingNav() {
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <img src="/icons/icon-192.png" alt="inFold" className="w-8 h-8 rounded-xl" />
-          <span className="text-white font-black text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
-            inFold
-          </span>
+          <LogoLockup onDark className="h-9 w-auto" />
         </Link>
 
         {/* Desktop nav */}
@@ -108,8 +106,7 @@ export function MarketingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-3">
-              <img src="/icons/icon-192.png" alt="inFold" className="w-8 h-8 rounded-xl" />
-              <span className="text-white font-black text-xl" style={{ fontFamily: 'Georgia, serif' }}>inFold</span>
+              <LogoLockup onDark className="h-9 w-auto" />
             </div>
             <p className="text-white/70 text-sm leading-relaxed max-w-xs">
               The digital parish hall. Connecting Catholics with their parish, their faith, and each other.

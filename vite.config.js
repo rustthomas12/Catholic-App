@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'brand/*.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand/**/*.svg', 'brand/fonts/*.ttf'],
       devOptions: {
         // Off: the dev SW served stale /src/main.jsx and booted the app twice.
         enabled: false,
@@ -26,18 +26,17 @@ export default defineConfig({
         name: 'inFold',
         short_name: 'inFold',
         description: 'The Catholic parish and community platform',
-        theme_color: '#1B2A4A',
+        theme_color: '#40BCFF', // inFold Blue (brand/README.md)
         background_color: '#FAF7F2',
         display: 'standalone',
         start_url: '/',
         orientation: 'portrait',
-        // inFold logo pack (brand/), built by scripts/generate-app-assets.mjs.
-        // PNG for installers that ignore SVG icons; maskable is full-bleed.
+        // inFold brand kit (brand/); the maskable one (full-bleed, for
+        // Android's circle crop) is built by scripts/generate-app-assets.mjs
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/brand/icon/infold-icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/brand/icon/infold-icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
       },
       workbox: {
@@ -46,7 +45,7 @@ export default defineConfig({
         // sw-push.js handles push events and notification clicks.
         // Loaded via importScripts so it runs after Workbox is set up.
         importScripts: ['/sw-push.js'],
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

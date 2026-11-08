@@ -7,7 +7,7 @@ import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LanguageSwitcher from '../components/shared/LanguageSwitcher'
-import { LogoWordmark } from '../components/shared/Logo'
+import { LogoLockup } from '../components/shared/Logo'
 
 export default function LoginPage() {
   const { t } = useTranslation('auth')
@@ -55,7 +55,7 @@ export default function LoginPage() {
       </div>
       {/* Logo */}
       <div className="flex flex-col items-center mb-8">
-        <LogoWordmark className="h-28 w-auto mb-4" />
+        <LogoLockup className="h-16 w-auto mb-6" />
         <h1 className="text-2xl font-bold text-navy">{t('login.title')}</h1>
         <p className="text-gray-500 mt-1 text-sm">{tc('app.tagline')}</p>
       </div>

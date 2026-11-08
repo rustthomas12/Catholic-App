@@ -13,7 +13,7 @@
     "mobile:build": "vite build && cap sync",
     "mobile:ios": "vite build && cap sync ios && cap open ios",
     "mobile:android": "vite build && cap sync android && cap open android",
-    "mobile:assets": "node scripts/generate-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#03A6FF\" --iconBackgroundColorDark \"#03A6FF\" --splashBackgroundColor \"#03A6FF\" --splashBackgroundColorDark \"#03A6FF\"",
+    "mobile:assets": "node scripts/generate-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#40BCFF\" --iconBackgroundColorDark \"#40BCFF\" --splashBackgroundColor \"#40BCFF\" --splashBackgroundColorDark \"#40BCFF\"",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/e2e/a11y.spec.js"
   },
