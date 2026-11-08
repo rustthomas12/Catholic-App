@@ -63,7 +63,7 @@ export default function PrayerJournalPage() {
         {/* Header */}
         <TopBar variant="navy" title="Prayer Journal" back="/faith" />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gray-500 text-sm ml-10">Your private space for reflection</p>
+          <p className="text-white/75 text-sm ml-10">Your private space for reflection</p>
         </div>
 
         <div className="px-4 pt-5 space-y-4">

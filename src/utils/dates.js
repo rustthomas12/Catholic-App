@@ -1,6 +1,8 @@
 import {
   format,
   differenceInDays,
+  differenceInCalendarDays,
+  parseISO,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import i18n from './i18n'
@@ -44,6 +46,12 @@ export function formatConfessionDate(date) {
  * @returns {number}
  */
 export function getDaysAgo(date) {
+  // A date-only value ("2026-11-08", e.g. a confession) is a local calendar
+  // day: new Date() read it as midnight UTC, which in US time zones is the
+  // evening before, so the count ran a day high every evening
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return differenceInCalendarDays(new Date(), parseISO(date))
+  }
   return differenceInDays(new Date(), new Date(date))
 }
 

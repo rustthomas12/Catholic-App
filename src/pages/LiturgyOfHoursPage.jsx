@@ -34,7 +34,7 @@ export default function LiturgyOfHoursPage() {
         {/* Header */}
         <TopBar variant="navy" title="Liturgy of the Hours" back="/faith" />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gray-500 text-sm ml-10">The prayer of the Church throughout the day</p>
+          <p className="text-white/75 text-sm ml-10">The prayer of the Church throughout the day</p>
         </div>
 
         {/* Hour selector tabs */}

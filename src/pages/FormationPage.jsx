@@ -81,7 +81,7 @@ export default function FormationPage() {
         {/* Header */}
         <TopBar variant="navy" className={headerColor} title={data.title} back="/faith" />
         <div className={`${headerColor} px-4 pb-6`}>
-          <p className="text-gray-500 text-sm ml-10">{data.subtitle}</p>
+          <p className="text-white/75 text-sm ml-10">{data.subtitle}</p>
         </div>
 
         <div className="px-4 pt-5 space-y-5">

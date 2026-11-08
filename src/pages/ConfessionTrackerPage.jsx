@@ -1,11 +1,11 @@
 import Modal from '../components/shared/Modal'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
-import { ShieldCheckIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ShieldCheckIcon, TrashIcon, PencilSquareIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
-import { format, differenceInDays, parseISO } from 'date-fns'
+import { format, differenceInCalendarDays, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
@@ -19,6 +19,7 @@ export default function ConfessionTrackerPage() {
 
   const { t } = useTranslation('premium')
   const { user } = useAuth()
+  const userId = user?.id
 
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,29 +31,64 @@ export default function ConfessionTrackerPage() {
     return saved === 'null' ? null : saved ? parseInt(saved, 10) : 30
   })
 
-  // Load confession history
-  useEffect(() => {
-    if (!user?.id) return
-    setLoading(true)
-    supabase
+  // Add-a-past-date / edit-an-entry dialog: { entry (null when adding), date }
+  const [editor, setEditor] = useState(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+
+  // Load confession history (newest first)
+  const loadHistory = useCallback(async () => {
+    if (!userId) return
+    const { data, error } = await supabase
       .from('confession_tracker')
       .select('id, confessed_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('confessed_at', { ascending: false })
       .limit(10)
-      .then(({ data, error }) => {
-        if (!error && data) setHistory(data)
-        setLoading(false)
-      })
-  }, [user])
+    if (!error && data) setHistory(data)
+    setLoading(false)
+  }, [userId])
+
+  useEffect(() => { loadHistory() }, [loadHistory])
 
   const lastConfession = history[0] ?? null
   const daysSince = lastConfession
-    ? differenceInDays(new Date(), parseISO(lastConfession.confessed_at))
+    ? differenceInCalendarDays(new Date(), parseISO(lastConfession.confessed_at))
     : null
 
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const alreadyLoggedToday = history.some(h => h.confessed_at === todayStr)
+
+  // Add a confession you forgot to log, or change / remove an entry's date
+  async function handleSaveEdit() {
+    if (!user?.id || !editor || savingEdit) return
+    const { entry, date } = editor
+    if (!date || date > todayStr) { toast.error(t('tracker_date_future')); return }
+    if (entry && date === entry.confessed_at) { setEditor(null); return }
+    if (history.some(h => h.confessed_at === date && h.id !== entry?.id)) {
+      toast.error(t('tracker_date_exists'))
+      return
+    }
+    setSavingEdit(true)
+    const { error } = entry
+      ? await supabase.from('confession_tracker').update({ confessed_at: date }).eq('id', entry.id).eq('user_id', user.id)
+      : await supabase.from('confession_tracker').insert({ user_id: user.id, confessed_at: date })
+    setSavingEdit(false)
+    if (error) { toast.error(t('tracker_save_error')); return }
+    setEditor(null)
+    toast.success(t(entry ? 'tracker_updated' : 'tracker_added'))
+    loadHistory()
+  }
+
+  async function handleDeleteEntry() {
+    if (!user?.id || !editor?.entry || savingEdit) return
+    setSavingEdit(true)
+    const { error } = await supabase.from('confession_tracker').delete().eq('id', editor.entry.id).eq('user_id', user.id)
+    setSavingEdit(false)
+    if (error) { toast.error(t('tracker_save_error')); return }
+    setEditor(null)
+    toast.success(t('tracker_deleted'))
+    loadHistory()
+  }
 
   async function handleLog() {
     if (!user?.id || alreadyLoggedToday || logging) return
@@ -128,7 +164,7 @@ export default function ConfessionTrackerPage() {
         {/* ── Header ── */}
         <TopBar variant="navy" title={t('tracker_title')} back={true} />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gray-500 text-sm ml-10">{t('tracker_subtitle')}</p>
+          <p className="text-white/75 text-sm ml-10">{t('tracker_subtitle')}</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -163,7 +199,7 @@ export default function ConfessionTrackerPage() {
               <>
                 <p className="text-6xl font-bold text-navy mb-1">{daysSince}</p>
                 <p className="text-sm text-gray-500">
-                  {t('tracker_last', { days: daysSince })}
+                  {t('tracker_last', { count: daysSince })}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {format(parseISO(lastConfession.confessed_at), 'MMMM d, yyyy')}
@@ -183,6 +219,14 @@ export default function ConfessionTrackerPage() {
             }`}
           >
             {logging ? t('tracker_saving') : alreadyLoggedToday ? t('tracker_logged_today') : t('tracker_log')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditor({ entry: null, date: todayStr })}
+            className="w-full -mt-2 flex items-center justify-center gap-1.5 min-h-[44px] text-sm font-semibold text-navy hover:underline"
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t('tracker_add_past')}
           </button>
 
           {/* ── Reminder frequency ── */}
@@ -218,17 +262,21 @@ export default function ConfessionTrackerPage() {
                 <p className="text-xs font-bold text-navy">{t('tracker_history')}</p>
                 <button
                   onClick={() => setClearConfirm(true)}
-                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors"
+                  className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 min-h-[32px] transition-colors"
                 >
                   <TrashIcon className="w-3.5 h-3.5" />
                   {t('tracker_clear')}
                 </button>
               </div>
+              <p className="text-xs text-gray-500 -mt-2 mb-2">{t('tracker_edit_hint')}</p>
               <div className="space-y-1">
                 {history.map((entry, i) => (
-                  <div
+                  <button
                     key={entry.id}
-                    className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
+                    type="button"
+                    onClick={() => setEditor({ entry, date: entry.confessed_at })}
+                    aria-label={`${t('tracker_edit_title')}: ${format(parseISO(entry.confessed_at), 'MMMM d, yyyy')}`}
+                    className="w-full flex items-center justify-between py-2 min-h-[44px] border-b border-gray-50 last:border-0 text-left hover:bg-lightbg rounded-lg px-1 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
@@ -236,12 +284,15 @@ export default function ConfessionTrackerPage() {
                         {format(parseISO(entry.confessed_at), 'MMMM d, yyyy')}
                       </p>
                     </div>
-                    {i === 0 && (
-                      <span className="text-xs bg-gold/10 text-gold font-semibold px-2 py-0.5 rounded-full">
-                        {t('tracker_most_recent')}
-                      </span>
-                    )}
-                  </div>
+                    <span className="flex items-center gap-2">
+                      {i === 0 && (
+                        <span className="text-xs bg-gold/10 text-navy font-semibold px-2 py-0.5 rounded-full">
+                          {t('tracker_most_recent')}
+                        </span>
+                      )}
+                      <PencilSquareIcon className="w-4 h-4 text-gray-500" />
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -255,7 +306,7 @@ export default function ConfessionTrackerPage() {
             </div>
             <Link
               to="/premium/examination"
-              className="text-xs font-bold text-gold bg-white border border-gold/30 px-3 py-2 rounded-xl hover:bg-gold/5 transition-colors flex-shrink-0 ml-3"
+              className="text-xs font-bold text-navy bg-white border border-gold/40 px-3 py-2 min-h-[36px] rounded-xl hover:bg-gold/10 transition-colors flex-shrink-0 ml-3"
             >
               Open →
             </Link>
@@ -263,6 +314,49 @@ export default function ConfessionTrackerPage() {
 
         </div>
       </div>
+
+      {/* ── Add a past confession / edit an entry ── */}
+      {editor && (
+        <Modal isOpen onClose={() => setEditor(null)} title={t(editor.entry ? 'tracker_edit_title' : 'tracker_add_title')} size="sm">
+          <label htmlFor="confession-date" className="block text-sm font-semibold text-navy mb-1.5">{t('tracker_date_label')}</label>
+          <input
+            id="confession-date"
+            type="date"
+            value={editor.date}
+            max={todayStr}
+            onChange={e => setEditor(ed => ({ ...ed, date: e.target.value }))}
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-navy focus:outline-none focus:border-navy mb-5"
+          />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setEditor(null)}
+              className="flex-1 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              {t('tracker_cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveEdit}
+              disabled={savingEdit || !editor.date}
+              className="flex-1 py-2.5 min-h-[44px] bg-gold text-navy rounded-xl text-sm font-bold hover:bg-gold/90 transition-colors disabled:opacity-60"
+            >
+              {savingEdit ? t('tracker_saving') : t('tracker_save')}
+            </button>
+          </div>
+          {editor.entry && (
+            <button
+              type="button"
+              onClick={handleDeleteEntry}
+              disabled={savingEdit}
+              className="w-full mt-3 flex items-center justify-center gap-1.5 min-h-[44px] text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-60"
+            >
+              <TrashIcon className="w-4 h-4" />
+              {t('tracker_delete_entry')}
+            </button>
+          )}
+        </Modal>
+      )}
 
       {/* ── Clear confirmation modal ── */}
       {clearConfirm && (
