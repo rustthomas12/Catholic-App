@@ -11,7 +11,7 @@ const NOTIFICATION_SELECT = `
 
 // Fired after this tab marks notifications read so every mounted
 // useNotifications() instance (page list, nav badge) re-syncs its count.
-const READ_EVENT = 'infold:notifications-read'
+export const READ_EVENT = 'infold:notifications-read'
 
 export function useNotifications() {
   const { user } = useAuth()
@@ -25,6 +25,8 @@ export function useNotifications() {
   const [loadingMore,   setLoadingMore]   = useState(false)
   const [hasMore,       setHasMore]       = useState(false)
 
+  const listRef      = useRef([])
+  useEffect(() => { listRef.current = notifications }, [notifications])
   const offsetRef    = useRef(0)
   const channelRef   = useRef(null)
   const channelSuffix = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`)
@@ -114,9 +116,11 @@ export function useNotifications() {
             .eq('id', payload.new.id)
             .single()
 
-          if (data) {
-            setNotifications(prev => [data, ...prev])
-            setUnreadCount(prev => prev + 1)
+          // A refresh may already have it, and it may already be read (an
+          // open conversation clears its message alert right away)
+          if (data && !listRef.current.some(n => n.id === data.id)) {
+            setNotifications(prev => prev.some(n => n.id === data.id) ? prev : [data, ...prev])
+            if (!data.is_read) setUnreadCount(prev => prev + 1)
           }
         }
       )

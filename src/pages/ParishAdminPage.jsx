@@ -19,6 +19,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { READ_EVENT } from '../hooks/useNotifications'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../lib/platform'
 import { checkEmail, checkUrl } from '../utils/validate'
@@ -1007,6 +1008,8 @@ function ParishionersTab({ parishId }) {
 
 // ── Messages Tab ────────────────────────────────────────────
 function MessagesTab({ parishId }) {
+  const { user } = useAuth()
+  const userId = user?.id
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -1023,7 +1026,20 @@ function MessagesTab({ parishId }) {
       .limit(50)
     setMessages(data ?? [])
     setLoading(false)
-  }, [parishId])
+    // You've now seen the inbox: clear its "sent your parish a message" alerts
+    if (userId) {
+      supabase.from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('type', 'parish_message')
+        .eq('reference_id', parishId)
+        .eq('is_read', false)
+        .select('id')
+        .then(({ data: cleared }) => {
+          if (cleared?.length) window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: 'parish-inbox' }))
+        })
+    }
+  }, [parishId, userId])
 
   useEffect(() => { load() }, [load])
 

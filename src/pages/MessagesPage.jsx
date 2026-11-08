@@ -1,5 +1,5 @@
 import { friendlyError } from '../utils/errors'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import TopBar, { TopBarAction } from '../components/shared/TopBar'
 import Modal from '../components/shared/Modal'
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -19,10 +19,13 @@ import { toast } from '../components/shared/Toast'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { createNotification } from '../lib/notifications'
+import { READ_EVENT } from '../hooks/useNotifications'
 import Avatar from '../components/shared/Avatar'
 import { format, isToday, isYesterday } from 'date-fns'
 
 // ── helpers ────────────────────────────────────────────────
+// Keep a thread in the order messages were sent, not the order they arrived
+const byTime = (list) => list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 function formatTime(ts) {
   const d = new Date(ts)
   if (isToday(d)) return format(d, 'h:mm a')
@@ -35,14 +38,34 @@ function formatTime(ts) {
 // Tells the nav's unread-DM badge to recount after a thread is read.
 export const DMS_READ_EVENT = 'infold:dms-read'
 
+// Reading a thread also clears its "X sent you a message" alerts, so the
+// Notifications badge doesn't keep counting messages you've already seen
+function markMessageAlertsRead(userId, partnerId) {
+  supabase.from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', userId)
+    .eq('type', 'direct_message')
+    .eq('reference_id', partnerId)
+    .eq('is_read', false)
+    .select('id')
+    .then(({ data }) => {
+      if (data?.length) window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: 'messages' }))
+    })
+}
+
 function useConversations(userId) {
   const [convos, setConvos] = useState([])
   const [loading, setLoading] = useState(true)
+  const loadSeq = useRef(0)
 
   const load = useCallback(async () => {
     if (!userId) { setLoading(false); return }
+    // Overlapping reloads (several messages arriving at once) can finish
+    // out of order; only the newest one may update the list
+    const seq = ++loadSeq.current
     // Newest message with each person (migration 080), newest first
     const { data } = await supabase.rpc('my_conversations')
+    if (seq !== loadSeq.current) return
 
     if (!data) { setLoading(false); return }
 
@@ -53,6 +76,7 @@ function useConversations(userId) {
     const { data: profiles } = partnerIds.length
       ? await supabase.from('profiles').select('id, full_name, avatar_url').in('id', partnerIds)
       : { data: [] }
+    if (seq !== loadSeq.current) return
 
     const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
 
@@ -81,7 +105,14 @@ function useConversations(userId) {
         filter: `recipient_id=eq.${userId}`,
       }, () => { load() })
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    // A realtime channel can go quiet in a tab left open for hours; catch
+    // up whenever the app comes back into view
+    const onVisible = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [userId, load])
 
   const markRead = useCallback((partnerId) => {
@@ -101,33 +132,50 @@ function useMessages(userId, partnerId, onRead) {
   const [loading, setLoading] = useState(true)
   const onReadRef = useRef(onRead)
   useEffect(() => { onReadRef.current = onRead }, [onRead])
+  // Sends go out one at a time so quick messages keep the order they were typed
+  const sendChain = useRef(Promise.resolve())
 
   useEffect(() => {
     if (!userId || !partnerId) return
     setLoading(true)
+    let cancelled = false
 
-    supabase
+    // The newest 100 messages, oldest first
+    const fetchThread = () => supabase
       .from('direct_messages')
       .select('id, sender_id, recipient_id, content, is_read, created_at')
       .or(
         `and(sender_id.eq.${userId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${userId})`
       )
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data }) => {
-        setMessages(data ?? [])
+        if (cancelled) return
+        setMessages((data ?? []).reverse())
         setLoading(false)
       })
 
     // Mark all unread messages from this partner as read
-    supabase.from('direct_messages')
-      .update({ is_read: true })
-      .eq('sender_id', partnerId)
-      .eq('recipient_id', userId)
-      .eq('is_read', false)
-      .then(({ error }) => {
-        if (!error) onReadRef.current?.()
-      })
+    const markRead = () => {
+      supabase.from('direct_messages')
+        .update({ is_read: true })
+        .eq('sender_id', partnerId)
+        .eq('recipient_id', userId)
+        .eq('is_read', false)
+        .then(({ error }) => {
+          if (!error) onReadRef.current?.()
+        })
+      markMessageAlertsRead(userId, partnerId)
+    }
+
+    fetchThread()
+    markRead()
+
+    // Catch up on anything a quiet realtime channel missed
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') { fetchThread(); markRead() }
+    }
+    document.addEventListener('visibilitychange', onVisible)
 
     // Realtime subscription — new incoming messages
     const channel = supabase
@@ -140,37 +188,59 @@ function useMessages(userId, partnerId, onRead) {
       }, (payload) => {
         const msg = payload.new
         if (msg.sender_id === partnerId) {
-          setMessages(prev => [...prev, msg])
+          setMessages(prev => prev.some(m => m.id === msg.id) ? prev : byTime([...prev, msg]))
           // Mark read immediately since thread is open
           supabase.from('direct_messages')
             .update({ is_read: true })
             .eq('id', msg.id)
             .then(({ error }) => { if (!error) onReadRef.current?.() })
+          markMessageAlertsRead(userId, partnerId)
+        }
+      })
+      // The sender creates the alert just after the message, so it can land
+      // after the read above; you're looking at the thread, so clear it too
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => {
+        const n = payload.new
+        if (n.type === 'direct_message' && n.reference_id === partnerId && !n.is_read) {
+          markMessageAlertsRead(userId, partnerId)
         }
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      cancelled = true
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [userId, partnerId])
 
-  const send = useCallback(async (content) => {
-    if (!content.trim() || !userId || !partnerId) return
-    const { data, error } = await supabase.from('direct_messages').insert({
-      sender_id: userId,
-      recipient_id: partnerId,
-      content: content.trim(),
-    }).select().single()
-    if (error) return { error }
-    if (data) {
-      setMessages(prev => [...prev, data])
-      createNotification({
-        userId: partnerId,
-        type: 'direct_message',
-        referenceId: userId,
-        message: `${profile?.full_name || 'Someone'} sent you a message`,
-        actorId: userId,
-      })
-    }
+  const send = useCallback((content) => {
+    if (!content.trim() || !userId || !partnerId) return Promise.resolve()
+    const run = sendChain.current.then(async () => {
+      const { data, error } = await supabase.from('direct_messages').insert({
+        sender_id: userId,
+        recipient_id: partnerId,
+        content: content.trim(),
+      }).select().single()
+      if (error) return { error }
+      if (data) {
+        setMessages(prev => byTime([...prev, data]))
+        createNotification({
+          userId: partnerId,
+          type: 'direct_message',
+          referenceId: userId,
+          message: `${profile?.full_name || 'Someone'} sent you a message`,
+          actorId: userId,
+        })
+      }
+    })
+    sendChain.current = run.catch(() => {})
+    return run
   }, [userId, partnerId, profile?.full_name])
 
   return { messages, loading, send }
@@ -282,8 +352,11 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
     setDraft('')
     const result = await send(content)
     if (result?.error) {
-      setDraft(content) // keep what they wrote
-      toast.error(friendlyError(result.error, 'Message not sent. Please try again.'))
+      setDraft(d => d || content) // keep what they wrote (unless they've started another)
+      // 42501 = refused by the database (they've blocked you); retrying won't help
+      toast.error(result.error.code === '42501'
+        ? `${name} isn't accepting messages from you.`
+        : friendlyError(result.error, 'Message not sent. Please try again.'))
       return
     }
     onSent?.()
@@ -400,7 +473,10 @@ export default function MessagesPage() {
 
   // /messages?to=<userId> opens (or starts) that conversation — used by the
   // profile "Message" button and "Reply" on parish messages
-  const toId = new URLSearchParams(window.location.search).get('to')
+  // (read from the router so tapping a message alert while already on
+  // /messages switches conversations)
+  const [searchParams] = useSearchParams()
+  const toId = searchParams.get('to')
   useEffect(() => {
     if (!toId || !user || toId === user.id) return
     supabase.from('profiles').select('id, full_name, avatar_url')
