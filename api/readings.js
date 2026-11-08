@@ -2,8 +2,11 @@ import { applyNativeCors } from './_native.js'
 /**
  * Vercel serverless function — Catholic Readings API proxy.
  * References:  https://cpbjr.github.io/catholic-readings-api/
- * Bible text:  https://rest.api.bible/ — Douay-Rheims 1899 (Catholic, full deuterocanon)
- * Liturgical:  http://calapi.inadiutorium.cz/ — Church Calendar API
+ * Bible text:  https://bible-api.com/ — World English Bible (public domain,
+ *              modern English, with the deuterocanon), its verse numbers
+ *              mapped from the US lectionary's (lectionaryToWEB below);
+ *              fallback https://rest.api.bible/ — Douay-Rheims 1899
+ * Liturgical:  https://litcal.johnromanodorazio.com/ — US national calendar
  */
 
 const API_BIBLE_KEY    = process.env.API_BIBLE_KEY
@@ -174,6 +177,157 @@ async function fetchPassage(reference) {
   }
 }
 
+// ── World English Bible text (bible-api.com) ────────────────
+// bible-api book names, keyed by our OSIS codes
+const WEB_BOOKS = {
+  GEN:'genesis', EXO:'exodus', LEV:'leviticus', NUM:'numbers', DEU:'deuteronomy',
+  JOS:'joshua', JDG:'judges', RUT:'ruth', '1SA':'1 samuel', '2SA':'2 samuel',
+  '1KI':'1 kings', '2KI':'2 kings', '1CH':'1 chronicles', '2CH':'2 chronicles',
+  EZR:'ezra', NEH:'nehemiah', TOB:'tobit', JDT:'judith', EST:'esther',
+  '1MA':'1 maccabees', '2MA':'2 maccabees', JOB:'job', PSA:'psalms', PRO:'proverbs',
+  ECC:'ecclesiastes', SNG:'song of solomon', WIS:'wisdom', SIR:'sirach',
+  ISA:'isaiah', JER:'jeremiah', LAM:'lamentations', BAR:'baruch', EZK:'ezekiel',
+  DAN:'daniel', HOS:'hosea', JOL:'joel', AMO:'amos', OBA:'obadiah', JON:'jonah',
+  MIC:'micah', NAM:'nahum', HAB:'habakkuk', ZEP:'zephaniah', HAG:'haggai',
+  ZEC:'zechariah', MAL:'malachi', MAT:'matthew', MRK:'mark', LUK:'luke', JHN:'john',
+  ACT:'acts', ROM:'romans', '1CO':'1 corinthians', '2CO':'2 corinthians',
+  GAL:'galatians', EPH:'ephesians', PHP:'philippians', COL:'colossians',
+  '1TH':'1 thessalonians', '2TH':'2 thessalonians', '1TI':'1 timothy', '2TI':'2 timothy',
+  TIT:'titus', PHM:'philemon', HEB:'hebrews', JAS:'james', '1PE':'1 peter', '2PE':'2 peter',
+  '1JN':'1 john', '2JN':'2 john', '3JN':'3 john', JUD:'jude', REV:'revelation',
+}
+
+// The lectionary counts a psalm's title as its first verse(s) (Hebrew
+// numbering); English Bibles like the WEB don't. Verses to subtract, per
+// psalm (unlisted = 0): the standard Hebrew-vs-English psalm table.
+const PSALM_TITLE_VERSES = {
+  51: 2, 52: 2, 54: 2, 60: 2,
+  3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 12: 1, 13: 1, 18: 1, 19: 1, 20: 1, 21: 1, 22: 1, 30: 1,
+  31: 1, 34: 1, 36: 1, 38: 1, 39: 1, 40: 1, 41: 1, 42: 1, 44: 1, 45: 1, 46: 1, 47: 1, 48: 1, 49: 1, 53: 1,
+  55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 61: 1, 62: 1, 63: 1, 64: 1, 65: 1, 67: 1, 68: 1, 69: 1, 70: 1, 75: 1,
+  76: 1, 77: 1, 80: 1, 81: 1, 83: 1, 84: 1, 85: 1, 88: 1, 89: 1, 92: 1, 102: 1, 108: 1, 140: 1, 142: 1,
+}
+
+// Lectionary (NAB) chapter:verse → WEB chapter:verse where they differ.
+// Returns [chapter, verse], or null to use the Douay-Rheims instead (its
+// Daniel 3 and 13–14 already match the lectionary; the WEB splits them off).
+function lectionaryToWEB(book, c, v, isEnd) {
+  switch (book) {
+    case 'PSA': return [c, Math.max(1, v - (PSALM_TITLE_VERSES[c] ?? 0))]
+    case 'MAL': return c === 3 && v >= 19 ? [4, v - 18] : [c, v]
+    case 'JOL': return c === 3 ? [2, v + 27] : c === 4 ? [3, v] : [c, v]
+    case 'HOS':
+      if (c === 2) return v <= 2 ? [1, v + 9] : [2, v - 2]
+      if (c === 12) return v === 1 ? [11, 12] : [12, v - 1]
+      if (c === 14) return v === 1 ? [13, 16] : [14, v - 1]
+      return [c, v]
+    case 'ISA':
+      if (c === 8 && v === 23) return [9, 1]
+      if (c === 9 || c === 64) return [c, v + 1]
+      return [c, v]
+    case 'MIC':
+      if (c === 4 && v === 14) return [5, 1]
+      return c === 5 ? [5, v + 1] : [c, v]
+    case 'ZEC': return c === 2 ? (v <= 4 ? [1, v + 17] : [2, v - 4]) : [c, v]
+    case 'EXO':
+      if (c === 7 && v >= 26) return [8, v - 25]
+      if (c === 8) return [8, v + 4]
+      if (c === 21 && v === 37) return [22, 1]
+      return c === 22 ? [22, v + 1] : [c, v]
+    case '1KI': return c === 5 ? (v <= 14 ? [4, v + 20] : [5, v - 14]) : [c, v]
+    case '2KI': return c === 12 ? (v === 1 ? [11, 21] : [12, v - 1]) : [c, v]
+    case 'NUM': return c === 17 ? (v <= 15 ? [16, v + 35] : [17, v - 15]) : [c, v]
+    case 'NEH':
+      if (c === 3 && v >= 33) return [4, v - 32]
+      return c === 4 ? [4, v + 6] : [c, v]
+    case 'JOB':
+      if (c === 40 && v >= 25) return [41, v - 24]
+      return c === 41 ? [41, v + 8] : [c, v]
+    case '2CO': // NAB 13:12 = WEB 13:12–13
+      return c === 13 && (v >= 13 || (v === 12 && isEnd)) ? [13, v + 1] : [c, v]
+    case 'DAN': return (c === 3 && v >= 24) || c >= 13 ? null : [c, v]
+    default: return [c, v]
+  }
+}
+
+// "1 Corinthians 12:3b-7, 12-13", "Isaiah 63:16b-17, 19b; 64:2-7",
+// "Isaiah 52:13—53:12", "Matthew 26:14—27:66 or 27:11-54" → bible-api query
+export function referenceToWEB(reference) {
+  if (!reference) return null
+  const ref = reference.split(/\s+or\s+/i)[0]           // the longer form
+    .replace(/[‐-―]/g, '-')                    // dashes
+    .replace(/\s+and\s+/gi, ', ')                        // "118:1 and 8-9"
+    .replace(/(\d+)[a-z]+(?=[\s,;\-:]|$)/gi, '$1')       // 3b → 3
+    .trim()
+  // One-chapter books are cited without the chapter: "2 John 4-9"
+  const single = ref.match(/^(obadiah|philemon|2 john|3 john|jude)\s+(\d[\d\s,-]*)$/i)
+  const m = single ? [ref, single[1], `1:${single[2]}`] : ref.match(/^(.+?)\s+(\d+:.+)$/)
+  if (!m) return null
+  const book = BOOK_CODES[m[1].toLowerCase().trim()]
+  if (!book || !WEB_BOOKS[book]) return null
+
+  const parts = []
+  let chapter = null
+  for (const group of m[2].split(';')) {
+    for (let piece of group.split(',')) {
+      piece = piece.trim()
+      if (!piece) continue
+      const cm = piece.match(/^(\d+):(.+)$/)
+      if (cm) { chapter = Number(cm[1]); piece = cm[2] }
+      if (chapter == null) return null
+      const [a, b] = piece.split('-').map(s => s.trim())
+      const start = [chapter, Number(a)]
+      let end = start
+      if (b) {
+        const em = b.match(/^(\d+):(\d+)$/)
+        end = em ? [Number(em[1]), Number(em[2])] : [chapter, Number(b)]
+        if (em) chapter = end[0]
+      }
+      if (![...start, ...end].every(Number.isFinite)) return null
+      const s = lectionaryToWEB(book, start[0], start[1], false)
+      const e = lectionaryToWEB(book, end[0], end[1], true)
+      if (!s || !e) return null
+      parts.push(s[0] === e[0] && s[1] === e[1] ? `${s[0]}:${s[1]}` : `${s[0]}:${s[1]}-${e[0] === s[0] ? '' : e[0] + ':'}${e[1]}`)
+    }
+  }
+  return parts.length ? `${WEB_BOOKS[book]} ${parts.join(',')}` : null
+}
+
+// The WEB writes God's name as "Yahweh"; Catholic liturgy doesn't use it
+// (CDW, 2008) and US texts say "the LORD" ("Lord GOD" for "Lord Yahweh")
+export function withoutDivineName(text) {
+  return text
+    .replace(/\bLord Yahweh\b/g, 'Lord GOD')
+    .replace(/\bO Yahweh\b/g, 'O LORD')
+    .replace(/(^|[.!?]\s+|[“"‘(]\s*)Yahweh(?=,)/g, '$1LORD') // addressed: "LORD, hear my prayer"
+    .replace(/(^|[.!?]\s+|[“"‘(]\s*)Yahweh\b/g, '$1The LORD')
+    .replace(/(^|[.!?]\s+|[“"‘(]\s*)Yah\b/g, '$1The LORD')
+    .replace(/\bYahweh\b/g, 'the LORD')
+    .replace(/\bYah\b/g, 'the LORD')
+}
+
+async function fetchWEB(reference) {
+  const query = referenceToWEB(reference)
+  if (!query) return null
+  try {
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=web`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const text = (data.verses ?? []).map(v => v.text.replace(/\s+/g, ' ').trim()).join(' ').trim()
+    return text ? withoutDivineName(text) : null
+  } catch {
+    return null
+  }
+}
+
+// WEB first; the Douay-Rheims when the WEB can't serve the passage
+async function fetchReading(reference) {
+  return (await fetchWEB(reference)) ?? (await fetchPassage(reference))
+}
+
 // ── Liturgical colour → display values ──────────────────────
 const COLOUR_MAP = {
   green:  { color: '#15803D', textColor: '#ffffff' },
@@ -182,19 +336,58 @@ const COLOUR_MAP = {
   red:    { color: '#DC2626', textColor: '#ffffff' },
   rose:   { color: '#DB2777', textColor: '#ffffff' },
 }
-const SEASON_LABEL = {
-  ordinary: 'Ordinary Time', advent: 'Advent',
-  christmas: 'Christmas',    lent: 'Lent', easter: 'Easter',
+// LitCal season code → our season key and label
+const SEASONS = {
+  ADVENT:         ['advent',    'Advent'],
+  CHRISTMAS:      ['christmas', 'Christmas'],
+  LENT:           ['lent',      'Lent'],
+  EASTER_TRIDUUM: ['triduum',   'Easter Triduum'],
+  EASTER:         ['easter',    'Easter'],
+  ORDINARY_TIME:  ['ordinary',  'Ordinary Time'],
 }
 
-async function fetchLiturgicalDay(yyyy, mm, dd) {
-  const url = `http://calapi.inadiutorium.cz/api/v0/en/calendars/general-en/${yyyy}/${parseInt(mm)}/${parseInt(dd)}`
+// The US calendar for a civil year from the Liturgical Calendar API
+// (litcal.johnromanodorazio.com): US transfers (Epiphany and Ascension on
+// Sunday) and US saints, which the general calendar used before got wrong.
+// One request per year per warm instance.
+const _calendars = new Map() // year → { at, days: Map('YYYY-MM-DD' → events) }
+async function fetchUSCalendar(yyyy) {
+  const cached = _calendars.get(yyyy)
+  if (cached && Date.now() - cached.at < 12 * 3600_000) return cached.days
   try {
-    const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(6000) })
+    const res = await fetch(`https://litcal.johnromanodorazio.com/api/v5/calendar/nation/US/${yyyy}?year_type=CIVIL`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(6000),
+    })
     if (!res.ok) return null
-    return await res.json()
+    const days = new Map()
+    for (const e of (await res.json()).litcal ?? []) {
+      if (e.is_vigil_mass) continue // the evening-before Mass, not the day
+      const key = e.date.slice(0, 10)
+      days.set(key, [...(days.get(key) ?? []), e])
+    }
+    _calendars.set(yyyy, { at: Date.now(), days })
+    return days
   } catch {
     return null
+  }
+}
+
+// The day's celebration: the highest-ranked event. Named on Sundays and for
+// memorials and above; plain weekdays and optional memorials aren't.
+export function describeDay(events) {
+  if (!events?.length) return { liturgicalInfo: null, feastInfo: { isFeast: false, feastName: null } }
+  const primary = events.reduce((a, b) => (b.grade > a.grade ? b : a))
+  const [season, label] = SEASONS[primary.liturgical_season] ?? ['ordinary', 'Ordinary Time']
+  const raw = primary.color?.[0] ?? 'green'
+  const colour = raw === 'purple' ? 'violet' : raw
+  const name = primary.name
+    .replace(/^\[\s*\w+\s*\]\s*/, '')     // "[ US ] Saint …" → "Saint …"
+    .replace(/,\s*Patronal feast.*$/i, '') // Dec 8: "…, Patronal feastday of the United States of America"
+  const named = primary.grade >= 3 || primary.day_of_the_week_iso8601 === 7
+  return {
+    liturgicalInfo: { season, label, colour, ...(COLOUR_MAP[colour] ?? COLOUR_MAP.green) },
+    feastInfo: named ? { isFeast: true, feastName: name } : { isFeast: false, feastName: null },
   }
 }
 
@@ -227,30 +420,13 @@ export default async function handler(req, res) {
   const [yyyy, mm, dd] = isoDate.split('-')
   const cpbjrUrl = `https://cpbjr.github.io/catholic-readings-api/readings/${yyyy}/${mm}-${dd}.json`
 
-  // Fetch references + liturgical day in parallel
-  const [cpbjrRes, litDay] = await Promise.all([
+  // Fetch references + the US calendar in parallel
+  const [cpbjrRes, calendar] = await Promise.all([
     fetch(cpbjrUrl, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) })
       .then(r => r.ok ? r.json() : null).catch(() => null),
-    fetchLiturgicalDay(yyyy, mm, dd),
+    fetchUSCalendar(yyyy),
   ])
-
-  // Build liturgical info
-  let liturgicalInfo = null
-  let feastInfo = { isFeast: false, feastName: null }
-  if (litDay) {
-    const primary = litDay.celebrations?.[0] ?? null
-    const colour = primary?.colour ?? 'green'
-    liturgicalInfo = {
-      season: litDay.season,
-      label:  SEASON_LABEL[litDay.season] ?? litDay.season,
-      weekNum: litDay.season_week,
-      colour,
-      ...(COLOUR_MAP[colour] ?? COLOUR_MAP.green),
-    }
-    if (primary?.title && primary.rank !== 'ferial') {
-      feastInfo = { isFeast: true, feastName: primary.title }
-    }
-  }
+  const { liturgicalInfo, feastInfo } = describeDay(calendar?.get(isoDate))
 
   if (!cpbjrRes) {
     return res.status(200).json({ success: false, readings: null, liturgicalInfo, feastInfo })
@@ -274,10 +450,10 @@ export default async function handler(req, res) {
 
   // Fetch all texts in parallel
   const [firstText, psalmText, secondText, gospelText] = await Promise.all([
-    fetchPassage(refs.firstReading),
-    fetchPassage(refs.psalm),
-    fetchPassage(refs.secondReading),
-    fetchPassage(refs.gospel),
+    fetchReading(refs.firstReading),
+    fetchReading(refs.psalm),
+    fetchReading(refs.secondReading),
+    fetchReading(refs.gospel),
   ])
 
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
