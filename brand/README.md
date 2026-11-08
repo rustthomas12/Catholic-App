@@ -14,7 +14,7 @@
 ## Brand colors
 | Name | Hex |
 |---|---|
-| inFold Blue (tile) | `#40BCFF` |
+| inFold Blue (tile) | `#6FCDFF` |
 | Fold Navy | `#005C96` |
 | Ink | `#000000` |
 
