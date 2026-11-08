@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Brand font: Inknut Antiqua (brand/fonts, SIL OFL — see OFL.txt) ──
+   Headings only; body text and UI keep the system font. */
+@font-face {
+  font-family: 'Inknut Antiqua';
+  src: url('/brand/fonts/InknutAntiqua-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inknut Antiqua';
+  src: url('/brand/fonts/InknutAntiqua-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inknut Antiqua';
+  src: url('/brand/fonts/InknutAntiqua-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Brand colors (brand/README.md); Tailwind: brand-blue / -navy / -ink ── */
+:root {
+  --brand-blue: #40BCFF;
+  --brand-navy: #005C96;
+  --brand-ink: #000000;
+}
+
+/* Headings in the brand font: h1–h2 Bold, h3–h4 SemiBold. The weights win
+   over font-* utilities so every heading matches the brand. */
+h1, h2, h3, h4 {
+  font-family: 'Inknut Antiqua', Georgia, serif;
+}
+h1, h2 { font-weight: 700 !important; }
+h3, h4 { font-weight: 600 !important; }
+
 /* ── Base styles ── */
 @layer base {
   html {

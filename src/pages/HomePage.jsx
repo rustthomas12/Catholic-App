@@ -85,8 +85,8 @@ export default function HomePage() {
           variant="navy"
           title={
             <span className="flex items-center gap-2">
-              <LogoMark className="w-7 h-7 rounded-lg" alt="" />
-              <span aria-hidden="true" className="tracking-tight">inFold</span>
+              {/* Tight mobile header: the icon alone */}
+              <LogoMark className="w-8 h-8" alt="inFold" />
               <span className="sr-only">{i18n.t('common:nav.home')}</span>
             </span>
           }

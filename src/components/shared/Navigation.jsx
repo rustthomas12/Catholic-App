@@ -22,7 +22,7 @@ import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { setUnreadDMCount } from '../../lib/dmBadge'
 import { supabase } from '../../lib/supabase'
-import { LogoMark } from './Logo'
+import { LogoLockup } from './Logo'
 
 const PUBLIC_PATHS = [
   '/login', '/signup', '/onboarding',
@@ -262,8 +262,7 @@ function Navigation() {
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-60 bg-navy flex-col py-6 px-3 overflow-y-auto overscroll-contain" aria-label="Main">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 px-3 mb-8">
-          <LogoMark className="w-9 h-9 rounded-lg" alt="" />
-          <span className="text-white font-bold text-lg tracking-tight">inFold</span>
+          <LogoLockup onDark className="h-9 w-auto" />
         </Link>
 
         {/* Main navigation */}

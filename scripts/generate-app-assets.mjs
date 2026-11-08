@@ -1,5 +1,5 @@
 /**
- * Builds every app icon from the inFold logo pack in brand/ (the source of
+ * Builds every app icon from the inFold brand kit in brand/ (the source of
  * truth — replace those files to rebrand, then rerun):
  *   - web: public/icons/icon-*.png|svg (manifest, push notifications),
  *     maskable icon
@@ -11,13 +11,13 @@
 import sharp from 'sharp'
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 
-const BLUE = '#03A6FF' // inFold Blue (brand/README.md)
+const BLUE = '#40BCFF' // inFold Blue (brand/README.md)
 const OUT = 'assets'
 mkdirSync(OUT, { recursive: true })
 
-const roundedIcon = readFileSync('brand/svg/infold-icon.svg')        // steeple on rounded tile
-const squareIcon = readFileSync('brand/svg/infold-icon-square.svg')  // full-bleed tile (stores)
-const logo = readFileSync('brand/svg/infold-logo-no-background.svg') // steeple + wordmark
+const roundedIcon = readFileSync('brand/icon/svg/infold-icon.svg')        // steeple on rounded tile
+const squareIcon = readFileSync('brand/icon/svg/infold-icon-square.svg')  // full-bleed tile
+const logo = readFileSync('brand/lockup/infold-lockup-black.svg')         // tile + wordmark
 
 // The steeple alone on transparent: the square icon without its tile
 const steeple = Buffer.from(squareIcon.toString().replace(/<rect[^>]*\/>/, ''))
@@ -44,8 +44,8 @@ async function onCanvas(art, { size, share, background }) {
     .png()
 }
 
-// iOS app icon: square and opaque (iOS rounds the corners itself)
-await sharp(squareIcon, { density: 600 }).resize(1024, 1024).flatten({ background: BLUE }).png().toFile(`${OUT}/icon-only.png`)
+// App icon: the kit's store icon, square and opaque (the OS rounds the corners)
+await sharp('brand/icon/png/app-icon-1024.png').resize(1024, 1024).flatten({ background: BLUE }).png().toFile(`${OUT}/icon-only.png`)
 // Android adaptive icon: steeple inside the 66% safe zone over a blue layer
 await (await onCanvas(steeple, { size: 1024, share: 0.7 })).toFile(`${OUT}/icon-foreground.png`)
 await sharp({ create: { width: 1024, height: 1024, channels: 3, background: BLUE } }).png().toFile(`${OUT}/icon-background.png`)

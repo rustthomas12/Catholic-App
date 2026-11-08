@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Notification status-bar icon: white inFold steeple on transparent, from
-     brand/svg/infold-icon.svg (Android tints it; a full-colour launcher
+     brand/icon/svg/infold-icon.svg (Android tints it; a full-colour launcher
      icon would show as a blob). The belfry window is cut out. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
