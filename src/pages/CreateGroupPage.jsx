@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
+import { invalidateGroupMemberships } from '../hooks/useGroups'
 
 const CATEGORIES = [
   { value: 'parish',       label: 'category_parish' },
@@ -190,6 +191,9 @@ export default function CreateGroupPage() {
         user_id: user.id,
         role: 'admin',
       })
+      // The memberships cache predates this group; without this the new
+      // group's page showed its creator a Join button until a reload
+      invalidateGroupMemberships()
 
       toast.success(t('created'))
       setAvatarPreview(null)

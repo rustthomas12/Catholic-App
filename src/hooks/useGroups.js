@@ -51,6 +51,11 @@ function _invalidateMemberships() {
   clearFeedCaches()
 }
 
+// For code that changes memberships outside these hooks (e.g. creating a group)
+export function invalidateGroupMemberships() {
+  _invalidateMemberships()
+}
+
 export function clearGroupCaches() {
   _membershipsCache = null
   _membershipsPromise = null
