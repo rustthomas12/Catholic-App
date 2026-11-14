@@ -12,18 +12,20 @@ mkdirSync('store-assets', { recursive: true })
 
 await sharp('assets/icon-only.png').resize(512, 512).png().toFile('store-assets/play-icon-512.png')
 
-const cross = (x, y, s) => `
-  <g transform="translate(${x} ${y}) scale(${s})">
-    <rect x="209.9" y="51.2" width="92.2" height="409.6" rx="18.4" fill="${GOLD}"/>
-    <rect x="71.7" y="163.8" width="368.6" height="92.2" rx="18.4" fill="${GOLD}"/>
-  </g>`
-
-const feature = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
-  <rect width="1024" height="500" fill="${NAVY}"/>
-  ${cross(70, 120, 0.5)}
-  <text x="370" y="225" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="84" font-weight="700" fill="${CREAM}">inFold</text>
-  <text x="372" y="292" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" fill="${GOLD}">The digital parish hall</text>
-  <text x="372" y="345" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="${CREAM}" fill-opacity="0.75">Your parish, daily readings, prayer and community</text>
+// Feature graphic: the brand-kit white lockup (icon + "inFold") on navy,
+// with the tagline underneath
+const lockup = await sharp('public/brand/lockup/infold-lockup-white.svg', { density: 300 })
+  .resize({ height: 190 }).png().toBuffer()
+const { width: lw } = await sharp(lockup).metadata()
+const tagline = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="80">
+  <text x="512" y="52" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="36" fill="${GOLD}">The digital parish hall</text>
 </svg>`
-await sharp(Buffer.from(feature)).png().toFile('store-assets/play-feature-graphic-1024x500.png')
+const feature = await sharp({ create: { width: 1024, height: 500, channels: 3, background: NAVY } })
+  .composite([
+    { input: lockup, left: Math.round((1024 - lw) / 2), top: 115 },
+    { input: Buffer.from(tagline), left: 0, top: 330 },
+  ])
+  .png().toBuffer()
+void CREAM
+await sharp(feature).png().toFile('store-assets/play-feature-graphic-1024x500.png')
 console.log('store-assets/play-icon-512.png\nstore-assets/play-feature-graphic-1024x500.png')
