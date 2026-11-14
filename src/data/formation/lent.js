@@ -1,10 +1,10 @@
-// Lent Formation Program — 7 days for MVP
-// Remaining 33 days to be added before Lent 2027
+// Lent Formation Program — a complete 7-day series. totalDays must match
+// days.length (no placeholder days; App Store guideline 2.1).
 
 export const LENT_PROGRAM = {
   title: 'Lent with inFold',
-  subtitle: 'A 40-day journey toward Easter',
-  totalDays: 40,
+  subtitle: 'Seven days on the journey toward Easter',
+  totalDays: 7,
   programKey: 'lent_2027',
   color: 'purple',
   days: [

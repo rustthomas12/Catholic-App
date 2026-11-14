@@ -12,6 +12,13 @@ export const platform = Capacitor.getPlatform() // 'web' | 'ios' | 'android'
 export const isIOS = platform === 'ios'
 export const isAndroid = platform === 'android'
 
+// App Store guideline 3.1.1: the iOS app must not sell digital services
+// outside In-App Purchase, show their prices, or point people to buy
+// elsewhere. Parish and organization plans are sold only on the web and in
+// the Android app; on iOS the plan screens show a neutral notice, and
+// parishes that already subscribe keep full use of their dashboards.
+export const canPurchaseInApp = !isIOS
+
 // Public origin of the hosted web app. Used for API calls from native
 // builds and for any URL that leaves the device (emails, share links).
 export const APP_ORIGIN = (

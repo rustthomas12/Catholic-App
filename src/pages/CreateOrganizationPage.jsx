@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { checkEmail, checkUrl } from '../utils/validate'
+import { canPurchaseInApp } from '../lib/platform'
 
 const CATEGORIES = [
   'Apostolate', 'Charity', 'Education', 'Media', 'Men\'s Ministry',
@@ -348,9 +349,11 @@ export default function CreateOrganizationPage() {
             {saving && <LoadingSpinner size="sm" color="navy" />}
             {saving ? 'Creating…' : 'Create Organization'}
           </button>
-          <p className="text-xs text-gray-500 text-center mt-3">
-            Organization dashboards include a free 90-day trial. You'll add a card at checkout and won't be charged until day 91.
-          </p>
+          {canPurchaseInApp && (
+            <p className="text-xs text-gray-500 text-center mt-3">
+              Organization dashboards include a free 90-day trial. You'll add a card at checkout and won't be charged until day 91.
+            </p>
+          )}
         </form>
       </div>
     </div>

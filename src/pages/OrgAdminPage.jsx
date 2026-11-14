@@ -26,7 +26,8 @@ import {
 import { format, parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
-import { apiUrl, openExternal, publicOrigin } from '../lib/platform'
+import { apiUrl, openExternal, publicOrigin, canPurchaseInApp } from '../lib/platform'
+import IosPlanNotice from '../components/shared/IosPlanNotice'
 import { toast } from '../components/shared/Toast'
 import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -74,7 +75,8 @@ function tierLabel(sub) {
   if (!sub?.tier) return 'Organization Plan'
   const all = [...STANDALONE_TIERS, ...NATIONAL_TIERS]
   const t = all.find(t => t.key === sub.tier)
-  return t ? `${t.label} — $${t.price ?? 'Custom'}/mo` : sub.tier
+  if (!t) return sub.tier
+  return canPurchaseInApp ? `${t.label} — $${t.price ?? 'Custom'}/mo` : t.label
 }
 
 // ── Tabs ───────────────────────────────────────────────────
@@ -114,6 +116,7 @@ function LoadFailed({ onRetry }) {
 
 // ── Subscription prompt ────────────────────────────────────
 function SubscriptionPrompt({ onBilling }) {
+  if (!canPurchaseInApp) return <IosPlanNotice kind="organization" />
   return (
     <div className="text-center py-16 px-6">
       <BuildingOffice2Icon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -131,7 +134,7 @@ function SubscriptionPrompt({ onBilling }) {
 
 // ── Tier upgrade banner ────────────────────────────────────
 function TierUpgradeBanner({ orgId, subscription, memberCount, chapterCount }) {
-  if (!isTierUpgradeNeeded(subscription, memberCount, chapterCount)) return null
+  if (!canPurchaseInApp || !isTierUpgradeNeeded(subscription, memberCount, chapterCount)) return null
   const isNational = subscription.billing_track === 'national'
   return (
     <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 mb-4 flex items-start gap-3">
@@ -1514,13 +1517,19 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
 
   return (
     <div className="space-y-5">
-      {isLegacy && (
+      {isLegacy && canPurchaseInApp && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
           <p className="text-sm text-blue-800">You're on our legacy pricing. Switch to the new member-count based pricing when you're ready.</p>
         </div>
       )}
 
-      {!hasSubscription && (
+      {!hasSubscription && !canPurchaseInApp && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <IosPlanNotice kind="organization" />
+        </div>
+      )}
+
+      {!hasSubscription && canPurchaseInApp && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="text-center mb-5">
             <p className="font-bold text-navy text-base mb-1">Start your free 90-day trial</p>
@@ -1606,15 +1615,15 @@ function BillingTab({ org, orgId, user, subscription, setSubscription, memberCou
           {subscription.status === 'active' && subscription.current_period_end && (
             <p className="text-xs text-gray-500 mb-3">Next billing: {format(parseISO(subscription.current_period_end), 'MMMM d, yyyy')}</p>
           )}
-          {isTierUpgradeNeeded(subscription, memberCount, chapterCount) && (
+          {canPurchaseInApp && isTierUpgradeNeeded(subscription, memberCount, chapterCount) && (
             <p className="text-xs text-amber-600 font-medium mb-3">
               Your usage has grown past this tier. Upgrade in the portal to stay covered.
             </p>
           )}
-          <button onClick={handleManage} disabled={portalLoading}
+          {canPurchaseInApp && <button onClick={handleManage} disabled={portalLoading}
             className="w-full border border-gray-200 text-navy text-sm font-semibold py-2.5 rounded-xl hover:border-navy transition-colors disabled:opacity-60">
             {portalLoading ? 'Opening…' : 'Manage subscription →'}
-          </button>
+          </button>}
         </div>
       )}
 

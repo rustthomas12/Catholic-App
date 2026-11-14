@@ -180,7 +180,8 @@ function AppInner() {
           <Route path="/terms"           element={<TermsPage />} />
           <Route path="/privacy"         element={<PrivacyPage />} />
           <Route path="/policy"          element={<PolicyPage />} />
-          <Route path="/pitch"           element={<PitchDeckPage />} />
+          {/* Investor deck lists plan prices; not part of the store apps */}
+          {!isNative && <Route path="/pitch"           element={<PitchDeckPage />} />}
           <Route path="/delete-account"  element={<DeleteAccountInfoPage />} />
 
           {/* Protected */}

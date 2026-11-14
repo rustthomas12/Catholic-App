@@ -129,7 +129,8 @@ export default function SignupPage() {
     if (!email || !/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email'
     if (password.length < 8) e.password = t('signup.error_password_weak')
     if (password !== confirm) e.confirm = t('signup.error_password_match') || 'Passwords do not match'
-    if (!vocation) e.vocation = 'Please select your vocation'
+    // Vocation is optional: App Store guideline 5.1.1 doesn't allow requiring
+    // personal details the app can work without
     if (!agreed) e.agreed = 'You must agree to continue'
     return e
   }
@@ -160,7 +161,7 @@ export default function SignupPage() {
   const canSubmit = fullName.trim().length >= 2 &&
     USERNAME_REGEX.test(username.trim()) && usernameStatus === 'available' &&
     email && password.length >= 8 &&
-    password === confirm && vocation && agreed && !submitting
+    password === confirm && agreed && !submitting
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">

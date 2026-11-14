@@ -247,9 +247,7 @@ export default function SaintPage() {
                 <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-gray-500 italic">{t('saints_no_biography')}</p>
-          )}
+          ) : null}
         </div>
 
         {/* ── Prayer ── */}

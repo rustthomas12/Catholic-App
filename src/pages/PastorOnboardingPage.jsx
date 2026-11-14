@@ -10,7 +10,8 @@ import {
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase, authJsonHeaders } from '../lib/supabase'
-import { apiUrl, isNative, openExternal } from '../lib/platform'
+import { apiUrl, isNative, openExternal, canPurchaseInApp } from '../lib/platform'
+import IosPlanNotice from '../components/shared/IosPlanNotice'
 import { toast } from '../components/shared/Toast'
 
 const TIERS = [
@@ -440,6 +441,21 @@ export default function PastorOnboardingPage() {
   }
 
   if (!profile) return null
+
+  // iOS: setting up a parish starts a paid plan, which the App Store app
+  // can't sell (guideline 3.1.1)
+  if (!canPurchaseInApp) {
+    return (
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <IosPlanNotice kind="parish" />
+          <button onClick={handleSkip} className="w-full bg-navy text-white font-bold py-3 rounded-2xl hover:bg-navy/90 transition-colors">
+            Back to home
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 py-12">
