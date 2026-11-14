@@ -7,6 +7,8 @@
     "prayer_requests": "Prayer",
     "events": "Events",
     "caught_up": "You are all caught up",
+    "new_posts_one": "{{count}} new post",
+    "new_posts_other": "{{count}} new posts",
     "caught_up_sub": "Check back later for new posts",
     "empty_title": "Your feed is quiet",
     "empty_body": "Follow your parish to see posts here",

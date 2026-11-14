@@ -21,6 +21,7 @@ import { supabase } from '../lib/supabase'
 import { createNotification } from '../lib/notifications'
 import { READ_EVENT } from '../hooks/useNotifications'
 import Avatar from '../components/shared/Avatar'
+import { getCached, setCached } from '../lib/pageCache'
 import { format, isToday, isYesterday } from 'date-fns'
 
 // ── helpers ────────────────────────────────────────────────
@@ -54,8 +55,11 @@ function markMessageAlertsRead(userId, partnerId) {
 }
 
 function useConversations(userId) {
-  const [convos, setConvos] = useState([])
-  const [loading, setLoading] = useState(true)
+  // Last list seen this session shows at once; load() refreshes it
+  const cacheKey = userId ? `convos:${userId}` : null
+  const [convos, setConvos] = useState(() => getCached(cacheKey) ?? [])
+  const [loading, setLoading] = useState(() => !getCached(cacheKey))
+  useEffect(() => { if (!loading) setCached(cacheKey, convos) }, [cacheKey, convos, loading])
   const loadSeq = useRef(0)
 
   const load = useCallback(async () => {

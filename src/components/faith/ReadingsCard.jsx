@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from '../shared/Toast'
 import { useTLMReadings } from '../../hooks/useReadings'
 import { currentPublicUrl } from '../../lib/platform'
+import { cleanTlmSection } from '../../utils/tlmText'
 
 const GOLD_CROSS = (
   <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -127,8 +128,15 @@ function RiteToggle({ rite, onChange }) {
 }
 
 // ── TLM Readings display ───────────────────────────────────
-function TLMReadingsContent({ readings }) {
-  if (!readings) return null
+function TLMReadingsContent({ readings: raw }) {
+  if (!raw) return null
+  const readings = {
+    ...raw,
+    epistle: cleanTlmSection(raw.epistle),
+    gradual: cleanTlmSection(raw.gradual),
+    gospel:  cleanTlmSection(raw.gospel),
+  }
+  const withIntro = (sec) => [sec.intro, sec.text].filter(Boolean).join('\n')
   return (
     <div>
       {readings.massName && (
@@ -140,14 +148,14 @@ function TLMReadingsContent({ readings }) {
         <ReadingSection
           label="Epistle"
           reference={readings.epistle.reference}
-          text={readings.epistle.text}
+          text={withIntro(readings.epistle)}
         />
       )}
       {readings.gradual && (
         <ReadingSection
           label="Gradual"
           reference={readings.gradual.reference}
-          text={readings.gradual.text}
+          text={withIntro(readings.gradual)}
           italic
         />
       )}
@@ -155,7 +163,7 @@ function TLMReadingsContent({ readings }) {
         <ReadingSection
           label="Gospel"
           reference={readings.gospel.reference}
-          text={readings.gospel.text}
+          text={withIntro(readings.gospel)}
         />
       )}
     </div>
@@ -192,7 +200,7 @@ export default function ReadingsCard({
 
   // ══ COMPACT VARIANT (HomePage) ══════════════════════════
   if (variant === 'compact') {
-    const gospel = isTLM ? activeReadings?.gospel : readings?.gospel
+    const gospel = isTLM ? cleanTlmSection(activeReadings?.gospel) : readings?.gospel
     return (
       <Link to="/faith" className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 mb-2">
@@ -209,7 +217,10 @@ export default function ReadingsCard({
 
         <p className="text-xs text-gray-500 mb-1">{todayFormatted}</p>
 
-        {feastInfo?.isFeast && (
+        {/* In 1962 mode name the 1962 Mass, not the Ordinary Form feast */}
+        {isTLM && activeReadings?.massName ? (
+          <p className="text-xs text-gold font-semibold mb-1">✦ {activeReadings.massName}</p>
+        ) : feastInfo?.isFeast && (
           <p className="text-xs text-gold font-semibold mb-1">✦ {feastInfo.feastName}</p>
         )}
 

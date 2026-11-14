@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BellIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import TopBar, { TopBarAction } from '../components/shared/TopBar'
@@ -79,15 +79,36 @@ export default function NotificationsPage() {
     return () => observer.disconnect()
   }, [loadMore, loadingMore, hasMore])
 
+  // ── Seen on open ─────────────────────────────────────
+  // Like other social apps, opening this page clears the badge; what was new
+  // stays highlighted for this visit so you can still see what's new.
+  const [freshIds, setFreshIds] = useState(() => new Set())
+  useEffect(() => {
+    if (loading || unreadCount === 0) return
+    const unread = notifications.filter(n => !n.is_read).map(n => n.id)
+    if (unread.length === 0) return
+    setFreshIds(prev => new Set([...prev, ...unread]))
+    markAllAsRead()
+  }, [loading, unreadCount, notifications, markAllAsRead])
+
   // ── Handlers ─────────────────────────────────────────
+  const unhighlight = useCallback((id) => {
+    setFreshIds(prev => {
+      if (!prev.has(id)) return prev
+      const next = new Set(prev); next.delete(id); return next
+    })
+  }, [])
+
   const handleTap = useCallback((notification) => {
+    unhighlight(notification.id)
     if (!notification.is_read) markAsRead(notification.id)
     navigate(getDestination(notification))
-  }, [markAsRead, navigate])
+  }, [markAsRead, navigate, unhighlight])
 
   const handleDismiss = useCallback((id) => {
+    unhighlight(id)
     markAsRead(id)
-  }, [markAsRead])
+  }, [markAsRead, unhighlight])
 
   const grouped = groupNotifications(notifications)
 
@@ -162,7 +183,7 @@ export default function NotificationsPage() {
                     <div key={n.id}>
                       {idx > 0 && <div className="h-px bg-gray-50 mx-4" />}
                       <NotificationItem
-                        notification={n}
+                        notification={freshIds.has(n.id) ? { ...n, is_read: false } : n}
                         onTap={handleTap}
                         onDismiss={handleDismiss}
                       />

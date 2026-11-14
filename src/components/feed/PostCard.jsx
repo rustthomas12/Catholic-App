@@ -102,7 +102,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
   const { t } = useTranslation('feed')
   const [showDelete, setShowDelete] = useState(false)
   const [showReport, setShowReport] = useState(false)
-  const isOwn = comment.author?.id === currentUserId
+  const isOwn = comment.author?.id === currentUserId && !comment.pending
 
   if (comment.is_removed) {
     return (
@@ -113,7 +113,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
   }
 
   return (
-    <div className="flex items-start gap-2 py-2 group">
+    <div className={`flex items-start gap-2 py-2 group transition-opacity ${comment.pending ? 'opacity-60' : ''}`}>
       <Link to={`/profile/${comment.author?.id}`} onClick={(e) => e.stopPropagation()}
         aria-label={`View ${comment.author?.full_name || 'this member'}'s profile`}>
         <Avatar
@@ -182,6 +182,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
 
   const {
     post,
+    gone,
     comments,
     commentsLoading,
     commentsExpanded,
@@ -204,7 +205,6 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   const [showImageModal, setShowImageModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [commentInput, setCommentInput] = useState('')
-  const [commentSending, setCommentSending] = useState(false)
   const [likeAnimating, setLikeAnimating] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editDraft, setEditDraft] = useState('')
@@ -260,14 +260,15 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   }
 
   async function handleSendComment() {
-    if (!commentInput.trim()) return
-    setCommentSending(true)
-    const { error, userFacing } = await addComment(commentInput)
-    setCommentSending(false)
+    const text = commentInput
+    if (!text.trim()) return
+    // The comment appears at once (see addComment); clear the box now and
+    // give the text back only if it couldn't be saved
+    setCommentInput('')
+    const { error, userFacing } = await addComment(text)
     if (error) {
+      setCommentInput((current) => current || text)
       toast.error(userFacing ? error : t('common:status.error'))
-    } else {
-      setCommentInput('')
     }
   }
 
@@ -311,6 +312,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   // Hidden immediately once the author is blocked (the database stops
   // returning their posts on the next fetch)
   if (!isOwnPost && isBlocked(post.author?.id)) return null
+  if (gone) return null
 
   const bodyText = announcementTitle ? announcementBody : post.content
   const displayContent = expanded || bodyText.length <= TRUNCATE_LIMIT
@@ -673,15 +675,11 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 />
                 <button
                   onClick={handleSendComment}
-                  disabled={!commentInput.trim() || commentSending}
+                  disabled={!commentInput.trim()}
                   className="p-1 disabled:opacity-40 min-h-[36px] min-w-[36px] flex items-center justify-center"
                   aria-label={t('comment.submit')}
                 >
-                  {commentSending ? (
-                    <LoadingSpinner size="sm" color="navy" />
-                  ) : (
-                    <PaperAirplaneIcon className="w-5 h-5 text-gold" />
-                  )}
+                  <PaperAirplaneIcon className="w-5 h-5 text-gold" />
                 </button>
               </div>
             </div>

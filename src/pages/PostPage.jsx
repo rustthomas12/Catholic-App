@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { POST_SELECT, normalisePost } from '../hooks/useFeed'
+import { POST_SELECT, normalisePost, onlyMyLike } from '../hooks/useFeed'
 import PostCard from '../components/feed/PostCard'
 import { PostCardSkeleton } from '../components/shared/skeletons'
 
@@ -19,9 +19,7 @@ export default function PostPage() {
 
   useEffect(() => {
     let cancelled = false
-    supabase
-      .from('posts')
-      .select(POST_SELECT)
+    onlyMyLike(supabase.from('posts').select(POST_SELECT), user?.id)
       .eq('id', id)
       .is('deleted_at', null)
       .eq('is_removed', false)
