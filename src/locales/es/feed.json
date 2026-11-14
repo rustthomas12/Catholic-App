@@ -75,7 +75,11 @@
     "count_one": "{{count}} oración",
     "count_other": "{{count}} oraciones",
     "empty": "Sin intenciones aún. Sé el primero en compartir.",
-    "success": "Tu intención fue compartida"
+    "success": "Tu intención fue compartida",
+    "delete": "Eliminar intención",
+    "delete_title": "¿Eliminar esta intención?",
+    "delete_message": "Se eliminará para todos, junto con las oraciones contadas.",
+    "deleted": "Intención eliminada"
   },
   "report": {
     "title": "Reportar esta publicación",

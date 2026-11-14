@@ -2,7 +2,8 @@ import { friendlyError } from '../utils/errors'
 import ReportModal from '../components/shared/ReportModal'
 import { reportContent } from '../lib/reports'
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeftIcon, UserCircleIcon, FlagIcon } from '@heroicons/react/24/outline'
+import { ChevronLeftIcon, UserCircleIcon, FlagIcon, TrashIcon } from '@heroicons/react/24/outline'
+import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
@@ -137,6 +138,21 @@ export default function PrayerRequestsPage() {
     }
   }
 
+  async function handleDelete(intentionId) {
+    // .select() so a delete that RLS silently skips (0 rows) counts as a failure
+    const { data, error } = await supabase
+      .from('prayer_requests')
+      .delete()
+      .eq('id', intentionId)
+      .select('id')
+    if (error || !data?.length) {
+      toast.error(friendlyError(error, t('common:status.error', { ns: 'common' })))
+      return
+    }
+    setIntentions((prev) => prev.filter((i) => i.id !== intentionId))
+    toast.success(t('prayer.deleted'))
+  }
+
   function handleLoadMore() {
     // From what's on screen: a refresh resets the list to the first page
     // and new requests push rows down, so a page counter skipped some
@@ -225,6 +241,7 @@ export default function PrayerRequestsPage() {
                 intention={intention}
                 onPray={handlePray}
                 onReport={user && !intention.is_mine ? () => setReportId(intention.id) : null}
+                onDelete={intention.is_mine ? () => handleDelete(intention.id) : null}
                 t={t}
               />
             ))}
@@ -247,7 +264,7 @@ export default function PrayerRequestsPage() {
   )
 }
 
-function PrayerCard({ intention, onPray, onReport, t }) {
+function PrayerCard({ intention, onPray, onReport, onDelete, t }) {
   return (
     <div className="bg-white border-b border-gray-100 px-4 py-4">
       <div className="flex items-center justify-between mb-2">
@@ -275,6 +292,19 @@ function PrayerCard({ intention, onPray, onReport, t }) {
             >
               <FlagIcon className="w-4 h-4" />
             </button>
+          )}
+          {onDelete && (
+            <ConfirmDeleteButton
+              title={t('prayer.delete_title')}
+              message={t('prayer.delete_message')}
+              confirmLabel={t('prayer.delete')}
+              cancelLabel={t('common:actions.cancel', { ns: 'common', defaultValue: 'Cancel' })}
+              onConfirm={onDelete}
+              aria-label={t('prayer.delete')}
+              className="w-9 h-9 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-red-600 hover:bg-lightbg"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </ConfirmDeleteButton>
           )}
         </div>
       </div>
