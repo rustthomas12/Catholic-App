@@ -75,7 +75,11 @@
     "count_one": "{{count}} prayer",
     "count_other": "{{count}} prayers",
     "empty": "No intentions yet. Be the first to share.",
-    "success": "Your intention was shared"
+    "success": "Your intention was shared",
+    "delete": "Delete intention",
+    "delete_title": "Delete this intention?",
+    "delete_message": "It will be removed for everyone, along with the prayers counted for it.",
+    "deleted": "Intention deleted"
   },
   "report": {
     "title": "Report this post",
