@@ -331,6 +331,36 @@ and if the Google Play developer account is a *personal* account, Google
 requires a closed test with at least 12 testers for 14 days before you can
 publish to production (organization accounts are exempt).
 
+## 6b. App Store submission pass (2026-11-14)
+
+Changes made so the iOS build passes review:
+
+| Apple guideline | Risk | Fix |
+|---|---|---|
+| 3.1.1 In-App Purchase | The iOS app showed parish/org plan prices and opened Stripe checkout and the billing portal | `canPurchaseInApp` (`src/lib/platform.js`) is false on iOS. Plan pickers, prices, "Start Free Trial", "Manage subscription", upgrade banners, pastor setup, the onboarding pastor step and "Apply to manage this parish" are hidden or replaced by `IosPlanNotice`, which only says plans can't be started in the iOS app (no link, no "go to our website": anti-steering). Subscribed parishes keep full dashboards. Web and Android are unchanged. |
+| 3.1.1 | `/pitch` (investor deck with prices) was reachable in the app | Route removed from native builds |
+| 2.1 App completeness | "Days 8–28 coming soon" in Advent/Lent, "Full biography coming soon" on saints | Programs are presented as the complete 7-day series they are; empty biographies show nothing |
+| 5.1.1(ii) Data collection | Signup required choosing a vocation (effectively marital status) | Optional; the column was already nullable |
+
+Already in place (checked again): report/block/word filter (migrations 066/067 live, 33 blocked terms),
+account deletion, privacy policy link, purpose strings, privacy manifest, `ITSAppUsesNonExemptEncryption = NO`,
+1024 px RGB icon with no alpha, email-only sign-in (Sign in with Apple not required), release workflow
+uploading to TestFlight with automatic signing.
+
+**Before submitting (in order):**
+1. Apple Developer Program membership (organization enrollment needs a D-U-N-S number).
+2. Team ID → GitHub secret `APPLE_TEAM_ID` and `public/.well-known/apple-app-site-association` (replace `APPLE_TEAM_ID`).
+3. App Store Connect → new app, bundle ID `app.getinfold`, SKU `infold`. Create an App Store Connect API key (App Manager) →
+   secrets `APPSTORE_API_KEY_ID`, `APPSTORE_API_ISSUER_ID`, `APPSTORE_API_KEY_P8_BASE64`.
+4. APNs key (.p8) → Firebase → Cloud Messaging → Apple app.
+5. Recreate the demo account `appreview@getinfold.app` (deleted 2026-11-06) and give it content: follows a parish, in a group, a few posts.
+6. Regenerate screenshots with `scripts/store-screenshots.mjs` (the current set predates the brand kit).
+7. Actions → Mobile apps → Run workflow → release. Install from TestFlight on a real iPhone and run the §4 manual test plan.
+8. Fill in App Privacy, age rating (13+) and review notes from `docs/STORE_LISTING.md`, then submit.
+
+Known residual risk: Spanish daily readings are fetched from universalis.com, whose texts are copyrighted.
+Reviewers rarely check this (guideline 5.2.1), but a licence or a public-domain Spanish source would remove the risk.
+
 ## 7. Issues found and fixed during testing
 
 - The "Make a Gift" / Support the Mission feature was removed entirely. Old

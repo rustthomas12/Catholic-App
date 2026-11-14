@@ -147,9 +147,7 @@ export default function SaintCard({
               <p key={i} className="text-sm text-gray-700 leading-relaxed">{para}</p>
             ))}
           </div>
-        ) : (
-          <p className="text-sm text-gray-500 italic">{t('saints_no_biography')}</p>
-        )}
+        ) : null}
 
         <PatronPills patronOf={saint.patron_of} />
 

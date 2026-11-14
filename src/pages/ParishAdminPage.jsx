@@ -21,7 +21,8 @@ import {
 import { useAuth } from '../hooks/useAuth.jsx'
 import { READ_EVENT } from '../hooks/useNotifications'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
-import { apiUrl, isNative, openExternal } from '../lib/platform'
+import { apiUrl, isNative, openExternal, canPurchaseInApp } from '../lib/platform'
+import IosPlanNotice from '../components/shared/IosPlanNotice'
 import { checkEmail, checkUrl } from '../utils/validate'
 import { toast } from '../components/shared/Toast'
 import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
@@ -187,6 +188,7 @@ export default function ParishAdminPage() {
         {/* Billing and parishioner messages stay open without a subscription,
             so a pastor never misses a message sent to the parish */}
         {!FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
+          !canPurchaseInApp ? <IosPlanNotice kind="parish" /> :
           <div className="text-center py-16 px-4">
             <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
             <h3 className="font-bold text-navy text-lg mb-2">Activate your parish dashboard</h3>
@@ -1231,7 +1233,11 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       <h2 className="font-bold text-navy">Billing</h2>
 
       {/* ── Subscription status ── */}
-      {needsPlan ? (
+      {needsPlan && !canPurchaseInApp ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <IosPlanNotice kind="parish" />
+        </div>
+      ) : needsPlan ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Parish Plan</p>
           {subscription && (
@@ -1290,7 +1296,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-navy">
               {PARISH_TIERS.find(t => t.key === subscription.tier_key)
-                ? `${PARISH_TIERS.find(t => t.key === subscription.tier_key).label} Plan — $${PARISH_TIERS.find(t => t.key === subscription.tier_key).price}/mo`
+                ? `${PARISH_TIERS.find(t => t.key === subscription.tier_key).label} Plan${canPurchaseInApp ? ` — $${PARISH_TIERS.find(t => t.key === subscription.tier_key).price}/mo` : ''}`
                 : 'Parish Plan'}
             </p>
             {statusBadge(subscription.status)}
@@ -1305,7 +1311,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
               Next billing date: {format(parseISO(subscription.current_period_end), 'MMMM d, yyyy')}
             </p>
           )}
-          {subscription.stripe_customer_id && (
+          {subscription.stripe_customer_id && canPurchaseInApp && (
             <button
               onClick={handleManage}
               disabled={portalLoading}

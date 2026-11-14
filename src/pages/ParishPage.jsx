@@ -23,6 +23,7 @@ import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleto
 import ParishEvents from '../components/parish/ParishEvents'
 import ParishGroups from '../components/parish/ParishGroups'
 import useGoBack from '../hooks/useGoBack'
+import { canPurchaseInApp } from '../lib/platform'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -202,7 +203,7 @@ export default function ParishPage() {
             </button>
 
             {/* Clergy-only: apply to manage this parish */}
-            {['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !profile?.pending_pastor_parish_id && isManaged === false && (
+            {canPurchaseInApp && ['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !profile?.pending_pastor_parish_id && isManaged === false && (
               <button
                 onClick={() => navigate(`/pastor-setup?parish_id=${id}`)}
                 className="w-full sm:w-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors mt-1 sm:mt-0"

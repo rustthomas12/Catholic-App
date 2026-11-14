@@ -1,10 +1,11 @@
-// Advent Formation Program — 7 days for MVP
-// Advent has 4 weeks (≈28 days): Hope, Peace, Joy, Love
+// Advent Formation Program — a complete 7-day series across the season's
+// themes: Hope, Peace, Joy, Love. totalDays must match days.length (no
+// placeholder days; App Store guideline 2.1).
 
 export const ADVENT_PROGRAM = {
   title: 'Advent with inFold',
-  subtitle: 'Four weeks of waiting, watching, and wonder',
-  totalDays: 28,
+  subtitle: 'Seven days of waiting, watching, and wonder',
+  totalDays: 7,
   programKey: 'advent_2026',
   color: 'blue',
   days: [

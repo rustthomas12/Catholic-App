@@ -12,6 +12,7 @@ import { fuzzyIlike } from '../utils/search'
 import { useReadings } from '../hooks/useReadings'
 import { toast } from '../components/shared/Toast'
 import { LogoMark } from '../components/shared/Logo'
+import { canPurchaseInApp } from '../lib/platform'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -19,7 +20,8 @@ export default function OnboardingPage() {
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
 
-  const isClergy = ['ordained', 'religious'].includes(profile?.vocation_state)
+  // The parish-setup step leads to a paid plan, so the iOS app skips it (3.1.1)
+  const isClergy = canPurchaseInApp && ['ordained', 'religious'].includes(profile?.vocation_state)
   const totalSteps = isClergy ? 4 : 3
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
   const season = getLiturgicalSeason()

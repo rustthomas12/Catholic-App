@@ -62,7 +62,7 @@ export default function FormationPage() {
   }
 
   const completedCount = completedDays.size
-  const totalDays = data.totalDays
+  const totalDays = data.days.length
   const progressPct = Math.round((completedCount / totalDays) * 100)
 
   async function toggleDay(dayNumber) {
@@ -228,17 +228,6 @@ export default function FormationPage() {
                 )
               })}
 
-              {/* Remaining days placeholder */}
-              {data.days.length < data.totalDays && (
-                <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-6 text-center">
-                  <p className="text-sm font-semibold text-gray-500">
-                    Days {data.days.length + 1}–{data.totalDays} coming soon
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    More content will be added before the season begins.
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </div>

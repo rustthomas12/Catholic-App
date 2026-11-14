@@ -114,7 +114,7 @@ inFold is a free Catholic community app. Sign in with the demo account above; it
 
 User-generated content (guideline 1.2): everything members write can be reported — posts ("…" menu > Report post), comments, group chat messages and prayer requests (flag icon), direct messages (conversation menu > Report conversation), and profiles and groups (flag on their page). Reports go to our moderation queue, admins are notified immediately, and we act within 24 hours (remove content, suspend users). Members can block anyone from their profile, a post's menu, or a conversation; blocked users' content is hidden and they cannot message the blocker (Settings > Blocked users to unblock). Users must agree to the Terms (zero tolerance for objectionable content and abusive users) to sign up. Content Policy: https://app.getinfold.app/policy
 
-Payments: individual users never pay and there are no in-app purchases. Parishes and Catholic organizations can subscribe to administrative tools (B2B, guideline 3.1.3(c)); that checkout happens on our website.
+Payments: the iOS app sells nothing and shows no prices. Every member feature is free. Parishes and Catholic organizations can subscribe to administrative tools (a B2B service sold directly to the organization, guideline 3.1.3(c)), but that can't be started, changed or linked to from the iOS app: those screens only say plans can't be started in the iOS app. A parish that already subscribes can use its dashboard in the app (guideline 3.1.3(b)).
 
 Account deletion: Settings > Delete my account (content is hidden immediately; the account is permanently erased after 90 days). Details: https://app.getinfold.app/delete-account
 
