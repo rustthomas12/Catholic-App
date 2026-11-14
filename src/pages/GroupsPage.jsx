@@ -43,6 +43,14 @@ export default function GroupsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState(null)
   const [leaveTarget, setLeaveTarget] = useState(null)
+  // Joins/leaves made here; the search list isn't refetched, so its member
+  // counts are adjusted locally to match the other cards
+  const [countDelta, setCountDelta] = useState({})
+  const bumpCount = (groupId, by) =>
+    setCountDelta(prev => ({ ...prev, [groupId]: (prev[groupId] ?? 0) + by }))
+  const withCount = (g) => countDelta[g.id]
+    ? { ...g, member_count: Math.max(0, (g.member_count ?? 0) + countDelta[g.id]) }
+    : g
 
   const { memberships, memberGroupIds, adminGroupIds, refresh } = useGroupMemberships()
   const { suggested, loading: suggestedLoading } = useSuggestedGroups()
@@ -54,7 +62,7 @@ export default function GroupsPage() {
   const isSearching = searchQuery.trim().length > 0 || activeCategory !== null
 
   async function handleJoin(group) {
-    await joinGroup(group.id, () => refresh())
+    await joinGroup(group.id, () => { refresh(); bumpCount(group.id, 1) })
   }
 
   async function handleLeave(group) {
@@ -63,8 +71,10 @@ export default function GroupsPage() {
 
   async function confirmLeave() {
     if (!leaveTarget) return
-    await leaveGroup(leaveTarget.id, adminGroupIds, () => {
+    const leftId = leaveTarget.id
+    await leaveGroup(leftId, adminGroupIds, () => {
       refresh()
+      bumpCount(leftId, -1)
       setLeaveTarget(null)
     })
     setLeaveTarget(null)
@@ -170,7 +180,7 @@ export default function GroupsPage() {
                 .filter(g => !memberGroupIds.has(g.id))
                 .slice(0, 4)
                 .map(group => (
-                  <GroupCard key={group.id} group={group} {...groupActions(group)} />
+                  <GroupCard key={group.id} group={withCount(group)} {...groupActions(group)} />
                 ))
             )}
           </section>
@@ -204,7 +214,7 @@ export default function GroupsPage() {
             </div>
           ) : (
             groups.map(group => (
-              <GroupCard key={group.id} group={group} {...groupActions(group)} />
+              <GroupCard key={group.id} group={withCount(group)} {...groupActions(group)} />
             ))
           )}
         </section>
