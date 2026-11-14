@@ -12,6 +12,7 @@ import { toast } from '../components/shared/Toast'
 import { fuzzyIlike } from '../utils/search'
 import useGoBack from '../hooks/useGoBack'
 import { invalidateFollowedParishesCache } from '../hooks/useParish.js'
+import { PICK_MAX_BYTES } from '../utils/imageResize'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
@@ -144,8 +145,8 @@ export default function EditProfilePage() {
       toast.error('Please choose a JPEG, PNG, or WebP image')
       return
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be smaller than 2 MB')
+    if (file.size > PICK_MAX_BYTES) {
+      toast.error('Image is too large')
       return
     }
     setAvatarFile(file)

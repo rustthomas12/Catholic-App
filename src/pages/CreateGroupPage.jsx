@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
 import { invalidateGroupMemberships } from '../hooks/useGroups'
+import { shrinkImage, PICK_MAX_BYTES } from '../utils/imageResize'
 
 const CATEGORIES = [
   { value: 'parish',       label: 'category_parish' },
@@ -132,7 +133,7 @@ export default function CreateGroupPage() {
       toast.error('Please choose a JPEG, PNG, WebP, or GIF image')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > (file.type === 'image/gif' ? 5 * 1024 * 1024 : PICK_MAX_BYTES)) {
       toast.error('Image must be smaller than 5 MB')
       return
     }
@@ -153,11 +154,12 @@ export default function CreateGroupPage() {
       let avatarUrl = null
 
       if (avatarFile) {
-        const ext = avatarFile.name.split('.').pop()
+        const file = await shrinkImage(avatarFile, { maxDim: 512 })
+        const ext = file.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop()
         const path = `group-avatars/${user.id}/${Date.now()}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('groups')
-          .upload(path, avatarFile, { upsert: true })
+          .upload(path, file, { upsert: true, contentType: file.type })
 
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('groups').getPublicUrl(path)
