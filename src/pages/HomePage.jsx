@@ -15,7 +15,7 @@ import ReadingsCard from '../components/faith/ReadingsCard'
 import { useReadings } from '../hooks/useReadings'
 import GroupCard from '../components/groups/GroupCard'
 import useMediaQuery from '../hooks/useMediaQuery'
-import { LogoMark } from '../components/shared/Logo'
+import { LogoLockup } from '../components/shared/Logo'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -85,8 +85,8 @@ export default function HomePage() {
           variant="navy"
           title={
             <span className="flex items-center gap-2">
-              {/* Tight mobile header: the icon alone */}
-              <LogoMark className="w-8 h-8" alt="inFold" />
+              {/* Icon + "inFold" wordmark, white for the navy bar */}
+              <LogoLockup onDark className="h-8 w-auto" alt="inFold" />
               <span className="sr-only">{i18n.t('common:nav.home')}</span>
             </span>
           }
