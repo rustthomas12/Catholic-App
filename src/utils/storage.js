@@ -1,12 +1,13 @@
 import { supabase, supabaseAuth } from '../lib/supabase'
+import { shrinkImage } from './imageResize'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024   // 2 MB
 const POST_MAX_BYTES = 5 * 1024 * 1024      // 5 MB
 
 function validateImage(file, maxBytes) {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return 'Only JPG, PNG, and WebP images are allowed.'
+    return 'Only JPG, PNG, WebP, and GIF images are allowed.'
   }
   if (file.size > maxBytes) {
     return `File must be smaller than ${maxBytes / (1024 * 1024)} MB.`
@@ -14,8 +15,10 @@ function validateImage(file, maxBytes) {
   return null
 }
 
+const EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }
+
 function getExtension(file) {
-  return file.name.split('.').pop().toLowerCase()
+  return EXT_BY_TYPE[file.type] || file.name.split('.').pop().toLowerCase()
 }
 
 // Ensure Supabase has a fresh token before any storage operation.
@@ -30,7 +33,8 @@ async function ensureSession() {
  * Bucket: avatars   Path: {userId}/avatar.{ext}
  * RLS policy: (storage.foldername(name))[1] = auth.uid()::text
  */
-export async function uploadAvatar(userId, file) {
+export async function uploadAvatar(userId, original) {
+  const file = await shrinkImage(original, { maxDim: 512 })
   const err = validateImage(file, AVATAR_MAX_BYTES)
   if (err) return { url: null, error: err }
 
@@ -54,7 +58,8 @@ export async function uploadAvatar(userId, file) {
  * Bucket: posts   Path: {userId}/{timestamp}-{random}.{ext}
  * RLS policy: (storage.foldername(name))[1] = auth.uid()::text
  */
-export async function uploadPostImage(userId, file) {
+export async function uploadPostImage(userId, original) {
+  const file = await shrinkImage(original)
   const err = validateImage(file, POST_MAX_BYTES)
   if (err) return { url: null, error: err }
 

@@ -9,6 +9,7 @@ import { uploadPostImage } from '../../utils/storage'
 import Avatar from '../shared/Avatar'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { toast } from '../shared/Toast'
+import { PICK_MAX_BYTES } from '../../utils/imageResize'
 
 const MAX_CHARS = 500
 const WARN_CHARS = 450
@@ -106,7 +107,8 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
       toast.error('Please choose a JPEG, PNG, WebP, or GIF image.')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
+    // Photos are shrunk before upload; GIFs go up as-is so must fit 5 MB
+    if (file.size > (file.type === 'image/gif' ? 5 * 1024 * 1024 : PICK_MAX_BYTES)) {
       toast.error('Image must be smaller than 5 MB.')
       return
     }

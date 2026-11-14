@@ -34,6 +34,8 @@ export function GroupAvatar({ group, size = 40 }) {
       <img
         src={group.avatar_url}
         alt={group.name}
+        loading="lazy"
+        decoding="async"
         className="rounded-xl object-cover flex-shrink-0"
         style={{ width: size, height: size }}
       />
