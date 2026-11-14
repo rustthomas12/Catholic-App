@@ -15,6 +15,7 @@ import Button from '../components/shared/Button'
 import Modal from '../components/shared/Modal'
 import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import { getCached, setCached } from '../lib/pageCache'
 import Feed from '../components/feed/Feed'
 import { format } from 'date-fns'
 import useGoBack from '../hooks/useGoBack'
@@ -66,46 +67,75 @@ export default function ProfilePage() {
     }
 
     document.title = 'Profile | inFold'
-    setLoading(true)
-    // Clear the previous profile's details so nothing carries over
-    // (e.g. a parish shown on a private profile)
-    setParish(null)
-    setPostCount(0)
+    let cancelled = false
+    // Seen this profile before in this session: show it now, refresh quietly
+    const cacheKey = `profile:${user?.id ?? 'anon'}:${targetId}`
+    const cached = getCached(cacheKey)
+    if (cached) {
+      setProfile(cached.profile)
+      setParish(cached.parish)
+      setPostCount(cached.postCount)
+      setNotFound(false)
+      setLoading(false)
+      document.title = `${cached.profile.full_name || 'Profile'} | inFold`
+    } else {
+      setLoading(true)
+      // Clear the previous profile's details so nothing carries over
+      // (e.g. a parish shown on a private profile)
+      setParish(null)
+      setPostCount(0)
+    }
+
+    const fetchParish = (parishId) => parishId
+      ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', parishId).single()
+      : Promise.resolve({ data: null })
+    const fetchCount = () => supabase.from('posts').select('id', { count: 'exact', head: true })
+      .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false)
 
     async function load() {
       try {
         // get_profile applies profile_visibility: bio and parish are omitted
-        // (limited: true) unless the viewer shares a parish, group or org
-        const { data: p, error } = await supabase.rpc('get_profile', { p_id: targetId })
+        // (limited: true) unless the viewer shares a parish, group or org.
+        // Your own profile is never limited and its parish is already known,
+        // so everything loads in one round trip instead of two.
+        const own = targetId === user?.id
+        const [profRes, earlyParish, earlyCount] = await Promise.all([
+          supabase.rpc('get_profile', { p_id: targetId }),
+          own ? fetchParish(currentProfile?.parish_id) : null,
+          own ? fetchCount() : null,
+        ])
+        const { data: p, error } = profRes
+        if (cancelled) return
 
-        if (error || !p) { setNotFound(true); return }
+        if (error || !p) { if (!cached) setNotFound(true); return }
 
         setProfile(p)
         document.title = `${p.full_name || 'Profile'} | inFold`
 
-        if (p.limited) return
+        if (p.limited) {
+          setCached(cacheKey, { profile: p, parish: null, postCount: 0 })
+          return
+        }
 
-        // Load parish and post count in parallel
-        const [parRes, countRes] = await Promise.all([
-          p.parish_id
-            ? supabase.from('parishes').select('id, name, city, state, diocese').eq('id', p.parish_id).single()
-            : Promise.resolve({ data: null }),
-          supabase.from('posts').select('id', { count: 'exact', head: true })
-            .eq('author_id', targetId).is('deleted_at', null).eq('is_removed', false),
-        ])
+        const [parRes, countRes] = own && p.parish_id === currentProfile?.parish_id
+          ? [earlyParish, earlyCount]
+          : await Promise.all([fetchParish(p.parish_id), fetchCount()])
+        if (cancelled) return
 
         setParish(parRes.data || null)
         setPostCount(countRes.count || 0)
+        setCached(cacheKey, { profile: p, parish: parRes.data || null, postCount: countRes.count || 0 })
       } catch (err) {
         console.error('[ProfilePage] load error:', err)
         setNotFound(true)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     load()
-  }, [targetId, authLoading])
+    return () => { cancelled = true }
+  }, [targetId, authLoading]) // eslint-disable-line react-hooks/exhaustive-deps -- user/currentProfile are read once per profile
 
   const isOwnProfile = user?.id === targetId
   // /profile with no id is the Me tab

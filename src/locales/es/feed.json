@@ -7,6 +7,8 @@
     "prayer_requests": "Oración",
     "events": "Eventos",
     "caught_up": "Estás al día",
+    "new_posts_one": "{{count}} publicación nueva",
+    "new_posts_other": "{{count}} publicaciones nuevas",
     "caught_up_sub": "Vuelve más tarde para nuevas publicaciones",
     "empty_title": "Tu feed está tranquilo",
     "empty_body": "Sigue a tu parroquia para ver publicaciones aquí",

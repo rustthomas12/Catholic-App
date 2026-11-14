@@ -13,17 +13,26 @@ const NOTIFICATION_SELECT = `
 // useNotifications() instance (page list, nav badge) re-syncs its count.
 export const READ_EVENT = 'infold:notifications-read'
 
+// Last first page, shared by every instance (nav badge, page) so opening
+// Notifications shows the list at once and refreshes it in the background
+let _cache = null // { userId, rows, hasMore }
+
 export function useNotifications() {
   const { user } = useAuth()
   // Depend on the id, not the object: the session refresh at startup swaps in
   // an identical user object, which refetched everything a second time.
   const userId = user?.id
 
-  const [notifications, setNotifications] = useState([])
-  const [unreadCount,   setUnreadCount]   = useState(0)
-  const [loading,       setLoading]       = useState(true)
+  const cached = _cache && _cache.userId === userId ? _cache : null
+  const [notifications, setNotifications] = useState(cached?.rows ?? [])
+  const [unreadCount,   setUnreadCount]   = useState(cached ? cached.rows.filter(n => !n.is_read).length : 0)
+  const [loading,       setLoading]       = useState(!cached)
   const [loadingMore,   setLoadingMore]   = useState(false)
-  const [hasMore,       setHasMore]       = useState(false)
+  const [hasMore,       setHasMore]       = useState(cached?.hasMore ?? false)
+
+  useEffect(() => {
+    if (userId && !loading) _cache = { userId, rows: notifications.slice(0, PAGE_SIZE), hasMore }
+  }, [userId, loading, notifications, hasMore])
 
   const listRef      = useRef([])
   useEffect(() => { listRef.current = notifications }, [notifications])
@@ -35,7 +44,8 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async (reset = false) => {
     if (!userId) return
     const offset = reset ? 0 : offsetRef.current
-    if (reset) setLoading(true)
+    // With something already on screen, refresh quietly instead of flashing skeletons
+    if (reset) { if (listRef.current.length === 0) setLoading(true) }
     else       setLoadingMore(true)
 
     const timeoutId = setTimeout(() => {
@@ -159,6 +169,8 @@ export function useNotifications() {
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     )
     setUnreadCount(prev => Math.max(0, prev - 1))
+    // Tell the other instances (nav badge) now rather than after the round trip
+    window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: { source: channelSuffix.current, readId: notificationId } }))
 
     await supabase
       .from('notifications')
@@ -174,6 +186,7 @@ export function useNotifications() {
     // Optimistic
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     setUnreadCount(0)
+    window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: { source: channelSuffix.current, allRead: true } }))
 
     await supabase
       .from('notifications')
@@ -197,7 +210,26 @@ export function useNotifications() {
   // ── Keep other hook instances (e.g. the nav badge) in sync ──
   useEffect(() => {
     if (!userId) return
-    const handleRead = (e) => { if (e.detail !== channelSuffix.current) refresh() }
+    const handleRead = (e) => {
+      const d = e.detail
+      const source = typeof d === 'string' ? d : d?.source
+      if (source === channelSuffix.current) return
+      // Optimistic notices from another instance: apply locally, no refetch
+      if (d?.allRead) {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+        setUnreadCount(0)
+        return
+      }
+      if (d?.readId) {
+        const wasUnread = listRef.current.some(n => n.id === d.readId && !n.is_read)
+        if (wasUnread) {
+          setNotifications(prev => prev.map(n => n.id === d.readId ? { ...n, is_read: true } : n))
+          setUnreadCount(prev => Math.max(0, prev - 1))
+        }
+        return
+      }
+      refresh()
+    }
     window.addEventListener(READ_EVENT, handleRead)
     return () => window.removeEventListener(READ_EVENT, handleRead)
   }, [userId, refresh])

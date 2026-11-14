@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
+import { watchNewPosts, isHiddenRow } from '../lib/postLive'
 
 const DEFAULT_PAGE_SIZE = 20
 const FEED_TTL   = 3  * 60 * 1000  // 3 min
@@ -82,13 +83,20 @@ export const POST_SELECT = `
   parish:parishes!parish_id(id, name, city, state),
   group:groups!group_id(id, name),
   org:organizations!org_id(id, name, org_type),
-  likes(user_id),
-  comments(id, is_removed)
+  likes(user_id)
 `
+
+// Counts come from posts.like_count / comment_count (kept by DB triggers);
+// the embedded likes are narrowed to the viewer's own like, so a popular post
+// no longer downloads every like and comment just to count them.
+const NO_USER = '00000000-0000-0000-0000-000000000000'
+export function onlyMyLike(query, userId) {
+  return query.eq('likes.user_id', userId || NO_USER)
+}
 
 export function normalisePost(raw, currentUserId) {
   const likes    = raw.likes    ?? []
-  // Removed comments stay in the table (soft delete) — don't count them
+  // Older selects embedded comments; removed ones (soft delete) don't count
   const comments = (raw.comments ?? []).filter((c) => !c.is_removed)
   return {
     id:               raw.id,
@@ -104,8 +112,8 @@ export function normalisePost(raw, currentUserId) {
     group:            raw.group            ?? null,
     org:              raw.org              ?? null,
     org_id:           raw.org_id           ?? null,
-    like_count:       likes.length,
-    comment_count:    comments.length,
+    like_count:       raw.like_count    ?? likes.length,
+    comment_count:    raw.comment_count ?? comments.length,
     is_liked_by_me:   likes.some((l) => l.user_id === currentUserId),
   }
 }
@@ -244,9 +252,7 @@ export function useFeed(options = {}) {
 
   // ── Query builder ─────────────────────────────────────────
   const buildQuery = useCallback((offset) => {
-    let q = supabase
-      .from('posts')
-      .select(POST_SELECT)
+    let q = onlyMyLike(supabase.from('posts').select(POST_SELECT), user?.id)
       .is('deleted_at', null)
       .eq('is_removed', false)
       .order('created_at', { ascending: false })
@@ -293,7 +299,7 @@ export function useFeed(options = {}) {
         return q.or(parts.join(','))
       }
     }
-  }, [filter, parishId, groupId, orgId, userId, pageSize])
+  }, [filter, parishId, groupId, orgId, userId, pageSize, user?.id])
 
   // ── Fetch a page ──────────────────────────────────────────
   const fetchPage = useCallback(async (offset, append = false, background = false) => {
@@ -410,6 +416,72 @@ export function useFeed(options = {}) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [userId_stable, filter, parishId, groupId, orgId, refresh])
 
+  // ── Live new posts ────────────────────────────────────────
+  // Mirrors buildQuery: does a freshly inserted row belong in this feed?
+  const matchesScope = useCallback((row) => {
+    if (isHiddenRow(row)) return false
+    if (userId)   return row.author_id === userId
+    if (orgId)    return row.org_id    === orgId
+    if (groupId)  return row.group_id  === groupId
+    if (parishId) return row.parish_id === parishId
+    const pIds = followedParishIds.current
+    const gIds = joinedGroupIds.current
+    const oIds = parentOrgIds.current
+    const parishOnly = !!row.parish_id && pIds.includes(row.parish_id) && !row.group_id && !row.org_id
+    const inGroup    = !!row.group_id  && gIds.includes(row.group_id)
+    switch (filter) {
+      case 'parish': return parishOnly
+      case 'groups': return inGroup
+      case 'prayer': return !!row.is_prayer_request && ((!!row.parish_id && pIds.includes(row.parish_id)) || inGroup)
+      case 'events': return false
+      default:       return parishOnly || inGroup || (!!row.org_id && oIds.includes(row.org_id))
+    }
+  }, [filter, parishId, groupId, orgId, userId])
+
+  // Posts that arrived while this feed was open, waiting to be shown
+  const [incoming, setIncoming] = useState([])
+  const postsRef = useRef(posts)
+  useEffect(() => { postsRef.current = posts }, [posts])
+
+  useEffect(() => {
+    setIncoming([])
+    if (!userId_stable || filter === 'events') return
+    let active = true
+    const stop = watchNewPosts(async (row) => {
+      // Your own posts are added by the composer as soon as they're saved
+      if (row.author_id === userId_stable) return
+      if (!matchesScope(row)) return
+      if (postsRef.current.some((p) => p.id === row.id)) return
+      // Fetch it the normal way so RLS, author and parish details all apply
+      const { data } = await onlyMyLike(supabase.from('posts').select(POST_SELECT), userId_stable)
+        .eq('id', row.id)
+        .maybeSingle()
+      if (!active || !data) return
+      const post = normalisePost(data, userId_stable)
+      setIncoming((prev) => (prev.some((p) => p.id === post.id) ? prev : [post, ...prev]))
+    })
+    return () => { active = false; stop() }
+  }, [userId_stable, filter, parishId, groupId, orgId, userId, matchesScope])
+
+  // Put the waiting posts on top of the feed
+  const incomingRef = useRef(incoming)
+  useEffect(() => { incomingRef.current = incoming }, [incoming])
+  const showIncoming = useCallback(() => {
+    const waiting = incomingRef.current
+    if (waiting.length === 0) return
+    setIncoming([])
+    setPosts((prev) => {
+      const seen = new Set(prev.map((p) => p.id))
+      return [...waiting.filter((p) => !seen.has(p.id)), ...prev]
+    })
+    setTotalCount((c) => c + waiting.length)
+    if (userId_stable) {
+      const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
+      _feedCache.delete(cacheKey)
+      _clearStoredFeed(cacheKey)
+    }
+  }, [userId_stable, filter, parishId, groupId, orgId])
+
   // ── Public API ────────────────────────────────────────────
 
   // The next page starts after the posts already shown. A separate running
@@ -461,5 +533,7 @@ export function useFeed(options = {}) {
     addPost,
     updatePost,
     removePost,
+    incoming,
+    showIncoming,
   }
 }

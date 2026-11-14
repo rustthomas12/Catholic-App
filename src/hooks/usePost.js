@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
+import { watchPost, isHiddenRow } from '../lib/postLive'
 
 const COMMENT_SELECT = `
   *,
@@ -23,6 +24,8 @@ export function usePost(postId, initialPost) {
   const [comments, setComments] = useState([])
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [commentsExpanded, setCommentsExpanded] = useState(false)
+  // Deleted or removed elsewhere (by its author or a moderator) while on screen
+  const [gone, setGone] = useState(false)
 
   const commentsFetchedRef = useRef(false)
   const commentChannelRef = useRef(null)
@@ -31,6 +34,23 @@ export function usePost(postId, initialPost) {
   useEffect(() => {
     setPost(initialPost)
   }, [initialPost])
+
+  // ── Live counts / edits / removal ──────────────────────────
+  // like_count and comment_count are kept on the row by DB triggers, so the
+  // row's UPDATE carries the real totals; is_liked_by_me isn't on the row and
+  // stays as it is locally.
+  useEffect(() => {
+    return watchPost(postId, (row) => {
+      if (isHiddenRow(row)) { setGone(true); return }
+      setPost((p) => ({
+        ...p,
+        like_count:    row.like_count    ?? p.like_count,
+        comment_count: row.comment_count ?? p.comment_count,
+        content:       row.content       ?? p.content,
+        image_url:     row.image_url !== undefined ? row.image_url : p.image_url,
+      }))
+    })
+  }, [postId])
 
   // ── Clean up comment subscription on unmount ───────────────
   useEffect(() => {
@@ -79,8 +99,19 @@ export function usePost(postId, initialPost) {
 
           setComments((prev) => {
             if (prev.some((c) => c.id === data.id)) return prev
+            // Our own comment still waiting for its insert response
+            if (prev.some((c) => c.pending && c.author_id === data.author_id && c.content === data.content)) return prev
             return [...prev, data]
           })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
+        (payload) => {
+          if (payload.new?.is_removed) {
+            setComments((prev) => prev.filter((c) => c.id !== payload.new.id))
+          }
         }
       )
       .subscribe()
@@ -168,6 +199,27 @@ export function usePost(postId, initialPost) {
       const trimmed = content?.trim()
       if (!trimmed) return { error: 'Comment cannot be empty' }
 
+      const countBefore = post.comment_count
+
+      // Show it straight away; the saved row replaces it when it comes back
+      const tempId = `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      setComments((prev) => [...prev, {
+        id: tempId,
+        post_id: postId,
+        author_id: user.id,
+        content: trimmed,
+        created_at: new Date().toISOString(),
+        is_removed: false,
+        pending: true,
+        author: {
+          id: user.id,
+          full_name: profile?.full_name ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+          is_verified_clergy: profile?.is_verified_clergy ?? false,
+        },
+      }])
+      setPost((p) => ({ ...p, comment_count: Math.max(p.comment_count, countBefore + 1) }))
+
       const { data, error } = await supabase
         .from('comments')
         .insert({
@@ -178,10 +230,18 @@ export function usePost(postId, initialPost) {
         .select(COMMENT_SELECT)
         .single()
 
-      if (error) return { error: error.message, userFacing: error.code === 'P0001' }
+      if (error) {
+        setComments((prev) => prev.filter((c) => c.id !== tempId))
+        setPost((p) => ({ ...p, comment_count: p.comment_count === countBefore + 1 ? countBefore : p.comment_count }))
+        return { error: error.message, userFacing: error.code === 'P0001' }
+      }
 
-      setComments((prev) => [...prev, data])
-      setPost((p) => ({ ...p, comment_count: p.comment_count + 1 }))
+      // The realtime INSERT/UPDATE can land before this response does, so
+      // neither the list nor the count may assume they haven't seen it yet
+      setComments((prev) => {
+        if (prev.some((c) => c.id === data.id)) return prev.filter((c) => c.id !== tempId)
+        return prev.map((c) => (c.id === tempId ? data : c))
+      })
 
       // Update last_active_at
       supabase
@@ -205,7 +265,7 @@ export function usePost(postId, initialPost) {
 
       return { error: null }
     },
-    [user, profile?.full_name, profile?.suspended_at, postId, post]
+    [user, profile?.full_name, profile?.avatar_url, profile?.is_verified_clergy, profile?.suspended_at, postId, post]
   )
 
   // ── deleteComment ──────────────────────────────────────────
@@ -213,6 +273,7 @@ export function usePost(postId, initialPost) {
     async (commentId) => {
       if (!user) return { error: 'Not authenticated' }
 
+      const countBefore = post.comment_count
       const { error } = await supabase
         .from('comments')
         .update({ is_removed: true })
@@ -222,7 +283,7 @@ export function usePost(postId, initialPost) {
       if (error) return { error: error.message }
 
       setComments((prev) => prev.filter((c) => c.id !== commentId))
-      setPost((p) => ({ ...p, comment_count: Math.max(0, p.comment_count - 1) }))
+      setPost((p) => ({ ...p, comment_count: Math.max(0, Math.min(p.comment_count, countBefore - 1)) }))
 
       return { error: null }
     },
@@ -302,6 +363,7 @@ export function usePost(postId, initialPost) {
 
   return {
     post,
+    gone,
     comments,
     commentsLoading,
     commentsExpanded,

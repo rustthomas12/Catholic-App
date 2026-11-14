@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { getCached, setCached } from '../lib/pageCache'
 import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
 import { toast } from '../components/shared/Toast'
@@ -266,17 +267,23 @@ export function useSuggestedGroups() {
 
 // ── useGroup ───────────────────────────────────────────────
 export function useGroup(groupId) {
-  const [group, setGroup] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // A group seen earlier this session shows at once and refreshes quietly
+  const cached = getCached(groupId ? `group:${groupId}` : null)
+  const [group, setGroup] = useState(cached ?? null)
+  const [loading, setLoading] = useState(!cached)
   const [error, setError] = useState(null)
 
   // Only the first load shows the skeleton; refreshes (join, leave,
   // member changes) update in place instead of flashing the whole page
-  const loadedFor = useRef(null)
+  const loadedFor = useRef(cached ? groupId : null)
 
   const fetch = useCallback(async () => {
     if (!groupId) return
-    if (loadedFor.current !== groupId) setLoading(true)
+    if (loadedFor.current !== groupId) {
+      const seen = getCached(`group:${groupId}`)
+      if (seen) { setGroup(seen); loadedFor.current = groupId; setLoading(false) }
+      else setLoading(true)
+    }
     const { data, error: err } = await supabase
       .from('groups')
       .select(`
@@ -289,7 +296,7 @@ export function useGroup(groupId) {
       .single()
 
     if (err) setError(err.message)
-    else { setGroup(data); loadedFor.current = groupId }
+    else { setGroup(data); loadedFor.current = groupId; setCached(`group:${groupId}`, data) }
     setLoading(false)
   }, [groupId])
 

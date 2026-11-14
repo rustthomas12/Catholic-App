@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BuildingLibraryIcon } from '@heroicons/react/24/outline'
+import { BuildingLibraryIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useFeed } from '../../hooks/useFeed'
 import PostCard from './PostCard'
@@ -61,11 +61,22 @@ export default function Feed({
     return () => observer.disconnect()
   }, [loadMore, hasMore, loadingMore, feedLoading])
 
-  // Your own new post goes on top. (A "new post" pill used to appear for it
-  // when scrolled down; the feed has no live updates, so it only ever
-  // announced the post you had just written.)
+  // Your own new post goes on top
   function handleNewPost(post) {
     feed.addPost(post)
+  }
+
+  // Posts from others arrive live. At the top of the page they slide straight
+  // in; further down a pill offers them, so the page never jumps under you.
+  const incomingCount = feed.incoming.length
+  const showIncoming = feed.showIncoming
+  useEffect(() => {
+    if (incomingCount > 0 && window.scrollY < 120) showIncoming()
+  }, [incomingCount, showIncoming])
+
+  function revealNewPosts() {
+    showIncoming()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // The "Events" filter lists events, not posts
@@ -104,6 +115,19 @@ export default function Feed({
 
   return (
     <div className="relative">
+
+      {/* New posts pill */}
+      {incomingCount > 0 && (
+        <div className="sticky z-30 h-0 flex justify-center" style={{ top: 'calc(var(--app-safe-top, 0px) + 12px)' }}>
+          <button
+            onClick={revealNewPosts}
+            className="flex items-center gap-1.5 bg-navy text-white text-sm font-semibold px-4 min-h-[40px] rounded-full shadow-lg animate-fade-in"
+          >
+            <ArrowUpIcon className="w-4 h-4" />
+            {t('feed.new_posts', { count: incomingCount })}
+          </button>
+        </div>
+      )}
 
       {/* Compose bar */}
       {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} orgId={orgId} />}
