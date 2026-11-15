@@ -353,8 +353,8 @@ uploading to TestFlight with automatic signing.
 3. App Store Connect → new app, bundle ID `app.getinfold`, SKU `infold`. Create an App Store Connect API key (App Manager) →
    secrets `APPSTORE_API_KEY_ID`, `APPSTORE_API_ISSUER_ID`, `APPSTORE_API_KEY_P8_BASE64`.
 4. APNs key (.p8) → Firebase → Cloud Messaging → Apple app.
-5. Recreate the demo account `appreview@getinfold.app` (deleted 2026-11-06) and give it content: follows a parish, in a group, a few posts.
-6. Regenerate screenshots with `scripts/store-screenshots.mjs` (the current set predates the brand kit).
+5. ✅ Demo account `appreview@getinfold.app` recreated with content (`scripts/seed-review-account.mjs`, re-runnable). **Set its password** with "Forgot password" and add it to App Store Connect.
+6. ✅ Screenshots regenerated 2026-11-14 (iPhone 6.9", iPad 13", Android), 8 per device.
 7. Actions → Mobile apps → Run workflow → release. Install from TestFlight on a real iPhone and run the §4 manual test plan.
 8. Fill in App Privacy, age rating (13+) and review notes from `docs/STORE_LISTING.md`, then submit.
 

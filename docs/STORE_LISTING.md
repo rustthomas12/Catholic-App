@@ -94,10 +94,11 @@ Welcome to inFold on iPhone and Android! Push notifications for parish announcem
 | App Store — iPad 13" | `ipad-13/` | 2064 × 2752 |
 | Google Play — Phone | `android-phone/` | 1080 × 2400 |
 
-Upload in numeric order: readings, parish directory, saints, rosary,
-examination of conscience, Liturgy of the Hours. Regenerate any time with
+Upload in numeric order: home feed, group, readings, parish directory,
+saints, rosary, examination of conscience, Liturgy of the Hours (regenerated
+2026-11-14 with the current brand). Regenerate any time with
 `node --env-file=.env.local scripts/store-screenshots.mjs` (see the script
-header).
+header; it signs in as the demo account without needing its password).
 
 Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 `store-assets/play-feature-graphic-1024x500.png` (feature graphic).
@@ -107,10 +108,10 @@ Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 ## App Review information (Apple) / App access (Google)
 
 - **Sign-in required:** yes
-- **Demo account:** `appreview@getinfold.app` — password in `KEEP-SAFE.txt`
+- **Demo account:** `appreview@getinfold.app`. Created by `scripts/seed-review-account.mjs` with no password: set one with "Forgot password" on the login screen (mail reaches the getinfold.app catch-all), then enter it in App Store Connect / Play Console.
 - **Notes for the reviewer** (paste):
 ```
-inFold is a free Catholic community app. Sign in with the demo account above; it follows a parish in Worcester, MA so you can see the parish page, readings, directory and groups.
+inFold is a free Catholic community app. Sign in with the demo account above. It belongs to St. Paul the Apostle parish (Warren, MA), runs the "Daily Rosary Circle" group and has a few posts, including a prayer request, so you can see the feed, parish page, groups, readings and directory.
 
 User-generated content (guideline 1.2): everything members write can be reported — posts ("…" menu > Report post), comments, group chat messages and prayer requests (flag icon), direct messages (conversation menu > Report conversation), and profiles and groups (flag on their page). Reports go to our moderation queue, admins are notified immediately, and we act within 24 hours (remove content, suspend users). Members can block anyone from their profile, a post's menu, or a conversation; blocked users' content is hidden and they cannot message the blocker (Settings > Blocked users to unblock). Users must agree to the Terms (zero tolerance for objectionable content and abusive users) to sign up. Content Policy: https://app.getinfold.app/policy
 
