@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import './index.css'
 import App from './App.jsx'
+import { i18nReady } from './utils/i18n'
 import { isNative, platform } from './lib/platform'
 
 // iOS / Android app: route browser APIs to native plugins and tag <html> so
@@ -80,10 +81,19 @@ function AppWithSWUpdater() {
   )
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    {/* Native apps ship their web assets in the binary (updated through the
-        stores), so there is no service worker to register or update. */}
-    {isNative ? <App /> : <AppWithSWUpdater />}
-  </StrictMode>,
-)
+// Start downloading the screen for this address now, in parallel with the
+// sign-in check, instead of after it (the home feed is the usual first screen)
+try {
+  if (location.pathname === '/' && localStorage.getItem('parish-app-auth')) import('./pages/HomePage.jsx')
+} catch { /* storage unavailable: it loads normally */ }
+
+// Spanish users: draw once their strings are loaded (instant for English)
+i18nReady.then(() => {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      {/* Native apps ship their web assets in the binary (updated through the
+          stores), so there is no service worker to register or update. */}
+      {isNative ? <App /> : <AppWithSWUpdater />}
+    </StrictMode>,
+  )
+})

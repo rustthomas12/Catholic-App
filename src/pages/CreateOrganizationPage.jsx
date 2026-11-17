@@ -8,6 +8,7 @@ import { toast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { checkEmail, checkUrl } from '../utils/validate'
 import { canPurchaseInApp } from '../lib/platform'
+import { invalidateMyMemberships } from '../lib/myMemberships'
 
 const CATEGORIES = [
   'Apostolate', 'Charity', 'Education', 'Media', 'Men\'s Ministry',
@@ -127,6 +128,7 @@ export default function CreateOrganizationPage() {
     if (memberError) {
       toast.error('Organization created but could not add you as admin.')
     }
+    invalidateMyMemberships() // the new org shows up in admin links right away
 
     // Chapter of a national org: always ask the national org's admins
     if (isChapter && selectedParent) {

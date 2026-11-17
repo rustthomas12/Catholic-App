@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { watchNewPosts, isHiddenRow } from '../lib/postLive'
+import { getMyMemberships } from '../lib/myMemberships'
 
 const DEFAULT_PAGE_SIZE = 20
 const FEED_TTL   = 3  * 60 * 1000  // 3 min
@@ -177,19 +178,15 @@ export function useFeed(options = {}) {
 
   // ── Social graph builder ──────────────────────────────────
   async function _buildGraph(uid) {
-    const [pr, gr, ar, om] = await Promise.all([
-      supabase.from('parish_follows').select('parish_id').eq('user_id', uid),
-      supabase.from('group_members').select('group_id').eq('user_id', uid),
-      supabase.from('parish_admins').select('parish_id').eq('user_id', uid),
-      supabase.from('organization_members').select('org_id').eq('user_id', uid),
-    ])
-    const followed  = (pr.data ?? []).map(r => r.parish_id)
-    const admined   = (ar.data ?? []).map(r => r.parish_id)
+    // Shared with the nav, events and groups (one round of requests at startup)
+    const m = await getMyMemberships(uid)
+    const followed  = m.parishFollows
+    const admined   = m.parishAdmins.map(r => r.parish_id)
     const parishIds = [...new Set([...followed, ...admined])]
-    const groupIds  = (gr.data ?? []).map(r => r.group_id)
+    const groupIds  = m.groups.map(r => r.group_id)
 
     // Find parent org IDs for any chapters the user is a member of
-    const memberOrgIds = (om.data ?? []).map(r => r.org_id)
+    const memberOrgIds = m.orgs.map(r => r.org_id)
     let parentOrgIdsList = []
     if (memberOrgIds.length > 0) {
       const { data: chapterOrgs } = await supabase

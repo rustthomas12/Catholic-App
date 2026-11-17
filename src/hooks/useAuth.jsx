@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
 import { apiUrl, authRedirectUrl } from '../lib/platform'
-import i18n from '../utils/i18n'
+import i18n, { setLanguage } from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
 import { clearFeedCaches } from './useFeed.js'
 import { clearGroupCaches } from './useGroups.js'
@@ -117,7 +117,7 @@ export function AuthProvider({ children }) {
       try {
         const stored = localStorage.getItem('infold-language')
         if (stored !== profileData.language) {
-          i18n.changeLanguage(profileData.language)
+          setLanguage(profileData.language)
           localStorage.setItem('infold-language', profileData.language)
         }
       } catch {}

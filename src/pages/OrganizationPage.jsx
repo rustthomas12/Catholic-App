@@ -24,6 +24,7 @@ import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
 import { safeImageUrl } from '../utils/validate'
 import useGoBack from '../hooks/useGoBack'
+import { invalidateMyMemberships } from '../lib/myMemberships'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
@@ -100,13 +101,14 @@ function useOrganization(orgId) {
       const { error: err } = await supabase.from('organization_members')
         .delete().eq('org_id', orgId).eq('user_id', user.id)
       if (err) toast.error(err.code === 'P0001' ? err.message : 'Could not leave organization.')
-      else { setIsMember(false); setMyRole(null); setMemberCount(c => Math.max(0, c - 1)) }
+      else { setIsMember(false); setMyRole(null); setMemberCount(c => Math.max(0, c - 1)); invalidateMyMemberships() }
     } else {
       const { error: err } = await supabase.from('organization_members')
         .insert({ org_id: orgId, user_id: user.id })
       if (err) toast.error('Could not join organization.')
       else {
         setIsMember(true); setMyRole('member'); setMemberCount(c => c + 1)
+        invalidateMyMemberships()
         // Fire-and-forget: notify org admins of new member
         ;(async () => {
           const { data: admins } = await supabase
