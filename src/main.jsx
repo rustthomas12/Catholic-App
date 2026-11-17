@@ -47,6 +47,24 @@ function AppWithSWUpdater() {
     onOfflineReady() {
       // PWA is ready for offline use — no user-visible notification needed
     },
+    // Phones rarely fully reload a home-screen app: it resumes from the
+    // background and would keep running an old version for days. Check for
+    // a new build whenever the app returns to the foreground, and hourly
+    // while it stays open.
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return
+      let last = Date.now()
+      const check = () => {
+        if (!navigator.onLine || Date.now() - last < 60_000) return
+        last = Date.now()
+        registration.update().catch(() => {})
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') check()
+      })
+      window.addEventListener('focus', check)
+      setInterval(check, 60 * 60_000)
+    },
   })
 
   function handleUpdate() {
