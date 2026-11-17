@@ -74,7 +74,32 @@
     "no_results": "No se encontraron organizaciones",
     "no_results_hint": "Prueba con un nombre o categoría diferente",
     "create": "Nueva organización",
-    "official": "Oficial"
+    "official": "Oficial",
+    "national": "Nacional",
+    "new": "Nueva",
+    "search_short": "Buscar por nombre o ciudad…",
+    "clear_filters": "Borrar filtros",
+    "filter_category": "Filtrar por categoría",
+    "all_categories": "Todas las categorías",
+    "filter_state": "Filtrar por estado",
+    "all_states": "Todos los estados",
+    "adjust_filters": "Prueba a cambiar la búsqueda o los filtros",
+    "discover_hint": "Busca por nombre, categoría o estado para encontrar ministerios y apostolados.",
+    "cat": {
+      "Apostolate": "Apostolado",
+      "Charity": "Caridad",
+      "Education": "Educación",
+      "Media": "Medios",
+      "Men's Ministry": "Ministerio de hombres",
+      "Women's Ministry": "Ministerio de mujeres",
+      "Youth": "Jóvenes",
+      "Family": "Familia",
+      "Pro-Life": "Provida",
+      "Prayer": "Oración",
+      "Missions": "Misiones",
+      "Religious Order": "Orden religiosa",
+      "Other": "Otra"
+    }
   },
   "messages": {
     "title": "Mensajes",
@@ -85,7 +110,26 @@
     "search_placeholder": "Buscar por nombre…",
     "premium_title": "Desbloquear mensajes directos",
     "premium_body": "Envía mensajes privados a cualquier miembro de inFold. Disponible para quienes apoyan la misión.",
-    "you": "Tú"
+    "you": "Tú",
+    "search_members": "Buscar miembros…",
+    "no_connections": "Todavía no tienes conexiones",
+    "no_connections_hint": "Puedes enviar mensajes a miembros con quienes compartes una parroquia, un grupo o una organización.",
+    "no_members": "No se encontraron miembros.",
+    "this_member": "este miembro",
+    "block_failed": "No se pudo bloquear. Inténtalo de nuevo.",
+    "blocked": "{{name}} ha sido bloqueado",
+    "member": "Miembro de inFold",
+    "options": "Opciones de la conversación",
+    "report": "Denunciar conversación",
+    "block_name": "Bloquear a {{name}}",
+    "report_title": "Denunciar esta conversación",
+    "block_q": "¿Bloquear a {{name}}?",
+    "block_body": "No verás sus publicaciones, comentarios, peticiones de oración ni mensajes, y no podrá enviarte mensajes. Puedes desbloquearlo cuando quieras en Ajustes.",
+    "block": "Bloquear",
+    "message_to": "Mensaje a {{name}}",
+    "send": "Enviar",
+    "select": "Selecciona una conversación",
+    "or_new": "o inicia una nueva"
   },
   "chat": {
     "members_only": "Solo miembros",
@@ -141,6 +185,88 @@
     "unread_one": "{{count}} sin leer",
     "unread_other": "{{count}} sin leer",
     "unread_messages_one": "{{count}} mensaje sin leer",
-    "unread_messages_other": "{{count}} mensajes sin leer"
+    "unread_messages_other": "{{count}} mensajes sin leer",
+    "skip": "Saltar al contenido"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "delete_failed": "No se pudo eliminar la cuenta",
+    "account": "Cuenta",
+    "email": "Correo electrónico",
+    "change_password": "Cambiar contraseña",
+    "edit_profile": "Editar perfil",
+    "notification_prefs": "Preferencias de notificaciones",
+    "privacy": "Privacidad y seguridad",
+    "who_can_see": "Quién puede ver mi perfil",
+    "visibility_updated": "Visibilidad actualizada",
+    "everyone": "Todos",
+    "my_communities": "Mis comunidades",
+    "blocked": "Usuarios bloqueados",
+    "about": "Acerca de",
+    "contact": "Contáctanos",
+    "terms": "Términos de servicio",
+    "privacy_policy": "Política de privacidad",
+    "content_policy": "Política de contenido",
+    "version": "Versión",
+    "sign_out": "Cerrar sesión",
+    "delete_account": "Eliminar mi cuenta",
+    "sign_out_q": "¿Cerrar sesión?",
+    "sign_out_body": "Tendrás que iniciar sesión de nuevo para acceder a tu cuenta.",
+    "delete_q": "¿Eliminar tu cuenta?",
+    "delete_body": "Esto eliminará permanentemente tu perfil y todas tus publicaciones.",
+    "cannot_undo": "Esta acción no se puede deshacer.",
+    "type": "Escribe",
+    "to_confirm": "para confirmar"
+  },
+  "home": {
+    "welcome_to": "Bienvenido a inFold",
+    "welcome_waiting": "¡Bienvenido, {{name}}! Tu comunidad parroquial te espera.",
+    "welcome": "Bienvenido",
+    "welcome_name": "¡Bienvenido, {{name}}!",
+    "find_my_parish": "Encontrar mi parroquia",
+    "browse_groups": "Explorar grupos",
+    "my_groups": "Mis grupos",
+    "see_all": "Ver todo",
+    "empty": {
+      "all": {
+        "title": "Todavía no hay publicaciones",
+        "body": "Sé el primero en publicar en tu parroquia o grupo"
+      },
+      "parish": {
+        "title": "Todavía no hay publicaciones de la parroquia",
+        "body": "Aquí aparecen las publicaciones y anuncios de tus parroquias"
+      },
+      "groups": {
+        "title": "Todavía no hay publicaciones de grupos",
+        "body": "Aquí aparecen las publicaciones de tus grupos"
+      },
+      "prayer": {
+        "title": "Todavía no hay peticiones de oración",
+        "body": "Activa \"Petición de oración\" al publicar para pedir a tu comunidad que rece"
+      }
+    },
+    "connect_title": "Conéctate con tu parroquia",
+    "connect_body": "Encuentra tu parroquia para ver anuncios y eventos, y conectar con tu comunidad.",
+    "parish_count_one": "{{count}} parroquia",
+    "parish_count_other": "{{count}} parroquias",
+    "org_count_one": "{{count}} organización",
+    "org_count_other": "{{count}} organizaciones",
+    "communities": "Mis parroquias y organizaciones",
+    "plus_more": "+{{count}} más",
+    "admin_access": "Tu acceso de administrador"
+  },
+  "season": {
+    "advent": "Adviento",
+    "christmas": "Navidad",
+    "holy_week": "Semana Santa",
+    "lent": "Cuaresma",
+    "easter": "Pascua",
+    "ordinary": "Tiempo Ordinario"
+  },
+  "profile": {
+    "member_since": "Miembro desde {{date}}",
+    "posts": "Publicaciones",
+    "parish": "Parroquia",
+    "since": "Desde"
   }
 }

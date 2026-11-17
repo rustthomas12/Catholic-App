@@ -14,6 +14,7 @@ import Button from '../components/shared/Button'
 import { toast } from '../components/shared/Toast'
 import LanguageSwitcher from '../components/shared/LanguageSwitcher'
 import pkgJson from '../../package.json'
+import { useTranslation } from 'react-i18next'
 
 function SettingsRow({ icon: Icon, label, value, to, onClick, danger = false }) {
   const cls = `flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] ${danger ? 'text-red-600' : 'text-navy'} hover:bg-lightbg transition-colors`
@@ -43,7 +44,8 @@ function Group({ children, className = '' }) {
 }
 
 export default function SettingsPage() {
-  useEffect(() => { document.title = 'Settings | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('settings.title', 'Settings')} | inFold` }, [t])
   const { user, profile, signOut, updateProfile } = useAuth()
   const navigate = useNavigate()
 
@@ -73,12 +75,12 @@ export default function SettingsPage() {
         },
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Could not delete account')
+      if (!res.ok) throw new Error(data.error || t('settings.delete_failed', 'Could not delete account'))
 
       await signOut()
       navigate('/login', { replace: true })
     } catch (err) {
-      toast.error(err.message || 'Something went wrong. Please try again.')
+      toast.error(err.message || t('status.error'))
       setDeleting(false)
     }
   }
@@ -87,48 +89,48 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
 
-        <TopBar title="Settings" back="/profile" />
+        <TopBar title={t('settings.title', 'Settings')} back="/profile" />
 
         {/* Account */}
-        <SectionHeader title="Account" />
+        <SectionHeader title={t('settings.account', 'Account')} />
         <Group>
-          <SettingsRow icon={EnvelopeIcon} label="Email" value={user?.email} />
-          <SettingsRow icon={KeyIcon} label="Change password" to="/forgot-password" />
-          <SettingsRow icon={UserIcon} label="Edit profile" to="/settings/profile" />
+          <SettingsRow icon={EnvelopeIcon} label={t('settings.email', 'Email')} value={user?.email} />
+          <SettingsRow icon={KeyIcon} label={t('settings.change_password', 'Change password')} to="/forgot-password" />
+          <SettingsRow icon={UserIcon} label={t('settings.edit_profile', 'Edit profile')} to="/settings/profile" />
         </Group>
 
         {/* Notifications */}
-        <SectionHeader title="Notifications" />
+        <SectionHeader title={t('nav.notifications')} />
         <Group>
           <SettingsRow
             icon={BellIcon}
-            label="Notification preferences"
+            label={t('settings.notification_prefs', 'Notification preferences')}
             to="/settings/notifications"
           />
         </Group>
 
         {/* Privacy & safety */}
-        <SectionHeader title="Privacy & safety" />
+        <SectionHeader title={t('settings.privacy', 'Privacy & safety')} />
         <Group>
           <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
             <div className="flex items-center gap-3">
               <ShieldCheckIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              <span className="text-sm font-medium text-navy">Who can see my profile</span>
+              <span className="text-sm font-medium text-navy">{t('settings.who_can_see', 'Who can see my profile')}</span>
             </div>
             <select
-              aria-label="Who can see my profile"
+              aria-label={t('settings.who_can_see', 'Who can see my profile')}
               value={profile?.profile_visibility || 'public'}
               onChange={async e => {
                 const { error } = await updateProfile({ profile_visibility: e.target.value })
                 if (error) toast.error(error)
-                else toast.success('Visibility updated')
+                else toast.success(t('settings.visibility_updated', 'Visibility updated'))
               }}
               className="text-sm text-gray-500 border border-gray-200 rounded-lg px-2 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-gold">
-              <option value="public">Everyone</option>
-              <option value="members_only">My communities</option>
+              <option value="public">{t('settings.everyone', 'Everyone')}</option>
+              <option value="members_only">{t('settings.my_communities', 'My communities')}</option>
             </select>
           </div>
-          <SettingsRow icon={NoSymbolIcon} label="Blocked users" to="/settings/blocked" />
+          <SettingsRow icon={NoSymbolIcon} label={t('settings.blocked', 'Blocked users')} to="/settings/blocked" />
         </Group>
 
         {/* Language / Idioma — always bilingual so Spanish speakers can find it */}
@@ -140,13 +142,13 @@ export default function SettingsPage() {
         </Group>
 
         {/* About */}
-        <SectionHeader title="About" />
+        <SectionHeader title={t('settings.about', 'About')} />
         <Group>
-          <SettingsRow icon={EnvelopeIcon} label="Contact us" to="/contact" />
-          <SettingsRow icon={null} label="Terms of Service" to="/terms" />
-          <SettingsRow icon={null} label="Privacy Policy" to="/privacy" />
-          <SettingsRow icon={null} label="Content Policy" to="/policy" />
-          <SettingsRow icon={InformationCircleIcon} label="Version" value={`v${pkgJson.version}`} />
+          <SettingsRow icon={EnvelopeIcon} label={t('settings.contact', 'Contact us')} to="/contact" />
+          <SettingsRow icon={null} label={t('settings.terms', 'Terms of Service')} to="/terms" />
+          <SettingsRow icon={null} label={t('settings.privacy_policy', 'Privacy Policy')} to="/privacy" />
+          <SettingsRow icon={null} label={t('settings.content_policy', 'Content Policy')} to="/policy" />
+          <SettingsRow icon={InformationCircleIcon} label={t('settings.version', 'Version')} value={`v${pkgJson.version}`} />
         </Group>
 
         {/* Sign out */}
@@ -155,7 +157,7 @@ export default function SettingsPage() {
             onClick={() => setShowSignOutModal(true)}
             className="w-full flex items-center justify-center gap-2 py-3.5 text-navy text-sm font-semibold hover:bg-lightbg transition-colors min-h-[52px]">
             <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
-            Sign out
+            {t('settings.sign_out', 'Sign out')}
           </button>
         </Group>
 
@@ -163,7 +165,7 @@ export default function SettingsPage() {
         <Group className="mt-3">
           <SettingsRow
             icon={ExclamationTriangleIcon}
-            label="Delete my account"
+            label={t('settings.delete_account', 'Delete my account')}
             onClick={() => setShowDeleteModal(true)}
             danger
           />
@@ -171,23 +173,23 @@ export default function SettingsPage() {
       </div>
 
       {/* Sign out modal */}
-      <Modal isOpen={showSignOutModal} onClose={() => setShowSignOutModal(false)} title="Sign out?">
-        <p className="text-gray-500 text-sm mb-5">You will need to sign in again to access your account.</p>
+      <Modal isOpen={showSignOutModal} onClose={() => setShowSignOutModal(false)} title={t('settings.sign_out_q', 'Sign out?')}>
+        <p className="text-gray-500 text-sm mb-5">{t('settings.sign_out_body', 'You will need to sign in again to access your account.')}</p>
         <div className="flex flex-col gap-2">
-          <Button variant="primary" fullWidth onClick={handleSignOut}>Sign out</Button>
-          <Button variant="secondary" fullWidth onClick={() => setShowSignOutModal(false)}>Cancel</Button>
+          <Button variant="primary" fullWidth onClick={handleSignOut}>{t('settings.sign_out', 'Sign out')}</Button>
+          <Button variant="secondary" fullWidth onClick={() => setShowSignOutModal(false)}>{t('actions.cancel')}</Button>
         </div>
       </Modal>
 
       {/* Delete account modal */}
-      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete your account?">
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title={t('settings.delete_q', 'Delete your account?')}>
         <div className="flex flex-col gap-4">
           <p className="text-gray-500 text-sm">
-            This will permanently delete your profile and all your posts. <strong>This action cannot be undone.</strong>
+            {t('settings.delete_body', 'This will permanently delete your profile and all your posts.')} <strong>{t('settings.cannot_undo', 'This action cannot be undone.')}</strong>
           </p>
           <div>
             <label className="block text-sm font-semibold text-navy mb-1.5">
-              Type <span className="font-mono bg-red-50 text-red-600 px-1 rounded">DELETE</span> to confirm
+              {t('settings.type', 'Type')} <span className="font-mono bg-red-50 text-red-600 px-1 rounded">DELETE</span> {t('settings.to_confirm', 'to confirm')}
             </label>
             <input
               value={deleteInput}
@@ -202,10 +204,10 @@ export default function SettingsPage() {
               loading={deleting}
               disabled={deleteInput !== 'DELETE'}
               onClick={handleDeleteAccount}>
-              Delete my account
+              {t('settings.delete_account', 'Delete my account')}
             </Button>
             <Button variant="secondary" fullWidth onClick={() => { setShowDeleteModal(false); setDeleteInput('') }}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
           </div>
         </div>

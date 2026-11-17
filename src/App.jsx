@@ -17,6 +17,7 @@ import PushPrompt from './components/shared/PushPrompt'
 import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
 import { isNative } from './lib/platform'
+import i18n from './utils/i18n'
 
 // iOS / Android only — deep links, push taps, back button
 const NativeBridge = isNative ? lazy(() => import('./components/shared/NativeBridge')) : null
@@ -171,7 +172,7 @@ function AppInner() {
       {NativeBridge && <Suspense fallback={null}><NativeBridge /></Suspense>}
       <PushPrompt />
       {/* Keyboard / screen-reader users can jump past the navigation */}
-      <a href="#main" className="skip-link">Skip to content</a>
+      <a href="#main" className="skip-link">{i18n.t('common:a11y.skip', 'Skip to content')}</a>
       <ConnectionBanner />
       <Navigation />
       <main id="main" tabIndex={-1} className="outline-none">

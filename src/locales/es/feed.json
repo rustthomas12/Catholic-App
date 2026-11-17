@@ -47,7 +47,13 @@
     "prayer_badge": "🙏 Petición de oración",
     "at_place": "en {{name}}",
     "in_place": "en {{name}}",
-    "from_place": "de {{name}}"
+    "from_place": "de {{name}}",
+    "view_profile": "Ver el perfil de {{name}}",
+    "this_member": "este miembro",
+    "show_less": "Ver menos",
+    "read_more": "Leer más",
+    "link_copied": "Enlace copiado",
+    "options": "Opciones de la publicación"
   },
   "like": {
     "like": "Me gusta",

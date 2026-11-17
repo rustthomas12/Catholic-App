@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { apiUrl } from '../lib/platform'
 import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
+import { es as esLocale } from 'date-fns/locale'
 
 // ── Module-level cache ─────────────────────────────────────
 // Keyed per language so switching language doesn't serve stale data.
@@ -65,7 +66,11 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
 
 // ── useReadings ────────────────────────────────────────────
 export function useReadings(language = 'en') {
-  const lang = language === 'es' ? 'es' : 'en'
+  // Scripture text comes from the English source in every language for now:
+  // the Spanish endpoint returns raw HTML that nothing parses, so Spanish
+  // users only ever saw "readings unavailable". The card links to USCCB's
+  // Spanish readings instead.
+  const lang = 'en'
   const dateStr = getTodayReadingsDate()
   const cacheKey = `readings_${lang}_${dateStr}`
 
@@ -79,7 +84,7 @@ export function useReadings(language = 'en') {
     }
   })
 
-  const todayFormatted = format(new Date(), 'EEEE, MMMM d')
+  const todayFormatted = format(new Date(), language === 'es' ? "EEEE, d 'de' MMMM" : 'EEEE, MMMM d', language === 'es' ? { locale: esLocale } : undefined)
 
   useEffect(() => {
     if (_caches[lang]) {

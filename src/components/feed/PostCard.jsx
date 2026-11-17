@@ -115,7 +115,7 @@ function CommentItem({ comment, currentUserId, onDelete }) {
   return (
     <div className={`flex items-start gap-2 py-2 group transition-opacity ${comment.pending ? 'opacity-60' : ''}`}>
       <Link to={`/profile/${comment.author?.id}`} onClick={(e) => e.stopPropagation()}
-        aria-label={`View ${comment.author?.full_name || 'this member'}'s profile`}>
+        aria-label={t('feed:post.view_profile', "View {{name}}'s profile", { name: comment.author?.full_name || t('feed:post.this_member', 'this member') })}>
         <Avatar
           src={comment.author?.avatar_url}
           name={comment.author?.full_name}
@@ -252,7 +252,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     } else {
       try {
         await navigator.clipboard.writeText(url)
-        toast.success('Link copied')
+        toast.success(t('feed:post.link_copied', 'Link copied'))
       } catch (_) {
         toast.error(t('common:status.error'))
       }
@@ -349,7 +349,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             <button
               onClick={() => navigate(`/profile/${post.author?.id}`)}
               className="flex-shrink-0"
-              aria-label={`View ${post.author?.full_name}'s profile`}
+              aria-label={t('feed:post.view_profile', "View {{name}}'s profile", { name: post.author?.full_name })}
             >
               <Avatar
                 src={post.author?.avatar_url}
@@ -424,7 +424,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 className="p-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy rounded-lg hover:bg-lightbg transition-colors"
-                aria-label="Post options"
+                aria-label={t('feed:post.options', 'Post options')}
               >
                 <EllipsisHorizontalIcon className="w-5 h-5" />
               </button>
@@ -559,7 +559,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                 onClick={() => setExpanded((e) => !e)}
                 className="text-sm text-gold font-medium mt-1 min-h-[44px] inline-flex items-center"
               >
-                {expanded ? 'Show less' : 'Read more'}
+                {expanded ? t('feed:post.show_less', 'Show less') : t('feed:post.read_more', 'Read more')}
               </button>
             )}
           </div>
@@ -627,7 +627,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             <button
               onClick={handleShare}
               className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] rounded-lg hover:bg-lightbg transition-colors group"
-              aria-label="Share"
+              aria-label={t('common:actions.share')}
             >
               <ShareIcon className="w-5 h-5 text-gray-500 group-hover:text-navy transition-colors" />
               <span className="text-xs font-medium text-gray-500">{t('common:actions.share')}</span>

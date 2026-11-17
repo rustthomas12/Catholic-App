@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import ParishCard from '../components/parish/ParishCard'
 import DirectoryDiscoveryBanner from '../components/parish/DirectoryDiscoveryBanner'
 import NearbyEventSuggestions from '../components/parish/NearbyEventSuggestions'
+import { useTranslation } from 'react-i18next'
 
 const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 
@@ -25,7 +26,8 @@ const US_STATES = [
 ]
 
 export default function DirectoryPage() {
-  useEffect(() => { document.title = 'Parish Directory | inFold' }, [])
+  const { t } = useTranslation('parish')
+  useEffect(() => { document.title = `${t('parish.directory_title')} | inFold` }, [t])
 
   const { user, profile } = useAuth()
   const { results, hasMore, loading: searchLoading, search, clear } = useParishSearch()
@@ -167,7 +169,7 @@ export default function DirectoryPage() {
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.')
+      setLocationError(t('parish.geo_unsupported', 'Geolocation is not supported by your browser.'))
       return
     }
     setLocationLoading(true)
@@ -181,14 +183,14 @@ export default function DirectoryPage() {
       (err) => {
         setLocationError(
           err.code === 1
-            ? 'Location permission denied. Please enable location access.'
-            : 'Could not get your location. Please try again.'
+            ? t('parish.location_denied')
+            : t('parish.location_error')
         )
         setLocationLoading(false)
       },
       { timeout: 10000 }
     )
-  }, [query])
+  }, [query, t])
 
   const handleFollow = useCallback(
     async (parishId) => {
@@ -208,7 +210,7 @@ export default function DirectoryPage() {
           .eq('parish_id', parishId)
           .eq('user_id', user.id)
         if (error) {
-          toast.error('Could not unfollow parish. Please try again.')
+          toast.error(t('parish.unfollow_failed', 'Could not unfollow parish. Please try again.'))
           setFollowStates((prev) => ({ ...prev, [parishId]: current }))
         } else {
           invalidateFollowedParishesCache()
@@ -219,7 +221,7 @@ export default function DirectoryPage() {
           .from('parish_follows')
           .insert({ parish_id: parishId, user_id: user.id })
         if (error) {
-          toast.error('Could not follow parish. Please try again.')
+          toast.error(t('parish.follow_failed', 'Could not follow parish. Please try again.'))
           setFollowStates((prev) => ({ ...prev, [parishId]: current }))
         } else {
           invalidateFollowedParishesCache()
@@ -227,7 +229,7 @@ export default function DirectoryPage() {
         }
       }
     },
-    [user, followStates]
+    [user, followStates, t]
   )
 
   const clearQuery = () => {
@@ -247,7 +249,7 @@ export default function DirectoryPage() {
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
 
         {/* ── Header ── */}
-        <TopBar variant="navy" title="Parish Directory" />
+        <TopBar variant="navy" title={t('parish.directory_title')} />
         <div className="bg-navy px-4 pt-1 pb-5">
 
           {/* Search bar */}
@@ -257,11 +259,11 @@ export default function DirectoryPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or diocese..."
+              placeholder={t('parish.search_short', 'Search by name or diocese...')}
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {query && (
-              <button aria-label="Clear search"
+              <button aria-label={t('parish.clear_search', 'Clear search')}
                 onClick={clearQuery}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 p-1"
               >
@@ -278,8 +280,8 @@ export default function DirectoryPage() {
                 type="text"
                 value={cityQuery}
                 onChange={(e) => setCityQuery(e.target.value)}
-                placeholder="City or ZIP"
-                aria-label="Filter by city or ZIP code"
+                placeholder={t('parish.city_zip', 'City or ZIP')}
+                aria-label={t('parish.filter_city', 'Filter by city or ZIP code')}
                 className="w-full bg-white/90 pl-9 pr-3 py-2.5 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
               />
             </div>
@@ -288,10 +290,10 @@ export default function DirectoryPage() {
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                aria-label="Filter by state"
+                aria-label={t('parish.filter_state', 'Filter by state')}
                 className="w-full bg-white/90 pl-9 pr-2 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
               >
-                <option value="">All states</option>
+                <option value="">{t('parish.all_states', 'All states')}</option>
                 {US_STATES.map(([code, name]) => (
                   <option key={code} value={code}>{name}</option>
                 ))}
@@ -304,11 +306,11 @@ export default function DirectoryPage() {
             <button
               onClick={requestLocation}
               disabled={locationLoading}
-              aria-label={locationLoading ? 'Finding your location' : userLocation ? 'Location enabled' : 'Use my location'}
+              aria-label={locationLoading ? t('parish.finding_location', 'Finding your location') : userLocation ? t('parish.location_enabled', 'Location enabled') : t('parish.use_location', 'Use my location')}
               className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full transition-colors disabled:opacity-60"
             >
               <MapPinIcon className="w-4 h-4" />
-              {locationLoading ? 'Finding you…' : userLocation ? 'Location on' : 'Near me'}
+              {locationLoading ? t('parish.finding_you', 'Finding you…') : userLocation ? t('parish.location_on') : t('parish.near_me')}
             </button>
 
             <div className="flex bg-white/10 rounded-full p-0.5 ml-auto">
@@ -320,7 +322,7 @@ export default function DirectoryPage() {
                 }`}
               >
                 <ListBulletIcon className="w-3.5 h-3.5" />
-                List
+                {t('parish.list_view')}
               </button>
               <button
                 onClick={() => setViewMode('map')}
@@ -330,7 +332,7 @@ export default function DirectoryPage() {
                 }`}
               >
                 <MapIcon className="w-3.5 h-3.5" />
-                Map
+                {t('parish.map_view')}
               </button>
             </div>
           </div>
@@ -382,10 +384,10 @@ export default function DirectoryPage() {
                     }`}
                   >
                     {followStates[selectedParish.id]?.isFollowing || profile?.parish_id === selectedParish.id
-                      ? 'Following'
-                      : 'Follow'}
+                      ? t('parish.following')
+                      : t('parish.follow_short', 'Follow')}
                   </button>
-                  <button aria-label="Close"
+                  <button aria-label={t('common:actions.close')}
                     onClick={() => setSelectedParish(null)}
                     className="text-gray-500 hover:text-gray-600 p-1"
                   >
@@ -407,7 +409,7 @@ export default function DirectoryPage() {
                     {selectedOrg.city ? ` · ${selectedOrg.city}, ${selectedOrg.state}` : ''}
                   </p>
                 </div>
-                <button aria-label="Close"
+                <button aria-label={t('common:actions.close')}
                   onClick={() => setSelectedOrg(null)}
                   className="text-gray-500 hover:text-gray-600 p-1 flex-shrink-0"
                 >
@@ -429,7 +431,7 @@ export default function DirectoryPage() {
           {!isSearching && !followedLoading && followedParishes.length > 0 && (
             <section>
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                Your parishes
+                {t('parish.your_parishes')}
               </h2>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                 {followedParishes.map((parish) => (
@@ -449,7 +451,7 @@ export default function DirectoryPage() {
           {userLocation && (
             <section>
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                Near you
+                {t('parish.near_you', 'Near you')}
               </h2>
 
               {nearbyLoading ? (
@@ -463,8 +465,8 @@ export default function DirectoryPage() {
                   {nearbyParishes.length === 0 && nearbyOrgs.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                      <p className="text-navy font-semibold text-sm">No results nearby</p>
-                      <p className="text-gray-500 text-xs mt-1">Try searching by name or zip code instead</p>
+                      <p className="text-navy font-semibold text-sm">{t('parish.no_results_nearby', 'No results nearby')}</p>
+                      <p className="text-gray-500 text-xs mt-1">{t('parish.no_nearby_body')}</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -532,8 +534,8 @@ export default function DirectoryPage() {
                   ) : filteredGeoParishes.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                      <p className="text-navy font-semibold text-sm">No parishes found nearby</p>
-                      <p className="text-gray-500 text-xs mt-1">Try a different city or zip code</p>
+                      <p className="text-navy font-semibold text-sm">{t('parish.no_nearby')}</p>
+                      <p className="text-gray-500 text-xs mt-1">{t('parish.try_city', 'Try a different city or zip code')}</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -571,8 +573,8 @@ export default function DirectoryPage() {
                   ) : results.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                       <MapPinIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                      <p className="text-navy font-semibold text-sm">No parishes found</p>
-                      <p className="text-gray-500 text-xs mt-1">Try a different name, city, or zip code</p>
+                      <p className="text-navy font-semibold text-sm">{t('parish.no_results')}</p>
+                      <p className="text-gray-500 text-xs mt-1">{t('parish.no_results_body')}</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -591,7 +593,7 @@ export default function DirectoryPage() {
                       ))}
                       {hasMore && (
                         <p className="sm:col-span-2 text-center text-xs text-gray-500 py-2">
-                          More parishes match — add a city, zip code or state to narrow the list.
+                          {t('parish.more_match', 'More parishes match — add a city, zip code or state to narrow the list.')}
                         </p>
                       )}
                     </div>
@@ -608,9 +610,9 @@ export default function DirectoryPage() {
                 <div className="w-14 h-14 bg-lightbg rounded-2xl flex items-center justify-center mx-auto mb-3">
                   <MapPinIcon className="w-7 h-7 text-navy" />
                 </div>
-                <h3 className="font-bold text-navy mb-1">Find your parish</h3>
+                <h3 className="font-bold text-navy mb-1">{t('parish.discover_title')}</h3>
                 <p className="text-gray-500 text-sm mb-4">
-                  Search by name, city, or zip — or use your location to find parishes near you.
+                  {t('parish.discover_body')}
                 </p>
                 <button
                   onClick={requestLocation}
@@ -618,7 +620,7 @@ export default function DirectoryPage() {
                   className="inline-flex items-center gap-2 bg-navy text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-navy/90 transition-colors disabled:opacity-60"
                 >
                   <MapPinIcon className="w-4 h-4" />
-                  {locationLoading ? 'Finding you…' : 'Find parishes near me'}
+                  {locationLoading ? t('parish.finding_you', 'Finding you…') : t('parish.find_near_me')}
                 </button>
               </div>
             </section>

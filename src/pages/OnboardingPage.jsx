@@ -6,7 +6,7 @@ import { useTranslation } from '../utils/i18n'
 import { supabase } from '../lib/supabase'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import { getLiturgicalSeason } from '../utils/liturgical'
+import { getLiturgicalSeason, seasonLabel } from '../utils/liturgical'
 import { format } from 'date-fns'
 import { fuzzyIlike } from '../utils/search'
 import { useReadings } from '../hooks/useReadings'
@@ -289,7 +289,7 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: season.color }} />
-                    <span className="text-gray-500 text-xs">{season.label}</span>
+                    <span className="text-gray-500 text-xs">{seasonLabel(season)}</span>
                   </div>
                 </div>
                 <div className="p-4">
