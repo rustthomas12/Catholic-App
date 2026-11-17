@@ -56,7 +56,7 @@ async function run(label) {
   await page.goto(BASE + PATH, { waitUntil: 'commit' })
   // Feed is "ready" when a post card or the empty state is on screen
   const feedReady = await page.waitForFunction(() => {
-    return !!document.querySelector('article, [data-post-id]') || /all caught up/i.test(document.body.innerText)
+    return !!document.querySelector('article, [data-post-id]') || /all caught up/i.test(document.body?.innerText ?? '')
   }, null, { timeout: 30000 }).then(() => Date.now() - t0).catch(() => null)
   await page.waitForTimeout(2500)
   const paint = await page.evaluate(() => {
@@ -71,6 +71,7 @@ async function run(label) {
     .map((r) => `${String(r.start).padStart(5)}ms +${String(r.dur).padStart(4)}ms  ${r.url.replace(/^https:\/\/[^/]+/, '').split('?')[0]}${r.url.includes('?') ? '?' + new URL(r.url).searchParams.get('select')?.slice(0, 40) : ''}`)
   console.log(`\n=== ${label} ===`)
   console.log(`TTFB ${paint.ttfb}ms · first paint ${fcp}ms · DOM ready ${paint.domReady}ms · feed on screen ${feedReady}ms`)
+  if (process.env.PROBE_LIST) for (const r of before.sort((x, y) => x.start - y.start)) console.log(`    ${String(r.start).padStart(5)}ms ${String(Math.round(r.bytes / 1024)).padStart(4)}KB ${r.url.split('/').pop()}`)
   console.log(`JS/CSS before first paint: ${before.length} files, ${Math.round(before.reduce((a, r) => a + r.bytes, 0) / 1024)} KB (transfer may be compressed)`)
   console.log(`All requests in first ${feedReady + 2500}ms: ${reqs.length} · scripts ${reqs.filter((r) => r.type === 'script').length} · supabase ${sb.length}`)
   console.log('Supabase waterfall:\n  ' + sb.join('\n  '))

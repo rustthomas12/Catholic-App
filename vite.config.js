@@ -1,8 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { preloadHomeScreen } from './build/preloadHomeScreen.js'
 
 export default defineConfig({
+  build: {
+    rolldownOptions: {
+      output: {
+        // date-fns otherwise splits into many ~1 KB files that the home
+        // screen needs before it can draw (not used at startup itself, so
+        // this doesn't grow the first download)
+        codeSplitting: {
+          groups: [{ name: 'date-fns', test: /node_modules\/date-fns\// }],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       // Forward /api/* to Vercel dev server (run `vercel dev` on port 3000)
@@ -15,6 +28,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    preloadHomeScreen(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand/**/*.svg', 'brand/fonts/*.ttf'],
