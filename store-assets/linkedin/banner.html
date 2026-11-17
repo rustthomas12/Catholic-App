@@ -1,0 +1,99 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Inknut'; src: url("../../public/brand/fonts/InknutAntiqua-SemiBold.ttf"); font-weight: 600; }
+  html, body { margin: 0; padding: 0; }
+  body { width: 1146px; height: 191px; overflow: hidden; }
+  .banner {
+    position: relative; width: 1146px; height: 191px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 420px 260px at 82% 10%, rgba(111,205,255,.38), rgba(111,205,255,0) 70%),
+      radial-gradient(ellipse 380px 220px at 18% 120%, rgba(0,92,150,.55), rgba(0,92,150,0) 70%),
+      linear-gradient(115deg, #06182E 0%, #0A2A4D 45%, #005C96 100%);
+  }
+  /* faint diagonal light rays */
+  .rays { position: absolute; inset: 0; opacity: .07;
+    background: repeating-linear-gradient(115deg, #fff 0 1px, transparent 1px 38px); }
+  svg.skyline { position: absolute; left: 0; bottom: 0; width: 1146px; height: 191px; }
+  .content {
+    position: absolute; left: 330px; right: 70px; top: 0; bottom: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+  }
+  .lockup { height: 54px; display: block; filter: drop-shadow(0 4px 14px rgba(0,0,0,.35)); }
+  .tagline {
+    margin-top: 8px; font-family: 'Inknut', Georgia, serif; font-weight: 600;
+    font-size: 21px; line-height: 1.25; color: #FFFFFF; letter-spacing: .2px;
+  }
+  .rule { width: 46px; height: 2px; margin: 9px auto 9px; background: #6FCDFF; border-radius: 2px; }
+  .features {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12.5px; font-weight: 600;
+    letter-spacing: 2.2px; text-transform: uppercase; color: #9EDCFF;
+  }
+  .features span { color: rgba(255,255,255,.35); margin: 0 7px; }
+  .url {
+    position: absolute; right: 110px; bottom: 14px;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 1px; color: rgba(255,255,255,.75);
+  }
+</style></head>
+<body>
+<div class="banner">
+  <div class="rays"></div>
+  <!-- Parish skyline: steeples and bell towers, faint, across the bottom -->
+  <svg class="skyline" viewBox="0 0 1146 191" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6FCDFF" stop-opacity=".16"/>
+        <stop offset="1" stop-color="#6FCDFF" stop-opacity=".05"/>
+      </linearGradient>
+      <!-- a church: nave + steeple + cross, origin at bottom-left -->
+      <g id="church">
+        <rect x="0" y="-34" width="46" height="34"/>
+        <polygon points="-3,-34 23,-52 49,-34"/>
+        <rect x="30" y="-78" width="14" height="44"/>
+        <polygon points="28,-78 37,-100 46,-78"/>
+        <rect x="36" y="-110" width="2" height="10"/>
+        <rect x="33" y="-106" width="8" height="2"/>
+      </g>
+      <g id="tower">
+        <rect x="0" y="-70" width="24" height="70"/>
+        <polygon points="-2,-70 12,-90 26,-70"/>
+        <rect x="11" y="-100" width="2" height="10"/>
+        <rect x="8" y="-96" width="8" height="2"/>
+      </g>
+      <g id="chapel">
+        <rect x="0" y="-26" width="34" height="26"/>
+        <polygon points="-3,-26 17,-46 37,-26"/>
+        <rect x="16" y="-56" width="2" height="10"/>
+        <rect x="13" y="-52" width="8" height="2"/>
+      </g>
+    </defs>
+    <g fill="url(#fade)">
+      <use href="#chapel" x="300" y="191" transform="scale(1)"/>
+      <use href="#church" x="350" y="191"/>
+      <use href="#tower" x="420" y="191"/>
+      <use href="#chapel" x="470" y="191"/>
+      <use href="#church" x="540" y="191" />
+      <use href="#tower" x="610" y="191"/>
+      <use href="#church" x="680" y="191"/>
+      <use href="#chapel" x="760" y="191"/>
+      <use href="#tower" x="815" y="191"/>
+      <use href="#church" x="860" y="191"/>
+      <use href="#chapel" x="935" y="191"/>
+      <use href="#tower" x="990" y="191"/>
+      <use href="#church" x="1040" y="191"/>
+      <use href="#chapel" x="1100" y="191"/>
+    </g>
+    <!-- ground line -->
+    <rect x="290" y="189" width="856" height="2" fill="#6FCDFF" opacity=".18"/>
+  </svg>
+  <div class="content">
+    <img class="lockup" src="../../public/brand/lockup/infold-lockup-white.svg" alt="inFold">
+    <div class="tagline">The digital parish hall</div>
+    <div class="rule"></div>
+    <div class="features">Parish feed<span>•</span>Groups<span>•</span>Daily readings<span>•</span>Prayer</div>
+  </div>
+  <div class="url">getinfold.app</div>
+</div>
+</body></html>
