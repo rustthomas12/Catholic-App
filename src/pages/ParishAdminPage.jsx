@@ -1,4 +1,5 @@
 import { readAccess } from '../lib/membership'
+import ChurchSelect from '../components/shared/ChurchSelect'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
@@ -1370,6 +1371,8 @@ function SettingsTab({ parishId, parish, setParish }) {
     email: parish?.email ?? '',
     website: parish?.website ?? '',
     description: parish?.description ?? '',
+    church: parish?.church ?? 'latin',
+    diocese: parish?.diocese ?? '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -1406,6 +1409,7 @@ function SettingsTab({ parishId, parish, setParish }) {
     { key: 'phone', label: 'Phone' },
     { key: 'email', label: 'Email' },
     { key: 'website', label: 'Website' },
+    { key: 'diocese', label: 'Diocese / Eparchy' },
   ]
 
   return (
@@ -1425,6 +1429,16 @@ function SettingsTab({ parishId, parish, setParish }) {
               />
             </div>
           ))}
+        </div>
+        <div>
+          <label htmlFor="parish-church" className="text-xs font-semibold text-gray-500 mb-1 block">Church / Rite</label>
+          <ChurchSelect
+            id="parish-church"
+            value={form.church}
+            onChange={v => handleChange('church', v)}
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-navy"
+          />
+          <p className="text-xs text-gray-500 mt-1">Eastern Catholic parishes: choose your Church here and enter your eparchy under Diocese / Eparchy.</p>
         </div>
         <div>
           <label className="text-xs font-semibold text-gray-500 mb-1 block">About / Description</label>

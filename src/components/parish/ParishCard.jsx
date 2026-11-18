@@ -8,6 +8,7 @@ import {
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../utils/i18n'
+import { isEastern, churchLabel } from '../../data/churches'
 
 /**
  * ParishCard — two variants:
@@ -38,6 +39,7 @@ export default function ParishCard({
           </p>
           <p className="text-xs text-gray-500 truncate">
             {parish.city}, {parish.state}
+            {isEastern(parish.church) && <span className="ml-1.5">· {churchLabel(t, parish.church)}</span>}
             {typeof parish.distance === 'number' && (
               <span className="ml-1.5 text-gray-500">
                 · {formatDistance(parish.distance)}
@@ -70,6 +72,11 @@ export default function ParishCard({
             {parish.city}, {parish.state}
             {parish.diocese ? ` · ${parish.diocese}` : ''}
           </p>
+          {isEastern(parish.church) && (
+            <span className="inline-block mt-1.5 text-[11px] font-semibold text-navy bg-gold px-2 py-0.5 rounded-full">
+              {churchLabel(t, parish.church)}
+            </span>
+          )}
         </div>
 
         {onFollow && (

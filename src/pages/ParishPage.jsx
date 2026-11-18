@@ -24,6 +24,8 @@ import ParishEvents from '../components/parish/ParishEvents'
 import ParishGroups from '../components/parish/ParishGroups'
 import useGoBack from '../hooks/useGoBack'
 import { canPurchaseInApp } from '../lib/platform'
+import { isEastern, churchLabel } from '../data/churches'
+import { useTranslation } from 'react-i18next'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -33,6 +35,7 @@ const TABS = [
 ]
 
 export default function ParishPage() {
+  const { t } = useTranslation('parish')
   const { id } = useParams()
   const navigate = useNavigate()
   const goBack = useGoBack('/directory')
@@ -123,6 +126,11 @@ export default function ParishPage() {
                 {[parish.city, parish.state].filter(Boolean).join(', ')}
                 {parish.diocese ? ` · ${parish.diocese}` : ''}
               </p>
+              {isEastern(parish.church) && (
+                <span className="inline-block mt-1.5 text-xs font-semibold text-navy bg-gold px-2 py-0.5 rounded-full">
+                  {churchLabel(t, parish.church)}
+                </span>
+              )}
               <p className="text-gray-500 text-xs mt-1">
                 {followerCount.toLocaleString()} parishioner{followerCount !== 1 ? 's' : ''} here
               </p>

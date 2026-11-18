@@ -9,6 +9,7 @@ import ParishCard from '../components/parish/ParishCard'
 import DirectoryDiscoveryBanner from '../components/parish/DirectoryDiscoveryBanner'
 import NearbyEventSuggestions from '../components/parish/NearbyEventSuggestions'
 import { useTranslation } from 'react-i18next'
+import { CHURCHES, TRADITIONS, churchesForFilter, churchLabel, traditionLabel } from '../data/churches'
 
 const ParishMap = lazy(() => import('../components/parish/ParishMap'))
 
@@ -36,6 +37,8 @@ export default function DirectoryPage() {
   const [query, setQuery] = useState('')
   const [cityQuery, setCityQuery] = useState('')
   const [stateFilter, setStateFilter] = useState('')
+  const [riteFilter, setRiteFilter] = useState('') // '' | 'eastern' | tradition id | church id
+  const churchFilter = useMemo(() => churchesForFilter(riteFilter), [riteFilter])
   const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
   const [selectedParish, setSelectedParish] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -45,7 +48,7 @@ export default function DirectoryPage() {
   const [selectedOrg, setSelectedOrg] = useState(null)
   const [mapOrgs, setMapOrgs] = useState([])
 
-  const { parishes: nearbyParishes, loading: nearbyLoading } = useNearbyParishes(userLocation)
+  const { parishes: nearbyParishes, loading: nearbyLoading } = useNearbyParishes(userLocation, 50, churchFilter)
 
   const [geocodedLocation, setGeocodedLocation] = useState(null)
   const [geoParishes, setGeoParishes] = useState([])
@@ -89,13 +92,15 @@ export default function DirectoryPage() {
     const dLat = radiusMiles / 69.0
     const dLng = radiusMiles / (69.0 * Math.cos((lat * Math.PI) / 180))
     let cancelled = false
-    supabase
+    let geoQuery = supabase
       .from('parishes')
-      .select('id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at')
+      .select('id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, church')
       .gte('latitude', lat - dLat)
       .lte('latitude', lat + dLat)
       .gte('longitude', lng - dLng)
       .lte('longitude', lng + dLng)
+    if (churchFilter) geoQuery = geoQuery.in('church', churchFilter)
+    geoQuery
       .limit(200)
       .then(({ data }) => {
         if (cancelled) return
@@ -107,7 +112,7 @@ export default function DirectoryPage() {
         setGeoLoading(false)
       })
     return () => { cancelled = true }
-  }, [geocodedLocation?.lat, geocodedLocation?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [geocodedLocation?.lat, geocodedLocation?.lng, churchFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Client-side filter geo results by name query
   const filteredGeoParishes = useMemo(() => {
@@ -160,12 +165,12 @@ export default function DirectoryPage() {
     const hasName = query.trim().length >= 2
     const hasCity = cityQuery.trim().length >= 2
     const hasState = !!stateFilter
-    if (hasName || hasCity || hasState) {
-      search(query, userLocation, stateFilter, cityQuery)
+    if (hasName || hasCity || hasState || churchFilter) {
+      search(query, userLocation, stateFilter, cityQuery, churchFilter)
     } else {
       clear()
     }
-  }, [query, cityQuery, stateFilter, userLocation, search, clear])
+  }, [query, cityQuery, stateFilter, churchFilter, userLocation, search, clear])
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -236,10 +241,11 @@ export default function DirectoryPage() {
     setQuery('')
     setCityQuery('')
     setStateFilter('')
+    setRiteFilter('')
     clear()
   }
 
-  const isSearching = query.trim().length >= 2 || cityQuery.trim().length >= 2 || !!stateFilter
+  const isSearching = query.trim().length >= 2 || cityQuery.trim().length >= 2 || !!stateFilter || !!churchFilter
 
   // For map: search results when searching, else nearby or followed
   const mapParishes = isSearching ? results : userLocation ? nearbyParishes : followedParishes
@@ -299,6 +305,34 @@ export default function DirectoryPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Church / rite filter — the 23 Eastern Catholic Churches and the Latin Church */}
+          <div className="relative mt-2">
+            <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+            <select
+              value={riteFilter}
+              onChange={(e) => setRiteFilter(e.target.value)}
+              aria-label={t('parish.filter_rite', 'Filter by church or rite')}
+              className="w-full bg-white/90 pl-9 pr-2 py-2.5 rounded-xl text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer"
+            >
+              <option value="">{t('parish.all_rites', 'All rites')}</option>
+              <option value="latin">{churchLabel(t, 'latin')}</option>
+              <option value="eastern">{t('parish.all_eastern', 'All Eastern Catholic')}</option>
+              {TRADITIONS.filter((tr) => tr.id !== 'latin').map((tr) => {
+                const members = CHURCHES.filter((c) => c.tradition === tr.id)
+                return (
+                  <optgroup key={tr.id} label={traditionLabel(t, tr.id)}>
+                    {members.length > 1 && (
+                      <option value={tr.id}>{t('parish.all_tradition', 'All {{tradition}}', { tradition: traditionLabel(t, tr.id) })}</option>
+                    )}
+                    {members.map((c) => (
+                      <option key={c.id} value={c.id}>{churchLabel(t, c.id)}</option>
+                    ))}
+                  </optgroup>
+                )
+              })}
+            </select>
           </div>
 
           {/* Action row */}
@@ -522,7 +556,7 @@ export default function DirectoryPage() {
               {geocodedLocation ? (
                 <>
                   <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                    Parishes near {cityQuery.trim()}
+                    {t('parish.parishes_near', 'Parishes near {{place}}', { place: cityQuery.trim() })}
                     {filteredGeoParishes.length > 0 && ` (${filteredGeoParishes.length})`}
                   </h2>
                   {geoLoading ? (
@@ -560,8 +594,8 @@ export default function DirectoryPage() {
                 <>
                   <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                     {stateFilter && !query
-                      ? `${US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter} parishes`
-                      : 'Search results'}
+                      ? t('parish.state_parishes', '{{state}} parishes', { state: US_STATES.find(([c]) => c === stateFilter)?.[1] ?? stateFilter })
+                      : t('parish.search_results', 'Search results')}
                     {results.length > 0 && (hasMore ? ` (first ${results.length})` : ` (${results.length})`)}
                   </h2>
                   {searchLoading ? (

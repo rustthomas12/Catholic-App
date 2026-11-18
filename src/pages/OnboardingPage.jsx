@@ -13,6 +13,8 @@ import { useReadings } from '../hooks/useReadings'
 import { toast } from '../components/shared/Toast'
 import { LogoMark } from '../components/shared/Logo'
 import { canPurchaseInApp } from '../lib/platform'
+import ChurchSelect from '../components/shared/ChurchSelect'
+import { isEastern, churchLabel } from '../data/churches'
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -46,7 +48,7 @@ export default function OnboardingPage() {
   // Load parish if user has one
   useEffect(() => {
     if (profile?.parish_id) {
-      supabase.from('parishes').select('id, name, city, state, diocese')
+      supabase.from('parishes').select('id, name, city, state, diocese, church')
         .eq('id', profile.parish_id).single()
         .then(({ data }) => { if (data) setParish(data) })
     }
@@ -59,7 +61,7 @@ export default function OnboardingPage() {
     const timer = setTimeout(async () => {
       setParishSearching(true)
       const { data } = await supabase.from('parishes')
-        .select('id, name, city, state')
+        .select('id, name, city, state, church')
         .or(`name.ilike.${fuzzyIlike(q)},city.ilike.${fuzzyIlike(q)}`)
         .limit(5)
       setParishResults(data ?? [])
@@ -72,8 +74,10 @@ export default function OnboardingPage() {
     setParish(p)
     setParishQuery('')
     setParishResults([])
-    // Save to profile and follow
-    await updateProfile({ parish_id: p.id })
+    // Save to profile and follow. Picking an Eastern parish while still on
+    // the default suggests that Church; the picker below can change it.
+    const church = p.church && p.church !== 'latin' && (profile?.church ?? 'latin') === 'latin' ? p.church : undefined
+    await updateProfile(church ? { parish_id: p.id, church } : { parish_id: p.id })
     await supabase.from('parish_follows').upsert(
       { parish_id: p.id, user_id: user.id },
       { onConflict: 'parish_id,user_id' }
@@ -194,7 +198,7 @@ export default function OnboardingPage() {
                         <button key={p.id} onClick={() => selectParish(p)}
                           className="w-full text-left px-3 py-2.5 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0 min-h-[44px]">
                           <p className="text-sm font-semibold text-navy">{p.name}</p>
-                          <p className="text-xs text-gray-500">{p.city}, {p.state}</p>
+                          <p className="text-xs text-gray-500">{p.city}, {p.state}{isEastern(p.church) ? ` · ${churchLabel(t, p.church)}` : ''}</p>
                         </button>
                       ))}
                     </div>
@@ -207,6 +211,22 @@ export default function OnboardingPage() {
                   )}
                 </div>
               )}
+
+              {/* Church — Latin or one of the 23 Eastern Catholic Churches */}
+              <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left">
+                <label htmlFor="onboarding-church" className="text-sm font-semibold text-navy block mb-2">
+                  {t('onboarding.church', 'Your Church')}
+                </label>
+                <ChurchSelect
+                  id="onboarding-church"
+                  value={profile?.church}
+                  onChange={(church) => updateProfile({ church })}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-navy bg-white focus:outline-none focus:border-navy"
+                />
+                <p className="text-xs text-gray-500 mt-1.5">
+                  {t('onboarding.church_hint', 'Latin (Roman) or one of the 23 Eastern Catholic Churches. You can change this in Settings.')}
+                </p>
+              </div>
 
               <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold" onClick={() => setStep(2)}>
                 {t('onboarding.continue')}

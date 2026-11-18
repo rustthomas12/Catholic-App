@@ -72,6 +72,13 @@
     "here_count": "{{formattedCount}} aquí",
     "dist_here": "Aquí",
     "dist_ft": "a {{n}} pies",
-    "dist_mi": "a {{n}} mi"
+    "dist_mi": "a {{n}} mi",
+    "filter_rite": "Filtrar por Iglesia o rito",
+    "all_rites": "Todos los ritos",
+    "all_eastern": "Todas las católicas orientales",
+    "all_tradition": "Toda la tradición {{tradition}}",
+    "state_parishes": "Parroquias de {{state}}",
+    "search_results": "Resultados de búsqueda",
+    "parishes_near": "Parroquias cerca de {{place}}"
   }
 }

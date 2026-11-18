@@ -13,6 +13,7 @@ import Modal from '../components/shared/Modal'
 import Button from '../components/shared/Button'
 import { toast } from '../components/shared/Toast'
 import LanguageSwitcher from '../components/shared/LanguageSwitcher'
+import ChurchSelect from '../components/shared/ChurchSelect'
 import pkgJson from '../../package.json'
 import { useTranslation } from 'react-i18next'
 
@@ -138,6 +139,26 @@ export default function SettingsPage() {
         <Group>
           <div className="px-4 py-4">
             <LanguageSwitcher variant="full" />
+          </div>
+        </Group>
+
+        {/* Church — Latin or one of the 23 Eastern Catholic Churches */}
+        <SectionHeader title={t('settings.church', 'My Church')} />
+        <Group>
+          <div className="px-4 py-4">
+            <ChurchSelect
+              ariaLabel={t('settings.church', 'My Church')}
+              value={profile?.church}
+              onChange={async (church) => {
+                const { error } = await updateProfile({ church })
+                if (error) toast.error(error)
+                else toast.success(t('settings.church_updated', 'Church updated'))
+              }}
+              className="w-full text-sm text-navy border border-gray-200 rounded-lg px-3 min-h-[44px] bg-white focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              {t('settings.church_hint', 'The Catholic Church is 24 Churches in full communion: the Latin Church and 23 Eastern Catholic Churches.')}
+            </p>
           </div>
         </Group>
 

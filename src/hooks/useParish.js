@@ -19,7 +19,7 @@ export function haversineMiles(lat1, lon1, lat2, lon2) {
 }
 
 const PARISH_SELECT =
-  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id, description'
+  'id, name, diocese, city, state, zip, address, phone, website, email, latitude, longitude, is_official, mass_times, data_source, data_quality, created_at, parent_parish_id, description, church'
 
 const RESULT_LIMIT = 50
 
@@ -31,11 +31,12 @@ export function useParishSearch() {
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
-  // search(nameQuery, userLocation?, stateFilter?, cityQuery?)
+  // search(nameQuery, userLocation?, stateFilter?, cityQuery?, churches?)
   // - nameQuery: matches parish name and diocese
   // - cityQuery: narrows by city OR zip (AND-ed with name when both provided)
   // - stateFilter: two-letter state code (AND-ed with everything)
-  const search = useCallback((nameQuery, userLocation = null, stateFilter = null, cityQuery = null) => {
+  // - churches: array of church ids (data/churches.js), AND-ed; null = all
+  const search = useCallback((nameQuery, userLocation = null, stateFilter = null, cityQuery = null, churches = null) => {
     clearTimeout(debounceRef.current)
 
     const trimmed     = (nameQuery ?? '').trim()
@@ -43,7 +44,7 @@ export function useParishSearch() {
     const state       = stateFilter ? stateFilter.trim().toUpperCase() : null
 
     // Need at least one active filter
-    if (trimmed.length < 2 && cityTrimmed.length < 2 && !state) {
+    if (trimmed.length < 2 && cityTrimmed.length < 2 && !state && !churches) {
       setResults([])
       return
     }
@@ -64,6 +65,9 @@ export function useParishSearch() {
 
       if (state) {
         query = query.eq('state', state)
+      }
+      if (churches) {
+        query = query.in('church', churches)
       }
 
       if (trimmed.length >= 2 && cityTrimmed.length >= 2) {
@@ -127,7 +131,7 @@ export function useParishSearch() {
 // ── useNearbyParishes — bounding box + Haversine ──────────
 // Fetches only parishes within a lat/lng bounding box (~50 mi radius),
 // then sorts by exact Haversine distance. Safe at 15,000+ parish scale.
-let _nearbyCache = null  // { parishes, lat, lng }
+let _nearbyCache = null  // { parishes, lat, lng, churchKey }
 
 function locationKey(lat, lng) {
   return `${Math.round(lat * 100) / 100},${Math.round(lng * 100) / 100}`
@@ -137,10 +141,13 @@ function locationKey(lat, lng) {
 function miToDegLat(miles) { return miles / 69.0 }
 function miToDegLng(miles, lat) { return miles / (69.0 * Math.cos((lat * Math.PI) / 180)) }
 
-export function useNearbyParishes(userLocation, radiusMiles = 50) {
+// churches: optional array of church ids to limit results to (null = all)
+export function useNearbyParishes(userLocation, radiusMiles = 50, churches = null) {
+  const churchKey = churches ? churches.join(',') : ''
   const cachedForLocation =
     _nearbyCache &&
     userLocation &&
+    _nearbyCache.churchKey === churchKey &&
     locationKey(_nearbyCache.lat, _nearbyCache.lng) === locationKey(userLocation.lat, userLocation.lng)
 
   const [parishes, setParishes] = useState(() => (cachedForLocation ? _nearbyCache.parishes : []))
@@ -151,7 +158,7 @@ export function useNearbyParishes(userLocation, radiusMiles = 50) {
     if (!userLocation) return
 
     const key = locationKey(userLocation.lat, userLocation.lng)
-    if (_nearbyCache && locationKey(_nearbyCache.lat, _nearbyCache.lng) === key) {
+    if (_nearbyCache && _nearbyCache.churchKey === churchKey && locationKey(_nearbyCache.lat, _nearbyCache.lng) === key) {
       setParishes(_nearbyCache.parishes)
       setLoading(false)
       return
@@ -166,13 +173,15 @@ export function useNearbyParishes(userLocation, radiusMiles = 50) {
     const lngDelta = miToDegLng(radiusMiles, lat)
 
     // Bounding box pre-filter — hits indexed latitude/longitude columns
-    supabase
+    let query = supabase
       .from('parishes')
       .select(PARISH_SELECT)
       .gte('latitude',  lat - latDelta)
       .lte('latitude',  lat + latDelta)
       .gte('longitude', lng - lngDelta)
       .lte('longitude', lng + lngDelta)
+    if (churchKey) query = query.in('church', churchKey.split(','))
+    query
       .limit(500)
       .then(({ data, error: err }) => {
         if (cancelled) return
@@ -191,13 +200,13 @@ export function useNearbyParishes(userLocation, radiusMiles = 50) {
           .sort((a, b) => a.distance - b.distance)
           .slice(0, 25)
 
-        _nearbyCache = { parishes: nearby, lat, lng }
+        _nearbyCache = { parishes: nearby, lat, lng, churchKey }
         setParishes(nearby)
         setLoading(false)
       })
 
     return () => { cancelled = true }
-  }, [userLocation?.lat, userLocation?.lng, radiusMiles]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userLocation?.lat, userLocation?.lng, radiusMiles, churchKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { parishes, loading, error }
 }

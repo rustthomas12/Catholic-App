@@ -216,7 +216,10 @@
     "delete_body": "Esto eliminará permanentemente tu perfil y todas tus publicaciones.",
     "cannot_undo": "Esta acción no se puede deshacer.",
     "type": "Escribe",
-    "to_confirm": "para confirmar"
+    "to_confirm": "para confirmar",
+    "church": "Mi Iglesia",
+    "church_updated": "Iglesia actualizada",
+    "church_hint": "La Iglesia católica son 24 Iglesias en plena comunión: la Iglesia latina y 23 Iglesias católicas orientales."
   },
   "home": {
     "welcome_to": "Bienvenido a inFold",
@@ -268,5 +271,39 @@
     "posts": "Publicaciones",
     "parish": "Parroquia",
     "since": "Desde"
+  },
+  "church": {
+    "latin": "Latina (romana)",
+    "ukrainian": "Greco-católica ucraniana",
+    "ruthenian": "Rutena (católica bizantina)",
+    "melkite": "Greco-católica melquita",
+    "romanian": "Greco-católica rumana",
+    "slovak": "Greco-católica eslovaca",
+    "hungarian": "Greco-católica húngara",
+    "italo_albanian": "Ítalo-albanesa",
+    "greek": "Católica bizantina griega",
+    "bulgarian": "Greco-católica búlgara",
+    "krizevci": "Greco-católica de Križevci",
+    "macedonian": "Greco-católica macedonia",
+    "belarusian": "Greco-católica bielorrusa",
+    "russian": "Greco-católica rusa",
+    "albanian": "Greco-católica albanesa",
+    "coptic": "Copta católica",
+    "ethiopian": "Católica etíope",
+    "eritrean": "Católica eritrea",
+    "maronite": "Maronita",
+    "syriac": "Siro-católica",
+    "syro_malankara": "Siro-malankar católica",
+    "armenian": "Armenia católica",
+    "chaldean": "Caldea católica",
+    "syro_malabar": "Siro-malabar católica"
+  },
+  "tradition": {
+    "latin": "Latina",
+    "byzantine": "Bizantina",
+    "alexandrian": "Alejandrina",
+    "antiochian": "Siria occidental (antioquena)",
+    "armenian": "Armenia",
+    "chaldean": "Siria oriental (caldea)"
   }
 }
