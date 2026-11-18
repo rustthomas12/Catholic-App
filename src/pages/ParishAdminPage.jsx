@@ -1,5 +1,7 @@
 import { readAccess } from '../lib/membership'
 import ChurchSelect from '../components/shared/ChurchSelect'
+import i18n from '../utils/i18n'
+import { liturgyContext } from '../utils/liturgyTerms'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
@@ -178,7 +180,7 @@ export default function ParishAdminPage() {
               }`}
             >
               <Icon className="w-4 h-4" />
-              {label}
+              {id === 'masstimes' ? i18n.t('common:term.mass_times', { context: liturgyContext(parish?.church) }) : label}
             </button>
           ))}
         </div>
@@ -761,7 +763,7 @@ function MassTimesTab({ parishId, parish, setParish }) {
     }
     // Plain string: show as single row
     if (typeof mt === 'string') {
-      return [{ day: 'All Masses', time: mt }]
+      return [{ day: i18n.t('common:term.all_masses', { context: liturgyContext(parish?.church) }), time: mt }]
     }
     return defaultRows
   }
@@ -799,11 +801,11 @@ function MassTimesTab({ parishId, parish, setParish }) {
       .single()
 
     if (error) {
-      toast.error('Could not save mass times.')
+      toast.error('Could not save these times.')
     } else {
       setParish(data)
       setEditMode(false)
-      toast.success('Mass times updated.')
+      toast.success(i18n.t('common:term.times_updated', { context: liturgyContext(parish?.church) }))
     }
     setSaving(false)
   }
@@ -811,7 +813,7 @@ function MassTimesTab({ parishId, parish, setParish }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-navy">Mass Times</h2>
+        <h2 className="font-bold text-navy">{i18n.t('common:term.mass_times', { context: liturgyContext(parish?.church) })}</h2>
         {!editMode && (
           <button
             onClick={() => { setRows(parseExisting()); setEditMode(true) }}
@@ -1277,7 +1279,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
           </div>
 
           <ul className="space-y-2 mb-6">
-            {['Announcements & events', 'Mass times editor', 'Parishioner directory', 'Messages inbox'].map(f => (
+            {['Announcements & events', i18n.t('common:term.times_editor', { context: liturgyContext(parish?.church) }), 'Parishioner directory', 'Messages inbox'].map(f => (
               <li key={f} className="flex items-center gap-2 text-sm text-navy">
                 <CheckCircleIcon className="w-4 h-4 text-gold flex-shrink-0" />
                 {f}

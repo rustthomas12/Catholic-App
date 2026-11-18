@@ -305,5 +305,28 @@
     "antiochian": "Siria occidental (antioquena)",
     "armenian": "Armenia",
     "chaldean": "Siria oriental (caldea)"
+  },
+  "term": {
+    "mass_times": "Horarios de Misa",
+    "mass_times_eastern": "Horarios de la Divina Liturgia",
+    "mass_times_qurbana": "Horarios de la Santa Qurbana",
+    "mass_times_none": "No hay horarios de Misa publicados.",
+    "mass_times_none_eastern": "No hay horarios de la Divina Liturgia publicados.",
+    "mass_times_none_qurbana": "No hay horarios de la Santa Qurbana publicados.",
+    "all_masses": "Todas las Misas",
+    "all_masses_eastern": "Todas las Liturgias",
+    "all_masses_qurbana": "Todas las Qurbanas",
+    "irs_note": "Esta parroquia proviene de registros públicos del IRS. Puede que aún no tenga teléfono, sitio web ni horarios de Misa.",
+    "irs_note_eastern": "Esta parroquia proviene de registros públicos del IRS. Puede que aún no tenga teléfono, sitio web ni horarios de la Divina Liturgia.",
+    "irs_note_qurbana": "Esta parroquia proviene de registros públicos del IRS. Puede que aún no tenga teléfono, sitio web ni horarios de la Santa Qurbana.",
+    "times_updated": "Horarios de Misa actualizados.",
+    "times_updated_eastern": "Horarios de la Divina Liturgia actualizados.",
+    "times_updated_qurbana": "Horarios de la Santa Qurbana actualizados.",
+    "times_editor": "Editor de horarios de Misa",
+    "times_editor_eastern": "Editor de horarios de la Divina Liturgia",
+    "times_editor_qurbana": "Editor de horarios de la Santa Qurbana"
+  },
+  "parish": {
+    "limited_info": "Información limitada"
   }
 }

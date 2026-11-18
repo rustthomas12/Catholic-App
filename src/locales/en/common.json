@@ -142,5 +142,25 @@
     "unread_other": "{{count}} unread",
     "unread_messages_one": "{{count}} unread message",
     "unread_messages_other": "{{count}} unread messages"
+  },
+  "term": {
+    "mass_times": "Mass Times",
+    "mass_times_eastern": "Divine Liturgy Times",
+    "mass_times_qurbana": "Holy Qurbana Times",
+    "mass_times_none": "Mass times not listed.",
+    "mass_times_none_eastern": "Divine Liturgy times not listed.",
+    "mass_times_none_qurbana": "Holy Qurbana times not listed.",
+    "all_masses": "All Masses",
+    "all_masses_eastern": "All Liturgies",
+    "all_masses_qurbana": "All Qurbanas",
+    "irs_note": "This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.",
+    "irs_note_eastern": "This parish listing comes from public IRS records. Phone, website, and Divine Liturgy times may not be listed yet.",
+    "irs_note_qurbana": "This parish listing comes from public IRS records. Phone, website, and Holy Qurbana times may not be listed yet.",
+    "times_updated": "Mass times updated.",
+    "times_updated_eastern": "Divine Liturgy times updated.",
+    "times_updated_qurbana": "Holy Qurbana times updated.",
+    "times_editor": "Mass times editor",
+    "times_editor_eastern": "Divine Liturgy times editor",
+    "times_editor_qurbana": "Holy Qurbana times editor"
   }
 }

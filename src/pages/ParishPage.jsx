@@ -25,6 +25,7 @@ import ParishGroups from '../components/parish/ParishGroups'
 import useGoBack from '../hooks/useGoBack'
 import { canPurchaseInApp } from '../lib/platform'
 import { isEastern, churchLabel } from '../data/churches'
+import { liturgyContext } from '../utils/liturgyTerms'
 import { useTranslation } from 'react-i18next'
 
 const TABS = [
@@ -336,6 +337,8 @@ function ContactModal({ parishId, parishName, onClose }) {
 
 // ── About tab ──────────────────────────────────────────────
 function ParishAbout({ parish, cluster, isManaged }) {
+  const { t } = useTranslation()
+  const context = liturgyContext(parish.church)
   const hasContact = parish.address || parish.phone || parish.website || parish.email
   const isIrsBmf   = parish.data_source === 'irs_bmf'
 
@@ -354,10 +357,10 @@ function ParishAbout({ parish, cluster, isManaged }) {
           <span className="text-amber-500 text-lg leading-none flex-shrink-0 mt-0.5">ℹ</span>
           <div>
             <p className="text-amber-800 text-sm font-semibold leading-snug">
-              Limited information available
+              {t('common:parish.limited_info', 'Limited information available')}
             </p>
             <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
-              This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.
+              {t('common:term.irs_note', { context })}
             </p>
             <p className="text-amber-700 text-xs mt-0.5">
               Know the details? Help us improve — <a
@@ -419,10 +422,10 @@ function ParishAbout({ parish, cluster, isManaged }) {
 
       {/* Mass Times */}
       {parish.mass_times && Object.keys(parish.mass_times).length ? (
-        <MassTimes massTimes={parish.mass_times} />
+        <MassTimes massTimes={parish.mass_times} title={t('common:term.mass_times', { context })} />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
-          <p className="text-gray-500 text-sm">Mass times not listed.</p>
+          <p className="text-gray-500 text-sm">{t('common:term.mass_times_none', { context })}</p>
           {parish.website && (
             <a
               href={parish.website.startsWith('http') ? parish.website : `https://${parish.website}`}
@@ -481,7 +484,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
   )
 }
 
-function MassTimes({ massTimes }) {
+function MassTimes({ massTimes, title }) {
   // massTimes can be a string, an array, or an object
   const renderContent = () => {
     if (typeof massTimes === 'string') {
@@ -519,7 +522,7 @@ function MassTimes({ massTimes }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="bg-navy px-4 py-3">
-        <h2 className="text-white font-bold text-sm">Mass Times</h2>
+        <h2 className="text-white font-bold text-sm">{title}</h2>
       </div>
       <div className="p-4">{renderContent()}</div>
     </div>

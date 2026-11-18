@@ -7,6 +7,8 @@ import { useTLMReadings } from '../../hooks/useReadings'
 import { currentPublicUrl } from '../../lib/platform'
 import { cleanTlmSection } from '../../utils/tlmText'
 import { seasonLabel } from '../../utils/liturgical'
+import { useAuth } from '../../hooks/useAuth.jsx'
+import { isEastern } from '../../data/churches'
 
 const GOLD_CROSS = (
   <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -191,6 +193,8 @@ export default function ReadingsCard({
   todayFormatted,
 }) {
   const { t, i18n } = useTranslation('faith')
+  const { profile } = useAuth()
+  const eastern = isEastern(profile?.church)
 
   const [rite, setRite] = useState(() => localStorage.getItem(RITE_KEY) ?? 'of')
 
@@ -279,6 +283,13 @@ export default function ReadingsCard({
 
       {/* Rite toggle */}
       <RiteToggle rite={rite} onChange={handleRiteChange} />
+
+      {/* Eastern Catholics: say plainly whose lectionary this is */}
+      {eastern && !isTLM && (
+        <p className="text-xs text-gray-500 text-center mb-3 px-4">
+          {t('roman_readings_note', "These are today's readings for the Roman (Latin) Rite. Readings for your Church's calendar aren't in inFold yet.")}
+        </p>
+      )}
 
       {/* Scripture text is English only for now: point Spanish readers to
           the USCCB's official Spanish readings for the day */}
