@@ -264,7 +264,19 @@
     "holy_week": "Semana Santa",
     "lent": "Cuaresma",
     "easter": "Pascua",
-    "ordinary": "Tiempo Ordinario"
+    "ordinary": "Tiempo Ordinario",
+    "byz_nativity_fast": "Ayuno de la Natividad",
+    "byz_nativity": "Natividad del Señor",
+    "byz_theophany": "Teofanía",
+    "byz_after_theophany": "Después de la Teofanía",
+    "byz_triodion": "Precuaresma (Triodion)",
+    "byz_great_lent": "Gran Cuaresma",
+    "byz_holy_week": "Gran y Santa Semana",
+    "byz_pascha": "Tiempo Pascual",
+    "byz_pentecost_season": "De la Ascensión a Pentecostés",
+    "byz_apostles_fast": "Ayuno de los Apóstoles",
+    "byz_dormition_fast": "Ayuno de la Dormición",
+    "byz_after_pentecost": "Después de Pentecostés"
   },
   "profile": {
     "member_since": "Miembro desde {{date}}",
@@ -328,5 +340,32 @@
   },
   "parish": {
     "limited_info": "Información limitada"
+  },
+  "byz_feast": {
+    "circumcision": "Circuncisión del Señor; san Basilio el Grande",
+    "theophany": "Santa Teofanía",
+    "encounter": "Encuentro del Señor",
+    "annunciation": "Anunciación",
+    "peter_paul": "Santos Apóstoles Pedro y Pablo",
+    "transfiguration": "Santa Transfiguración",
+    "dormition": "Dormición de la Theotokos",
+    "nativity_theotokos": "Natividad de la Theotokos",
+    "exaltation": "Exaltación de la Santa Cruz",
+    "entrance": "Entrada de la Theotokos en el Templo",
+    "nicholas": "San Nicolás el Taumaturgo",
+    "nativity": "Natividad del Señor",
+    "publican_pharisee": "Domingo del Publicano y el Fariseo",
+    "forgiveness": "Domingo del Perdón",
+    "clean_monday": "Lunes Puro: comienza la Gran Cuaresma",
+    "orthodoxy": "Domingo de la Ortodoxia",
+    "lazarus": "Sábado de Lázaro",
+    "palm_sunday": "Entrada del Señor en Jerusalén (Domingo de Ramos)",
+    "holy_thursday": "Gran y Santo Jueves",
+    "holy_friday": "Gran y Santo Viernes",
+    "holy_saturday": "Gran y Santo Sábado",
+    "pascha": "Santa Pascua: ¡Cristo ha resucitado!",
+    "ascension": "Ascensión del Señor",
+    "pentecost": "Pentecostés",
+    "all_saints": "Domingo de Todos los Santos"
   }
 }

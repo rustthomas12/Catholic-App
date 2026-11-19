@@ -218,13 +218,15 @@ export default function ReadingsCard({
         <div className="flex items-center gap-2 mb-2">
           {GOLD_CROSS_SM}
           <span className="flex-1 text-sm font-semibold text-navy">{t('readings_title')}</span>
-          <div className="flex items-center gap-1.5">
-            <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: liturgicalInfo?.color ?? '#15803D' }}
-            />
-            <span className="text-xs text-gray-500">{seasonLabel(liturgicalInfo)}</span>
-          </div>
+          {liturgicalInfo && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: liturgicalInfo.color ?? '#15803D' }}
+              />
+              <span className="text-xs text-gray-500">{seasonLabel(liturgicalInfo)}</span>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-gray-500 mb-1">{todayFormatted}</p>

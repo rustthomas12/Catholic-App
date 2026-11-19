@@ -1,4 +1,6 @@
 import i18n from './i18n'
+import { getChurch } from '../data/churches'
+import { getByzantineSeason, getByzantineFeast } from './byzantineCalendar'
 
 /**
  * Liturgical calendar utilities — pure JS, no external libraries.
@@ -157,6 +159,31 @@ export function isMajorFeastDay(date = new Date()) {
     if (normalize(feastDate) === today) return { isFeast: true, feastName: m.name }
   }
 
+  return { isFeast: false }
+}
+
+/**
+ * Which calendar a Church follows. Only the Latin and Byzantine calendars
+ * exist so far; other Eastern traditions get null, so the app shows no
+ * season rather than the wrong one.
+ */
+export function calendarFor(church) {
+  const tradition = getChurch(church).tradition
+  return tradition === 'latin' || tradition === 'byzantine' ? tradition : null
+}
+
+// Season for a person's Church: Latin, Byzantine, or null (no calendar yet)
+export function getSeasonForChurch(church, date = new Date()) {
+  const cal = calendarFor(church)
+  if (cal === 'latin') return getLiturgicalSeason(date)
+  if (cal === 'byzantine') return getByzantineSeason(date)
+  return null
+}
+
+export function getFeastForChurch(church, date = new Date()) {
+  const cal = calendarFor(church)
+  if (cal === 'latin') return isMajorFeastDay(date)
+  if (cal === 'byzantine') return getByzantineFeast(date)
   return { isFeast: false }
 }
 

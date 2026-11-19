@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { apiUrl } from '../lib/platform'
-import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate } from '../utils/liturgical'
+import { getLiturgicalSeason, isMajorFeastDay, getTodayReadingsDate, calendarFor, getSeasonForChurch, getFeastForChurch } from '../utils/liturgical'
+import { useAuth } from './useAuth.jsx'
 import { es as esLocale } from 'date-fns/locale'
 
 // ── Module-level cache ─────────────────────────────────────
@@ -96,9 +97,17 @@ export function useReadings(language = 'en') {
     })
   }, [dateStr, lang])
 
-  // Prefer authoritative data from the API; fall back to local computation
-  const liturgicalInfo = state.readings?.liturgicalInfo ?? getLiturgicalSeason(new Date())
-  const feastInfo      = state.readings?.feastInfo      ?? isMajorFeastDay(new Date())
+  // Latin: prefer authoritative data from the API, else compute locally.
+  // Eastern Churches use their own calendar (or none yet), never the API's.
+  const { profile } = useAuth()
+  const church = profile?.church
+  const latin = calendarFor(church) === 'latin'
+  const liturgicalInfo = latin
+    ? state.readings?.liturgicalInfo ?? getLiturgicalSeason(new Date())
+    : getSeasonForChurch(church)
+  const feastInfo = latin
+    ? state.readings?.feastInfo ?? isMajorFeastDay(new Date())
+    : getFeastForChurch(church)
 
   return {
     readings: state.readings,

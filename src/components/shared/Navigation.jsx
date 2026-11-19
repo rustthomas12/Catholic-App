@@ -17,7 +17,7 @@ import {
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { useNotifications } from '../../hooks/useNotifications'
 import { useAdminAccess } from '../../hooks/useAdminAccess'
-import { getLiturgicalSeason } from '../../utils/liturgical'
+import { getSeasonForChurch } from '../../utils/liturgical'
 import Avatar from './Avatar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { setUnreadDMCount } from '../../lib/dmBadge'
@@ -124,7 +124,7 @@ function Navigation() {
   const { isAuthenticated, profile, user, signOut } = useAuth()
   const { unreadCount } = useNotifications()
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
-  const season = getLiturgicalSeason()
+  const season = getSeasonForChurch(profile?.church)
   const { t } = useTranslation('common')
   const [unreadDMs, setUnreadDMs] = useState(0)
 
@@ -216,7 +216,7 @@ function Navigation() {
                     <Icon className="w-[24px] h-[24px] text-gray-300 group-hover:text-gray-200 transition-colors" />
                   )}
 
-                  {isFaith && (
+                  {isFaith && season && (
                     <span
                       className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-navy"
                       style={{ backgroundColor: season.color }}
@@ -290,7 +290,7 @@ function Navigation() {
                   ) : (
                     <Icon className="w-5 h-5" />
                   )}
-                  {isFaith && (
+                  {isFaith && season && (
                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-navy"
                       style={{ backgroundColor: season.color }} />
                   )}

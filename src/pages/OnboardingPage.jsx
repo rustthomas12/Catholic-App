@@ -6,7 +6,7 @@ import { useTranslation } from '../utils/i18n'
 import { supabase } from '../lib/supabase'
 import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import { getLiturgicalSeason, seasonLabel } from '../utils/liturgical'
+import { getSeasonForChurch, seasonLabel } from '../utils/liturgical'
 import { format } from 'date-fns'
 import { fuzzyIlike } from '../utils/search'
 import { useReadings } from '../hooks/useReadings'
@@ -26,7 +26,7 @@ export default function OnboardingPage() {
   const isClergy = canPurchaseInApp && ['ordained', 'religious'].includes(profile?.vocation_state)
   const totalSteps = isClergy ? 4 : 3
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
-  const season = getLiturgicalSeason()
+  const season = getSeasonForChurch(profile?.church)
   // Real references for today (this preview used to show fixed Advent ones)
   const { readings } = useReadings()
   const todaysRefs = [
@@ -307,10 +307,12 @@ export default function OnboardingPage() {
                     </svg>
                     <span className="text-white text-sm font-semibold">Today's Readings</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: season.color }} />
-                    <span className="text-gray-500 text-xs">{seasonLabel(season)}</span>
-                  </div>
+                  {season && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: season.color }} />
+                      <span className="text-gray-500 text-xs">{seasonLabel(season)}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <p className={`text-xs text-gray-500 ${todaysRefs.length ? 'mb-3' : ''}`}>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
