@@ -9,19 +9,21 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid, HeartIcon } from '@heroicons/react/24/solid'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
+import { useTranslation } from 'react-i18next'
 
 const STATUS_LABELS = {
-  active:   { label: 'Praying',  color: 'bg-blue-100 text-blue-700' },
-  prayed:   { label: 'Prayed',   color: 'bg-green-100 text-green-700' },
-  answered: { label: 'Answered', color: 'bg-gold/20 text-amber-700' },
+  active:   { label: 'Praying', key: 'praying', color: 'bg-blue-100 text-blue-700' },
+  prayed:   { label: 'Prayed', key: 'prayed', color: 'bg-green-100 text-green-700' },
+  answered: { label: 'Answered', key: 'answered', color: 'bg-gold/20 text-amber-700' },
 }
 
 export default function PrivateIntentionsPage() {
-  useEffect(() => { document.title = 'Prayer Intentions | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('faith:intentions.prayer_intentions', 'Prayer Intentions')} | inFold` }, [t])
 
   const { user } = useAuth()
 
@@ -44,7 +46,7 @@ export default function PrivateIntentionsPage() {
       .order('created_at', { ascending: false })
     setIntentions(data ?? [])
     setLoading(false)
-  }, [user?.id])
+  }, [user?.id, t])
 
   useEffect(() => { load() }, [load])
 
@@ -59,7 +61,7 @@ export default function PrivateIntentionsPage() {
       status: 'active',
     })
     if (error) {
-      toast.error('Could not save intention.')
+      toast.error(t('faith:intentions.could_not_save_intention', 'Could not save intention.'))
     } else {
       setTitle('')
       setNotes('')
@@ -86,9 +88,9 @@ export default function PrivateIntentionsPage() {
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
-    if (error) { toast.error('Could not remove this intention.'); return }
+    if (error) { toast.error(t('faith:intentions.could_not_remove_this_intention', 'Could not remove this intention.')); return }
     setIntentions(prev => prev.filter(i => i.id !== id))
-    toast.success('Intention removed')
+    toast.success(t('faith:intentions.intention_removed', 'Intention removed'))
   }
 
   const filtered = filter === 'all'
@@ -106,20 +108,20 @@ export default function PrivateIntentionsPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <TopBar variant="navy" title="Prayer Intentions" back actions={
+        <TopBar variant="navy" title={t('faith:intentions.prayer_intentions', 'Prayer Intentions')} back actions={
           <button
             onClick={() => setShowAdd(v => !v)}
             aria-expanded={showAdd}
             className="flex items-center gap-1.5 bg-gold text-navy text-sm font-bold px-3 min-h-[40px] rounded-xl hover:bg-gold/90 transition-colors mr-1"
           >
             <PlusIcon className="w-4 h-4" />
-            Add
+            {t('faith:intentions.add', 'Add')}
           </button>
         } />
         <div className="bg-navy px-4 pb-5">
-          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Private</p>
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">{t('faith:intentions.private', 'Private')}</p>
           <p className="text-white/70 text-xs ml-10 mt-1">
-            Completely private — only you can see this list.
+            {t('faith:intentions.completely_private_only_you_can_see', 'Completely private — only you can see this list.')}
           </p>
         </div>
 
@@ -129,28 +131,28 @@ export default function PrivateIntentionsPage() {
           {showAdd && (
             <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               <div className="flex items-center justify-between mb-1">
-                <p className="font-bold text-navy text-sm">New Intention</p>
-                <button aria-label="Close" type="button" onClick={() => setShowAdd(false)} className="text-gray-500 hover:text-gray-500 transition-colors">
+                <p className="font-bold text-navy text-sm">{t('faith:intentions.new_intention', 'New Intention')}</p>
+                <button aria-label={t('faith:intentions.close', 'Close')} type="button" onClick={() => setShowAdd(false)} className="text-gray-500 hover:text-gray-500 transition-colors">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-navy mb-1">Person or intention *</label>
+                <label className="block text-xs font-semibold text-navy mb-1">{t('faith:intentions.person_or_intention', 'Person or intention *')}</label>
                 <input
                   autoFocus
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. John's recovery, my mother's faith, peace in the family..."
+                  placeholder={t('faith:intentions.e_g_john_s_recovery_my', "e.g. John's recovery, my mother's faith, peace in the family...")}
                   maxLength={120}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-navy"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-navy mb-1">Notes (optional)</label>
+                <label className="block text-xs font-semibold text-navy mb-1">{t('faith:intentions.notes_optional', 'Notes (optional)')}</label>
                 <textarea
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
-                  placeholder="Any details or context..."
+                  placeholder={t('faith:intentions.any_details_or_context', 'Any details or context...')}
                   rows={2}
                   maxLength={500}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-navy resize-none"
@@ -161,7 +163,7 @@ export default function PrivateIntentionsPage() {
                 disabled={saving || !title.trim()}
                 className="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-navy/90 disabled:opacity-50 transition-colors text-sm"
               >
-                {saving ? 'Saving…' : 'Add Intention'}
+                {saving ? t('faith:intentions.saving', 'Saving…') : t('faith:intentions.add_intention', 'Add Intention')}
               </button>
             </form>
           )}
@@ -170,9 +172,9 @@ export default function PrivateIntentionsPage() {
           {intentions.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {[
-                { key: 'active',   label: 'Praying',  icon: '🙏' },
-                { key: 'prayed',   label: 'Prayed',   icon: '✓' },
-                { key: 'answered', label: 'Answered', icon: '✦' },
+                { key: 'active',   label: t('faith:intentions.praying', 'Praying'),  icon: '🙏' },
+                { key: 'prayed',   label: t('faith:intentions.prayed', 'Prayed'),   icon: '✓' },
+                { key: 'answered', label: t('faith:intentions.answered', 'Answered'), icon: '✦' },
               ].map(s => (
                 <button
                   key={s.key}
@@ -202,7 +204,7 @@ export default function PrivateIntentionsPage() {
                     filter === f ? 'bg-navy text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-lightbg'
                   }`}
                 >
-                  {f === 'all' ? 'All' : STATUS_LABELS[f].label}
+                  {f === 'all' ? t('faith:intentions.all', 'All') : t(`faith:intentions.${STATUS_LABELS[f].key}`, STATUS_LABELS[f].label)}
                 </button>
               ))}
             </div>
@@ -217,19 +219,19 @@ export default function PrivateIntentionsPage() {
             <div className="text-center py-14">
               <HeartIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
               <p className="font-semibold text-navy text-sm mb-1">
-                {intentions.length === 0 ? 'No intentions yet' : `No ${STATUS_LABELS[filter]?.label.toLowerCase()} intentions`}
+                {intentions.length === 0 ? t('faith:intentions.no_intentions_yet', 'No intentions yet') : t(`faith:intentions.none_${filter}`, `No ${STATUS_LABELS[filter]?.label.toLowerCase()} intentions`)}
               </p>
               <p className="text-gray-500 text-xs max-w-xs mx-auto">
                 {intentions.length === 0
-                  ? 'Add the people and intentions you are carrying to God in prayer.'
-                  : 'Try switching the filter above.'}
+                  ? t('faith:intentions.add_the_people_and_intentions_you', 'Add the people and intentions you are carrying to God in prayer.')
+                  : t('faith:intentions.try_switching_the_filter_above', 'Try switching the filter above.')}
               </p>
               {intentions.length === 0 && (
                 <button
                   onClick={() => setShowAdd(true)}
                   className="mt-4 text-sm font-semibold text-navy hover:text-gold transition-colors"
                 >
-                  + Add your first intention
+                  {t('faith:intentions.add_your_first_intention', '+ Add your first intention')}
                 </button>
               )}
             </div>
@@ -250,17 +252,17 @@ export default function PrivateIntentionsPage() {
           <div className="flex items-start gap-2 px-1">
             <span className="text-gray-500 text-lg mt-0.5">🔒</span>
             <p className="text-gray-500 text-xs leading-relaxed">
-              Your prayer intentions are completely private. They are stored securely and never visible to other users, parish admins, or anyone else.
+              {t('faith:intentions.your_prayer_intentions_are_completely_private', 'Your prayer intentions are completely private. They are stored securely and never visible to other users, parish admins, or anyone else.')}
             </p>
           </div>
 
         </div>
       </div>
-      <Modal isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Remove this intention?" size="sm">
-        <p className="text-sm text-gray-600 mb-4">It will be removed from your list. This can't be undone.</p>
+      <Modal isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} title={t('faith:intentions.remove_this_intention', 'Remove this intention?')} size="sm">
+        <p className="text-sm text-gray-600 mb-4">{t('faith:intentions.it_will_be_removed_from_your', "It will be removed from your list. This can't be undone.")}</p>
         <div className="flex gap-3">
-          <button type="button" onClick={() => setConfirmDelete(null)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">Cancel</button>
-          <button type="button" onClick={() => handleDelete(confirmDelete)} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">Remove</button>
+          <button type="button" onClick={() => setConfirmDelete(null)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">{t('faith:intentions.cancel', 'Cancel')}</button>
+          <button type="button" onClick={() => handleDelete(confirmDelete)} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">{t('faith:intentions.remove', 'Remove')}</button>
         </div>
       </Modal>
     </div>
@@ -268,6 +270,7 @@ export default function PrivateIntentionsPage() {
 }
 
 function IntentionCard({ intention, onStatus, onDelete }) {
+  const { t, i18n } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const s = STATUS_LABELS[intention.status]
 
@@ -278,14 +281,14 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <p className="font-semibold text-navy text-sm truncate">{intention.title}</p>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${s.color}`}>
-              {s.label}
+              {t(`faith:intentions.${s.key}`, s.label)}
             </span>
           </div>
           {intention.notes && (
             <p className="text-gray-500 text-xs leading-relaxed mt-0.5">{intention.notes}</p>
           )}
           <p className="text-gray-500 text-xs mt-1">
-            Added {format(parseISO(intention.created_at), 'MMM d, yyyy')}
+            {t('faith:intentions.added_on', 'Added {{date}}', { date: parseISO(intention.created_at).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' }) })}
           </p>
         </div>
 
@@ -294,7 +297,7 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           {intention.status !== 'prayed' && intention.status !== 'answered' && (
             <button
               onClick={() => onStatus(intention.id, 'prayed')}
-              title="Mark as prayed"
+              title={t('faith:intentions.mark_as_prayed', 'Mark as prayed')}
               className="w-8 h-8 rounded-xl bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors"
             >
               <CheckCircleIcon className="w-4 h-4" />
@@ -303,7 +306,7 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           {intention.status !== 'answered' && (
             <button
               onClick={() => onStatus(intention.id, 'answered')}
-              title="Mark as answered"
+              title={t('faith:intentions.mark_as_answered', 'Mark as answered')}
               className="w-8 h-8 rounded-xl bg-gold/10 text-amber-600 flex items-center justify-center hover:bg-gold/20 transition-colors"
             >
               <CheckCircleSolid className="w-4 h-4" />
@@ -312,7 +315,7 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           {intention.status !== 'active' && (
             <button
               onClick={() => onStatus(intention.id, 'active')}
-              title="Move back to praying"
+              title={t('faith:intentions.move_back_to_praying', 'Move back to praying')}
               className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
               >
               <span className="text-xs font-bold">🙏</span>
@@ -320,8 +323,8 @@ function IntentionCard({ intention, onStatus, onDelete }) {
           )}
           <button
             onClick={() => onDelete(intention.id)}
-            title="Remove intention"
-            aria-label="Remove intention"
+            title={t('faith:intentions.remove_intention', 'Remove intention')}
+            aria-label={t('faith:intentions.remove_intention', 'Remove intention')}
             className="w-8 h-8 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <TrashIcon className="w-3.5 h-3.5" />

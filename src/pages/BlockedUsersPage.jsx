@@ -7,8 +7,10 @@ import { useBlockedUsers } from '../hooks/useBlockedUsers'
 import Avatar from '../components/shared/Avatar'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
+import { useTranslation } from 'react-i18next'
 
 export default function BlockedUsersPage() {
+  const { t } = useTranslation()
   useEffect(() => { document.title = 'Blocked Users | inFold' }, [])
   const { blockedIds, loaded, unblock } = useBlockedUsers()
   const [fetched, setFetched] = useState(null) // profiles of blocked users, null until loaded
@@ -31,18 +33,17 @@ export default function BlockedUsersPage() {
     setBusyId(id)
     const { error } = await unblock(id)
     setBusyId(null)
-    if (error) toast.error('Something went wrong. Please try again.')
-    else toast.success('Unblocked')
+    if (error) toast.error(t('common:blocked.something_went_wrong_please_try_again', 'Something went wrong. Please try again.'))
+    else toast.success(t('common:blocked.unblocked', 'Unblocked'))
   }
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
-        <TopBar title="Blocked users" back />
+        <TopBar title={t('common:blocked.blocked_users', 'Blocked users')} back />
 
         <p className="px-4 pt-4 text-sm text-gray-500">
-          You won't see posts, comments, prayer requests or messages from people you block,
-          and they can't message you. They aren't notified.
+          {t('common:blocked.you_won_t_see_posts_comments', "You won't see posts, comments, prayer requests or messages from people you block, and they can't message you. They aren't notified.")}
         </p>
 
         <div className="bg-white mt-4 rounded-xl mx-3 overflow-hidden border border-gray-100 shadow-sm">
@@ -51,7 +52,7 @@ export default function BlockedUsersPage() {
           ) : profiles.length === 0 ? (
             <div className="py-10 px-4 flex flex-col items-center gap-2 text-center">
               <NoSymbolIcon className="w-8 h-8 text-gray-300" />
-              <p className="text-sm text-gray-500">You haven't blocked anyone.</p>
+              <p className="text-sm text-gray-500">{t('common:blocked.you_haven_t_blocked_anyone', "You haven't blocked anyone.")}</p>
             </div>
           ) : (
             profiles.map((p, i) => (
@@ -71,7 +72,7 @@ export default function BlockedUsersPage() {
                   disabled={busyId === p.id}
                   className="text-sm font-medium text-navy border border-gray-200 rounded-lg px-3 py-1.5 min-h-[36px] hover:bg-lightbg disabled:opacity-50"
                 >
-                  Unblock
+                  {t('common:blocked.unblock', 'Unblock')}
                 </button>
               </div>
             ))

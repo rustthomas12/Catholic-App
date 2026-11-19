@@ -126,3 +126,46 @@ export function useRosaryTracker() {
     MYSTERY_NAMES, MYSTERIES, DAILY_MYSTERIES, MYSTERY_INITIAL,
   }
 }
+
+// ── Spanish ────────────────────────────────────────────────
+export const MYSTERY_NAMES_ES = {
+  joyful:    'Misterios Gozosos',
+  sorrowful: 'Misterios Dolorosos',
+  glorious:  'Misterios Gloriosos',
+  luminous:  'Misterios Luminosos',
+}
+
+export const MYSTERY_INITIAL_ES = {
+  joyful: 'Go', sorrowful: 'D', glorious: 'Gl', luminous: 'L',
+}
+
+export const MYSTERIES_ES = {
+  joyful: [
+    { title: 'La Anunciación', description: 'El ángel Gabriel anuncia a María que concebirá y dará a luz al Hijo de Dios. El "sí" de María a Dios abre la puerta a nuestra salvación.' },
+    { title: 'La Visitación', description: 'María visita a su prima Isabel. Al oír el saludo de María, Juan el Bautista salta en el seno de su madre, lleno del Espíritu Santo.' },
+    { title: 'El Nacimiento de Jesús', description: 'Jesús nace en un establo de Belén, envuelto en pañales y acostado en un pesebre. El Verbo se hace carne.' },
+    { title: 'La Presentación en el Templo', description: 'María y José presentan al niño Jesús en el Templo. Simeón lo reconoce como la salvación preparada para todos los pueblos.' },
+    { title: 'El Niño Jesús perdido y hallado en el Templo', description: 'Después de tres días de búsqueda, María y José encuentran a Jesús, de doce años, en el Templo, "en las cosas de su Padre".' },
+  ],
+  sorrowful: [
+    { title: 'La Oración en el Huerto', description: 'Jesús ora en Getsemaní y suda sangre en su angustia. "No se haga mi voluntad, sino la tuya." Es traicionado y arrestado.' },
+    { title: 'La Flagelación', description: 'Jesús es atado y azotado; su cuerpo queda destrozado por los golpes. Por sus llagas hemos sido curados.' },
+    { title: 'La Coronación de Espinas', description: 'Los soldados se burlan de Jesús como Rey y le clavan espinas en la cabeza. Él acepta la humillación en silencio.' },
+    { title: 'Jesús con la Cruz a cuestas', description: 'Jesús carga su cruz por las calles de Jerusalén, cae y se levanta, llevando el peso de nuestro pecado.' },
+    { title: 'La Crucifixión', description: 'Jesús es clavado en la cruz y muere. "Padre, en tus manos encomiendo mi espíritu." El mayor acto de amor de la historia.' },
+  ],
+  glorious: [
+    { title: 'La Resurrección', description: 'Al tercer día, Jesús resucita de entre los muertos: el primogénito de entre los muertos, la garantía de nuestra propia resurrección.' },
+    { title: 'La Ascensión', description: 'Cuarenta días después de la Pascua, Jesús sube al Padre. Va a prepararnos un lugar y nos envía el Espíritu Santo.' },
+    { title: 'La Venida del Espíritu Santo', description: 'En Pentecostés, el Espíritu Santo desciende sobre los discípulos como lenguas de fuego. Nace la Iglesia.' },
+    { title: 'La Asunción de María', description: 'Al final de su vida terrena, María es llevada en cuerpo y alma a la gloria del cielo, signo de nuestro propio destino.' },
+    { title: 'La Coronación de María', description: 'María es coronada Reina del Cielo y de la Tierra: la primera de los redimidos, modelo de la Iglesia, nuestra Madre e intercesora.' },
+  ],
+  luminous: [
+    { title: 'El Bautismo de Jesús', description: 'Jesús es bautizado en el Jordán. Los cielos se abren: "Este es mi Hijo amado, en quien me complazco."' },
+    { title: 'Las Bodas de Caná', description: 'Por intercesión de María, Jesús realiza su primer milagro: convierte el agua en vino. Ha llegado su hora.' },
+    { title: 'El Anuncio del Reino', description: 'Jesús anuncia el Reino de Dios y llama a todos a la conversión, sanando a los enfermos y perdonando a los pecadores.' },
+    { title: 'La Transfiguración', description: 'En el monte Tabor, Jesús se transfigura en gloria. Aparecen Moisés y Elías. "Escúchenlo."' },
+    { title: 'La Institución de la Eucaristía', description: 'En la Última Cena, Jesús nos da su Cuerpo y su Sangre, el don de sí mismo, fuente y cumbre de la vida cristiana.' },
+  ],
+}

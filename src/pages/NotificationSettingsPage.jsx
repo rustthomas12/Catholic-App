@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 import { useTranslation } from 'react-i18next'
+import i18n from '../utils/i18n'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { usePushNotifications } from '../hooks/usePushNotifications'
@@ -92,6 +93,7 @@ function PrefRow({ icon: Icon, label, description, value, onChange, disabled }) 
 
 // ── Push notifications section ────────────────────────────
 function PushSection({ userId }) {
+  const { t } = useTranslation()
   const {
     isSupported,
     permission,
@@ -105,24 +107,24 @@ function PushSection({ userId }) {
   return (
     <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-4">
       <div className="bg-navy px-4 py-3">
-        <h2 className="text-white font-bold text-sm">Push Notifications</h2>
+        <h2 className="text-white font-bold text-sm">{t('common:notif.push_notifications', 'Push Notifications')}</h2>
       </div>
       <div className="px-4 py-4">
         <p className="text-xs text-gray-500 mb-4">
-          Get notified even when the app isn't open.
+          {t('common:notif.get_notified_even_when_the_app', "Get notified even when the app isn't open.")}
         </p>
 
         {!isSupported && (
           <p className="text-sm text-gray-500">
-            Push notifications aren't supported in this browser.
+            {t('common:notif.push_notifications_aren_t_supported_in', "Push notifications aren't supported in this browser.")}
           </p>
         )}
 
         {isSupported && permission === 'denied' && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-amber-800 font-medium mb-0.5">Notifications blocked</p>
+            <p className="text-sm text-amber-800 font-medium mb-0.5">{t('common:notif.notifications_blocked', 'Notifications blocked')}</p>
             <p className="text-xs text-amber-700">
-              Enable notifications in your browser or device settings, then return here.
+              {t('common:notif.enable_notifications_in_your_browser_or', 'Enable notifications in your browser or device settings, then return here.')}
             </p>
           </div>
         )}
@@ -136,7 +138,7 @@ function PushSection({ userId }) {
             {isLoading
               ? <LoadingSpinner size="sm" color="white" />
               : <BellIcon className="w-4 h-4" />}
-            {isLoading ? 'Enabling…' : 'Enable push notifications'}
+            {isLoading ? t('common:notif.enabling', 'Enabling…') : t('common:notif.enable_push_notifications', 'Enable push notifications')}
           </button>
         )}
 
@@ -144,7 +146,7 @@ function PushSection({ userId }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium text-navy">
               <BellIcon className="w-4 h-4 text-gold" />
-              Push notifications enabled
+              {t('common:notif.push_notifications_enabled', 'Push notifications enabled')}
             </div>
             <button
               onClick={unsubscribe}
@@ -154,7 +156,7 @@ function PushSection({ userId }) {
               {isLoading
                 ? <LoadingSpinner size="sm" color="navy" />
                 : <BellSlashIcon className="w-3.5 h-3.5" />}
-              Turn off
+              {t('common:notif.turn_off', 'Turn off')}
             </button>
           </div>
         )}
@@ -177,7 +179,8 @@ const TIME_OPTIONS = Array.from({ length: 37 }, (_, i) => {
 
 function formatTime(value) {
   const [h, m] = String(value || '00:00').split(':').map(Number)
-  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
+  try { return new Date(2000, 0, 1, h, m).toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' }) }
+  catch { return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}` }
 }
 
 function deviceTimezone() {
@@ -293,14 +296,14 @@ export default function NotificationSettingsPage() {
     },
     {
       icon: BookOpenIcon,
-      label: 'Morning Offering reminder',
-      description: `Every day at ${formatTime(preferences.morning_offering_time)} to offer your morning to God`,
+      label: t('common:notif.morning_offering_reminder', 'Morning Offering reminder'),
+      description: t('common:notif.morning_offering_desc', 'Every day at {{time}} to offer your morning to God', { time: formatTime(preferences.morning_offering_time) }),
       column: 'morning_offering_reminder',
     },
     {
       icon: BookOpenIcon,
-      label: 'Daily Readings reminder',
-      description: `Every day at ${formatTime(preferences.daily_readings_time)} to read the daily Mass readings`,
+      label: t('common:notif.daily_readings_reminder', 'Daily Readings reminder'),
+      description: t('common:notif.daily_readings_desc', 'Every day at {{time}} to read the daily Mass readings', { time: formatTime(preferences.daily_readings_time) }),
       column: 'daily_readings_reminder',
     },
   ]
@@ -358,29 +361,29 @@ export default function NotificationSettingsPage() {
         {/* ── Reminder times ── */}
         {!loading && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Reminder times</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">{t('common:notif.reminder_times', 'Reminder times')}</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
               <ReminderTimeRow
-                label="Morning Offering"
+                label={t('common:notif.morning_offering', 'Morning Offering')}
                 value={preferences.morning_offering_time}
                 disabled={!preferences.morning_offering_reminder}
                 onChange={(v) => updatePreference('morning_offering_time', v, preferences.morning_offering_time)}
               />
               <ReminderTimeRow
-                label="Daily Readings"
+                label={t('common:notif.daily_readings', 'Daily Readings')}
                 value={preferences.daily_readings_time}
                 disabled={!preferences.daily_readings_reminder}
                 onChange={(v) => updatePreference('daily_readings_time', v, preferences.daily_readings_time)}
               />
               <ReminderTimeRow
-                label="Confession"
+                label={t('common:notif.confession', 'Confession')}
                 value={preferences.confession_reminder_time}
                 disabled={!preferences.confession_reminder}
                 onChange={(v) => updatePreference('confession_reminder_time', v, preferences.confession_reminder_time)}
               />
             </div>
             <p className="text-xs text-gray-500 px-4 mt-2">
-              Times are in your time zone ({deviceTimezone().replace(/_/g, ' ')}), which follows your device.
+              {t('common:notif.times_zone', 'Times are in your time zone ({{zone}}), which follows your device.', { zone: deviceTimezone().replace(/_/g, ' ') })}
             </p>
           </div>
         )}
@@ -388,20 +391,20 @@ export default function NotificationSettingsPage() {
         {/* ── Parish admin notifications ── */}
         {!loading && isParishAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Parish Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">{t('common:notif.parish_admin', 'Parish Admin')}</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserPlusIcon}
-                label="New parish followers"
-                description="When someone starts following your parish"
+                label={t('common:notif.new_parish_followers', 'New parish followers')}
+                description={t('common:notif.when_someone_starts_following_your_parish', 'When someone starts following your parish')}
                 value={preferences.new_parish_member}
                 onChange={(v) => updatePreference('new_parish_member', v)}
               />
               <div className="border-t border-gray-50" />
               <PrefRow
                 icon={EnvelopeIcon}
-                label="Parish messages"
-                description="When a parishioner sends your parish a message"
+                label={t('common:notif.parish_messages', 'Parish messages')}
+                description={t('common:notif.when_a_parishioner_sends_your_parish', 'When a parishioner sends your parish a message')}
                 value={preferences.parish_message}
                 onChange={(v) => updatePreference('parish_message', v)}
               />
@@ -412,20 +415,20 @@ export default function NotificationSettingsPage() {
         {/* ── Group admin notifications ── */}
         {!loading && isGroupAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Group Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">{t('common:notif.group_admin', 'Group Admin')}</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserGroupIcon}
-                label="New posts in my groups"
-                description="When a member posts in a group you admin"
+                label={t('common:notif.new_posts_in_my_groups', 'New posts in my groups')}
+                description={t('common:notif.when_a_member_posts_in_a', 'When a member posts in a group you admin')}
                 value={preferences.group_posts}
                 onChange={(v) => updatePreference('group_posts', v)}
               />
               <div className="h-px bg-gray-50 mx-4" />
               <PrefRow
                 icon={UserPlusIcon}
-                label="New group members"
-                description="When someone joins a group you admin"
+                label={t('common:notif.new_group_members', 'New group members')}
+                description={t('common:notif.when_someone_joins_a_group_you', 'When someone joins a group you admin')}
                 value={preferences.new_group_member}
                 onChange={(v) => updatePreference('new_group_member', v)}
               />
@@ -436,12 +439,12 @@ export default function NotificationSettingsPage() {
         {/* ── Org admin notifications ── */}
         {!loading && isOrgAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Organization Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">{t('common:notif.organization_admin', 'Organization Admin')}</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={UserPlusIcon}
-                label="New org members"
-                description="When someone joins an organization you admin"
+                label={t('common:notif.new_org_members', 'New org members')}
+                description={t('common:notif.when_someone_joins_an_organization_you', 'When someone joins an organization you admin')}
                 value={preferences.new_org_member}
                 onChange={(v) => updatePreference('new_org_member', v)}
               />
@@ -450,8 +453,8 @@ export default function NotificationSettingsPage() {
                   <div className="h-px bg-gray-50 mx-4" />
                   <PrefRow
                     icon={UserGroupIcon}
-                    label="Chapter requests"
-                    description="When a group requests to become a chapter of your national org"
+                    label={t('common:notif.chapter_requests', 'Chapter requests')}
+                    description={t('common:notif.when_a_group_requests_to_become', 'When a group requests to become a chapter of your national org')}
                     value={preferences.chapter_requests}
                     onChange={(v) => updatePreference('chapter_requests', v)}
                   />
@@ -464,12 +467,12 @@ export default function NotificationSettingsPage() {
         {/* ── Platform admin notifications ── */}
         {!loading && isAdmin && (
           <div className="mt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">Platform Admin</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">{t('common:notif.platform_admin', 'Platform Admin')}</p>
             <div className="bg-white mx-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <PrefRow
                 icon={ShieldExclamationIcon}
-                label="Post reports"
-                description="When a member reports a post for review"
+                label={t('common:notif.post_reports', 'Post reports')}
+                description={t('common:notif.when_a_member_reports_a_post', 'When a member reports a post for review')}
                 value={preferences.post_flagged}
                 onChange={(v) => updatePreference('post_flagged', v)}
               />
@@ -506,20 +509,20 @@ export default function NotificationSettingsPage() {
         size="sm"
       >
         <p className="text-sm text-gray-500 mb-5">
-          You can turn individual notifications back on at any time.
+          {t('common:notif.you_can_turn_individual_notifications_back', 'You can turn individual notifications back on at any time.')}
         </p>
         <div className="flex gap-3">
           <button
             onClick={() => setShowTurnOffModal(false)}
             className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 min-h-[44px]"
           >
-            Cancel
+            {t('common:notif.cancel', 'Cancel')}
           </button>
           <button
             onClick={handleTurnOffAll}
             className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 min-h-[44px]"
           >
-            Turn off all
+            {t('common:notif.turn_off_all', 'Turn off all')}
           </button>
         </div>
       </Modal>

@@ -13,6 +13,7 @@ import { fuzzyIlike } from '../utils/search'
 import useGoBack from '../hooks/useGoBack'
 import { invalidateFollowedParishesCache } from '../hooks/useParish.js'
 import { PICK_MAX_BYTES } from '../utils/imageResize'
+import { useTranslation } from 'react-i18next'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
@@ -24,6 +25,7 @@ const VOCATIONS = [
 ]
 
 export default function EditProfilePage() {
+  const { t } = useTranslation()
   useEffect(() => { document.title = 'Edit Profile | inFold' }, [])
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
@@ -142,11 +144,11 @@ export default function EditProfilePage() {
     if (!file) return
     const allowed = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowed.includes(file.type)) {
-      toast.error('Please choose a JPEG, PNG, or WebP image')
+      toast.error(t('common:editprofile.please_choose_a_jpeg_png_or', 'Please choose a JPEG, PNG, or WebP image'))
       return
     }
     if (file.size > PICK_MAX_BYTES) {
-      toast.error('Image is too large')
+      toast.error(t('common:editprofile.image_is_too_large', 'Image is too large'))
       return
     }
     setAvatarFile(file)
@@ -156,19 +158,19 @@ export default function EditProfilePage() {
   async function handleSave() {
     if (!hasChanges) return
     if (!fullName.trim()) {
-      toast.error('Name is required.')
+      toast.error(t('common:editprofile.name_is_required', 'Name is required.'))
       return
     }
     if (usernameStatus === 'taken') {
-      toast.error('That username is already taken.')
+      toast.error(t('common:editprofile.that_username_is_already_taken', 'That username is already taken.'))
       return
     }
     if (usernameStatus === 'invalid') {
-      toast.error('Username must be 3–20 characters: letters, numbers, or underscores.')
+      toast.error(t('common:editprofile.username_must_be_3_20_characters', 'Username must be 3–20 characters: letters, numbers, or underscores.'))
       return
     }
     if (usernameStatus === 'checking') {
-      toast.error('Still checking username availability, please wait.')
+      toast.error(t('common:editprofile.still_checking_username_availability_please_wait', 'Still checking username availability, please wait.'))
       return
     }
     setSaving(true)
@@ -202,7 +204,7 @@ export default function EditProfilePage() {
           )
           invalidateFollowedParishesCache()
         }
-        toast.success('Profile saved')
+        toast.success(t('common:editprofile.profile_saved', 'Profile saved'))
         setAvatarPreview(null)
         navigate(`/profile/${user.id}`, { replace: true })
       }
@@ -229,14 +231,14 @@ export default function EditProfilePage() {
         <div className="flex items-center justify-between px-4 py-4 bg-white border-b border-gray-100 sticky sticky-top z-20">
           <button onClick={handleBack} className="flex items-center gap-1 text-navy min-h-[44px] px-1">
             <ArrowLeftIcon className="w-5 h-5" />
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm font-medium">{t('common:editprofile.back', 'Back')}</span>
           </button>
-          <h1 className="text-base font-bold text-navy">Edit Profile</h1>
+          <h1 className="text-base font-bold text-navy">{t('common:editprofile.edit_profile', 'Edit Profile')}</h1>
           <button
             onClick={handleSave}
             disabled={!hasChanges || saving}
             className={`text-sm font-semibold min-h-[44px] px-2 transition-colors ${hasChanges ? 'text-navy' : 'text-gray-500'}`}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('common:editprofile.saving', 'Saving...') : t('common:editprofile.save', 'Save')}
           </button>
         </div>
 
@@ -250,7 +252,7 @@ export default function EditProfilePage() {
                 name={fullName}
                 size="lg"
               />
-              <button aria-label="Change photo"
+              <button aria-label={t('common:editprofile.change_photo', 'Change photo')}
                 onClick={() => fileRef.current?.click()}
                 className="absolute -bottom-1 -right-1 w-8 h-8 bg-navy rounded-full flex items-center justify-center border-2 border-white">
                 <CameraIcon className="w-4 h-4 text-white" />
@@ -260,12 +262,12 @@ export default function EditProfilePage() {
               className="hidden" onChange={handleAvatarChange} />
             <button onClick={() => fileRef.current?.click()}
               className="text-sm text-navy font-medium hover:underline min-h-[44px]">
-              Change photo
+              {t('common:editprofile.change_photo', 'Change photo')}
             </button>
             {(avatarUrl || avatarPreview) && (
               <button onClick={() => { setAvatarUrl(null); setAvatarPreview(null); setAvatarFile(null) }}
                 className="text-sm text-red-500 hover:underline">
-                Remove photo
+                {t('common:editprofile.remove_photo', 'Remove photo')}
               </button>
             )}
           </div>
@@ -273,9 +275,9 @@ export default function EditProfilePage() {
           {/* Full name */}
           <div>
             <label className="block text-sm font-semibold text-navy mb-1">
-              Full name <span className="text-red-500">*</span>
+              {t('common:editprofile.full_name', 'Full name')} <span className="text-red-500">*</span>
             </label>
-            <input aria-label="Full name"
+            <input aria-label={t('common:editprofile.full_name', 'Full name')}
               value={fullName}
               onChange={e => setFullName(e.target.value.slice(0, 50))}
               maxLength={50}
@@ -286,7 +288,7 @@ export default function EditProfilePage() {
 
           {/* Username */}
           <div>
-            <label className="block text-sm font-semibold text-navy mb-1">Username</label>
+            <label className="block text-sm font-semibold text-navy mb-1">{t('common:editprofile.username', 'Username')}</label>
             <div className="relative flex items-center">
               <span className="absolute left-3 text-gray-500 font-medium select-none">@</span>
               <input
@@ -319,19 +321,19 @@ export default function EditProfilePage() {
               {usernameStatus === 'taken' && 'This username is already taken.'}
               {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
               {usernameStatus === 'available' && 'Available!'}
-              {!usernameStatus && 'Letters, numbers, and underscores only. 3–20 characters.'}
+              {!usernameStatus && t('common:editprofile.letters_numbers_and_underscores_only_3', 'Letters, numbers, and underscores only. 3–20 characters.')}
             </p>
           </div>
 
           {/* Bio */}
           <div>
-            <label className="block text-sm font-semibold text-navy mb-1">Bio</label>
+            <label className="block text-sm font-semibold text-navy mb-1">{t('common:editprofile.bio', 'Bio')}</label>
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value.slice(0, 160))}
               rows={3}
               maxLength={160}
-              placeholder="Tell your parish community about yourself..."
+              placeholder={t('common:editprofile.tell_your_parish_community_about_yourself', 'Tell your parish community about yourself...')}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-navy placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
             />
             <p className="text-xs text-gray-500 text-right mt-0.5">{bio.length}/160</p>
@@ -339,7 +341,7 @@ export default function EditProfilePage() {
 
           {/* Parish */}
           <div ref={dropdownRef} className="relative">
-            <label className="block text-sm font-semibold text-navy mb-1">Parish</label>
+            <label className="block text-sm font-semibold text-navy mb-1">{t('common:editprofile.parish', 'Parish')}</label>
             {parish ? (
               <div className="flex items-center gap-3 bg-lightbg border border-gray-200 rounded-lg px-3 py-2.5">
                 <BuildingLibraryIcon className="w-5 h-5 text-navy flex-shrink-0" />
@@ -347,7 +349,7 @@ export default function EditProfilePage() {
                   <p className="text-sm font-semibold text-navy truncate">{parish.name}</p>
                   <p className="text-xs text-gray-500">{parish.city}, {parish.state}</p>
                 </div>
-                <button aria-label="Clear parish" type="button" onClick={() => { setParish(null); setParishQuery('') }}
+                <button aria-label={t('common:editprofile.clear_parish', 'Clear parish')} type="button" onClick={() => { setParish(null); setParishQuery('') }}
                   className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -361,7 +363,7 @@ export default function EditProfilePage() {
                     value={parishQuery}
                     onChange={e => setParishQuery(e.target.value)}
                     onFocus={() => parishResults.length > 0 && setShowDropdown(true)}
-                    placeholder="Search by name or zip code..."
+                    placeholder={t('common:editprofile.search_by_name_or_zip_code', 'Search by name or zip code...')}
                     className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 py-2.5 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold text-sm"
                   />
                   {parishSearching && (
@@ -388,7 +390,7 @@ export default function EditProfilePage() {
 
           {/* Vocation */}
           <div>
-            <label className="block text-sm font-semibold text-navy mb-2">Vocation</label>
+            <label className="block text-sm font-semibold text-navy mb-2">{t('common:editprofile.vocation', 'Vocation')}</label>
             <div className="grid grid-cols-2 gap-2">
               {VOCATIONS.map(v => (
                 <button key={v.value} type="button"
@@ -397,7 +399,7 @@ export default function EditProfilePage() {
                     vocation === v.value ? 'border-navy bg-navy text-white' : 'border-gray-200 bg-white text-navy hover:border-navy'
                   }`}>
                   <span className="text-lg leading-none">{v.emoji}</span>
-                  <span>{v.label}</span>
+                  <span>{t(`auth:signup.vocation_${v.value}`, v.label)}</span>
                 </button>
               ))}
             </div>
@@ -405,17 +407,17 @@ export default function EditProfilePage() {
 
           {/* Save button (bottom) */}
           <Button onClick={handleSave} loading={saving} disabled={!hasChanges} fullWidth className="min-h-[52px] mt-2">
-            Save changes
+            {t('common:editprofile.save_changes', 'Save changes')}
           </Button>
         </div>
       </div>
 
       {/* Discard changes modal */}
-      <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="Discard changes?">
-        <p className="text-gray-500 text-sm mb-5">Your changes have not been saved.</p>
+      <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title={t('common:editprofile.discard_changes', 'Discard changes?')}>
+        <p className="text-gray-500 text-sm mb-5">{t('common:editprofile.your_changes_have_not_been_saved', 'Your changes have not been saved.')}</p>
         <div className="flex flex-col gap-2">
-          <Button variant="danger" fullWidth onClick={goBack}>Discard</Button>
-          <Button variant="secondary" fullWidth onClick={() => setShowDiscardModal(false)}>Keep editing</Button>
+          <Button variant="danger" fullWidth onClick={goBack}>{t('common:editprofile.discard', 'Discard')}</Button>
+          <Button variant="secondary" fullWidth onClick={() => setShowDiscardModal(false)}>{t('common:editprofile.keep_editing', 'Keep editing')}</Button>
         </div>
       </Modal>
     </div>

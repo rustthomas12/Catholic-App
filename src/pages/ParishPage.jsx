@@ -24,6 +24,7 @@ import ParishEvents from '../components/parish/ParishEvents'
 import ParishGroups from '../components/parish/ParishGroups'
 import useGoBack from '../hooks/useGoBack'
 import { canPurchaseInApp } from '../lib/platform'
+import { useTranslation } from 'react-i18next'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -33,6 +34,7 @@ const TABS = [
 ]
 
 export default function ParishPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const goBack = useGoBack('/directory')
@@ -81,8 +83,8 @@ export default function ParishPage() {
       <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
         <div className="text-center">
           <BuildingLibraryIcon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="font-bold text-navy mb-1">Parish not found</p>
-          <p className="text-gray-500 text-sm mb-4">This parish may have been removed.</p>
+          <p className="font-bold text-navy mb-1">{t('parish:page.parish_not_found', 'Parish not found')}</p>
+          <p className="text-gray-500 text-sm mb-4">{t('parish:page.this_parish_may_have_been_removed', 'This parish may have been removed.')}</p>
           <Link to="/directory" className="text-navy text-sm font-semibold hover:underline">
             ← Back to directory
           </Link>
@@ -99,11 +101,11 @@ export default function ParishPage() {
         {/* Back button */}
         <button
           onClick={goBack}
-          aria-label="Back"
+          aria-label={t('parish:page.back', 'Back')}
           className="absolute top-4 left-4 text-white/70 hover:text-white p-1 flex items-center gap-1 text-sm transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" />
-          <span className="hidden sm:inline" aria-hidden="true">Back</span>
+          <span className="hidden sm:inline" aria-hidden="true">{t('parish:page.back', 'Back')}</span>
         </button>
 
         <div className="px-4 pt-14 pb-5 max-w-3xl mx-auto">
@@ -116,7 +118,7 @@ export default function ParishPage() {
               <div className="flex items-start gap-2 flex-wrap">
                 <h1 className="text-white font-bold text-lg leading-snug">{parish.name}</h1>
                 {parish.is_official && (
-                  <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Parish Page" />
+                  <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title={t('parish:page.official_parish_page', 'Official Parish Page')} />
                 )}
               </div>
               <p className="text-gray-500 text-sm mt-0.5">
@@ -124,7 +126,9 @@ export default function ParishPage() {
                 {parish.diocese ? ` · ${parish.diocese}` : ''}
               </p>
               <p className="text-gray-500 text-xs mt-1">
-                {followerCount.toLocaleString()} parishioner{followerCount !== 1 ? 's' : ''} here
+                {followerCount === 1
+                  ? t('parish:page.parishioners_one', '{{count}} parishioner here', { count: followerCount.toLocaleString() })
+                  : t('parish:page.parishioners_other', '{{count}} parishioners here', { count: followerCount.toLocaleString() })}
               </p>
               {cluster && (
                 <p className="inline-flex items-center gap-1 text-gold/80 text-xs mt-1">
@@ -140,8 +144,8 @@ export default function ParishPage() {
             <div className="mt-4 flex items-start gap-3 bg-amber-400/20 border border-amber-400/30 rounded-2xl px-4 py-3">
               <span className="text-amber-300 text-base flex-shrink-0 mt-0.5">⏳</span>
               <div>
-                <p className="text-white font-semibold text-sm">Application under review</p>
-                <p className="text-white/70 text-xs mt-0.5">Our team is verifying your pastoral role — typically within 1–2 business days. We'll email you once approved.</p>
+                <p className="text-white font-semibold text-sm">{t('parish:page.application_under_review', 'Application under review')}</p>
+                <p className="text-white/70 text-xs mt-0.5">{t('parish:page.our_team_is_verifying_your_pastoral', "Our team is verifying your pastoral role — typically within 1–2 business days. We'll email you once approved.")}</p>
               </div>
             </div>
           )}
@@ -154,7 +158,7 @@ export default function ParishPage() {
                 className="flex items-center gap-2 px-4 py-2.5 bg-gold text-navy rounded-xl text-sm font-semibold hover:bg-gold/90 transition-colors"
               >
                 <Cog6ToothIcon className="w-4 h-4" />
-                Manage Parish
+                {t('parish:page.manage_parish', 'Manage Parish')}
               </Link>
             )}
 
@@ -168,7 +172,7 @@ export default function ParishPage() {
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
-              {followLoading ? '…' : isFollowing ? 'Unfollow' : 'Follow Parish'}
+              {followLoading ? '…' : isFollowing ? t('parish:page.unfollow', 'Unfollow') : t('parish:page.follow_parish', 'Follow Parish')}
             </button>
 
             {!isMyParish && (
@@ -176,18 +180,18 @@ export default function ParishPage() {
                 onClick={setAsMyParish}
                 className="flex-1 sm:flex-none text-sm font-semibold px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
               >
-                Set as my parish
+                {t('parish:page.set_as_my_parish', 'Set as my parish')}
               </button>
             )}
 
             {isMyParish && (
               <div className="flex items-center gap-2 bg-gold/20 rounded-xl px-3 py-2">
                 <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" />
-                <span className="text-sm text-gold font-semibold">Your home parish</span>
+                <span className="text-sm text-gold font-semibold">{t('parish:page.your_home_parish', 'Your home parish')}</span>
                 <button
                   onClick={unsetMyParish}
                   className="ml-1 text-white/50 hover:text-white/90 transition-colors"
-                  title="Remove as my home parish"
+                  title={t('parish:page.remove_as_my_home_parish', 'Remove as my home parish')}
                 >
                   <XMarkIcon className="w-3.5 h-3.5" />
                 </button>
@@ -199,7 +203,7 @@ export default function ParishPage() {
               className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
             >
               <EnvelopeIcon className="w-4 h-4" />
-              Contact
+              {t('parish:page.contact', 'Contact')}
             </button>
 
             {/* Clergy-only: apply to manage this parish */}
@@ -209,7 +213,7 @@ export default function ParishPage() {
                 className="w-full sm:w-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors mt-1 sm:mt-0"
               >
                 <BuildingLibraryIcon className="w-4 h-4" />
-                Apply to manage this parish
+                {t('parish:page.apply_to_manage_this_parish', 'Apply to manage this parish')}
               </button>
             )}
           </div>
@@ -229,7 +233,7 @@ export default function ParishPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
-              {tab.label}
+              {t(`parish:tabs.${tab.id}`, tab.label)}
             </button>
           ))}
         </div>
@@ -250,8 +254,8 @@ export default function ParishPage() {
           <Feed
             parishId={id}
             showCreatePost={isFollowing || isMyParish}
-            emptyMessage="No posts yet"
-            emptySubtext="This parish hasn't posted anything yet."
+            emptyMessage={t('parish:page.no_posts_yet', 'No posts yet')}
+            emptySubtext={t('parish:page.this_parish_hasn_t_posted_anything', "This parish hasn't posted anything yet.")}
           />
         )}
 
@@ -267,6 +271,7 @@ export default function ParishPage() {
 
 // ── Contact Parish Modal ────────────────────────────────────
 function ContactModal({ parishId, parishName, onClose }) {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
@@ -282,44 +287,44 @@ function ContactModal({ parishId, parishName, onClose }) {
       body: body.trim(),
     })
     if (error) {
-      toast.error('Could not send message. Please try again.')
+      toast.error(t('parish:page.could_not_send_message_please_try', 'Could not send message. Please try again.'))
     } else {
-      toast.success('Message sent to parish.')
+      toast.success(t('parish:page.message_sent_to_parish', 'Message sent to parish.'))
       onClose()
     }
     setSending(false)
   }
 
   return (
-    <Modal isOpen onClose={onClose} title={`Contact ${parishName}`}>
+    <Modal isOpen onClose={onClose} title={t('parish:page.contact_name', 'Contact {{name}}', { name: parishName })}>
       <p className="text-xs text-gray-500 mb-4">
-          Your message will be sent to the parish admin inbox.
-          {profile?.full_name && ` Sent as ${profile.full_name}.`}
+          {t('parish:page.your_message_will_be_sent_to', 'Your message will be sent to the parish admin inbox.')}
+          {profile?.full_name && ' ' + t('parish:page.sent_as', 'Sent as {{name}}.', { name: profile.full_name })}
         </p>
         <input
           value={subject}
           onChange={e => setSubject(e.target.value)}
-          placeholder="Subject (optional)"
+          placeholder={t('parish:page.subject_optional', 'Subject (optional)')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:border-navy"
         />
         <textarea
           value={body}
           onChange={e => setBody(e.target.value)}
-          placeholder="Your message…"
+          placeholder={t('parish:page.your_message', 'Your message…')}
           maxLength={5000}
           rows={5}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
         />
         <div className="flex gap-2 justify-end mt-4">
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            Cancel
+            {t('parish:page.cancel', 'Cancel')}
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !body.trim()}
             className="px-5 py-2 bg-navy text-white text-sm font-bold rounded-xl hover:bg-navy/90 disabled:opacity-50 transition-colors"
           >
-            {sending ? 'Sending…' : 'Send Message'}
+            {sending ? t('parish:page.sending', 'Sending…') : t('parish:page.send_message', 'Send Message')}
           </button>
         </div>
     </Modal>
@@ -328,6 +333,7 @@ function ContactModal({ parishId, parishName, onClose }) {
 
 // ── About tab ──────────────────────────────────────────────
 function ParishAbout({ parish, cluster, isManaged }) {
+  const { t } = useTranslation()
   const hasContact = parish.address || parish.phone || parish.website || parish.email
   const isIrsBmf   = parish.data_source === 'irs_bmf'
 
@@ -346,10 +352,10 @@ function ParishAbout({ parish, cluster, isManaged }) {
           <span className="text-amber-500 text-lg leading-none flex-shrink-0 mt-0.5">ℹ</span>
           <div>
             <p className="text-amber-800 text-sm font-semibold leading-snug">
-              Limited information available
+              {t('parish:page.limited_information_available', 'Limited information available')}
             </p>
             <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
-              This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.
+              {t('parish:page.this_parish_listing_comes_from_public', 'This parish listing comes from public IRS records. Phone, website, and Mass times may not be listed yet.')}
             </p>
             <p className="text-amber-700 text-xs mt-0.5">
               Know the details? Help us improve — <a
@@ -363,7 +369,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
       {hasContact && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-navy px-4 py-3">
-            <h2 className="text-white font-bold text-sm">Contact & Location</h2>
+            <h2 className="text-white font-bold text-sm">{t('parish:page.contact_location', 'Contact & Location')}</h2>
           </div>
           <div className="divide-y divide-gray-50">
             {parish.address && (
@@ -381,7 +387,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
                   <p className="text-xs text-gray-500">
                     {parish.city}, {parish.state} {parish.zip}
                   </p>
-                  <p className="text-xs text-navy font-medium mt-0.5">Open in Maps →</p>
+                  <p className="text-xs text-navy font-medium mt-0.5">{t('parish:page.open_in_maps', 'Open in Maps →')}</p>
                 </div>
               </a>
             )}
@@ -414,7 +420,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
         <MassTimes massTimes={parish.mass_times} />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
-          <p className="text-gray-500 text-sm">Mass times not listed.</p>
+          <p className="text-gray-500 text-sm">{t('parish:page.mass_times_not_listed', 'Mass times not listed.')}</p>
           {parish.website && (
             <a
               href={parish.website.startsWith('http') ? parish.website : `https://${parish.website}`}
@@ -422,7 +428,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
               rel="noopener noreferrer"
               className="text-navy text-sm font-semibold hover:underline mt-1 inline-block"
             >
-              Visit parish website →
+              {t('parish:page.visit_parish_website', 'Visit parish website →')}
             </a>
           )}
         </div>
@@ -435,7 +441,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
             <p className="text-gold text-[10px] font-semibold uppercase tracking-widest mb-0.5">
               {cluster.name}
             </p>
-            <p className="text-white/70 text-xs">Other parishes in this cluster</p>
+            <p className="text-white/70 text-xs">{t('parish:page.other_parishes_in_this_cluster', 'Other parishes in this cluster')}</p>
           </div>
           <div className="divide-y divide-gray-50">
             {cluster.parishes.map(p => (
@@ -463,9 +469,9 @@ function ParishAbout({ parish, cluster, isManaged }) {
       {/* B2B prompt */}
       {!parish.is_official && isManaged === false && (
         <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
-          <p className="text-navy text-sm font-semibold mb-1">Is this your parish?</p>
+          <p className="text-navy text-sm font-semibold mb-1">{t('parish:page.is_this_your_parish', 'Is this your parish?')}</p>
           <p className="text-gray-500 text-xs">
-            Contact us to set up your official page and manage announcements, events, and more.
+            {t('parish:page.contact_us_to_set_up_your', 'Contact us to set up your official page and manage announcements, events, and more.')}
           </p>
         </div>
       )}
@@ -474,6 +480,7 @@ function ParishAbout({ parish, cluster, isManaged }) {
 }
 
 function MassTimes({ massTimes }) {
+  const { t } = useTranslation()
   // massTimes can be a string, an array, or an object
   const renderContent = () => {
     if (typeof massTimes === 'string') {
@@ -511,7 +518,7 @@ function MassTimes({ massTimes }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="bg-navy px-4 py-3">
-        <h2 className="text-white font-bold text-sm">Mass Times</h2>
+        <h2 className="text-white font-bold text-sm">{t('parish:page.mass_times', 'Mass Times')}</h2>
       </div>
       <div className="p-4">{renderContent()}</div>
     </div>

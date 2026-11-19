@@ -92,5 +92,12 @@
   "photo_change": "Cambiar foto",
   "photo_add": "Añadir una foto",
   "photo_remove": "Quitar foto",
-  "photo_unsaved": "Toca Guardar para conservar este cambio"
+  "photo_unsaved": "Toca Guardar para conservar este cambio",
+  "locked": {
+    "for_followers": "Este grupo es para seguidores de",
+    "follow_org": "Sigue esa organización para unirte.",
+    "follow_parish": "Sigue esa parroquia para unirte.",
+    "members_only": "Solo miembros",
+    "back_to_groups": "← Volver a grupos"
+  }
 }
