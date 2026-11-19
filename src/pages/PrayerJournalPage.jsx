@@ -74,7 +74,7 @@ export default function PrayerJournalPage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 flex items-start gap-3">
             <ShieldCheckIcon className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-500 leading-relaxed">
-              🔒 Your journal is encrypted on this device before it's saved. Only this device can read it — not other members, not our team, not anyone with access to our servers. Entries can't be opened on your other devices, and if this device is lost or the app is removed, they can't be recovered.
+              {t('faith:journal.encryption_note', "🔒 Your journal is encrypted on this device before it's saved. Only this device can read it — not other members, not our team, not anyone with access to our servers. Entries can't be opened on your other devices, and if this device is lost or the app is removed, they can't be recovered.")}
             </p>
           </div>
 

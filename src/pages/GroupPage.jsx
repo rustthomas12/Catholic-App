@@ -187,7 +187,7 @@ export default function GroupPage() {
   }
 
   if (canAccess === false) {
-    const entityName = group.parish?.name ?? 'this parish or organization'
+    const entityName = group.parish?.name ?? t('groups:locked.this_entity', 'this parish or organization')
     return (
       <div className="min-h-screen bg-cream md:pl-60">
         <div className="bg-navy px-4 pt-14 pb-5 max-w-3xl mx-auto flex flex-col items-center text-center">

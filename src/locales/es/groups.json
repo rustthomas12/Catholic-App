@@ -98,7 +98,8 @@
     "follow_org": "Sigue esa organización para unirte.",
     "follow_parish": "Sigue esa parroquia para unirte.",
     "members_only": "Solo miembros",
-    "back_to_groups": "← Volver a grupos"
+    "back_to_groups": "← Volver a grupos",
+    "this_entity": "esta parroquia u organización"
   },
   "creategroup": {
     "step_of": "Paso {{step}} de {{total}}",

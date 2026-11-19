@@ -130,7 +130,8 @@
     "edit": "Editar",
     "delete": "Eliminar",
     "delete_entry": "¿Eliminar la entrada?",
-    "this_cannot_be_undone": "No se puede deshacer."
+    "this_cannot_be_undone": "No se puede deshacer.",
+    "encryption_note": "🔒 Tu diario se cifra en este dispositivo antes de guardarse. Solo este dispositivo puede leerlo: ni otros miembros, ni nuestro equipo, ni nadie con acceso a nuestros servidores. Las entradas no se pueden abrir en tus otros dispositivos y, si pierdes este dispositivo o eliminas la aplicación, no se podrán recuperar."
   },
   "offering": {
     "tip": "Consejo:",
