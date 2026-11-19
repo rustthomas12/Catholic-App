@@ -180,3 +180,67 @@ O clement, O loving, O sweet Virgin Mary.`,
     closing: 'May the all-powerful Lord grant us a restful night and a peaceful death. Amen.',
   },
 }
+
+// Spanish: names, formulas, intercessions and the Salve. Psalm, canticle
+// and reading texts stay in English (no licensed Spanish translation yet);
+// the page says so.
+export const HOURS_ES = {
+  morning: {
+    name: 'Laudes',
+    latinName: 'Oración de la mañana',
+    openingVerse: 'Señor, ábreme los labios, y mi boca proclamará tu alabanza.',
+    psalm: { title: 'Salmo 63: Sed de Dios' },
+    shortReading: { reference: 'Romanos 13, 11-12' },
+    canticle: { name: 'Cántico de Zacarías (Benedictus)', reference: 'Lucas 1, 68-79' },
+    intercessions: [
+      'Por todos los que hoy se levantan para servir a Dios',
+      'Por la Iglesia en todo el mundo',
+      'Por los que sufren en el cuerpo o en el espíritu',
+      'Por nuestras familias y por quienes encontraremos hoy',
+    ],
+    response: 'Te rogamos, óyenos.',
+    closing: 'El Señor nos bendiga, nos guarde de todo mal y nos lleve a la vida eterna. Amén.',
+  },
+  evening: {
+    name: 'Vísperas',
+    latinName: 'Oración de la tarde',
+    openingVerse: 'Dios mío, ven en mi auxilio. Señor, date prisa en socorrerme.',
+    psalm: { title: 'Salmo 141: Oración de la tarde' },
+    shortReading: { reference: '1 Pedro 5, 8-9' },
+    canticle: { name: 'Cántico de María (Magníficat)', reference: 'Lucas 1, 46-55' },
+    intercessions: [
+      'Por la paz en nuestras familias y comunidades',
+      'Por los que han muerto hoy',
+      'Por nuestra parroquia y sus necesidades',
+      'Por los que trabajan durante la noche al servicio de los demás',
+    ],
+    response: 'Te rogamos, óyenos.',
+    closing: 'El Señor nos bendiga, nos guarde de todo mal y nos lleve a la vida eterna. Amén.',
+  },
+  night: {
+    name: 'Completas',
+    latinName: 'Oración de la noche',
+    openingVerse: 'Dios mío, ven en mi auxilio. Señor, date prisa en socorrerme.',
+    examination: 'Tómate un momento para recordar los pecados de este día y pedir perdón a Dios.',
+    psalm: { title: 'Salmo 91: A la sombra del Omnipotente' },
+    shortReading: { reference: '1 Tesalonicenses 5, 9-10' },
+    canticle: { name: 'Cántico de Simeón (Nunc dimittis)', reference: 'Lucas 2, 29-32' },
+    marianAntiphon: {
+      name: 'Salve Regina',
+      text: `Dios te salve, Reina y Madre de misericordia,
+vida, dulzura y esperanza nuestra;
+Dios te salve.
+A ti llamamos los desterrados hijos de Eva;
+a ti suspiramos, gimiendo y llorando
+en este valle de lágrimas.
+
+Ea, pues, Señora, abogada nuestra,
+vuelve a nosotros esos tus ojos misericordiosos;
+y después de este destierro muéstranos a Jesús,
+fruto bendito de tu vientre.
+
+¡Oh clementísima, oh piadosa, oh dulce Virgen María!`,
+    },
+    closing: 'El Señor todopoderoso nos conceda una noche tranquila y una muerte santa. Amén.',
+  },
+}

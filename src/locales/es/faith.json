@@ -163,5 +163,26 @@
   "saintcard": {
     "remove_from_favorites": "Quitar de favoritos",
     "add_to_favorites": "Añadir a favoritos"
+  },
+  "exam": {
+    "examination_of_conscience": "Examen de conciencia",
+    "sections": "{{count}} secciones",
+    "sacrament_of_penance": "Sacramento de la Penitencia",
+    "prepare_your_heart_and_mind_before": "Prepara tu corazón y tu mente antes de confesarte.",
+    "before_you_begin_pray": "Antes de empezar, reza:",
+    "come_holy_spirit": "«Ven, Espíritu Santo, ilumina mi mente para que conozca con claridad mis pecados, y mueve mi corazón a una verdadera contrición. Ayúdame a hacer una confesión sincera y completa.»",
+    "collapse_all": "Contraer todo",
+    "expand_all": "Expandir todo",
+    "act_of_contrition": "Acto de contrición:",
+    "act_of_contrition_text": "«Dios mío, me arrepiento de todo corazón de haberte ofendido, y detesto todos mis pecados por tus justos castigos, pero sobre todo porque te ofenden a ti, Dios mío, que eres infinitamente bueno y digno de todo mi amor. Propongo firmemente, con la ayuda de tu gracia, no volver a pecar y evitar las ocasiones próximas de pecado. Amén.»",
+    "log_your_confession": "Registra tu confesión",
+    "track_your_last_confession_date": "Lleva la cuenta de tu última confesión"
+  },
+  "hours": {
+    "liturgy_of_the_hours": "Liturgia de las Horas",
+    "the_prayer_of_the_church_throughout": "La oración de la Iglesia a lo largo del día",
+    "opening_versicle": "Invocación inicial",
+    "intercessions": "Preces",
+    "closing": "Conclusión"
   }
 }
