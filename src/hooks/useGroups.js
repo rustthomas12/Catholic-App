@@ -6,6 +6,7 @@ import { createNotification } from '../lib/notifications'
 import { toast } from '../components/shared/Toast'
 import { containsIlike } from '../utils/search'
 import { clearFeedCaches } from './useFeed.js'
+import { getMyMemberships, invalidateMyMemberships } from '../lib/myMemberships'
 
 // ── Memberships module-level cache (shared across all hook instances) ──────
 let _membershipsCache = null        // { userId, data, ts }
@@ -20,13 +21,10 @@ const ACCESS_TTL = 60_000
 async function _fetchUserAccess(userId, profileParishId) {
   if (_accessPromise) return _accessPromise
 
-  _accessPromise = Promise.all([
-    supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
-    supabase.from('organization_members').select('org_id').eq('user_id', userId),
-  ]).then(([pRes, oRes]) => {
-    const parishIds = new Set((pRes.data ?? []).map(r => r.parish_id))
+  _accessPromise = getMyMemberships(userId).then((m) => {
+    const parishIds = new Set(m.parishFollows)
     if (profileParishId) parishIds.add(profileParishId)
-    const orgIds = new Set((oRes.data ?? []).map(r => r.org_id))
+    const orgIds = new Set(m.orgs.map(r => r.org_id))
     const result = { userId, parishIds, orgIds, ts: Date.now() }
     _accessCache = result
     _accessPromise = null
@@ -42,11 +40,13 @@ async function _fetchUserAccess(userId, profileParishId) {
 function _invalidateAccess() {
   _accessCache = null
   _accessPromise = null
+  invalidateMyMemberships()
 }
 
 function _invalidateMemberships() {
   _membershipsCache = null
   _membershipsPromise = null
+  invalidateMyMemberships()
   // The feed caches which groups you're in for 10 minutes; without this a
   // group you just joined stayed out of My Feed until then
   clearFeedCaches()
@@ -58,6 +58,7 @@ export function invalidateGroupMemberships() {
 }
 
 export function clearGroupCaches() {
+  _suggestedCache.clear()
   _membershipsCache = null
   _membershipsPromise = null
   _invalidateAccess()
@@ -208,10 +209,15 @@ export function useGroupSearch(query = '', categoryFilter = null) {
 }
 
 // ── useSuggestedGroups ─────────────────────────────────────
+// Last suggestions per user: returning to Groups shows them at once and
+// refreshes quietly instead of flashing skeleton cards
+const _suggestedCache = new Map() // userId → groups[]
+
 export function useSuggestedGroups() {
   const { user, profile } = useAuth()
-  const [suggested, setSuggested] = useState([])
-  const [loading, setLoading] = useState(true)
+  const cachedSuggested = user ? _suggestedCache.get(user.id) : null
+  const [suggested, setSuggested] = useState(cachedSuggested ?? [])
+  const [loading, setLoading] = useState(!cachedSuggested)
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -246,7 +252,7 @@ export function useSuggestedGroups() {
         )
       }
 
-      if (queries.length === 0) { setSuggested([]); return }
+      if (queries.length === 0) { _suggestedCache.set(user.id, []); setSuggested([]); return }
 
       const results = await Promise.all(queries)
       const seen = new Set()
@@ -259,6 +265,7 @@ export function useSuggestedGroups() {
       // Sort by member_count descending
       combined.sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0))
 
+      _suggestedCache.set(user.id, combined.slice(0, 8))
       setSuggested(combined.slice(0, 8))
     }
 

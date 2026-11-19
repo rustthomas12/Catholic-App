@@ -19,6 +19,8 @@ import { getCached, setCached } from '../lib/pageCache'
 import Feed from '../components/feed/Feed'
 import { format } from 'date-fns'
 import useGoBack from '../hooks/useGoBack'
+import { es as esLocale } from 'date-fns/locale'
+import i18n from '../utils/i18n'
 
 
 function ProfileSkeleton() {
@@ -294,7 +296,7 @@ export default function ProfilePage() {
                 <span className="text-sm text-gray-500">{vocLabels[profile.vocation_state]}</span>
               )}
               <span className="text-sm text-gray-500">
-                Member since {format(new Date(profile.created_at), 'MMMM yyyy')}
+                {t('common:profile.member_since', 'Member since {{date}}', { date: format(new Date(profile.created_at), 'MMMM yyyy', i18n.language === 'es' ? { locale: esLocale } : undefined) })}
               </span>
             </div>
           </div>
@@ -328,15 +330,15 @@ export default function ProfilePage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 grid grid-cols-3 divide-x divide-gray-100">
             <div className="text-center px-2">
               <p className="text-lg font-bold text-navy">{postCount}</p>
-              <p className="text-xs text-gray-500">Posts</p>
+              <p className="text-xs text-gray-500">{t('common:profile.posts', 'Posts')}</p>
             </div>
             <div className="text-center px-2">
               <p className="text-xs font-semibold text-navy truncate px-1">{parish?.name || '—'}</p>
-              <p className="text-xs text-gray-500">Parish</p>
+              <p className="text-xs text-gray-500">{t('common:profile.parish', 'Parish')}</p>
             </div>
             <div className="text-center px-2">
-              <p className="text-xs font-semibold text-navy">{format(new Date(profile.created_at), 'MMM yyyy')}</p>
-              <p className="text-xs text-gray-500">Since</p>
+              <p className="text-xs font-semibold text-navy">{format(new Date(profile.created_at), 'MMM yyyy', i18n.language === 'es' ? { locale: esLocale } : undefined)}</p>
+              <p className="text-xs text-gray-500">{t('common:profile.since', 'Since')}</p>
             </div>
           </div>
           )}
@@ -350,7 +352,7 @@ export default function ProfilePage() {
             </div>
           ) : (
           <div className="-mx-4">
-            <h2 className="text-base font-bold text-navy px-4 mb-3">Posts</h2>
+            <h2 className="text-base font-bold text-navy px-4 mb-3">{t('common:profile.posts', 'Posts')}</h2>
             <Feed
               userId={targetId}
               showCreatePost={false}

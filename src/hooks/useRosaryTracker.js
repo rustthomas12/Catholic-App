@@ -70,11 +70,15 @@ function calculateStreak(days) {
   return streak
 }
 
+// Last 30 days per user, so the tracker opens instantly on a return visit
+const _recentCache = new Map() // userId → rows
+
 export function useRosaryTracker() {
   const { user } = useAuth()
-  const [recentDays, setRecentDays] = useState([])
-  const [streak,     setStreak]     = useState(0)
-  const [loading,    setLoading]    = useState(true)
+  const cached = user ? _recentCache.get(user.id) : null
+  const [recentDays, setRecentDays] = useState(cached ?? [])
+  const [streak,     setStreak]     = useState(() => (cached ? calculateStreak(cached) : 0))
+  const [loading,    setLoading]    = useState(!cached)
 
   const todayStr       = format(new Date(), 'yyyy-MM-dd')
   const todayMysteries = DAILY_MYSTERIES[new Date().getDay()]
@@ -87,7 +91,9 @@ export function useRosaryTracker() {
       .eq('user_id', user.id)
       .gte('prayed_on', format(subDays(new Date(), 30), 'yyyy-MM-dd'))
       .order('prayed_on', { ascending: false })
-    const result = data || []
+    if (!data) { setLoading(false); return } // keep what we had on a failed request
+    const result = data
+    _recentCache.set(user.id, result)
     setRecentDays(result)
     setStreak(calculateStreak(result))
     setLoading(false)
@@ -99,6 +105,12 @@ export function useRosaryTracker() {
 
   const logRosary = useCallback(async (mysteries = todayMysteries) => {
     if (!user) return
+    // Show it right away; the refetch below confirms it
+    setRecentDays((prev) => {
+      const next = [{ prayed_on: todayStr, mysteries }, ...prev.filter((d) => d.prayed_on !== todayStr)]
+      setStreak(calculateStreak(next))
+      return next
+    })
     await supabase
       .from('rosary_tracker')
       .upsert(

@@ -31,8 +31,8 @@ const EMPTY = {
 // Module-level cache — persists across navigations within the same session
 
 export default function HomePage() {
-  useEffect(() => { document.title = 'Home | inFold' }, [])
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
+  useEffect(() => { document.title = `${t('nav.home')} | inFold` }, [t])
   const { profile } = useAuth()
   const unreadDMs = useUnreadDMCount()
   const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
@@ -102,20 +102,20 @@ export default function HomePage() {
             <svg className="absolute right-4 top-4 w-16 h-20 opacity-10 fill-gold" viewBox="0 0 40 56">
               <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z"/>
             </svg>
-            <button aria-label="Close" onClick={dismissWelcome}
+            <button aria-label={t('actions.close')} onClick={dismissWelcome}
               className="absolute top-3 right-3 text-white/50 hover:text-white p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
               <XMarkIcon className="w-5 h-5" />
             </button>
-            <p className="text-gold text-sm font-semibold mb-1">Welcome to inFold</p>
-            <p className="text-white font-bold text-lg mb-3">Welcome, {firstName}! Your parish community is waiting.</p>
+            <p className="text-gold text-sm font-semibold mb-1">{t('home.welcome_to', 'Welcome to inFold')}</p>
+            <p className="text-white font-bold text-lg mb-3">{t('home.welcome_waiting', 'Welcome, {{name}}! Your parish community is waiting.', { name: firstName })}</p>
             <div className="flex gap-2 flex-wrap">
               <Link to="/directory"
                 className="bg-gold text-navy text-sm font-semibold px-4 py-2 rounded-lg min-h-[40px] flex items-center">
-                Find my parish
+                {t('home.find_my_parish', 'Find my parish')}
               </Link>
               <Link to="/groups"
                 className="bg-white/10 text-white text-sm font-medium px-4 py-2 rounded-lg min-h-[40px] flex items-center hover:bg-white/20 transition-colors">
-                Browse groups
+                {t('home.browse_groups', 'Browse groups')}
               </Link>
             </div>
           </div>
@@ -145,10 +145,10 @@ export default function HomePage() {
         {groups.length > 0 && (
           <div className="bg-white border-b border-gray-100 py-3">
             <div className="flex items-center justify-between px-4 mb-2">
-              <h2 className="text-sm font-bold text-navy">My Groups</h2>
-              <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">See all</Link>
+              <h2 className="text-sm font-bold text-navy">{t('home.my_groups', 'My Groups')}</h2>
+              <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">{t('home.see_all', 'See all')}</Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label="My groups">
+            <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label={t('home.my_groups', 'My Groups')}>
               {groups.map(g => (
                 <GroupCard key={g.id} group={g} compact isMember />
               ))}
@@ -176,11 +176,11 @@ export default function HomePage() {
             <div className="flex flex-col gap-2 w-full max-w-xs">
               <Link to="/directory"
                 className="w-full bg-navy text-white text-sm font-semibold px-4 py-3 rounded-xl text-center">
-                Find my parish
+                {t('home.find_my_parish', 'Find my parish')}
               </Link>
               <Link to="/groups"
                 className="w-full bg-white border border-gray-200 text-navy text-sm font-semibold px-4 py-3 rounded-xl text-center">
-                Browse groups
+                {t('home.browse_groups', 'Browse groups')}
               </Link>
             </div>
           </div>
@@ -190,8 +190,8 @@ export default function HomePage() {
             <Feed
               filter={activeFilter}
               showCreatePost
-              emptyMessage={EMPTY[activeFilter]?.[0] ?? EMPTY.all[0]}
-              emptySubtext={EMPTY[activeFilter]?.[1] ?? EMPTY.all[1]}
+              emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
+              emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
               showFindParish={activeFilter === 'all'}
             />
           </div>
@@ -221,11 +221,11 @@ export default function HomePage() {
               <div className="flex gap-3 mt-1">
                 <Link to="/directory"
                   className="bg-navy text-white text-sm font-semibold px-5 py-2.5 rounded-xl">
-                  Find my parish
+                  {t('home.find_my_parish', 'Find my parish')}
                 </Link>
                 <Link to="/groups"
                   className="bg-white border border-gray-200 text-navy text-sm font-semibold px-5 py-2.5 rounded-xl">
-                  Browse groups
+                  {t('home.browse_groups', 'Browse groups')}
                 </Link>
               </div>
             </div>
@@ -236,8 +236,8 @@ export default function HomePage() {
                 <Feed
                   filter={activeFilter}
                   showCreatePost
-                  emptyMessage={EMPTY[activeFilter]?.[0] ?? EMPTY.all[0]}
-                  emptySubtext={EMPTY[activeFilter]?.[1] ?? EMPTY.all[1]}
+                  emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
+                  emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
                   showFindParish={activeFilter === 'all'}
                 />
               </div>
@@ -253,15 +253,15 @@ export default function HomePage() {
               <svg className="absolute right-4 top-4 w-16 h-20 opacity-10 fill-gold" viewBox="0 0 40 56">
                 <path d="M17 0h6v16h16v6H23v34h-6V22H0v-6h17z"/>
               </svg>
-              <button aria-label="Close" onClick={dismissWelcome}
+              <button aria-label={t('actions.close')} onClick={dismissWelcome}
                 className="absolute top-3 right-3 text-white/50 hover:text-white p-1">
                 <XMarkIcon className="w-5 h-5" />
               </button>
-              <p className="text-gold text-sm font-semibold mb-1">Welcome</p>
-              <p className="text-white font-bold text-base mb-3">Welcome, {firstName}!</p>
+              <p className="text-gold text-sm font-semibold mb-1">{t('home.welcome', 'Welcome')}</p>
+              <p className="text-white font-bold text-base mb-3">{t('home.welcome_name', 'Welcome, {{name}}!', { name: firstName })}</p>
               <Link to="/directory"
                 className="block bg-gold text-navy text-sm font-semibold px-4 py-2 rounded-lg text-center">
-                Find my parish
+                {t('home.find_my_parish', 'Find my parish')}
               </Link>
             </div>
           )}
@@ -293,10 +293,10 @@ export default function HomePage() {
           {groups.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold text-navy">My Groups</h2>
-                <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">See all</Link>
+                <h2 className="text-sm font-bold text-navy">{t('home.my_groups', 'My Groups')}</h2>
+                <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">{t('home.see_all', 'See all')}</Link>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label="My groups">
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label={t('home.my_groups', 'My Groups')}>
                 {groups.slice(0, 4).map(g => (
                   <GroupCard key={g.id} group={g} compact isMember />
                 ))}
@@ -311,9 +311,10 @@ export default function HomePage() {
 
 // ── Admin Quick Access card ────────────────────────────────
 function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords }) {
+  const { t } = useTranslation()
   return (
     <div className="bg-lightbg border-b border-gold/20 px-4 py-3">
-      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-2">Your Admin Access</p>
+      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-2">{t('home.admin_access', 'Your Admin Access')}</p>
       <div className="flex flex-wrap gap-2">
         {isPlatformAdmin && (
           <Link
@@ -353,16 +354,17 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
 // One entry point for every parish and organization you're part of; the
 // list itself is on /communities
 function CommunitiesCard({ parishes, orgs, className }) {
+  const { t } = useTranslation()
   if (parishes.length === 0 && orgs.length === 0) {
     return (
       <div className={`${className} p-5 text-center`}>
         <BuildingLibraryIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-        <p className="font-semibold text-navy text-sm mb-1">Connect with your parish</p>
+        <p className="font-semibold text-navy text-sm mb-1">{t('home.connect_title', 'Connect with your parish')}</p>
         <p className="text-gray-500 text-xs mb-3">
-          Find your parish to see announcements, events, and connect with your community.
+          {t('home.connect_body', 'Find your parish to see announcements, events, and connect with your community.')}
         </p>
         <Link to="/directory" className="inline-flex items-center gap-1 text-sm text-navy font-semibold hover:underline">
-          Find my parish →
+          {t('home.find_my_parish', 'Find my parish')} →
         </Link>
       </div>
     )
@@ -372,8 +374,8 @@ function CommunitiesCard({ parishes, orgs, className }) {
   const preview = names.slice(0, 2).join(' · ')
   const more = names.length - 2
   const counts = [
-    parishes.length && `${parishes.length} parish${parishes.length === 1 ? '' : 'es'}`,
-    orgs.length && `${orgs.length} organization${orgs.length === 1 ? '' : 's'}`,
+    parishes.length && t('home.parish_count', { count: parishes.length, defaultValue_one: '{{count}} parish', defaultValue_other: '{{count}} parishes' }),
+    orgs.length && t('home.org_count', { count: orgs.length, defaultValue_one: '{{count}} organization', defaultValue_other: '{{count}} organizations' }),
   ].filter(Boolean).join(' · ')
 
   return (
@@ -382,8 +384,8 @@ function CommunitiesCard({ parishes, orgs, className }) {
         <BuildingLibraryIcon className="w-5 h-5 text-navy" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-navy text-sm">My parishes &amp; organizations</p>
-        <p className="text-xs text-gray-500 truncate">{preview}{more > 0 ? ` +${more} more` : ''}</p>
+        <p className="font-bold text-navy text-sm">{t('home.communities', 'My parishes & organizations')}</p>
+        <p className="text-xs text-gray-500 truncate">{preview}{more > 0 ? ` ${t('home.plus_more', '+{{count}} more', { count: more })}` : ''}</p>
         <p className="text-[11px] text-gray-500">{counts}</p>
       </div>
       <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />

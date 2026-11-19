@@ -6,6 +6,8 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../utils/i18n'
 
 /**
  * ParishCard — two variants:
@@ -20,6 +22,7 @@ export default function ParishCard({
   onFollow,
   followLoading = false,
 }) {
+  const { t } = useTranslation('parish')
   if (variant === 'compact') {
     return (
       <Link
@@ -60,7 +63,7 @@ export default function ParishCard({
               {parish.name}
             </h3>
             {parish.is_official && (
-              <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title="Official Parish Page" />
+              <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title={t('parish.official_badge')} />
             )}
           </div>
           <p className="text-gray-500 text-xs mt-0.5">
@@ -84,7 +87,7 @@ export default function ParishCard({
                 : 'bg-white text-navy hover:bg-gray-50'
             }`}
           >
-            {isMyParish ? 'My Parish' : isFollowing ? 'Following' : 'Follow'}
+            {isMyParish ? t('parish.my_parish') : isFollowing ? t('parish.following') : t('parish.follow_short', 'Follow')}
           </button>
         )}
       </div>
@@ -101,19 +104,19 @@ export default function ParishCard({
           {typeof parish.follower_count === 'number' && parish.follower_count > 0 && (
             <span className="flex items-center gap-1 text-xs text-gray-500">
               <UsersIcon className="w-3.5 h-3.5 text-gray-500" />
-              {parish.follower_count.toLocaleString()} here
+              {t('parish.here_count', '{{formattedCount}} here', { formattedCount: parish.follower_count.toLocaleString() })}
             </span>
           )}
           {isMyParish && (
             <span className="flex items-center gap-1 text-xs text-gold font-semibold">
               <CheckCircleIcon className="w-3.5 h-3.5" />
-              Your parish
+              {t('parish.your_parish', 'Your parish')}
             </span>
           )}
         </div>
 
         <p className="text-navy text-xs font-semibold mt-3 hover:underline">
-          View parish community →
+          {t('parish.view_parish')}
         </p>
       </Link>
     </div>
@@ -121,7 +124,8 @@ export default function ParishCard({
 }
 
 function formatDistance(miles) {
-  if (miles < 0.1) return 'Here'
-  if (miles < 1) return `${(miles * 5280).toFixed(0)} ft away`
-  return `${miles.toFixed(1)} mi away`
+  const t = i18n.getFixedT(null, 'parish')
+  if (miles < 0.1) return t('parish.dist_here', 'Here')
+  if (miles < 1) return t('parish.dist_ft', '{{n}} ft away', { n: (miles * 5280).toFixed(0) })
+  return t('parish.dist_mi', '{{n}} mi away', { n: miles.toFixed(1) })
 }

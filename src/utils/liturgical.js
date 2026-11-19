@@ -1,3 +1,5 @@
+import i18n from './i18n'
+
 /**
  * Liturgical calendar utilities — pure JS, no external libraries.
  */
@@ -162,6 +164,11 @@ export function isMajorFeastDay(date = new Date()) {
  * Returns today's date formatted as MMDDYYYY for the USCCB readings URL.
  * @returns {string}
  */
+export function seasonLabel(info) {
+  if (!info) return ''
+  return i18n.t(`common:season.${info.season}`, { defaultValue: info.label })
+}
+
 export function getTodayReadingsDate() {
   const d = new Date()
   const yyyy = String(d.getFullYear())

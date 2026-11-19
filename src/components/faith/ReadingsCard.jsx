@@ -6,6 +6,7 @@ import { toast } from '../shared/Toast'
 import { useTLMReadings } from '../../hooks/useReadings'
 import { currentPublicUrl } from '../../lib/platform'
 import { cleanTlmSection } from '../../utils/tlmText'
+import { seasonLabel } from '../../utils/liturgical'
 
 const GOLD_CROSS = (
   <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -20,6 +21,12 @@ const GOLD_CROSS_SM = (
 )
 
 // ── ReadingSection ─────────────────────────────────────────
+function usccbSpanishUrl() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `https://bible.usccb.org/es/bible/lecturas/${p(d.getMonth() + 1)}${p(d.getDate())}${String(d.getFullYear()).slice(2)}.cfm`
+}
+
 function ReadingSection({ label, reference, text, italic = false }) {
   if (!text && !reference) return null
 
@@ -103,6 +110,7 @@ function ReadingsFallback({ t, isTLM }) {
 
 // ── Rite toggle ────────────────────────────────────────────
 function RiteToggle({ rite, onChange }) {
+  const { t } = useTranslation('faith')
   return (
     <div className="flex bg-gray-100 rounded-lg p-0.5 mb-4">
       <button
@@ -112,7 +120,7 @@ function RiteToggle({ rite, onChange }) {
           rite === 'of' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'
         }`}
       >
-        Ordinary Form
+        {t('rite_of', 'Ordinary Form')}
       </button>
       <button
         onClick={() => onChange('tlm')}
@@ -121,7 +129,7 @@ function RiteToggle({ rite, onChange }) {
           rite === 'tlm' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'
         }`}
       >
-        Traditional (1962)
+        {t('rite_tlm', 'Traditional (1962)')}
       </button>
     </div>
   )
@@ -182,7 +190,7 @@ export default function ReadingsCard({
   feastInfo,
   todayFormatted,
 }) {
-  const { t } = useTranslation('faith')
+  const { t, i18n } = useTranslation('faith')
 
   const [rite, setRite] = useState(() => localStorage.getItem(RITE_KEY) ?? 'of')
 
@@ -211,7 +219,7 @@ export default function ReadingsCard({
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ backgroundColor: liturgicalInfo?.color ?? '#15803D' }}
             />
-            <span className="text-xs text-gray-500">{liturgicalInfo?.label}</span>
+            <span className="text-xs text-gray-500">{seasonLabel(liturgicalInfo)}</span>
           </div>
         </div>
 
@@ -244,7 +252,7 @@ export default function ReadingsCard({
           </>
         )}
 
-        <p className="text-sm font-semibold text-gold mt-3">Read today's readings →</p>
+        <p className="text-sm font-semibold text-gold mt-3">{t('read_today', "Read today's readings")} →</p>
       </Link>
     )
   }
@@ -261,7 +269,7 @@ export default function ReadingsCard({
             className="px-3 py-1 rounded-full text-xs font-bold"
             style={{ backgroundColor: liturgicalInfo.color, color: liturgicalInfo.textColor }}
           >
-            {liturgicalInfo.label}
+            {seasonLabel(liturgicalInfo)}
           </span>
         )}
         {feastInfo?.isFeast && (
@@ -271,6 +279,20 @@ export default function ReadingsCard({
 
       {/* Rite toggle */}
       <RiteToggle rite={rite} onChange={handleRiteChange} />
+
+      {/* Scripture text is English only for now: point Spanish readers to
+          the USCCB's official Spanish readings for the day */}
+      {i18n.language === 'es' && !isTLM && (
+        <a
+          href={usccbSpanishUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-sm text-navy font-semibold mb-3 hover:underline"
+        >
+          {t('readings_spanish_link', 'Leer las lecturas en español (USCCB)')}
+          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+        </a>
+      )}
 
       {/* Content */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

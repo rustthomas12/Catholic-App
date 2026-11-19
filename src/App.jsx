@@ -17,6 +17,7 @@ import PushPrompt from './components/shared/PushPrompt'
 import RouteErrorBoundary from './components/shared/RouteErrorBoundary'
 import { supabase } from './lib/supabase'
 import { isNative } from './lib/platform'
+import i18n from './utils/i18n'
 
 // iOS / Android only — deep links, push taps, back button
 const NativeBridge = isNative ? lazy(() => import('./components/shared/NativeBridge')) : null
@@ -78,6 +79,8 @@ const DeleteAccountInfoPage             = lazy(() => import('./pages/DeleteAccou
 // Fires once on mount (app opened) then every 10 minutes.
 // Previously triggered on every route change which was unnecessary.
 const ACTIVE_INTERVAL_MS = 10 * 60 * 1000
+// Background writes wait until the first screen has loaded
+const STARTUP_DEFER_MS = 4000
 
 function LastActiveUpdater() {
   const { user } = useAuth()
@@ -93,9 +96,11 @@ function LastActiveUpdater() {
         .then(() => {})
     }
 
-    update() // fire immediately on mount / user change
+    // First write a few seconds after startup: it isn't urgent and shouldn't
+    // compete with the requests that put the first screen up
+    const first = setTimeout(update, STARTUP_DEFER_MS)
     const interval = setInterval(update, ACTIVE_INTERVAL_MS)
-    return () => clearInterval(interval)
+    return () => { clearTimeout(first); clearInterval(interval) }
   }, [user])
 
   return null
@@ -116,12 +121,15 @@ function TimezoneSync() {
     if (!tz) return
     const key = `infold-tz-${userId}`
     try { if (localStorage.getItem(key) === tz) return } catch { /* storage unavailable */ }
-    supabase
-      .from('notification_preferences')
-      .upsert({ user_id: userId, timezone: tz }, { onConflict: 'user_id' })
-      .then(({ error }) => {
-        if (!error) { try { localStorage.setItem(key, tz) } catch { /* ignore */ } }
-      })
+    const t = setTimeout(() => {
+      supabase
+        .from('notification_preferences')
+        .upsert({ user_id: userId, timezone: tz }, { onConflict: 'user_id' })
+        .then(({ error }) => {
+          if (!error) { try { localStorage.setItem(key, tz) } catch { /* ignore */ } }
+        })
+    }, STARTUP_DEFER_MS)
+    return () => clearTimeout(t)
   }, [userId])
 
   return null
@@ -164,7 +172,7 @@ function AppInner() {
       {NativeBridge && <Suspense fallback={null}><NativeBridge /></Suspense>}
       <PushPrompt />
       {/* Keyboard / screen-reader users can jump past the navigation */}
-      <a href="#main" className="skip-link">Skip to content</a>
+      <a href="#main" className="skip-link">{i18n.t('common:a11y.skip', 'Skip to content')}</a>
       <ConnectionBanner />
       <Navigation />
       <main id="main" tabIndex={-1} className="outline-none">

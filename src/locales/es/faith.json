@@ -50,5 +50,18 @@
   "season_lent": "Cuaresma",
   "season_easter": "Pascua",
   "season_holy_week": "Semana Santa",
-  "feast_day_label": "✦ {{name}}"
+  "feast_day_label": "✦ {{name}}",
+  "read_today": "Leer las lecturas de hoy",
+  "readings_spanish_link": "Leer las lecturas en español (USCCB)",
+  "intentions_empty": "Sé el primero en compartir una intención.",
+  "morning_offering": "Ofrecimiento de la mañana",
+  "morning_offering_hint": "Ofrece tu día a Dios antes de que empiece",
+  "examination": "Examen de conciencia",
+  "examination_hint": "Prepara tu corazón antes de la Confesión",
+  "prayer_intentions": "Intenciones de oración",
+  "prayer_intentions_hint": "Tu lista privada de personas e intenciones",
+  "confession_tracker": "Registro de confesiones",
+  "anonymous": "Anónimo",
+  "rite_of": "Forma ordinaria",
+  "rite_tlm": "Tradicional (1962)"
 }

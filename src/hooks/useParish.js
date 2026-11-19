@@ -4,6 +4,7 @@ import { useAuth } from './useAuth.jsx'
 import { fuzzyIlike, containsIlike } from '../utils/search'
 import { toast } from '../components/shared/Toast'
 import { clearFeedCaches } from './useFeed.js'
+import { invalidateMyMemberships } from '../lib/myMemberships'
 
 // Haversine distance in miles
 export function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -207,12 +208,14 @@ let _followedPromise = null  // in-flight fetch
 
 export function invalidateFollowedParishesCache() {
   _followedCache = null
+  invalidateMyMemberships()
   // The feed caches which parishes you follow for 10 minutes; without this
   // a parish you just followed stayed out of My Feed until then
   clearFeedCaches()
 }
 
 export function clearParishCaches() {
+  invalidateMyMemberships()
   _nearbyCache  = null
   _followedCache = null
   _followedPromise = null

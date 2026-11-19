@@ -1,4 +1,4 @@
-import { getLiturgicalSeason } from '../../utils/liturgical'
+import { getLiturgicalSeason, seasonLabel } from '../../utils/liturgical'
 
 const variants = {
   clergy:   { bg: 'bg-gold',      text: 'text-navy',     label: 'Verified' },
@@ -21,7 +21,7 @@ export default function Badge({ variant = 'category', label, size = 'sm' }) {
     const season = getLiturgicalSeason()
     bg = ''
     text = season.textColor === '#fff' ? 'text-white' : 'text-navy'
-    displayLabel = label ?? season.label
+    displayLabel = label ?? seasonLabel(season)
     return (
       <span
         className={`inline-flex items-center gap-1 rounded-full font-medium ${sizes[size]} ${text}`}

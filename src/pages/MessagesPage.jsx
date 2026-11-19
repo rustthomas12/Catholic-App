@@ -23,6 +23,7 @@ import { READ_EVENT } from '../hooks/useNotifications'
 import Avatar from '../components/shared/Avatar'
 import { getCached, setCached } from '../lib/pageCache'
 import { format, isToday, isYesterday } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 // ── helpers ────────────────────────────────────────────────
 // Keep a thread in the order messages were sent, not the order they arrived
@@ -253,6 +254,7 @@ function useMessages(userId, partnerId, onRead) {
 // ── NewConversationModal ───────────────────────────────────
 // Only shows users who share a parish, group, or organization with the current user
 function NewConversationModal({ userId, onSelect, onClose }) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [connectedUsers, setConnectedUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -275,7 +277,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
     : connectedUsers
 
   return (
-    <Modal isOpen onClose={onClose} title="New message" size="sm">
+    <Modal isOpen onClose={onClose} title={t('messages.new_message')} size="sm">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
           <input
@@ -283,24 +285,24 @@ function NewConversationModal({ userId, onSelect, onClose }) {
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search members…"
+            placeholder={t('messages.search_members', 'Search members…')}
             className="flex-1 text-sm text-navy focus:outline-none"
           />
         </div>
         <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
           {loading && (
-            <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
+            <div className="p-4 text-center text-sm text-gray-500">{t('status.loading')}</div>
           )}
           {!loading && connectedUsers.length === 0 && (
             <div className="p-6 text-center">
-              <p className="text-sm font-semibold text-navy mb-1">No connections yet</p>
+              <p className="text-sm font-semibold text-navy mb-1">{t('messages.no_connections', 'No connections yet')}</p>
               <p className="text-xs text-gray-500 leading-relaxed">
-                You can message members who share a parish, group, or organization with you.
+                {t('messages.no_connections_hint', 'You can message members who share a parish, group, or organization with you.')}
               </p>
             </div>
           )}
           {!loading && query.trim().length >= 1 && filtered.length === 0 && connectedUsers.length > 0 && (
-            <div className="p-4 text-center text-sm text-gray-500">No members found.</div>
+            <div className="p-4 text-center text-sm text-gray-500">{t('messages.no_members', 'No members found.')}</div>
           )}
           {filtered.map(p => (
             <button
@@ -319,6 +321,7 @@ function NewConversationModal({ userId, onSelect, onClose }) {
 
 // ── ConversationView ───────────────────────────────────────
 function ConversationView({ userId, partner, onBack, onRead, onSent }) {
+  const { t } = useTranslation()
   const { messages, loading, send } = useMessages(userId, partner.id, onRead)
   const [draft, setDraft] = useState('')
   const bottomRef = useRef(null)
@@ -326,7 +329,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
   const [blockOpen, setBlockOpen] = useState(false)
-  const name = partner.full_name || 'this member'
+  const name = partner.full_name || t('messages.this_member', 'this member')
 
   // Report the newest message they sent (moderators see its text); if they
   // haven't written anything, report the person
@@ -340,8 +343,8 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   async function handleBlock() {
     const { error } = await block(partner.id)
     setBlockOpen(false)
-    if (error) { toast.error('Could not block. Please try again.'); return }
-    toast.success(`${name} has been blocked`)
+    if (error) { toast.error(t('messages.block_failed', 'Could not block. Please try again.')); return }
+    toast.success(t('messages.blocked', '{{name}} has been blocked', { name }))
     onBack()
   }
 
@@ -370,17 +373,17 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-1.5 flex items-center gap-2 flex-shrink-0">
-        <button aria-label="Back" onClick={onBack} className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-navy hover:bg-lightbg transition-colors md:hidden">
+        <button aria-label={t('actions.back')} onClick={onBack} className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-navy hover:bg-lightbg transition-colors md:hidden">
           <ArrowLeftIcon className="w-5 h-5" />
         </button>
         <Link to={`/profile/${partner.id}`} className="flex items-center gap-3 min-w-0 min-h-[44px]">
           <Avatar src={partner.avatar_url} name={partner.full_name || 'U'} size="sm" />
-          <h2 className="font-semibold text-navy text-sm truncate">{partner.full_name || 'inFold Member'}</h2>
+          <h2 className="font-semibold text-navy text-sm truncate">{partner.full_name || t('messages.member', 'inFold Member')}</h2>
         </Link>
         <button
           type="button"
           onClick={() => setMenuOpen(true)}
-          aria-label="Conversation options"
+          aria-label={t('messages.options', 'Conversation options')}
           aria-haspopup="dialog"
           className="ml-auto w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-navy hover:bg-lightbg transition-colors"
         >
@@ -388,32 +391,32 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
         </button>
       </div>
 
-      <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title="Conversation options" size="sm">
+      <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title={t('messages.options', 'Conversation options')} size="sm">
         <div className="-mx-4 -my-2">
           <button
             type="button"
             onClick={() => { setMenuOpen(false); setReportOpen(true) }}
             className="w-full flex items-center gap-3 px-4 min-h-[52px] text-base text-navy hover:bg-lightbg"
           >
-            <FlagIcon className="w-5 h-5" /> Report conversation
+            <FlagIcon className="w-5 h-5" /> {t('messages.report', 'Report conversation')}
           </button>
           <button
             type="button"
             onClick={() => { setMenuOpen(false); setBlockOpen(true) }}
             className="w-full flex items-center gap-3 px-4 min-h-[52px] text-base text-red-600 hover:bg-red-50"
           >
-            <NoSymbolIcon className="w-5 h-5" /> Block {name}
+            <NoSymbolIcon className="w-5 h-5" /> {t('messages.block_name', 'Block {{name}}', { name })}
           </button>
         </div>
       </Modal>
-      <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} title="Report this conversation" onSubmit={submitReport} />
-      <Modal isOpen={blockOpen} onClose={() => setBlockOpen(false)} title={`Block ${name}?`} size="sm">
+      <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} title={t('messages.report_title', 'Report this conversation')} onSubmit={submitReport} />
+      <Modal isOpen={blockOpen} onClose={() => setBlockOpen(false)} title={t('messages.block_q', 'Block {{name}}?', { name })} size="sm">
         <p className="text-sm text-gray-600 mb-4">
-          You won't see their posts, comments, prayer requests or messages, and they won't be able to message you. You can unblock them any time in Settings.
+          {t('messages.block_body', "You won't see their posts, comments, prayer requests or messages, and they won't be able to message you. You can unblock them any time in Settings.")}
         </p>
         <div className="flex gap-3">
-          <button type="button" onClick={() => setBlockOpen(false)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">Cancel</button>
-          <button type="button" onClick={handleBlock} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">Block</button>
+          <button type="button" onClick={() => setBlockOpen(false)} className="flex-1 min-h-[44px] border border-gray-200 rounded-xl text-sm font-semibold text-gray-600">{t('actions.cancel')}</button>
+          <button type="button" onClick={handleBlock} className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold">{t('messages.block', 'Block')}</button>
         </div>
       </Modal>
 
@@ -448,14 +451,14 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
-          placeholder="Message…"
-          aria-label={`Message ${partner.full_name || ''}`.trim()}
+          placeholder={t('messages.message_placeholder')}
+          aria-label={t('messages.message_to', 'Message {{name}}', { name: partner.full_name || '' }).trim()}
           maxLength={2000}
           rows={1}
           className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy max-h-32 overflow-y-auto"
           style={{ minHeight: '40px' }}
         />
-        <button aria-label="Send"
+        <button aria-label={t('messages.send', 'Send')}
           type="submit"
           disabled={!draft.trim()}
           className="w-11 h-11 bg-navy text-white rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-navy/90 transition-colors disabled:opacity-40"
@@ -469,7 +472,8 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
 
 // ── MessagesPage ───────────────────────────────────────────
 export default function MessagesPage() {
-  useEffect(() => { document.title = 'Messages | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('messages.title')} | inFold` }, [t])
   const { user } = useAuth()
   const { convos, loading, reload, markRead } = useConversations(user?.id)
   const [activePartner, setActivePartner] = useState(null)
@@ -496,8 +500,8 @@ export default function MessagesPage() {
         {/* Conversation list */}
         <div className={`w-full md:w-80 md:border-r border-gray-100 bg-white flex flex-col flex-shrink-0 ${activePartner ? 'hidden md:flex' : 'flex'}`}>
           {/* Header */}
-          <TopBar variant="navy" title="Messages" actions={
-            <TopBarAction variant="navy" label="New message" icon={PencilSquareIcon} onClick={() => setShowNewConvo(true)} />
+          <TopBar variant="navy" title={t('messages.title')} actions={
+            <TopBarAction variant="navy" label={t('messages.new_message')} icon={PencilSquareIcon} onClick={() => setShowNewConvo(true)} />
           } />
 
           {/* List */}
@@ -509,13 +513,13 @@ export default function MessagesPage() {
             )}
             {!loading && convos.length === 0 && (
               <div className="p-6 text-center">
-                <p className="text-navy font-semibold text-sm mb-1">No messages yet</p>
-                <p className="text-gray-500 text-xs">Start a conversation with another member.</p>
+                <p className="text-navy font-semibold text-sm mb-1">{t('messages.no_messages')}</p>
+                <p className="text-gray-500 text-xs">{t('messages.no_messages_hint')}</p>
                 <button
                   onClick={() => setShowNewConvo(true)}
                   className="mt-3 text-sm font-semibold text-navy hover:underline"
                 >
-                  New message
+                  {t('messages.new_message')}
                 </button>
               </div>
             )}
@@ -536,14 +540,14 @@ export default function MessagesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between">
                     <p className={`text-sm truncate ${unread ? 'font-bold text-navy' : 'font-medium text-navy'}`}>
-                      {partner.full_name || 'inFold Member'}
+                      {partner.full_name || t('messages.member', 'inFold Member')}
                     </p>
                     <p className="text-[10px] text-gray-500 flex-shrink-0 ml-2">
                       {lastMessage?.created_at ? formatTime(lastMessage.created_at) : ''}
                     </p>
                   </div>
                   <p className={`text-xs truncate ${unread ? 'text-navy font-medium' : 'text-gray-500'}`}>
-                    {lastMessage?.sender_id === user.id ? 'You: ' : ''}{lastMessage?.content ?? ''}
+                    {lastMessage?.sender_id === user.id ? `${t('messages.you')}: ` : ''}{lastMessage?.content ?? ''}
                   </p>
                 </div>
               </button>
@@ -567,13 +571,13 @@ export default function MessagesPage() {
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <PaperAirplaneIcon className="w-8 h-8 text-navy/20" />
                 </div>
-                <p className="text-navy font-semibold text-sm">Select a conversation</p>
-                <p className="text-gray-500 text-xs mt-1">or start a new one</p>
+                <p className="text-navy font-semibold text-sm">{t('messages.select', 'Select a conversation')}</p>
+                <p className="text-gray-500 text-xs mt-1">{t('messages.or_new', 'or start a new one')}</p>
                 <button
                   onClick={() => setShowNewConvo(true)}
                   className="mt-4 text-sm font-semibold text-navy hover:underline"
                 >
-                  New message
+                  {t('messages.new_message')}
                 </button>
               </div>
             </div>

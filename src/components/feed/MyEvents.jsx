@@ -4,6 +4,7 @@ import { CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { EventCard } from '../parish/ParishEvents'
+import { getMyMemberships } from '../../lib/myMemberships'
 
 // Upcoming events from the parishes you follow, your groups and your
 // organizations — the Home feed's "Events" filter.
@@ -17,15 +18,11 @@ export default function MyEvents() {
     if (!userId) return
     let cancelled = false
     ;(async () => {
-      const [pf, pa, gm, om] = await Promise.all([
-        supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
-        supabase.from('parish_admins').select('parish_id').eq('user_id', userId),
-        supabase.from('group_members').select('group_id').eq('user_id', userId),
-        supabase.from('organization_members').select('org_id').eq('user_id', userId),
-      ])
-      const parishIds = [...new Set([...(pf.data ?? []), ...(pa.data ?? [])].map(r => r.parish_id))]
-      const groupIds = (gm.data ?? []).map(r => r.group_id)
-      const orgIds = (om.data ?? []).map(r => r.org_id)
+      let m
+      try { m = await getMyMemberships(userId) } catch { if (!cancelled) setError(true); return }
+      const parishIds = [...new Set([...m.parishFollows, ...m.parishAdmins.map(r => r.parish_id)])]
+      const groupIds = m.groups.map(r => r.group_id)
+      const orgIds = m.orgs.map(r => r.org_id)
 
       const parts = []
       if (parishIds.length) parts.push(`parish_id.in.(${parishIds.join(',')})`)

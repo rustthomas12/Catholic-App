@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
 const DISMISSED_KEY = 'infold-directory-banner-dismissed'
 
 export default function DirectoryDiscoveryBanner({ followedCount }) {
+  const { t } = useTranslation('parish')
   // Read on first render: reading it in an effect flashed the banner
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem(DISMISSED_KEY) === 'true' } catch { return false }
@@ -24,27 +26,24 @@ export default function DirectoryDiscoveryBanner({ followedCount }) {
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-navy leading-snug">
-          Stay connected to Catholic life near you
+          {t('parish.banner_title', 'Stay connected to Catholic life near you')}
         </p>
         <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-          We recommend following several parishes close to you — not just
-          your home parish. When a parish nearby hosts a BBQ, a talk, or a
-          special Mass, you'll be the first to know.
+          {t('parish.banner_body', "We recommend following several parishes close to you — not just your home parish. When a parish nearby hosts a BBQ, a talk, or a special Mass, you'll be the first to know.")}
         </p>
         {followedCount === 0 && (
           <p className="text-xs text-gold font-medium mt-1.5">
-            You're not following any parishes yet. Search below to get started.
+            {t('parish.banner_0', "You're not following any parishes yet. Search below to get started.")}
           </p>
         )}
         {followedCount === 1 && (
           <p className="text-xs text-gold font-medium mt-1.5">
-            You're following 1 parish. Try following 2–3 more nearby.
+            {t('parish.banner_1', "You're following 1 parish. Try following 2–3 more nearby.")}
           </p>
         )}
         {followedCount === 2 && (
           <p className="text-xs text-gold font-medium mt-1.5">
-            You're following 2 parishes. One more and you'll see a full
-            picture of local Catholic life.
+            {t('parish.banner_2', "You're following 2 parishes. One more and you'll see a full picture of local Catholic life.")}
           </p>
         )}
       </div>
@@ -52,7 +51,7 @@ export default function DirectoryDiscoveryBanner({ followedCount }) {
       <button
         onClick={dismiss}
         className="flex-shrink-0 p-1 text-gray-500 hover:text-gray-600 transition-colors rounded"
-        aria-label="Dismiss this suggestion"
+        aria-label={t('parish.dismiss_suggestion', 'Dismiss this suggestion')}
       >
         <XMarkIcon className="w-4 h-4" />
       </button>

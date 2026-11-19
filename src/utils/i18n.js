@@ -11,16 +11,6 @@ import parishEn  from '../locales/en/parish.json'
 import premiumEn from '../locales/en/premium.json'
 import adminEn   from '../locales/en/admin.json'
 
-// Spanish
-import commonEs  from '../locales/es/common.json'
-import authEs    from '../locales/es/auth.json'
-import feedEs    from '../locales/es/feed.json'
-import faithEs   from '../locales/es/faith.json'
-import groupsEs  from '../locales/es/groups.json'
-import parishEs  from '../locales/es/parish.json'
-import premiumEs from '../locales/es/premium.json'
-import adminEs   from '../locales/es/admin.json'
-
 // Detect saved preference → browser language → 'en'
 function detectLanguage() {
   try {
@@ -44,18 +34,9 @@ i18n.use(initReactI18next).init({
       premium: premiumEn,
       admin:   adminEn,
     },
-    es: {
-      common:  commonEs,
-      auth:    authEs,
-      feed:    feedEs,
-      faith:   faithEs,
-      groups:  groupsEs,
-      parish:  parishEs,
-      premium: premiumEs,
-      admin:   adminEs,
-    },
   },
   lng: detectLanguage(),
+  partialBundledLanguages: true,
   fallbackLng: 'en',
   defaultNS: 'common',
   ns: ['common', 'auth', 'feed', 'faith', 'groups', 'parish', 'premium', 'admin'],
@@ -69,6 +50,27 @@ i18n.use(initReactI18next).init({
 const syncHtmlLang = (lng) => { try { document.documentElement.lang = lng?.startsWith('es') ? 'es' : 'en' } catch {} }
 syncHtmlLang(i18n.language)
 i18n.on('languageChanged', syncHtmlLang)
+
+// Spanish is fetched only when needed. Switch languages through
+// setLanguage(), which loads the strings before switching.
+let esPromise = null
+function loadSpanish() {
+  esPromise ??= import('../locales/es/index.js').then(({ default: bundles }) => {
+    for (const [ns, strings] of Object.entries(bundles)) i18n.addResourceBundle('es', ns, strings, true, true)
+  }).catch((err) => { esPromise = null; throw err })
+  return esPromise
+}
+
+export async function setLanguage(lng) {
+  if (lng === 'es') { try { await loadSpanish() } catch { return } }
+  return i18n.changeLanguage(lng)
+}
+
+// Resolves once the starting language's strings are present; main.jsx
+// waits for it so Spanish users never see a flash of English
+export const i18nReady = i18n.language === 'es'
+  ? loadSpanish().then(() => i18n.changeLanguage('es')).catch(() => {})
+  : Promise.resolve()
 
 export default i18n
 export { useTranslation } from 'react-i18next'

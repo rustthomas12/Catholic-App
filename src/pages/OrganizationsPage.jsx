@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useTranslation } from 'react-i18next'
 
 const CATEGORIES = [
   'Apostolate', 'Charity', 'Education', 'Media', "Men's Ministry",
@@ -115,6 +116,7 @@ function useMyOrgs(userId) {
 
 // ── OrgCard ────────────────────────────────────────────────
 function OrgCard({ org, isSubscribed = false }) {
+  const { t } = useTranslation()
   return (
     <Link
       to={`/organization/${org.id}`}
@@ -127,14 +129,14 @@ function OrgCard({ org, isSubscribed = false }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="font-bold text-navy text-sm leading-snug">{org.name}</p>
           {org.is_official && (
-            <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title="Official" />
+            <CheckBadgeIcon className="w-4 h-4 text-gold flex-shrink-0" title={t('organizations.official')} />
           )}
           {org.org_type === 'national' && (
-            <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded-full">National</span>
+            <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded-full">{t('organizations.national', 'National')}</span>
           )}
           {isSubscribed && (
             <span className="inline-flex items-center text-[10px] font-semibold bg-gold/10 text-gold border border-gold/20 px-1.5 py-0.5 rounded-full">
-              ✓ Member
+              ✓ {t('organizations.member')}
             </span>
           )}
         </div>
@@ -165,7 +167,8 @@ function OrgCard({ org, isSubscribed = false }) {
 
 // ── OrganizationsPage ──────────────────────────────────────
 export default function OrganizationsPage() {
-  useEffect(() => { document.title = 'Organizations | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('organizations.title')} | inFold` }, [t])
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
@@ -217,13 +220,13 @@ export default function OrganizationsPage() {
       <div className="max-w-3xl mx-auto pb-24 md:pb-8">
 
         {/* Header */}
-        <TopBar variant="navy" title="Organizations" actions={
+        <TopBar variant="navy" title={t('organizations.title')} actions={
           <Link
             to="/organizations/new"
             className="flex items-center gap-1.5 text-sm font-semibold bg-gold text-navy px-3 min-h-[40px] rounded-full mr-1"
           >
             <PlusIcon className="w-4 h-4" />
-            New
+            {t('organizations.new', 'New')}
           </Link>
         } />
         <div className="bg-navy px-4 pt-1 pb-5">
@@ -235,11 +238,11 @@ export default function OrganizationsPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or city…"
+              placeholder={t('organizations.search_short', 'Search by name or city…')}
               className="w-full bg-white pl-10 pr-10 py-3 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {(query || hasActiveFilters) && (
-              <button aria-label="Clear filters"
+              <button aria-label={t('organizations.clear_filters', 'Clear filters')}
                 onClick={clearAll}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 p-1"
               >
@@ -255,14 +258,14 @@ export default function OrganizationsPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                aria-label="Filter by category"
+                aria-label={t('organizations.filter_category', 'Filter by category')}
                 className={`w-full pl-9 pr-2 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer ${
                   categoryFilter ? 'bg-gold/10 text-navy font-semibold' : 'bg-white/90 text-navy'
                 }`}
               >
-                <option value="">All categories</option>
+                <option value="">{t('organizations.all_categories', 'All categories')}</option>
                 {CATEGORIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{t(`organizations.cat.${c}`, c)}</option>
                 ))}
               </select>
             </div>
@@ -271,12 +274,12 @@ export default function OrganizationsPage() {
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                aria-label="Filter by state"
+                aria-label={t('organizations.filter_state', 'Filter by state')}
                 className={`w-full pl-9 pr-2 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold appearance-none cursor-pointer ${
                   stateFilter ? 'bg-gold/10 text-navy font-semibold' : 'bg-white/90 text-navy'
                 }`}
               >
-                <option value="">All states</option>
+                <option value="">{t('organizations.all_states', 'All states')}</option>
                 {US_STATES.map(([code, name]) => (
                   <option key={code} value={code}>{name}</option>
                 ))}
@@ -291,7 +294,7 @@ export default function OrganizationsPage() {
           {!isSearching && !myOrgsLoading && myOrgs.length > 0 && (
             <section>
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                Your organizations
+                {t('organizations.your_orgs')}
               </h2>
               <div className="space-y-2">
                 {myOrgs.map((org) => (
@@ -319,8 +322,8 @@ export default function OrganizationsPage() {
               ) : results.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                   <BuildingOffice2Icon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-navy font-semibold text-sm">No organizations found</p>
-                  <p className="text-gray-500 text-xs mt-1">Try adjusting your search or filters</p>
+                  <p className="text-navy font-semibold text-sm">{t('organizations.no_results')}</p>
+                  <p className="text-gray-500 text-xs mt-1">{t('organizations.adjust_filters', 'Try adjusting your search or filters')}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -339,9 +342,9 @@ export default function OrganizationsPage() {
                 <div className="w-14 h-14 bg-lightbg rounded-2xl flex items-center justify-center mx-auto mb-3">
                   <BuildingOffice2Icon className="w-7 h-7 text-navy" />
                 </div>
-                <h3 className="font-bold text-navy mb-1">Discover Catholic organizations</h3>
+                <h3 className="font-bold text-navy mb-1">{t('organizations.discover')}</h3>
                 <p className="text-gray-500 text-sm mb-4">
-                  Search by name, category, or state to find ministries and apostolates.
+                  {t('organizations.discover_hint', 'Search by name, category, or state to find ministries and apostolates.')}
                 </p>
               </div>
             </section>

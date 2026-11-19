@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import './index.css'
 import App from './App.jsx'
+import { i18nReady } from './utils/i18n'
 import { isNative, platform } from './lib/platform'
+import { getMyMemberships } from './lib/myMemberships'
 
 // iOS / Android app: route browser APIs to native plugins and tag <html> so
 // CSS can account for the status bar / notch (see index.css).
@@ -80,10 +82,26 @@ function AppWithSWUpdater() {
   )
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    {/* Native apps ship their web assets in the binary (updated through the
-        stores), so there is no service worker to register or update. */}
-    {isNative ? <App /> : <AppWithSWUpdater />}
-  </StrictMode>,
-)
+// Signed-in users: start downloading the home screen now, in parallel with
+// the sign-in check, instead of after it. Also start the membership lookups:
+// the feed, the navigation and the groups list all wait on them, and they
+// used to start only after the home screen's code had downloaded and run.
+try {
+  const stored = localStorage.getItem('parish-app-auth')
+  if (stored) {
+    if (location.pathname === '/') import('./pages/HomePage.jsx')
+    const userId = JSON.parse(stored)?.user?.id
+    if (userId) getMyMemberships(userId).catch(() => { /* retried when needed */ })
+  }
+} catch { /* storage unavailable: it loads normally */ }
+
+// Spanish users: draw once their strings are loaded (instant for English)
+i18nReady.then(() => {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      {/* Native apps ship their web assets in the binary (updated through the
+          stores), so there is no service worker to register or update. */}
+      {isNative ? <App /> : <AppWithSWUpdater />}
+    </StrictMode>,
+  )
+})

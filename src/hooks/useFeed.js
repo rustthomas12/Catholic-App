@@ -2,10 +2,17 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { watchNewPosts, isHiddenRow } from '../lib/postLive'
+import { getMyMemberships } from '../lib/myMemberships'
 
 const DEFAULT_PAGE_SIZE = 20
-const FEED_TTL   = 3  * 60 * 1000  // 3 min
+const FEED_TTL   = 3  * 60 * 1000  // 3 min: fresh enough to skip a foreground refresh
 const GRAPH_TTL  = 10 * 60 * 1000  // 10 min
+// A saved feed or parish/group list older than the TTL is still shown at
+// once while a fresh copy loads (stale-while-revalidate). Without this, an
+// app opened after a few hours started from a blank skeleton and two
+// network round trips in a row.
+const FEED_SHOW_MAX  = 24 * 60 * 60 * 1000      // 24 h
+const GRAPH_SHOW_MAX = 7 * 24 * 60 * 60 * 1000  // 7 days
 
 // ── Module-level caches (same-session navigation) ──────────
 const _feedCache  = new Map() // cacheKey → { posts, hasMore, ts }
@@ -42,7 +49,7 @@ function _getStoredFeed(cacheKey) {
     const raw = localStorage.getItem(_lsFeedKey(cacheKey))
     if (!raw) return null
     const p = JSON.parse(raw)
-    if (Date.now() - p.ts > FEED_TTL) return null
+    if (Date.now() - p.ts > FEED_SHOW_MAX) return null
     return p
   } catch { return null }
 }
@@ -62,7 +69,7 @@ function _getStoredGraph(userId) {
     const raw = localStorage.getItem(_lsGraphKey(userId))
     if (!raw) return null
     const p = JSON.parse(raw)
-    if (Date.now() - p.ts > GRAPH_TTL) return null
+    if (Date.now() - p.ts > GRAPH_SHOW_MAX) return null
     return p
   } catch { return null }
 }
@@ -177,19 +184,15 @@ export function useFeed(options = {}) {
 
   // ── Social graph builder ──────────────────────────────────
   async function _buildGraph(uid) {
-    const [pr, gr, ar, om] = await Promise.all([
-      supabase.from('parish_follows').select('parish_id').eq('user_id', uid),
-      supabase.from('group_members').select('group_id').eq('user_id', uid),
-      supabase.from('parish_admins').select('parish_id').eq('user_id', uid),
-      supabase.from('organization_members').select('org_id').eq('user_id', uid),
-    ])
-    const followed  = (pr.data ?? []).map(r => r.parish_id)
-    const admined   = (ar.data ?? []).map(r => r.parish_id)
+    // Shared with the nav, events and groups (one round of requests at startup)
+    const m = await getMyMemberships(uid)
+    const followed  = m.parishFollows
+    const admined   = m.parishAdmins.map(r => r.parish_id)
     const parishIds = [...new Set([...followed, ...admined])]
-    const groupIds  = (gr.data ?? []).map(r => r.group_id)
+    const groupIds  = m.groups.map(r => r.group_id)
 
     // Find parent org IDs for any chapters the user is a member of
-    const memberOrgIds = (om.data ?? []).map(r => r.org_id)
+    const memberOrgIds = m.orgs.map(r => r.org_id)
     let parentOrgIdsList = []
     if (memberOrgIds.length > 0) {
       const { data: chapterOrgs } = await supabase
@@ -237,7 +240,7 @@ export function useFeed(options = {}) {
         // changed (e.g. it was cached while signed-out requests came back
         // empty) the feed stayed wrong until the next visit
         if (changed) setGraphVersion(v => v + 1)
-      })
+      }).catch(() => { /* offline: keep the saved list */ })
       return
     }
 
@@ -407,14 +410,16 @@ export function useFeed(options = {}) {
       const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
       const mc = _feedCache.get(cacheKey)
       const isStale = !mc || (Date.now() - mc.ts > FEED_TTL)
-      if (isStale) {
-        refresh()
-      }
+      if (!isStale) return
+      // Posts on screen: update them quietly instead of blanking the feed
+      // to a skeleton every time the app comes back to the front
+      if (mc?.posts?.length) loadSocialGraph().then(() => fetchPage(0, false, true))
+      else refresh()
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [userId_stable, filter, parishId, groupId, orgId, refresh])
+  }, [userId_stable, filter, parishId, groupId, orgId, refresh, loadSocialGraph, fetchPage])
 
   // ── Live new posts ────────────────────────────────────────
   // Mirrors buildQuery: does a freshly inserted row belong in this feed?

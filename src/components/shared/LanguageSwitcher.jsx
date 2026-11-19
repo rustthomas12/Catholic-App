@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.jsx'
+import { setLanguage } from '../../utils/i18n'
 
 /**
  * Language switcher — two variants:
@@ -13,8 +14,8 @@ export default function LanguageSwitcher({ variant = 'full' }) {
   const currentLang = i18n.language === 'es' ? 'es' : 'en'
 
   async function switchLanguage(lang) {
-    // 1. Update i18next immediately
-    i18n.changeLanguage(lang)
+    // 1. Update i18next (loads the Spanish strings first if needed)
+    setLanguage(lang)
 
     // 2. Persist to localStorage (instant, no network)
     try { localStorage.setItem('infold-language', lang) } catch {}

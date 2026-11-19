@@ -58,14 +58,28 @@ export function useTodaySaint() {
 }
 
 // ── useSaintLibrary ────────────────────────────────────────
+// Saint lists don't change during a session: keep each search/month result
+// so returning to the Saints screen shows it instantly instead of skeletons
+const _libraryCache = new Map() // `${query}|${month}` → saints[]
+const libraryKey = (q, month) => `${q.trim().toLowerCase()}|${month ?? ''}`
+
 export function useSaintLibrary(searchQuery = '', filter = null) {
-  const [saints, setSaints] = useState([])
-  const [loading, setLoading] = useState(true)
+  const initial = _libraryCache.get(libraryKey(searchQuery, filter?.month))
+  const [saints, setSaints] = useState(initial ?? [])
+  const [loading, setLoading] = useState(!initial)
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
+    const key = libraryKey(searchQuery, filter?.month)
+    const cached = _libraryCache.get(key)
+    if (cached) {
+      setSaints(cached)
+      setLoading(false)
+      setError(null)
+      return
+    }
 
     const delay = searchQuery.trim().length > 0 ? 300 : 0
 
@@ -92,6 +106,7 @@ export function useSaintLibrary(searchQuery = '', filter = null) {
       if (err) {
         setError(err.message)
       } else {
+        _libraryCache.set(key, data ?? [])
         setSaints(data ?? [])
       }
       setLoading(false)
