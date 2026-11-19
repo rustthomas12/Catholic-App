@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { reportError } from '../../lib/errorReporting'
 import { LogoMark } from './Logo'
 
 export default class ErrorBoundary extends Component {
@@ -13,6 +14,7 @@ export default class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('ErrorBoundary caught:', error, info)
+    reportError('render', error, info?.componentStack)
   }
 
   render() {

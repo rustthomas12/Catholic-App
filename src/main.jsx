@@ -6,6 +6,9 @@ import App from './App.jsx'
 import { i18nReady } from './utils/i18n'
 import { isNative, platform } from './lib/platform'
 import { getMyMemberships } from './lib/myMemberships'
+import { installErrorReporting } from './lib/errorReporting'
+
+installErrorReporting()
 
 // iOS / Android app: route browser APIs to native plugins and tag <html> so
 // CSS can account for the status bar / notch (see index.css).

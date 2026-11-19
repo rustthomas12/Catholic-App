@@ -314,6 +314,64 @@ function AssignParishPastor() {
 }
 
 // ── Main AdminPage ─────────────────────────────────────────
+// ── App errors ─────────────────────────────────────────────
+// Groups the last 300 reports by message: how often, how many people,
+// when last seen, and one example stack.
+function AppErrors() {
+  const [rows, setRows] = useState(null)
+  const [open, setOpen] = useState(null)
+  const load = useCallback(() => {
+    supabase.from('client_errors')
+      .select('created_at, user_id, kind, message, stack, path, app_version, platform')
+      .order('created_at', { ascending: false })
+      .limit(300)
+      .then(({ data, error }) => setRows(error ? [] : data ?? []))
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  const groups = []
+  const byKey = new Map()
+  for (const r of rows ?? []) {
+    const key = `${r.kind}:${r.message}`
+    let g = byKey.get(key)
+    if (!g) { g = { key, ...r, count: 0, users: new Set(), paths: new Set() }; byKey.set(key, g); groups.push(g) }
+    g.count++
+    if (r.user_id) g.users.add(r.user_id)
+    if (r.path) g.paths.add(r.path)
+  }
+
+  return (
+    <>
+      <h2 className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2'>
+        App errors <span className='font-normal normal-case'>(last 30 days)</span>
+        <button onClick={load} className='ml-auto text-xs font-semibold text-navy normal-case hover:underline'>Refresh</button>
+      </h2>
+      {rows === null ? (
+        <div className='h-16 bg-white rounded-xl border border-gray-100 animate-pulse' />
+      ) : groups.length === 0 ? (
+        <p className='bg-white rounded-xl border border-gray-100 p-4 text-sm text-gray-500'>No errors reported. 🎉</p>
+      ) : (
+        <ul className='bg-white rounded-xl border border-gray-100 divide-y divide-gray-50'>
+          {groups.map((g) => (
+            <li key={g.key} className='p-3'>
+              <button onClick={() => setOpen(open === g.key ? null : g.key)} className='w-full text-left'>
+                <p className='text-sm font-semibold text-navy break-words'>{g.message}</p>
+                <p className='text-xs text-gray-500 mt-0.5'>
+                  {g.count}× · {g.users.size} {g.users.size === 1 ? 'person' : 'people'} · last {new Date(g.created_at).toLocaleString()} · {g.kind} · v{g.app_version} {g.platform}
+                </p>
+                <p className='text-xs text-gray-500 truncate'>{[...g.paths].slice(0, 4).join(', ')}</p>
+              </button>
+              {open === g.key && g.stack && (
+                <pre className='mt-2 text-[11px] leading-snug bg-gray-50 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap break-words text-gray-700'>{g.stack}</pre>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  )
+}
+
 export default function AdminPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -787,6 +845,11 @@ export default function AdminPage() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Crashes reported by the app (client_errors, kept 30 days) */}
+        <section>
+          <AppErrors />
         </section>
       </div>
 
