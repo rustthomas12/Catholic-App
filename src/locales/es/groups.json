@@ -99,5 +99,35 @@
     "follow_parish": "Sigue esa parroquia para unirte.",
     "members_only": "Solo miembros",
     "back_to_groups": "← Volver a grupos"
+  },
+  "creategroup": {
+    "step_of": "Paso {{step}} de {{total}}",
+    "only_followers": "Solo los seguidores de {{name}} podrán ver este grupo y unirse a él.",
+    "linked_entity": "la parroquia u organización vinculada",
+    "please_choose_a_jpeg_png_webp": "Elige una imagen JPEG, PNG, WebP o GIF",
+    "image_must_be_smaller_than_5": "La imagen debe pesar menos de 5 MB",
+    "something_went_wrong": "Algo salió mal.",
+    "linked_to": "Vinculado a *",
+    "you_need_to_follow_a_parish": "Tienes que seguir una parroquia o unirte a una organización antes de crear un grupo.",
+    "what_is_this_group_about": "¿De qué trata este grupo?",
+    "public": "Público",
+    "private": "Privado",
+    "upload_photo": "Subir foto",
+    "remove_photo": "Quitar foto",
+    "edit_details": "Editar detalles",
+    "edit_photo": "Editar foto",
+    "continue": "Continuar"
+  },
+  "settings_page": {
+    "only_org_followers": "Solo los seguidores de esta organización pueden ver este grupo y unirse a él.",
+    "only_parish_followers": "Solo los seguidores de esta parroquia pueden ver este grupo y unirse a él.",
+    "could_not_save_changes": "No se pudieron guardar los cambios.",
+    "settings_saved": "Configuración guardada.",
+    "could_not_delete_this_group": "No se pudo eliminar este grupo.",
+    "group_deleted": "Grupo eliminado",
+    "public": "Público",
+    "private": "Privado",
+    "linked_to": "Vinculado a",
+    "parish_organization": "Parroquia / organización"
   }
 }

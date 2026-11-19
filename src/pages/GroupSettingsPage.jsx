@@ -93,11 +93,11 @@ export default function GroupSettingsPage() {
     const { error } = await supabase.from('groups').update(updates).eq('id', id)
 
     if (error) {
-      toast.error(friendlyError(error, 'Could not save changes.'))
+      toast.error(friendlyError(error, t('groups:settings_page.could_not_save_changes', 'Could not save changes.')))
     } else {
       setPhotoFile(undefined)
       invalidateGroupMemberships() // home "My Groups" shows the new name/photo
-      toast.success('Settings saved.')
+      toast.success(t('groups:settings_page.settings_saved', 'Settings saved.'))
     }
     setSaving(false)
   }
@@ -106,10 +106,10 @@ export default function GroupSettingsPage() {
     // RLS-blocked deletes return no error, just no rows — check what was deleted
     const { data, error } = await supabase.from('groups').delete().eq('id', id).select('id')
     if (error || !data?.length) {
-      toast.error('Could not delete this group.')
+      toast.error(t('groups:settings_page.could_not_delete_this_group', 'Could not delete this group.'))
       return
     }
-    toast.success('Group deleted')
+    toast.success(t('groups:settings_page.group_deleted', 'Group deleted'))
     navigate('/groups')
   }
 
@@ -177,14 +177,14 @@ export default function GroupSettingsPage() {
               onClick={() => setIsPrivate(false)}
               className={`w-full text-left p-4 rounded-xl border transition-colors ${!isPrivate ? 'border-gold bg-gold/5' : 'border-gray-200 bg-white'}`}
             >
-              <p className="text-sm font-semibold text-navy">Public</p>
+              <p className="text-sm font-semibold text-navy">{t('groups:settings_page.public', 'Public')}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t('create_public')}</p>
             </button>
             <button
               onClick={() => setIsPrivate(true)}
               className={`w-full text-left p-4 rounded-xl border transition-colors ${isPrivate ? 'border-gold bg-gold/5' : 'border-gray-200 bg-white'}`}
             >
-              <p className="text-sm font-semibold text-navy">Private</p>
+              <p className="text-sm font-semibold text-navy">{t('groups:settings_page.private', 'Private')}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t('create_private')}</p>
             </button>
           </div>
@@ -192,12 +192,12 @@ export default function GroupSettingsPage() {
 
         {(group?.parish || group?.parish_id || group?.org_id) && (
           <div className="bg-lightbg rounded-xl px-4 py-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Linked to</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t('groups:settings_page.linked_to', 'Linked to')}</p>
             <p className="text-sm font-semibold text-navy">
-              {group.parish?.name ?? 'Parish / Organization'}
+              {group.parish?.name ?? t('groups:settings_page.parish_organization', 'Parish / Organization')}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">
-              Only followers of this {group.org_id ? 'organization' : 'parish'} can see and join this group.
+              {group.org_id ? t('groups:settings_page.only_org_followers', 'Only followers of this organization can see and join this group.') : t('groups:settings_page.only_parish_followers', 'Only followers of this parish can see and join this group.')}
             </p>
           </div>
         )}

@@ -243,7 +243,7 @@ export default function OrganizationPage() {
                 )}
                 {org.category && (
                   <span className="inline-block text-[10px] font-semibold text-white/60 bg-white/10 px-2 py-0.5 rounded-full capitalize">
-                    {org.category}
+                    {t(`organizations.cat.${org.category}`, org.category)}
                   </span>
                 )}
               </div>

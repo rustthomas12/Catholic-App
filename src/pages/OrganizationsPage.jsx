@@ -142,7 +142,7 @@ function OrgCard({ org, isSubscribed = false }) {
         </div>
         {org.category && (
           <span className="inline-block text-[10px] font-semibold text-navy/80 bg-navy/5 px-2 py-0.5 rounded-full mt-0.5 capitalize">
-            {org.category}
+            {t(`organizations.cat.${org.category}`, org.category)}
           </span>
         )}
         {(org.city || org.state) && (
