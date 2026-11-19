@@ -3,8 +3,10 @@ import { useLocation, Link } from 'react-router-dom'
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { LogoMark } from '../components/shared/Logo'
+import { useTranslation } from 'react-i18next'
 
 export default function CheckEmailPage() {
+  const { t } = useTranslation()
   useEffect(() => { document.title = 'Check your email | inFold' }, [])
 
   const { state } = useLocation()
@@ -35,15 +37,14 @@ export default function CheckEmailPage() {
           <EnvelopeIcon className="w-8 h-8 text-gold" />
         </div>
 
-        <h1 className="text-xl font-bold text-navy mb-2">Check your inbox</h1>
+        <h1 className="text-xl font-bold text-navy mb-2">{t('auth:ce.check_your_inbox', 'Check your inbox')}</h1>
         <p className="text-gray-500 text-sm leading-relaxed mb-1">
-          We sent a verification link to
+          {t('auth:ce.we_sent_a_verification_link_to', 'We sent a verification link to')}
         </p>
         <p className="font-semibold text-navy text-sm mb-6 break-all">{email}</p>
 
         <p className="text-gray-500 text-xs leading-relaxed mb-8">
-          Click the link in the email to verify your account and complete signup.
-          Check your spam folder if you don't see it.
+          {t('auth:ce.click_the_link_in_the_email', "Click the link in the email to verify your account and complete signup. Check your spam folder if you don't see it.")}
         </p>
 
         {/* Resend */}
@@ -52,7 +53,7 @@ export default function CheckEmailPage() {
           disabled={resending || resent || !state?.email}
           className="w-full py-3 border border-gray-200 rounded-xl text-sm font-semibold text-navy hover:bg-lightbg transition-colors disabled:opacity-50 mb-3"
         >
-          {resent ? '✓ Email resent' : resending ? 'Sending…' : 'Resend verification email'}
+          {resent ? t('auth:ce.email_resent', '✓ Email resent') : resending ? t('auth:ce.sending', 'Sending…') : t('auth:ce.resend_verification_email', 'Resend verification email')}
         </button>
 
         <Link
@@ -60,7 +61,7 @@ export default function CheckEmailPage() {
           className="flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-navy transition-colors"
         >
           <ArrowLeftIcon className="w-3.5 h-3.5" />
-          Back to sign in
+          {t('auth:ce.back_to_sign_in', 'Back to sign in')}
         </Link>
       </div>
     </div>

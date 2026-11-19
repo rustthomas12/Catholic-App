@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
           <div className="flex flex-col items-center text-center gap-4">
             <CheckCircleIcon className="w-14 h-14 text-green-500" />
             <div>
-              <p className="font-semibold text-navy text-lg">Check your email</p>
+              <p className="font-semibold text-navy text-lg">{t('auth:fp.check_your_email', 'Check your email')}</p>
               <p className="text-gray-500 text-sm mt-1">
-                If an account exists for <span className="font-medium text-navy">{email}</span>, we sent a reset link.
+                {t('auth:fp.if_account', 'If an account exists for')} <span className="font-medium text-navy">{email}</span>, {t('auth:fp.we_sent', 'we sent a reset link.')}
               </p>
-              <p className="text-gray-500 text-xs mt-2">The link expires in 1 hour.</p>
+              <p className="text-gray-500 text-xs mt-2">{t('auth:fp.the_link_expires_in_1_hour', 'The link expires in 1 hour.')}</p>
             </div>
             <Link to="/login" className="text-navy font-semibold text-sm hover:underline mt-2">
               {t('forgot.back_to_login')}

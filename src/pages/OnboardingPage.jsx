@@ -106,7 +106,7 @@ export default function OnboardingPage() {
     setJoiningGroup(groupId)
     const { error } = await supabase.from('group_members').insert({ group_id: groupId, user_id: profile.id, role: 'member' })
     if (!error || error.code === '23505') setJoinedGroups(prev => new Set([...prev, groupId]))
-    else toast.error("Couldn't join that group. Please try again.")
+    else toast.error(t('auth:onb.couldn_t_join_that_group_please', "Couldn't join that group. Please try again."))
     setJoiningGroup(null)
   }
 
@@ -127,7 +127,7 @@ export default function OnboardingPage() {
       {/* Skip */}
       <div className="flex justify-end p-4">
         <button onClick={skip} className="text-sm text-gray-500 hover:text-navy transition-colors min-h-[44px] px-2">
-          Skip
+          {t('auth:onb.skip', 'Skip')}
         </button>
       </div>
 
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
             <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-gold' : 'bg-gray-200'}`} />
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-1.5 text-right">Step {step} of {totalSteps}</p>
+        <p className="text-xs text-gray-500 mt-1.5 text-right">{t('groups:creategroup.step_of', 'Step {{step}} of {{total}}', { step, total: totalSteps })}</p>
       </div>
 
       {/* Content */}
@@ -164,24 +164,24 @@ export default function OnboardingPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{parish.name}</p>
                       <p className="text-gray-500 text-xs">{parish.city}, {parish.state}</p>
-                      <p className="text-navy text-xs mt-1 font-medium">Your parish ✓</p>
+                      <p className="text-navy text-xs mt-1 font-medium">{t('auth:onb.your_parish', 'Your parish ✓')}</p>
                     </div>
                     <button onClick={() => { setParish(null); updateProfile({ parish_id: null }) }}
                       className="text-xs text-gray-500 hover:text-navy transition-colors px-1">
-                      Change
+                      {t('auth:onb.change', 'Change')}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left space-y-2">
-                  <p className="text-sm font-semibold text-navy mb-2">Find your parish</p>
+                  <p className="text-sm font-semibold text-navy mb-2">{t('auth:onb.find_your_parish', 'Find your parish')}</p>
                   <div className="relative">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                     <input
                       type="text"
                       value={parishQuery}
                       onChange={e => setParishQuery(e.target.value)}
-                      placeholder="Search by name or city…"
+                      placeholder={t('auth:onb.search_by_name_or_city', 'Search by name or city…')}
                       className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-navy"
                     />
                     {parishSearching && (
@@ -200,10 +200,10 @@ export default function OnboardingPage() {
                     </div>
                   )}
                   {parishQuery.length >= 2 && !parishSearching && parishResults.length === 0 && (
-                    <p className="text-xs text-gray-500 text-center py-1">No parishes found — try a different search.</p>
+                    <p className="text-xs text-gray-500 text-center py-1">{t('auth:onb.no_parishes_found_try_a_different', 'No parishes found — try a different search.')}</p>
                   )}
                   {!parishQuery && (
-                    <p className="text-xs text-gray-500 text-center">Optional — you can add this later</p>
+                    <p className="text-xs text-gray-500 text-center">{t('auth:onb.optional_you_can_add_this_later', 'Optional — you can add this later')}</p>
                   )}
                 </div>
               )}
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-navy text-sm truncate">{g.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{g.category?.replace('_',' ')} · {g.member_count || 0} member{g.member_count === 1 ? '' : 's'}</p>
+                      <p className="text-xs text-gray-500 capitalize">{t(`groups:category_${g.category}`, g.category?.replace('_',' '))} · {g.member_count === 1 ? t('parish:org.members_one', '{{count}} member', { count: 1 }) : t('parish:org.members_other', '{{count}} members', { count: g.member_count || 0 })}</p>
                     </div>
                     <button
                       onClick={() => joinGroup(g.id)}
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
                       className={`text-xs font-semibold px-3 py-1.5 rounded-lg min-h-[36px] transition-colors ${
                         joinedGroups.has(g.id) ? 'bg-gold text-navy cursor-default' : 'bg-navy text-white hover:bg-opacity-90'
                       }`}>
-                      {joiningGroup === g.id ? <LoadingSpinner size="sm" /> : joinedGroups.has(g.id) ? 'Joined ✓' : 'Join'}
+                      {joiningGroup === g.id ? <LoadingSpinner size="sm" /> : joinedGroups.has(g.id) ? t('auth:onb.joined', 'Joined ✓') : t('auth:onb.join', 'Join')}
                     </button>
                   </div>
                 )) : (
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-navy text-sm">{name}</p>
-                        <p className="text-xs text-gray-500">Groups will appear as your community grows</p>
+                        <p className="text-xs text-gray-500">{t('auth:onb.groups_will_appear_as_your_community', 'Groups will appear as your community grows')}</p>
                       </div>
                     </div>
                   ))
@@ -285,7 +285,7 @@ export default function OnboardingPage() {
                     <svg viewBox="0 0 20 20" className="w-4 h-4 fill-gold flex-shrink-0">
                       <path d="M8.5 2h3v6h6v3h-6v7h-3V11h-6V8h6z"/>
                     </svg>
-                    <span className="text-white text-sm font-semibold">Today's Readings</span>
+                    <span className="text-white text-sm font-semibold">{t('auth:onb.today_s_readings', "Today's Readings")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: season.color }} />
@@ -320,15 +320,15 @@ export default function OnboardingPage() {
                 <BuildingLibraryIcon className="w-7 h-7 text-gold" />
               </div>
               <div>
-                <p className="text-gold text-xs font-bold tracking-widest uppercase mb-1">For Priests</p>
-                <h1 className="text-2xl font-bold text-navy leading-tight">Are you the pastor of a parish?</h1>
+                <p className="text-gold text-xs font-bold tracking-widest uppercase mb-1">{t('auth:onb.for_priests', 'For Priests')}</p>
+                <h1 className="text-2xl font-bold text-navy leading-tight">{t('auth:onb.are_you_the_pastor_of_a', 'Are you the pastor of a parish?')}</h1>
                 <p className="text-gray-500 mt-2 text-sm leading-relaxed">
-                  Set up your parish on inFold — reach your parishioners with announcements, events, and a community feed.
+                  {t('auth:onb.set_up_your_parish_on_infold', 'Set up your parish on inFold — reach your parishioners with announcements, events, and a community feed.')}
                 </p>
               </div>
               <div className="w-full bg-gold/10 border border-gold/20 rounded-2xl px-4 py-3 text-left">
-                <p className="text-navy text-xs font-semibold mb-1">Includes a 90-day free trial</p>
-                <p className="text-gray-500 text-xs">A card is required at checkout; you're not charged until day 91. Cancel any time.</p>
+                <p className="text-navy text-xs font-semibold mb-1">{t('auth:onb.includes_a_90_day_free_trial', 'Includes a 90-day free trial')}</p>
+                <p className="text-gray-500 text-xs">{t('auth:onb.a_card_is_required_at_checkout', "A card is required at checkout; you're not charged until day 91. Cancel any time.")}</p>
               </div>
               <div className="w-full space-y-3">
                 <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold"
@@ -336,11 +336,11 @@ export default function OnboardingPage() {
                     await updateProfile({ onboarding_completed: true })
                     navigate('/pastor-setup', { replace: true })
                   }}>
-                  Yes, set up my parish →
+                  {t('auth:onb.yes_set_up_my_parish', 'Yes, set up my parish →')}
                 </Button>
                 <button onClick={finish}
                   className="w-full text-sm text-gray-500 hover:text-navy transition-colors py-3 min-h-[44px]">
-                  Not right now — go to the app
+                  {t('auth:onb.not_right_now_go_to_the', 'Not right now — go to the app')}
                 </button>
               </div>
               <button onClick={() => setStep(3)} className="text-sm text-gray-500 hover:text-navy transition-colors py-1">← Back</button>

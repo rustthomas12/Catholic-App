@@ -3,21 +3,23 @@ import { Link } from 'react-router-dom'
 import { BuildingLibraryIcon, BuildingOffice2Icon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import TopBar from '../components/shared/TopBar'
 import { useMyCommunities } from '../hooks/useMyCommunities'
+import { useTranslation } from 'react-i18next'
 
 // Every parish you follow or run and every organization you belong to,
 // each opening its page (from the Home "My parishes & organizations" card)
 export default function MyCommunitiesPage() {
-  useEffect(() => { document.title = 'My Parishes & Organizations | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('common:communities.title', 'My Parishes & Organizations')} | inFold` }, [t])
   const { parishes, orgs, loading } = useMyCommunities()
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-2xl mx-auto pb-24">
-        <TopBar title="My Parishes & Organizations" back="/" />
+        <TopBar title={t('common:communities.title', 'My Parishes & Organizations')} back="/" />
 
         <div className="px-4 pt-4 space-y-6">
           <Section
-            title="Parishes"
+            title={t('common:communities.parishes', 'Parishes')}
             icon={BuildingLibraryIcon}
             loading={loading}
             items={parishes.map(p => ({
@@ -25,26 +27,26 @@ export default function MyCommunitiesPage() {
               to: `/parish/${p.id}`,
               name: p.name,
               detail: [p.city, p.state].filter(Boolean).join(', '),
-              badges: [p.isHome && 'Home parish', p.isAdmin && 'Admin'].filter(Boolean),
+              badges: [p.isHome && t('common:communities.home_parish', 'Home parish'), p.isAdmin && t('common:communities.admin', 'Admin')].filter(Boolean),
               manage: p.isAdmin ? `/parish-admin/${p.id}` : null,
             }))}
-            empty={{ text: "You don't follow any parishes yet.", to: '/directory', action: 'Find a parish' }}
+            empty={{ text: t('common:communities.you_don_t_follow_any_parishes', "You don't follow any parishes yet."), to: '/directory', action: t('common:communities.find_a_parish', 'Find a parish') }}
           />
 
           <Section
-            title="Organizations"
+            title={t('common:communities.organizations', 'Organizations')}
             icon={BuildingOffice2Icon}
             loading={loading}
             items={orgs.map(o => ({
               key: o.id,
               to: `/organization/${o.id}`,
               name: o.name,
-              detail: [o.org_type === 'national' ? 'National' : o.org_type === 'chapter' ? 'Chapter' : null,
+              detail: [o.org_type === 'national' ? t('common:communities.national', 'National') : o.org_type === 'chapter' ? t('common:communities.chapter', 'Chapter') : null,
                        [o.city, o.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '),
-              badges: [o.isAdmin && 'Admin'].filter(Boolean),
+              badges: [o.isAdmin && t('common:communities.admin', 'Admin')].filter(Boolean),
               manage: o.isAdmin ? `/org-admin/${o.id}` : null,
             }))}
-            empty={{ text: "You're not in any organizations yet.", to: '/organizations', action: 'Browse organizations' }}
+            empty={{ text: t('common:communities.you_re_not_in_any_organizations', "You're not in any organizations yet."), to: '/organizations', action: t('common:communities.browse_organizations', 'Browse organizations') }}
           />
         </div>
       </div>

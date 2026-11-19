@@ -157,5 +157,20 @@
     "no_upcoming_events": "No hay próximos eventos",
     "check_back_later_for_events_from": "Vuelve más tarde para ver los eventos de esta parroquia.",
     "check_back_soon": "Vuelve pronto."
+  },
+  "pending": {
+    "step_submitted_title": "Solicitud enviada",
+    "step_submitted_body": "Recibimos tu información de pago y comenzó tu prueba gratuita de 90 días.",
+    "step_review_title": "En revisión",
+    "step_review_body": "Nuestro equipo verificará tu función pastoral, normalmente en 1 o 2 días hábiles.",
+    "step_activated_title": "Parroquia activada",
+    "step_activated_body": "Una vez aprobada, recibirás un correo y se desbloqueará el panel de tu parroquia.",
+    "thanks": "Gracias por registrar tu parroquia en inFold. Esto es lo que sigue.",
+    "what_to_expect": "Qué esperar:",
+    "expect_text": "Recibirás un correo en tu dirección registrada cuando se apruebe tu cuenta. No tienes que hacer nada más.",
+    "application_received": "¡Solicitud recibida!",
+    "in_progress": "En curso",
+    "view_your_parish_page": "Ver la página de tu parroquia",
+    "go_to_the_app": "Ir a la aplicación"
   }
 }

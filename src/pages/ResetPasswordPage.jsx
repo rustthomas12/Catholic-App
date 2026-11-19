@@ -7,10 +7,10 @@ import Input from '../components/shared/Input'
 import Button from '../components/shared/Button'
 
 function passwordStrength(pw) {
-  if (!pw || pw.length < 8) return { level: 0, label: 'Too short', color: 'bg-red-400' }
+  if (!pw || pw.length < 8) return { level: 0, label: 'Too short', key: 'too_short', color: 'bg-red-400' }
   const hasSpecial = /[^a-zA-Z0-9]/.test(pw) || /\d/.test(pw)
-  if (hasSpecial) return { level: 2, label: 'Strong', color: 'bg-green-500' }
-  return { level: 1, label: 'Good', color: 'bg-orange-400' }
+  if (hasSpecial) return { level: 2, label: 'Strong', key: 'strong', color: 'bg-green-500' }
+  return { level: 1, label: 'Good', key: 'good', color: 'bg-orange-400' }
 }
 
 export default function ResetPasswordPage() {
@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
       if (msg.includes('different from the old') || msg.includes('same_password')) {
         setError(t('reset.error_same_password'))
       } else if (msg.includes('expired') || msg.includes('invalid') || msg.includes('session')) {
-        setError('Reset link has expired. Please request a new one.')
+        setError(t('auth:x.rp_reset_link_has_expired', 'Reset link has expired. Please request a new one.'))
       } else {
         setError(String(error))
       }
@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
               <p className="text-gray-500 text-sm mt-2">Redirecting in {countdown}...</p>
             </div>
             <Link to="/login" className="text-navy font-semibold text-sm hover:underline">
-              Sign in now
+              {t('auth:x.rp_sign_in_now', 'Sign in now')}
             </Link>
           </div>
         ) : (
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="New password"
+                placeholder={t('auth:x.rp_new_password', 'New password')}
                 icon={LockClosedIcon}
                 rightIcon={showPassword ? EyeSlashIcon : EyeIcon}
                 onRightIconClick={() => setShowPassword(v => !v)}
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
                       <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.level - 1 ? strength.color : 'bg-gray-200'}`} />
                     ))}
                   </div>
-                  <span className="text-xs text-gray-500">{strength.label}</span>
+                  <span className="text-xs text-gray-500">{t(`auth:strength.${strength.key}`, strength.label)}</span>
                 </div>
               )}
             </div>
@@ -117,7 +117,7 @@ export default function ResetPasswordPage() {
               type={showPassword ? 'text' : 'password'}
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
-              placeholder="Confirm new password"
+              placeholder={t('auth:x.rp_confirm_new_password', 'Confirm new password')}
               icon={LockClosedIcon}
               required
               autoComplete="new-password"
@@ -127,7 +127,7 @@ export default function ResetPasswordPage() {
               <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
                 {error.includes('expired') && (
-                  <span> <Link to="/forgot-password" className="underline font-medium">Request a new one</Link></span>
+                  <span> <Link to="/forgot-password" className="underline font-medium">{t('auth:x.rp_request_a_new_one', 'Request a new one')}</Link></span>
                 )}
               </div>
             )}

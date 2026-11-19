@@ -419,5 +419,29 @@
     "then_tap": "Luego toca",
     "add": "Añadir",
     "to_confirm": "arriba a la derecha para confirmar"
+  },
+  "communities": {
+    "title": "Mis parroquias y organizaciones",
+    "parishes": "Parroquias",
+    "home_parish": "Mi parroquia",
+    "admin": "Administrador",
+    "you_don_t_follow_any_parishes": "Aún no sigues ninguna parroquia.",
+    "find_a_parish": "Buscar una parroquia",
+    "organizations": "Organizaciones",
+    "national": "Nacional",
+    "chapter": "Capítulo",
+    "you_re_not_in_any_organizations": "Aún no perteneces a ninguna organización.",
+    "browse_organizations": "Explorar organizaciones"
+  },
+  "notfound": {
+    "page_not_found": "Página no encontrada",
+    "this_page_does_not_exist_or": "Esta página no existe o se ha movido.",
+    "go_home": "Ir al inicio",
+    "go_back": "Volver"
+  },
+  "eventredirect": {
+    "this_event_isn_t_available": "Este evento no está disponible",
+    "it_may_have_been_cancelled_or": "Puede que se haya cancelado o eliminado.",
+    "go_to_your_feed": "Ir a tus publicaciones"
   }
 }

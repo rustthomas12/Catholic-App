@@ -1,22 +1,26 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircleIcon, ClockIcon, EnvelopeIcon, BuildingLibraryIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
 const STEPS = [
   {
     icon: CheckCircleIcon,
+    key: 'submitted',
     title: 'Application submitted',
     body: 'Your billing information has been received and your 90-day free trial has started.',
     done: true,
   },
   {
     icon: ClockIcon,
+    key: 'review',
     title: 'Under review',
     body: 'Our team will verify your pastoral role — typically within 1–2 business days.',
     done: false,
   },
   {
     icon: BuildingLibraryIcon,
+    key: 'activated',
     title: 'Parish activated',
     body: "Once approved, you'll receive an email and your parish dashboard will be unlocked.",
     done: false,
@@ -24,6 +28,7 @@ const STEPS = [
 ]
 
 export default function PastorVerificationPendingPage() {
+  const { t } = useTranslation()
   useEffect(() => { document.title = 'Application Submitted | inFold' }, [])
   const [params] = useSearchParams()
   const parishId = params.get('parish_id')
@@ -38,10 +43,10 @@ export default function PastorVerificationPendingPage() {
             <EnvelopeIcon className="w-9 h-9 text-gold" />
           </div>
           <h1 className="text-2xl font-bold text-navy leading-tight">
-            Application received!
+            {t('parish:pending.application_received', 'Application received!')}
           </h1>
           <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-xs">
-            Thank you for registering your parish on inFold. Here&rsquo;s what happens next.
+            {t('parish:pending.thanks', 'Thank you for registering your parish on inFold. Here’s what happens next.')}
           </p>
         </div>
 
@@ -63,15 +68,15 @@ export default function PastorVerificationPendingPage() {
                 </div>
                 <div className="pt-1 pb-1">
                   <p className={`text-sm font-semibold ${s.done ? 'text-navy' : 'text-gray-500'}`}>
-                    {s.title}
+                    {t(`parish:pending.step_${s.key}_title`, s.title)}
                     {i === 1 && (
                       <span className="ml-2 inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                        In progress
+                        {t('parish:pending.in_progress', 'In progress')}
                       </span>
                     )}
                   </p>
                   <p className={`text-xs mt-0.5 leading-relaxed ${s.done ? 'text-gray-500' : 'text-gray-500'}`}>
-                    {s.body}
+                    {t(`parish:pending.step_${s.key}_body`, s.body)}
                   </p>
                 </div>
               </div>
@@ -81,7 +86,7 @@ export default function PastorVerificationPendingPage() {
 
         {/* Info note */}
         <div className="bg-navy/5 border border-navy/10 rounded-xl px-4 py-3 mb-7 text-sm text-navy/70 leading-relaxed">
-          <span className="font-semibold text-navy">What to expect:</span> You&rsquo;ll receive an email at your registered address once your account is approved. No action is needed on your end.
+          <span className="font-semibold text-navy">{t('parish:pending.what_to_expect', 'What to expect:')}</span> {t('parish:pending.expect_text', 'You’ll receive an email at your registered address once your account is approved. No action is needed on your end.')}
         </div>
 
         {/* Actions */}
@@ -91,7 +96,7 @@ export default function PastorVerificationPendingPage() {
               to={`/parish/${parishId}`}
               className="w-full bg-navy text-white text-sm font-semibold py-3.5 rounded-xl text-center hover:bg-opacity-90 transition-colors min-h-[52px] flex items-center justify-center"
             >
-              View your parish page
+              {t('parish:pending.view_your_parish_page', 'View your parish page')}
             </Link>
           )}
           <Link
@@ -102,7 +107,7 @@ export default function PastorVerificationPendingPage() {
                 : 'bg-navy text-white hover:bg-opacity-90'
             }`}
           >
-            Go to the app
+            {t('parish:pending.go_to_the_app', 'Go to the app')}
           </Link>
         </div>
 
