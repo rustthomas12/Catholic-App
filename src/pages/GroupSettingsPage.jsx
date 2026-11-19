@@ -2,14 +2,15 @@ import { friendlyError } from '../utils/errors'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
-import { TrashIcon } from '@heroicons/react/24/outline'
+import { TrashIcon, CameraIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { useGroup } from '../hooks/useGroups'
+import { useGroup, invalidateGroupMemberships } from '../hooks/useGroups'
 import { GroupPageSkeleton } from '../components/shared/skeletons'
 import { toast } from '../components/shared/Toast'
 import Modal from '../components/shared/Modal'
+import { shrinkImage, PICK_MAX_BYTES } from '../utils/imageResize'
 
 export default function GroupSettingsPage() {
   const { t } = useTranslation('groups')
@@ -25,9 +26,13 @@ export default function GroupSettingsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [initialized, setInitialized] = useState(false)
+  // Group photo: undefined = unchanged, null = remove, File = replace
+  const [photoFile, setPhotoFile] = useState(undefined)
+  const [photoPreview, setPhotoPreview] = useState(null)
 
   useEffect(() => {
     if (group && !initialized) {
+      setPhotoPreview(group.avatar_url ?? null)
       setName(group.name)
       setDescription(group.description ?? '')
       setIsPrivate(group.is_private)
@@ -39,20 +44,59 @@ export default function GroupSettingsPage() {
 
   if (loading) return <GroupPageSkeleton />
 
+  function handlePhotoPick(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      toast.error(t('photo_type', 'Please choose a JPEG, PNG, WebP, or GIF image'))
+      return
+    }
+    if (file.size > (file.type === 'image/gif' ? 5 * 1024 * 1024 : PICK_MAX_BYTES)) {
+      toast.error(t('photo_size', 'Image must be smaller than 5 MB'))
+      return
+    }
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
+  function removePhoto() {
+    setPhotoFile(null)
+    setPhotoPreview(null)
+  }
+
   async function handleSave() {
     setSaving(true)
-    const { error } = await supabase
-      .from('groups')
-      .update({
-        name: name.trim(),
-        description: description.trim() || null,
-        is_private: isPrivate,
-      })
-      .eq('id', id)
+    const updates = {
+      name: name.trim(),
+      description: description.trim() || null,
+      is_private: isPrivate,
+    }
+
+    if (photoFile === null) updates.avatar_url = null
+    if (photoFile) {
+      // Same place the create-group wizard uploads to (your own folder)
+      const file = await shrinkImage(photoFile, { maxDim: 512 })
+      const ext = file.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop()
+      const path = `group-avatars/${user.id}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('groups')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (uploadError) {
+        toast.error(t('photo_failed', 'Could not upload the photo. Please try again.'))
+        setSaving(false)
+        return
+      }
+      updates.avatar_url = supabase.storage.from('groups').getPublicUrl(path).data.publicUrl
+    }
+
+    const { error } = await supabase.from('groups').update(updates).eq('id', id)
 
     if (error) {
       toast.error(friendlyError(error, 'Could not save changes.'))
     } else {
+      setPhotoFile(undefined)
+      invalidateGroupMemberships() // home "My Groups" shows the new name/photo
       toast.success('Settings saved.')
     }
     setSaving(false)
@@ -74,6 +118,30 @@ export default function GroupSettingsPage() {
       <TopBar variant="navy" title={t('settings')} back={true} />
 
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
+        {/* Group photo */}
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 rounded-2xl bg-lightbg border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+            {photoPreview
+              ? <img src={photoPreview} alt="" className="w-full h-full object-cover" />
+              : <CameraIcon className="w-7 h-7 text-gray-400" />}
+          </div>
+          <div className="flex flex-col items-start gap-1">
+            <label className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy bg-white border border-gray-200 rounded-xl px-3 min-h-[44px] cursor-pointer hover:border-navy focus-within:ring-2 focus-within:ring-gold">
+              <CameraIcon className="w-4 h-4" />
+              {photoPreview ? t('photo_change', 'Change photo') : t('photo_add', 'Add a photo')}
+              <input type="file" accept="image/*" onChange={handlePhotoPick} className="sr-only" />
+            </label>
+            {photoPreview && (
+              <button type="button" onClick={removePhoto} className="text-xs text-gray-500 hover:text-red-600 px-1 min-h-[32px]">
+                {t('photo_remove', 'Remove photo')}
+              </button>
+            )}
+            {photoFile !== undefined && (
+              <p className="text-xs text-gray-500 px-1">{t('photo_unsaved', 'Tap Save to keep this change')}</p>
+            )}
+          </div>
+        </div>
+
         <div>
           <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
             {t('create_name')}

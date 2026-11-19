@@ -85,5 +85,12 @@
   "cancel_request": "Cancelar solicitud",
   "cancel_request_title": "¿Cancelar tu solicitud?",
   "cancel_request_body": "Se retirará tu solicitud para unirte a {{name}}. Puedes volver a pedirlo más tarde.",
-  "keep_request": "Mantener solicitud"
+  "keep_request": "Mantener solicitud",
+  "photo_type": "Elige una imagen JPEG, PNG, WebP o GIF",
+  "photo_size": "La imagen debe pesar menos de 5 MB",
+  "photo_failed": "No se pudo subir la foto. Inténtalo de nuevo.",
+  "photo_change": "Cambiar foto",
+  "photo_add": "Añadir una foto",
+  "photo_remove": "Quitar foto",
+  "photo_unsaved": "Toca Guardar para conservar este cambio"
 }

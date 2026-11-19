@@ -82,6 +82,34 @@ export default function PrayerRequestsPage() {
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [fetchIntentions])
 
+  // "Prayed" counts from other people: re-read the counts of the requests on
+  // screen every 15 s while the page is visible (realtime can't see other
+  // people's requests through the privacy view)
+  const loadedIds = intentions.slice(0, 60).map((i) => i.id).join(',')
+  useEffect(() => {
+    if (!loadedIds) return
+    const ids = loadedIds.split(',')
+    const tick = async () => {
+      if (document.visibilityState !== 'visible') return
+      const { data } = await supabase.from('prayer_request_feed').select('id, prayer_count').in('id', ids)
+      if (!data?.length) return
+      const counts = new Map(data.map((r) => [r.id, r.prayer_count]))
+      setIntentions((prev) => {
+        let changed = false
+        const next = prev.map((i) => {
+          const c = counts.get(i.id)
+          if (c == null || c === i.prayer_count) return i
+          changed = true
+          // Never show fewer than the prayer you just added is counted for
+          return { ...i, prayer_count: i.is_prayed_by_me ? Math.max(c, 1) : c }
+        })
+        return changed ? next : prev
+      })
+    }
+    const timer = setInterval(tick, 15000)
+    return () => clearInterval(timer)
+  }, [loadedIds])
+
   async function handleSubmit() {
     const trimmed = content.trim()
     if (!trimmed) return
