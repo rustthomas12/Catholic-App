@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { i18nReady } from './utils/i18n'
 import { isNative, platform } from './lib/platform'
+import { getMyMemberships } from './lib/myMemberships'
 
 // iOS / Android app: route browser APIs to native plugins and tag <html> so
 // CSS can account for the status bar / notch (see index.css).
@@ -81,10 +82,17 @@ function AppWithSWUpdater() {
   )
 }
 
-// Start downloading the screen for this address now, in parallel with the
-// sign-in check, instead of after it (the home feed is the usual first screen)
+// Signed-in users: start downloading the home screen now, in parallel with
+// the sign-in check, instead of after it. Also start the membership lookups:
+// the feed, the navigation and the groups list all wait on them, and they
+// used to start only after the home screen's code had downloaded and run.
 try {
-  if (location.pathname === '/' && localStorage.getItem('parish-app-auth')) import('./pages/HomePage.jsx')
+  const stored = localStorage.getItem('parish-app-auth')
+  if (stored) {
+    if (location.pathname === '/') import('./pages/HomePage.jsx')
+    const userId = JSON.parse(stored)?.user?.id
+    if (userId) getMyMemberships(userId).catch(() => { /* retried when needed */ })
+  }
 } catch { /* storage unavailable: it loads normally */ }
 
 // Spanish users: draw once their strings are loaded (instant for English)

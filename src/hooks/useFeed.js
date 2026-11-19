@@ -5,8 +5,14 @@ import { watchNewPosts, isHiddenRow } from '../lib/postLive'
 import { getMyMemberships } from '../lib/myMemberships'
 
 const DEFAULT_PAGE_SIZE = 20
-const FEED_TTL   = 3  * 60 * 1000  // 3 min
+const FEED_TTL   = 3  * 60 * 1000  // 3 min: fresh enough to skip a foreground refresh
 const GRAPH_TTL  = 10 * 60 * 1000  // 10 min
+// A saved feed or parish/group list older than the TTL is still shown at
+// once while a fresh copy loads (stale-while-revalidate). Without this, an
+// app opened after a few hours started from a blank skeleton and two
+// network round trips in a row.
+const FEED_SHOW_MAX  = 24 * 60 * 60 * 1000      // 24 h
+const GRAPH_SHOW_MAX = 7 * 24 * 60 * 60 * 1000  // 7 days
 
 // ── Module-level caches (same-session navigation) ──────────
 const _feedCache  = new Map() // cacheKey → { posts, hasMore, ts }
@@ -43,7 +49,7 @@ function _getStoredFeed(cacheKey) {
     const raw = localStorage.getItem(_lsFeedKey(cacheKey))
     if (!raw) return null
     const p = JSON.parse(raw)
-    if (Date.now() - p.ts > FEED_TTL) return null
+    if (Date.now() - p.ts > FEED_SHOW_MAX) return null
     return p
   } catch { return null }
 }
@@ -63,7 +69,7 @@ function _getStoredGraph(userId) {
     const raw = localStorage.getItem(_lsGraphKey(userId))
     if (!raw) return null
     const p = JSON.parse(raw)
-    if (Date.now() - p.ts > GRAPH_TTL) return null
+    if (Date.now() - p.ts > GRAPH_SHOW_MAX) return null
     return p
   } catch { return null }
 }
@@ -234,7 +240,7 @@ export function useFeed(options = {}) {
         // changed (e.g. it was cached while signed-out requests came back
         // empty) the feed stayed wrong until the next visit
         if (changed) setGraphVersion(v => v + 1)
-      })
+      }).catch(() => { /* offline: keep the saved list */ })
       return
     }
 
@@ -404,14 +410,16 @@ export function useFeed(options = {}) {
       const cacheKey = getFeedKey(userId_stable, filter, parishId, groupId, orgId)
       const mc = _feedCache.get(cacheKey)
       const isStale = !mc || (Date.now() - mc.ts > FEED_TTL)
-      if (isStale) {
-        refresh()
-      }
+      if (!isStale) return
+      // Posts on screen: update them quietly instead of blanking the feed
+      // to a skeleton every time the app comes back to the front
+      if (mc?.posts?.length) loadSocialGraph().then(() => fetchPage(0, false, true))
+      else refresh()
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [userId_stable, filter, parishId, groupId, orgId, refresh])
+  }, [userId_stable, filter, parishId, groupId, orgId, refresh, loadSocialGraph, fetchPage])
 
   // ── Live new posts ────────────────────────────────────────
   // Mirrors buildQuery: does a freshly inserted row belong in this feed?

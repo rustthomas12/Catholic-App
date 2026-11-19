@@ -43,7 +43,7 @@ async function run(label) {
   const cdp = await ctx.newCDPSession(page)
   // "Fast 4G"-ish: 40 ms RTT, ~9 Mbps down, 4x CPU slowdown (mid-range phone)
   await cdp.send('Network.enable')
-  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 40, downloadThroughput: 9e6 / 8, uploadThroughput: 3e6 / 8 })
+  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: Number(process.env.PROBE_RTT || 40), downloadThroughput: 9e6 / 8, uploadThroughput: 3e6 / 8 })
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
 
   const reqs = []
@@ -78,6 +78,22 @@ async function run(label) {
   await page.close()
 }
 
+// Make the saved feed and parish/group list look `ms` old, like an app
+// reopened from the home screen hours later
+async function ageCache(ms) {
+  const page = await ctx.newPage()
+  await page.goto(BASE + '/404-age-cache', { waitUntil: 'commit' })
+  await page.evaluate((ms) => {
+    for (const k of Object.keys(localStorage)) {
+      if (!/^parish_(feed|graph)_/.test(k)) continue
+      try { const v = JSON.parse(localStorage.getItem(k)); v.ts -= ms; localStorage.setItem(k, JSON.stringify(v)) } catch {}
+    }
+  }, ms)
+  await page.close()
+}
+
 await run('cold load')
 await run('warm load (cached)')
+await ageCache(5 * 60 * 60 * 1000)
+await run('reopened after 5 hours')
 await browser.close()
