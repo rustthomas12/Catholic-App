@@ -203,7 +203,7 @@ export default function ReadingsCard({
     localStorage.setItem(RITE_KEY, r)
   }
 
-  const isTLM = rite === 'tlm'
+  const isTLM = rite === 'tlm' && !eastern
   const { readings: tlmReadings, loading: tlmLoading, error: tlmError } = useTLMReadings(isTLM)
 
   const activeReadings = isTLM ? tlmReadings : readings
@@ -283,8 +283,8 @@ export default function ReadingsCard({
         )}
       </div>
 
-      {/* Rite toggle */}
-      <RiteToggle rite={rite} onChange={handleRiteChange} />
+      {/* Rite toggle: the two forms of the Roman Rite, so Latin users only */}
+      {!eastern && <RiteToggle rite={rite} onChange={handleRiteChange} />}
 
       {/* Eastern Catholics: say plainly whose lectionary this is */}
       {eastern && !isTLM && (

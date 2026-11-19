@@ -12,6 +12,7 @@ import { useTodaySaint, useSaintFavorites } from '../hooks/useSaints'
 import { supabase } from '../lib/supabase'
 import { getDaysAgo } from '../utils/dates'
 import ReadingsCard from '../components/faith/ReadingsCard'
+import { isEastern } from '../data/churches'
 import SaintCard from '../components/faith/SaintCard'
 import Avatar from '../components/shared/Avatar'
 
@@ -23,7 +24,8 @@ let _confessionCache = null   // { data, userId }
 export default function FaithPage() {
   const { t, i18n } = useTranslation('faith')
   useEffect(() => { document.title = `${t('title')} | inFold` }, [t])
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
+  const eastern = isEastern(profile?.church)
 
   const { readings, loading, error, liturgicalInfo, feastInfo, todayFormatted } = useReadings(i18n.language)
 
@@ -159,6 +161,20 @@ export default function FaithPage() {
 
         {/* ── Morning Offering, Examination, Private Intentions ── */}
         <div className="mt-6 grid grid-cols-1 gap-3">
+          {/* The Jesus Prayer: first for Eastern Catholics, last for others */}
+          <Link
+            to="/faith/jesus-prayer"
+            style={{ order: eastern ? -1 : 1 }}
+            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl" aria-hidden="true">📿</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-navy text-sm">{t('jesus_prayer', 'The Jesus Prayer')}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{t('jesus_prayer_hint', 'Pray with a prayer rope counter')}</p>
+            </div>
+            <span className="text-gray-500 text-sm">→</span>
+          </Link>
+
           <Link
             to="/faith/morning-offering"
             className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"

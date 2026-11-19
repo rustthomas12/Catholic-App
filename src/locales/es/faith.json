@@ -64,5 +64,21 @@
   "anonymous": "Anónimo",
   "rite_of": "Forma ordinaria",
   "rite_tlm": "Tradicional (1962)",
-  "roman_readings_note": "Estas son las lecturas de hoy del rito romano (latino). Las lecturas del calendario de tu Iglesia aún no están en inFold."
+  "roman_readings_note": "Estas son las lecturas de hoy del rito romano (latino). Las lecturas del calendario de tu Iglesia aún no están en inFold.",
+  "jesus_prayer": "La oración de Jesús",
+  "jesus_prayer_hint": "Reza con un contador de cuerda de oración",
+  "jp_full": "Señor Jesucristo, Hijo de Dios, ten piedad de mí, pecador.",
+  "jp_short": "Señor Jesucristo, ten piedad de mí.",
+  "jp_intro": "Reza despacio con cada nudo de la cuerda de oración, con la atención puesta en las palabras.",
+  "jp_form": "Forma de la oración",
+  "jp_form_full": "Completa",
+  "jp_form_short": "Breve",
+  "jp_tap": "Rezar un nudo. {{count}} de {{rope}}",
+  "jp_of": "de {{rope}}",
+  "jp_hint": "Toca la cuerda en cada oración",
+  "jp_ropes_one": "{{count}} cuerda completa hoy",
+  "jp_ropes_other": "{{count}} cuerdas completas hoy",
+  "jp_rope_size": "Nudos de la cuerda",
+  "jp_reset": "Empezar de nuevo",
+  "jp_note": "La oración de Jesús es la oración del corazón del Oriente cristiano. Muchos la rezan al ritmo de la respiración: la primera mitad al inspirar y la segunda al espirar. Tu cuenta se queda en este dispositivo y empieza de nuevo cada día."
 }
