@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth.jsx'
+import { useTranslation } from 'react-i18next'
 
 const DISMISSED_KEY = 'pwa_install_dismissed'
 
@@ -14,6 +15,7 @@ const ANDROID_STORE_URL = import.meta.env.VITE_ANDROID_PLAY_STORE_URL
 const QUIET_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/check-email', '/terms', '/privacy', '/policy', '/join', '/delete-account']
 
 export default function InstallPrompt() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { pathname } = useLocation()
   const [deferredPrompt, setDeferredPrompt] = useState(null)
@@ -79,7 +81,7 @@ export default function InstallPrompt() {
           <button
             onClick={dismiss}
             className="absolute top-3 right-3 text-white/50 hover:text-white p-1"
-            aria-label="Dismiss"
+            aria-label={t('common:install.dismiss', 'Dismiss')}
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -89,8 +91,8 @@ export default function InstallPrompt() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">Get the inFold app</p>
-            <p className="text-white/60 text-xs">Faster, with notifications</p>
+            <p className="text-white font-bold text-sm">{t('common:install.get_the_infold_app', 'Get the inFold app')}</p>
+            <p className="text-white/60 text-xs">{t('common:install.faster_with_notifications', 'Faster, with notifications')}</p>
           </div>
           <a
             href={storeUrl}
@@ -98,7 +100,7 @@ export default function InstallPrompt() {
             className="flex items-center gap-1.5 bg-gold text-navy text-xs font-bold px-3 py-2 mr-5 rounded-xl flex-shrink-0"
           >
             <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-            Get
+            {t('common:install.get', 'Get')}
           </a>
         </div>
       </div>
@@ -113,7 +115,7 @@ export default function InstallPrompt() {
           <button
             onClick={dismiss}
             className="absolute top-3 right-3 text-white/50 hover:text-white p-1"
-            aria-label="Dismiss"
+            aria-label={t('common:install.dismiss', 'Dismiss')}
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -130,9 +132,9 @@ export default function InstallPrompt() {
               </svg>
             </div>
             <div>
-              <p className="text-white font-bold text-sm">Add to Home Screen</p>
+              <p className="text-white font-bold text-sm">{t('common:install.add_to_home_screen', 'Add to Home Screen')}</p>
               <p className="text-white/60 text-xs">
-                {iosExpanded ? 'Install inFold like an app' : 'Install inFold like an app — tap to see how'}
+                {iosExpanded ? t('common:install.install_infold_like_an_app', 'Install inFold like an app') : t('common:install.install_infold_like_an_app_tap', 'Install inFold like an app — tap to see how')}
               </p>
             </div>
           </button>
@@ -143,9 +145,9 @@ export default function InstallPrompt() {
               <span className="w-5 h-5 rounded-full bg-gold text-navy text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
               <div>
                 <p className="text-white text-xs font-semibold mb-0.5">
-                  Tap <span className="bg-white/15 rounded px-1.5 py-0.5 font-black tracking-wide">···</span> in the top-right corner of Safari
+                  {t('common:install.ios1a', 'Tap')} <span className="bg-white/15 rounded px-1.5 py-0.5 font-black tracking-wide">···</span> {t('common:install.ios1b', 'in the top-right corner of Safari')}
                 </p>
-                <p className="text-white/50 text-xs">That's the three-dot menu at the top of your screen</p>
+                <p className="text-white/50 text-xs">{t('common:install.that_s_the_three_dot_menu', "That's the three-dot menu at the top of your screen")}</p>
               </div>
             </div>
 
@@ -154,9 +156,9 @@ export default function InstallPrompt() {
               <span className="w-5 h-5 rounded-full bg-gold text-navy text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
               <div>
                 <p className="text-white text-xs font-semibold mb-0.5">
-                  Tap <span className="font-black text-white">Share</span> <span className="text-white/60">(the box with an arrow pointing up ⎙)</span>
+                  {t('common:install.ios1a', 'Tap')} <span className="font-black text-white">{t('common:install.share', 'Share')}</span> <span className="text-white/60">{t('common:install.share_hint', '(the box with an arrow pointing up ⎙)')}</span>
                 </p>
-                <p className="text-white/50 text-xs">It's near the top of the menu that appears</p>
+                <p className="text-white/50 text-xs">{t('common:install.it_s_near_the_top_of', "It's near the top of the menu that appears")}</p>
               </div>
             </div>
 
@@ -165,9 +167,9 @@ export default function InstallPrompt() {
               <span className="w-5 h-5 rounded-full bg-gold text-navy text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
               <div>
                 <p className="text-white text-xs font-semibold mb-0.5">
-                  Scroll down and tap <span className="font-black text-gold">"Add to Home Screen"</span>
+                  {t('common:install.scroll_tap', 'Scroll down and tap')} <span className="font-black text-gold">"{t('common:install.add_to_home_screen', 'Add to Home Screen')}"</span>
                 </p>
-                <p className="text-white/50 text-xs">Then tap <span className="font-semibold text-white">Add</span> in the top-right to confirm</p>
+                <p className="text-white/50 text-xs">{t('common:install.then_tap', 'Then tap')} <span className="font-semibold text-white">{t('common:install.add', 'Add')}</span> {t('common:install.to_confirm', 'in the top-right to confirm')}</p>
               </div>
             </div>
           </div>}
@@ -183,7 +185,7 @@ export default function InstallPrompt() {
         <button
           onClick={dismiss}
           className="absolute top-3 right-3 text-white/50 hover:text-white p-1"
-          aria-label="Dismiss"
+          aria-label={t('common:install.dismiss', 'Dismiss')}
         >
           <XMarkIcon className="w-4 h-4" />
         </button>
@@ -193,15 +195,15 @@ export default function InstallPrompt() {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm">Add to Home Screen</p>
-          <p className="text-white/60 text-xs">Get the full app experience</p>
+          <p className="text-white font-bold text-sm">{t('common:install.add_to_home_screen', 'Add to Home Screen')}</p>
+          <p className="text-white/60 text-xs">{t('common:install.get_the_full_app_experience', 'Get the full app experience')}</p>
         </div>
         <button
           onClick={handleInstall}
           className="flex items-center gap-1.5 bg-gold text-navy text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0"
         >
           <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-          Install
+          {t('common:install.install', 'Install')}
         </button>
       </div>
     </div>

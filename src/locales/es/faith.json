@@ -131,5 +131,37 @@
     "delete": "Eliminar",
     "delete_entry": "¿Eliminar la entrada?",
     "this_cannot_be_undone": "No se puede deshacer."
+  },
+  "offering": {
+    "tip": "Consejo:",
+    "tip_text": "El Ofrecimiento de la mañana es más valioso cuando se reza nada más despertar, antes de mirar el teléfono, uniendo cada momento del día a la Misa que se celebra en todo el mundo.",
+    "morning_offering": "Ofrecimiento de la mañana",
+    "daily_prayer": "Oración diaria",
+    "offer_your_day_to_god_before": "Ofrece tu día a Dios antes de que empiece.",
+    "offered_today_god_bless_your_day": "Ofrecido hoy. Que Dios bendiga tu día.",
+    "choose_a_prayer": "Elige una oración",
+    "prayer": "Oración",
+    "offered_today": "✓ Ofrecido hoy",
+    "i_have_offered_my_day_to": "He ofrecido mi día a Dios"
+  },
+  "saints": {
+    "saints": "Santos",
+    "learn_about_the_men_and_women": "Conoce a los hombres y mujeres que nos enseñaron a vivir la fe",
+    "clear_search": "Borrar búsqueda",
+    "no_feast_day_today": "Hoy no hay fiesta.",
+    "could_not_load_saints_please_try": "No se pudieron cargar los santos. Inténtalo de nuevo.",
+    "try_a_different_name_or_clear": "Prueba con otro nombre o quita el filtro.",
+    "all": "Todos"
+  },
+  "saint": {
+    "link_copied_to_clipboard": "Enlace copiado",
+    "could_not_copy_link": "No se pudo copiar el enlace",
+    "saint_not_found": "Santo no encontrado",
+    "saints": "Santos",
+    "share": "Compartir"
+  },
+  "saintcard": {
+    "remove_from_favorites": "Quitar de favoritos",
+    "add_to_favorites": "Añadir a favoritos"
   }
 }

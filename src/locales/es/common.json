@@ -398,5 +398,26 @@
     "sending": "Enviando…",
     "send_message": "Enviar mensaje",
     "we_typically_respond_within_1_2": "Normalmente respondemos en 1 o 2 días hábiles."
+  },
+  "install": {
+    "add_to_home_screen": "Añadir a la pantalla de inicio",
+    "dismiss": "Cerrar",
+    "get_the_infold_app": "Descarga la aplicación inFold",
+    "faster_with_notifications": "Más rápida y con notificaciones",
+    "get": "Obtener",
+    "install_infold_like_an_app_tap": "Instala inFold como una aplicación: toca para ver cómo",
+    "install_infold_like_an_app": "Instala inFold como una aplicación",
+    "that_s_the_three_dot_menu": "Es el menú de tres puntos en la parte superior de la pantalla",
+    "it_s_near_the_top_of": "Está cerca de la parte superior del menú que aparece",
+    "get_the_full_app_experience": "Disfruta de la experiencia completa",
+    "install": "Instalar",
+    "ios1a": "Toca",
+    "ios1b": "en la esquina superior derecha de Safari",
+    "share": "Compartir",
+    "share_hint": "(el cuadro con una flecha hacia arriba ⎙)",
+    "scroll_tap": "Desplázate hacia abajo y toca",
+    "then_tap": "Luego toca",
+    "add": "Añadir",
+    "to_confirm": "arriba a la derecha para confirmar"
   }
 }
