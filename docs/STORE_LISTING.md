@@ -135,9 +135,10 @@ Answer **"Yes, we collect data"**, then for each type below choose:
 | User Content | Photos or Videos, Emails or Text Messages (direct messages), Other User Content (posts, comments, prayer requests) |
 | Identifiers | User ID, Device ID (push notification token) |
 | Location | Coarse Location — **not linked**, App Functionality (only sent to find nearby parishes, not stored; the iOS app asks for approximate location only — `NSLocationDefaultAccuracyReduced`) |
+| Diagnostics | Crash Data (crash reports saved to our own database, kept 30 days; added 2026-11-19) |
 
 Not collected: health, financial info, contacts, browsing/search history,
-purchases, diagnostics, advertising data.
+purchases, advertising data.
 
 ## Apple — Age rating
 New questionnaire answers: no violence, sexual content, profanity, drugs,
@@ -168,6 +169,7 @@ Uses only standard encryption (HTTPS). Already declared in the app
 | Messages (in-app) | Yes | Optional | App functionality |
 | Other user-generated content | Yes | Optional | App functionality |
 | Device or other IDs (push token) | Yes | Optional | App functionality |
+| Crash logs | Yes | Required | App functionality (crash reports kept 30 days) |
 
 ## Google Play — Content rating (IARC questionnaire)
 Category: **Social / Communication**. Violence, sexuality, language,
