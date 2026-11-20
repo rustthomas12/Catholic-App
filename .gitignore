@@ -35,3 +35,4 @@ test-results/
 playwright-report/
 dev-dist/
 deno.lock
+tests/perf/.social-load-state.json*
