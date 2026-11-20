@@ -179,6 +179,17 @@ export function useFeed(options = {}) {
   const joinedGroupIds    = useRef(_storedGraph?.groupIds     ?? [])
   const parentOrgIds      = useRef(_storedGraph?.parentOrgIds ?? [])
 
+  // Which parishes/groups/orgs the feed covers, as a value React can watch
+  // (the refs above don't re-render). The live new-posts subscription is
+  // filtered to exactly these, so it re-subscribes when they change.
+  const [scopeKey, setScopeKey] = useState(() => JSON.stringify([followedParishIds.current, joinedGroupIds.current, parentOrgIds.current]))
+  const applyGraph = useCallback((pIds, gIds, oIds) => {
+    followedParishIds.current = pIds ?? []
+    joinedGroupIds.current    = gIds ?? []
+    parentOrgIds.current      = oIds ?? []
+    setScopeKey(JSON.stringify([followedParishIds.current, joinedGroupIds.current, parentOrgIds.current]))
+  }, [])
+
   // Bumped when a background rebuild finds different parishes/groups
   const [graphVersion, setGraphVersion] = useState(0)
 
@@ -214,26 +225,20 @@ export function useFeed(options = {}) {
 
     const mc = _graphCache.get(user.id)
     if (mc && Date.now() - mc.ts < GRAPH_TTL) {
-      followedParishIds.current = mc.parishIds
-      joinedGroupIds.current    = mc.groupIds
-      parentOrgIds.current      = mc.parentOrgIds ?? []
+      applyGraph(mc.parishIds, mc.groupIds, mc.parentOrgIds ?? [])
       return
     }
 
     const stored = _getStoredGraph(user.id)
     if (stored) {
-      followedParishIds.current = stored.parishIds
-      joinedGroupIds.current    = stored.groupIds
-      parentOrgIds.current      = stored.parentOrgIds ?? []
+      applyGraph(stored.parishIds, stored.groupIds, stored.parentOrgIds ?? [])
       _graphCache.set(user.id, stored)
       // Revalidate silently in background
       _buildGraph(user.id).then(g => {
         const changed = [
           [stored.parishIds, g.parishIds], [stored.groupIds, g.groupIds], [stored.parentOrgIds ?? [], g.parentOrgIds],
         ].some(([a, b]) => a.length !== b.length || a.some(id => !b.includes(id)))
-        followedParishIds.current = g.parishIds
-        joinedGroupIds.current    = g.groupIds
-        parentOrgIds.current      = g.parentOrgIds
+        applyGraph(g.parishIds, g.groupIds, g.parentOrgIds)
         _graphCache.set(user.id, { ...g, ts: Date.now() })
         _setStoredGraph(user.id, g.parishIds, g.groupIds, g.parentOrgIds)
         // The posts were fetched with the old parish/group list; when it
@@ -246,12 +251,10 @@ export function useFeed(options = {}) {
 
     // No cache — must await
     const g = await _buildGraph(user.id)
-    followedParishIds.current = g.parishIds
-    joinedGroupIds.current    = g.groupIds
-    parentOrgIds.current      = g.parentOrgIds
+    applyGraph(g.parishIds, g.groupIds, g.parentOrgIds)
     _graphCache.set(user.id, { ...g, ts: Date.now() })
     _setStoredGraph(user.id, g.parishIds, g.groupIds, g.parentOrgIds)
-  }, [user])
+  }, [user, applyGraph])
 
   // ── Query builder ─────────────────────────────────────────
   const buildQuery = useCallback((offset) => {
@@ -443,6 +446,23 @@ export function useFeed(options = {}) {
     }
   }, [filter, parishId, groupId, orgId, userId])
 
+  // The realtime filter for new posts: same scope as buildQuery
+  const liveScope = useCallback(() => {
+    if (userId)   return { authorIds: [userId] }
+    if (orgId)    return { orgIds: [orgId] }
+    if (groupId)  return { groupIds: [groupId] }
+    if (parishId) return { parishIds: [parishId] }
+    const parishIds = followedParishIds.current
+    const groupIds  = joinedGroupIds.current
+    const orgIds    = parentOrgIds.current
+    switch (filter) {
+      case 'parish': return { parishIds }
+      case 'groups': return { groupIds }
+      case 'prayer': return { parishIds, groupIds }
+      default:       return { parishIds, groupIds, orgIds }
+    }
+  }, [filter, parishId, groupId, orgId, userId])
+
   // Posts that arrived while this feed was open, waiting to be shown
   const [incoming, setIncoming] = useState([])
   const postsRef = useRef(posts)
@@ -464,9 +484,9 @@ export function useFeed(options = {}) {
       if (!active || !data) return
       const post = normalisePost(data, userId_stable)
       setIncoming((prev) => (prev.some((p) => p.id === post.id) ? prev : [post, ...prev]))
-    })
+    }, liveScope())
     return () => { active = false; stop() }
-  }, [userId_stable, filter, parishId, groupId, orgId, userId, matchesScope])
+  }, [userId_stable, filter, parishId, groupId, orgId, userId, matchesScope, scopeKey, liveScope])
 
   // Put the waiting posts on top of the feed
   const incomingRef = useRef(incoming)
