@@ -372,7 +372,7 @@ function ConversationView({ userId, partner, onBack, onRead, onSent }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-1.5 flex items-center gap-2 flex-shrink-0">
+      <div className="bg-white border-b border-gray-100 px-4 py-1.5 min-h-[57px] flex items-center gap-2 flex-shrink-0">
         <button aria-label={t('actions.back')} onClick={onBack} className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-navy hover:bg-lightbg transition-colors md:hidden">
           <ArrowLeftIcon className="w-5 h-5" />
         </button>
@@ -495,10 +495,13 @@ export default function MessagesPage() {
   // Two-panel layout on desktop; single panel on mobile
   return (
     <div className="min-h-screen bg-cream md:pl-60">
-      <div className="max-w-4xl mx-auto chat-viewport flex flex-col md:flex-row">
+      {/* Desktop: one framed two-pane card with a margin around it (it used
+          to float as a narrow column next to a bare cream area) */}
+      <div className="max-w-5xl mx-auto md:px-6 md:py-6">
+      <div className="chat-viewport flex flex-col md:flex-row bg-white md:rounded-2xl md:border md:border-gray-200 md:shadow-sm md:overflow-hidden">
 
         {/* Conversation list */}
-        <div className={`w-full md:w-80 md:border-r border-gray-100 bg-white flex flex-col flex-shrink-0 ${activePartner ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-80 lg:w-96 md:border-r border-gray-200 bg-white flex flex-col flex-shrink-0 ${activePartner ? 'hidden md:flex' : 'flex'}`}>
           {/* Header */}
           <TopBar variant="navy" title={t('messages.title')} actions={
             <TopBarAction variant="navy" label={t('messages.new_message')} icon={PencilSquareIcon} onClick={() => setShowNewConvo(true)} />
@@ -566,7 +569,7 @@ export default function MessagesPage() {
               onSent={reload}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-cream">
+            <div className="flex-1 flex items-center justify-center bg-lightbg/40">
               <div className="text-center">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <PaperAirplaneIcon className="w-8 h-8 text-navy/20" />
@@ -584,6 +587,7 @@ export default function MessagesPage() {
           )}
         </div>
 
+      </div>
       </div>
 
       {/* New conversation modal */}

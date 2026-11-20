@@ -26,6 +26,17 @@
   font-display: swap;
 }
 
+/* Inknut Antiqua's "&" is a calligraphic flourish that reads as a squiggle
+   ("My Parishes & Organizations"). Borrow just that one character from a
+   plain serif the device already has; everything else stays Inknut. */
+@font-face {
+  font-family: 'Heading Amp';
+  src: local('Georgia'), local('Georgia Bold'), local('Noto Serif'), local('NotoSerif'),
+       local('Droid Serif'), local('Times New Roman');
+  unicode-range: U+0026;
+  font-display: swap;
+}
+
 /* ── Brand colors (brand/README.md); Tailwind: brand-blue / -navy / -ink ── */
 :root {
   --brand-blue: #6FCDFF;
@@ -36,7 +47,7 @@
 /* Headings in the brand font: h1–h2 Bold, h3–h4 SemiBold. The weights win
    over font-* utilities so every heading matches the brand. */
 h1, h2, h3, h4 {
-  font-family: 'Inknut Antiqua', Georgia, serif;
+  font-family: 'Heading Amp', 'Inknut Antiqua', Georgia, serif;
 }
 h1, h2 { font-weight: 700 !important; }
 h3, h4 { font-weight: 600 !important; }
@@ -214,8 +225,9 @@ html.cap-native .fixed.inset-0 > .absolute.top-4 {
   .chat-viewport { height: calc(100dvh - var(--app-safe-top, 0px) - 64px - env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 768px) {
-  .chat-viewport { height: calc(100vh - var(--app-safe-top, 0px)); }
-  @supports (height: 100dvh) { .chat-viewport { height: calc(100dvh - var(--app-safe-top, 0px)); } }
+  /* minus the 1.5rem margin above and below the framed card */
+  .chat-viewport { height: calc(100vh - var(--app-safe-top, 0px) - 3rem); }
+  @supports (height: 100dvh) { .chat-viewport { height: calc(100dvh - var(--app-safe-top, 0px) - 3rem); } }
 }
 
 /* iOS zooms the page when a field under 16px gets focus */

@@ -519,7 +519,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
             <div className="mb-2">
               <textarea
                 value={editDraft}
-                onChange={(e) => setEditDraft(e.target.value.slice(0, 500))}
+                onChange={(e) => setEditDraft(e.target.value.slice(0, 5000))}
                 rows={4}
                 autoFocus
                 aria-label={t('post.edit')}

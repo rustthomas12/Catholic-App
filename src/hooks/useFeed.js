@@ -215,7 +215,10 @@ export function useFeed(options = {}) {
       parentOrgIdsList = [...new Set((chapterOrgs ?? []).map(o => o.parent_org_id).filter(Boolean))]
     }
 
-    return { parishIds, groupIds, parentOrgIds: parentOrgIdsList }
+    // Posts from organizations you belong to show too, not only from the
+    // national org above your chapter (a post to your own org never reached
+    // the home feed)
+    return { parishIds, groupIds, parentOrgIds: [...new Set([...memberOrgIds, ...parentOrgIdsList])] }
   }
 
   // ── Social graph loader ───────────────────────────────────

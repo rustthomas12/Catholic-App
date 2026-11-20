@@ -21,10 +21,18 @@ const GOLD_CROSS_SM = (
 )
 
 // ── ReadingSection ─────────────────────────────────────────
-function usccbSpanishUrl() {
+function usccbDay() {
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')
-  return `https://bible.usccb.org/es/bible/lecturas/${p(d.getMonth() + 1)}${p(d.getDate())}${String(d.getFullYear()).slice(2)}.cfm`
+  return `${p(d.getMonth() + 1)}${p(d.getDate())}${String(d.getFullYear()).slice(2)}`
+}
+function usccbSpanishUrl() {
+  return `https://bible.usccb.org/es/bible/lecturas/${usccbDay()}.cfm`
+}
+// Today's readings in the official US Mass translation (NABRE), which the
+// app can't reproduce without a USCCB license
+function usccbEnglishUrl() {
+  return `https://bible.usccb.org/bible/readings/${usccbDay()}.cfm`
 }
 
 function ReadingSection({ label, reference, text, italic = false }) {
@@ -352,6 +360,21 @@ export default function ReadingsCard({
         {!activeLoading && !activeError && activeReadings && (
           <div className="px-5 py-4 border-t border-gray-100">
             <ShareReadingsButton readings={activeReadings} isTLM={isTLM} t={t} />
+          </div>
+        )}
+
+        {/* The official wording, one tap away */}
+        {!isTLM && !activeLoading && !activeError && activeReadings && (
+          <div className="px-5 pt-1 pb-3 text-center">
+            <a
+              href={usccbEnglishUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-sm text-navy font-semibold hover:underline min-h-[44px]"
+            >
+              {t('readings_official_link', 'Read the official text on USCCB.org')}
+              <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            </a>
           </div>
         )}
 
