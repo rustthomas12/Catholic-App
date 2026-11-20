@@ -2,8 +2,10 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useGoBack from '../hooks/useGoBack'
 import { LogoMark } from '../components/shared/Logo'
+import { useTranslation } from 'react-i18next'
 
 export default function NotFoundPage() {
+  const { t } = useTranslation()
   useEffect(() => { document.title = '404 — Page Not Found | inFold' }, [])
   const navigate = useNavigate()
   const goBack = useGoBack()
@@ -13,9 +15,9 @@ export default function NotFoundPage() {
       <LogoMark className="w-16 h-16 rounded-2xl mb-6" alt="" />
 
       <p className="text-6xl font-bold text-navy mb-3">404</p>
-      <p className="text-xl font-semibold text-navy mb-2">Page not found</p>
+      <p className="text-xl font-semibold text-navy mb-2">{t('common:notfound.page_not_found', 'Page not found')}</p>
       <p className="text-sm text-gray-500 mb-8 max-w-xs">
-        This page does not exist or has been moved.
+        {t('common:notfound.this_page_does_not_exist_or', 'This page does not exist or has been moved.')}
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
@@ -23,13 +25,13 @@ export default function NotFoundPage() {
           onClick={() => navigate('/')}
           className="flex-1 bg-navy text-white text-sm font-semibold py-3 rounded-xl min-h-[44px] hover:bg-opacity-90 transition-colors"
         >
-          Go home
+          {t('common:notfound.go_home', 'Go home')}
         </button>
         <button
           onClick={goBack}
           className="flex-1 bg-white border border-gray-200 text-navy text-sm font-semibold py-3 rounded-xl min-h-[44px] hover:bg-lightbg transition-colors"
         >
-          Go back
+          {t('common:notfound.go_back', 'Go back')}
         </button>
       </div>
     </div>

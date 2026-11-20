@@ -90,7 +90,7 @@ export default function SaintCard({
             <button
               onClick={(e) => { e.preventDefault(); onFavoriteToggle() }}
               className="flex-shrink-0 p-1"
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFavorite ? t('faith:saintcard.remove_from_favorites', 'Remove from favorites') : t('faith:saintcard.add_to_favorites', 'Add to favorites')}
             >
               {isFavorite
                 ? <StarSolid className="w-4 h-4 text-gold" />

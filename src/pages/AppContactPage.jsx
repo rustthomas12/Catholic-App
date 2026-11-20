@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import useGoBack from '../hooks/useGoBack'
+import { useTranslation } from 'react-i18next'
 
 const REASONS = [
   'I found a bug',
@@ -16,7 +17,8 @@ const REASONS = [
 ]
 
 export default function AppContactPage() {
-  useEffect(() => { document.title = 'Contact Us | inFold' }, [])
+  const { t } = useTranslation()
+  useEffect(() => { document.title = `${t('common:contact.contact_us', 'Contact Us')} | inFold` }, [t])
 
   const goBack = useGoBack('/settings')
   const { user, profile } = useAuth()
@@ -39,7 +41,7 @@ export default function AppContactPage() {
     })
 
     if (error) {
-      toast.error('Could not send message. Please email us directly at info@getinfold.app')
+      toast.error(t('common:contact.could_not_send_message_please_email', 'Could not send message. Please email us directly at info@getinfold.app'))
     } else {
       setSubmitted(true)
     }
@@ -51,9 +53,9 @@ export default function AppContactPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <TopBar variant="navy" title="Contact Us" back />
+        <TopBar variant="navy" title={t('common:contact.contact_us', 'Contact Us')} back />
         <div className="bg-navy px-4 pb-5">
-          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Support</p>
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">{t('common:contact.support', 'Support')}</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -61,9 +63,9 @@ export default function AppContactPage() {
           {submitted ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
               <div className="text-5xl mb-4">✝</div>
-              <h2 className="font-black text-navy text-xl mb-2">Message sent!</h2>
+              <h2 className="font-black text-navy text-xl mb-2">{t('common:contact.message_sent', 'Message sent!')}</h2>
               <p className="text-gray-500 text-sm mb-6">
-                We'll get back to you within 1–2 business days.
+                {t('common:contact.we_ll_get_back_to_you', "We'll get back to you within 1–2 business days.")}
               </p>
               <button
                 onClick={goBack}
@@ -83,40 +85,40 @@ export default function AppContactPage() {
                   <EnvelopeIcon className="w-5 h-5 text-navy" />
                 </div>
                 <div>
-                  <p className="font-semibold text-navy text-sm">Email us directly</p>
+                  <p className="font-semibold text-navy text-sm">{t('common:contact.email_us_directly', 'Email us directly')}</p>
                   <p className="text-gold text-sm font-medium">info@getinfold.app</p>
                 </div>
               </a>
 
               {/* Contact form */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h2 className="font-bold text-navy text-base mb-4">Send a message</h2>
+                <h2 className="font-bold text-navy text-base mb-4">{t('common:contact.send_a_message', 'Send a message')}</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
 
                   <div>
                     <label className="block text-xs font-semibold text-navy mb-1.5">
-                      What's this about?
+                      {t('common:contact.what_s_this_about', "What's this about?")}
                     </label>
-                    <select aria-label="What's this about?"
+                    <select aria-label={t('common:contact.what_s_this_about', "What's this about?")}
                       value={reason}
                       onChange={e => setReason(e.target.value)}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-navy focus:outline-none focus:border-navy appearance-none bg-white"
                     >
-                      <option value="">Select a topic</option>
-                      {REASONS.map(r => <option key={r}>{r}</option>)}
+                      <option value="">{t('common:contact.select_a_topic', 'Select a topic')}</option>
+                      {REASONS.map((r, i) => <option key={r} value={r}>{t(`common:contact.reason_${i}`, r)}</option>)}
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-navy mb-1.5">
-                      Your message *
+                      {t('common:contact.your_message', 'Your message *')}
                     </label>
                     <textarea
                       required
                       value={message}
                       onChange={e => setMessage(e.target.value)}
                       rows={5}
-                      placeholder="Describe what you're experiencing or what you'd like to share…"
+                      placeholder={t('common:contact.describe_what_you_re_experiencing_or', "Describe what you're experiencing or what you'd like to share…")}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-navy resize-none"
                     />
                   </div>
@@ -124,7 +126,7 @@ export default function AppContactPage() {
                   {/* Auto-filled info note */}
                   {user?.email && (
                     <p className="text-xs text-gray-500">
-                      We'll reply to <span className="font-medium text-gray-500">{user.email}</span>
+                      {t('common:contact.reply_to', "We'll reply to")} <span className="font-medium text-gray-500">{user.email}</span>
                     </p>
                   )}
 
@@ -133,13 +135,13 @@ export default function AppContactPage() {
                     disabled={submitting || !message.trim()}
                     className="w-full bg-navy text-white font-bold py-3.5 rounded-2xl hover:bg-navy/90 disabled:opacity-50 transition-colors min-h-[48px]"
                   >
-                    {submitting ? 'Sending…' : 'Send Message'}
+                    {submitting ? t('common:contact.sending', 'Sending…') : t('common:contact.send_message', 'Send Message')}
                   </button>
                 </form>
               </div>
 
               <p className="text-center text-xs text-gray-500 pb-2">
-                We typically respond within 1–2 business days.
+                {t('common:contact.we_typically_respond_within_1_2', 'We typically respond within 1–2 business days.')}
               </p>
             </>
           )}

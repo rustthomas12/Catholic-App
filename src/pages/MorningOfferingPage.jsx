@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import TopBar from '../components/shared/TopBar'
 import { SunIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
+import { useTranslation } from 'react-i18next'
 
 // One key holding the date last prayed (this used to add a new key every day)
 const PRAYED_KEY = 'morning_offering_last'
@@ -41,8 +42,31 @@ const PRAYERS = [
   },
 ]
 
+// Spanish versions of the same prayers (traditional texts, translated)
+const PRAYERS_ES = {
+  traditional: {
+    label: 'Tradicional (Apostolado de la Oración)',
+    text: `Jesús mío, por medio del Corazón Inmaculado de María, te ofrezco mis oraciones, obras, alegrías y sufrimientos de este día, en unión con el Santo Sacrificio de la Misa que se celebra en todo el mundo. Te los ofrezco por todas las intenciones de tu Sagrado Corazón: la salvación de las almas, la reparación del pecado y la unión de todos los cristianos. Te los ofrezco por las intenciones de nuestros obispos y de todos los Apóstoles de la Oración, y en particular por las que nos recomienda el Santo Padre este mes. Amén.`,
+  },
+  simple: {
+    label: 'Ofrecimiento sencillo',
+    text: `Dios mío, te ofrezco todas mis oraciones, obras, alegrías y sufrimientos de este día. Que todo lo que haga hoy sea para tu mayor gloria y la salvación de las almas. Dame la gracia de servirte fielmente en todo. Por Cristo nuestro Señor. Amén.`,
+  },
+  st_ignatius: {
+    label: 'Oración por la generosidad (San Ignacio)',
+    text: `Señor, enséñame a ser generoso.\nEnséñame a servirte como tú lo mereces;\na dar sin medir el costo;\na luchar sin temer las heridas;\na trabajar sin buscar descanso;\na entregarme sin esperar otra recompensa\nque saber que hago tu voluntad.\nPor Jesucristo nuestro Señor. Amén.`,
+  },
+  st_therese: {
+    label: 'Oración de la mañana (Santa Teresa de Lisieux)',
+    text: `Dios mío, te ofrezco todas las obras de este día por las intenciones y para la gloria del Sagrado Corazón de Jesús. Quiero santificar cada latido de mi corazón, cada uno de mis pensamientos y mis obras más sencillas, uniéndolos a sus méritos infinitos; y quiero reparar mis pecados arrojándolos en el horno de su Amor misericordioso.\n\nDios mío, te pido para mí y para mis seres queridos la gracia de cumplir perfectamente tu santa voluntad, de aceptar por amor a ti las alegrías y las penas de esta vida pasajera, para que un día estemos reunidos en el Cielo por toda la eternidad. Amén.`,
+  },
+}
+
 export default function MorningOfferingPage() {
-  useEffect(() => { document.title = 'Morning Offering | inFold' }, [])
+  const { t, i18n } = useTranslation()
+  const isEs = i18n.language?.startsWith('es')
+  const localize = (p) => (isEs && PRAYERS_ES[p.id] ? { ...p, ...PRAYERS_ES[p.id] } : p)
+  useEffect(() => { document.title = `${t('faith:offering.morning_offering', 'Morning Offering')} | inFold` }, [t])
 
   const [prayedToday, setPrayedToday] = useState(readPrayedToday)
   const [selected, setSelected] = useState('traditional')
@@ -52,18 +76,18 @@ export default function MorningOfferingPage() {
     setPrayedToday(true)
   }
 
-  const prayer = PRAYERS.find(p => p.id === selected)
+  const prayer = localize(PRAYERS.find(p => p.id === selected))
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <TopBar variant="navy" title="Morning Offering" back />
+        <TopBar variant="navy" title={t('faith:offering.morning_offering', 'Morning Offering')} back />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Daily Prayer</p>
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">{t('faith:offering.daily_prayer', 'Daily Prayer')}</p>
           <p className="text-white/75 text-sm ml-10 mt-1">
-            Offer your day to God before it begins.
+            {t('faith:offering.offer_your_day_to_god_before', 'Offer your day to God before it begins.')}
           </p>
         </div>
 
@@ -73,17 +97,17 @@ export default function MorningOfferingPage() {
           {prayedToday && (
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
               <CheckCircleSolid className="w-5 h-5 text-green-500 flex-shrink-0" />
-              <p className="text-green-700 text-sm font-medium">Offered today — God bless your day.</p>
+              <p className="text-green-700 text-sm font-medium">{t('faith:offering.offered_today_god_bless_your_day', 'Offered today — God bless your day.')}</p>
             </div>
           )}
 
           {/* Prayer selector */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-50">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Choose a prayer</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t('faith:offering.choose_a_prayer', 'Choose a prayer')}</p>
             </div>
             <div className="divide-y divide-gray-50">
-              {PRAYERS.map(p => (
+              {PRAYERS.map(localize).map(p => (
                 <button
                   key={p.id}
                   onClick={() => setSelected(p.id)}
@@ -107,7 +131,7 @@ export default function MorningOfferingPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-50 flex items-center gap-2">
               <SunIcon className="w-4 h-4 text-gold" />
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Prayer</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t('faith:offering.prayer', 'Prayer')}</p>
             </div>
             <div className="px-6 py-6">
               <p className="text-navy text-base leading-relaxed whitespace-pre-line font-serif italic">
@@ -126,13 +150,13 @@ export default function MorningOfferingPage() {
                 : 'bg-navy text-white hover:bg-navy/90'
             }`}
           >
-            {prayedToday ? '✓ Offered today' : 'I have offered my day to God'}
+            {prayedToday ? t('faith:offering.offered_today', '✓ Offered today') : t('faith:offering.i_have_offered_my_day_to', 'I have offered my day to God')}
           </button>
 
           {/* Tip */}
           <div className="bg-gold/10 border border-gold/20 rounded-2xl px-4 py-4">
             <p className="text-navy text-xs leading-relaxed">
-              <span className="font-bold">Tip:</span> The Morning Offering is most powerful when said immediately upon waking, before checking your phone — uniting every moment of your day to the Mass being celebrated around the world.
+              <span className="font-bold">{t('faith:offering.tip', 'Tip:')}</span> {t('faith:offering.tip_text', 'The Morning Offering is most powerful when said immediately upon waking, before checking your phone — uniting every moment of your day to the Mass being celebrated around the world.')}
             </p>
           </div>
 

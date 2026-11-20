@@ -130,11 +130,11 @@ export default function CreateGroupPage() {
     if (!file) return
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowed.includes(file.type)) {
-      toast.error('Please choose a JPEG, PNG, WebP, or GIF image')
+      toast.error(t('groups:creategroup.please_choose_a_jpeg_png_webp', 'Please choose a JPEG, PNG, WebP, or GIF image'))
       return
     }
     if (file.size > (file.type === 'image/gif' ? 5 * 1024 * 1024 : PICK_MAX_BYTES)) {
-      toast.error('Image must be smaller than 5 MB')
+      toast.error(t('groups:creategroup.image_must_be_smaller_than_5', 'Image must be smaller than 5 MB'))
       return
     }
     setAvatarFile(file)
@@ -201,7 +201,7 @@ export default function CreateGroupPage() {
       setAvatarPreview(null)
       navigate(`/group/${group.id}`)
     } catch {
-      toast.error('Something went wrong.')
+      toast.error(t('groups:creategroup.something_went_wrong', 'Something went wrong.'))
       setSubmitting(false)
     }
   }
@@ -226,7 +226,7 @@ export default function CreateGroupPage() {
           ))}
         </div>
         <p className="text-gray-500 text-xs mt-2">
-          {t(STEPS[step - 1].label)} · Step {step} of {STEPS.length}
+          {t(STEPS[step - 1].label)} · {t('groups:creategroup.step_of', 'Step {{step}} of {{total}}', { step, total: STEPS.length })}
         </p>
       </div>
 
@@ -238,7 +238,7 @@ export default function CreateGroupPage() {
             {/* Association — required */}
             <div>
               <label className="block text-xs font-bold text-navy uppercase tracking-widest mb-1.5">
-                Linked to *
+                {t('groups:creategroup.linked_to', 'Linked to *')}
               </label>
               {entitiesLoading ? (
                 <div className="space-y-2">
@@ -246,7 +246,7 @@ export default function CreateGroupPage() {
                 </div>
               ) : entities.length === 0 ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-                  You need to follow a parish or join an organization before creating a group.
+                  {t('groups:creategroup.you_need_to_follow_a_parish', 'You need to follow a parish or join an organization before creating a group.')}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -300,7 +300,7 @@ export default function CreateGroupPage() {
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="What is this group about?"
+                placeholder={t('groups:creategroup.what_is_this_group_about', 'What is this group about?')}
                 maxLength={500}
                 rows={4}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
@@ -340,7 +340,7 @@ export default function CreateGroupPage() {
                     !isPrivate ? 'border-gold bg-gold/5' : 'border-gray-200 bg-white hover:border-navy'
                   }`}
                 >
-                  <p className={`text-sm font-semibold ${!isPrivate ? 'text-navy' : 'text-gray-700'}`}>Public</p>
+                  <p className={`text-sm font-semibold ${!isPrivate ? 'text-navy' : 'text-gray-700'}`}>{t('groups:creategroup.public', 'Public')}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{t('create_public')}</p>
                 </button>
                 <button
@@ -349,7 +349,7 @@ export default function CreateGroupPage() {
                     isPrivate ? 'border-gold bg-gold/5' : 'border-gray-200 bg-white hover:border-navy'
                   }`}
                 >
-                  <p className={`text-sm font-semibold ${isPrivate ? 'text-navy' : 'text-gray-700'}`}>Private</p>
+                  <p className={`text-sm font-semibold ${isPrivate ? 'text-navy' : 'text-gray-700'}`}>{t('groups:creategroup.private', 'Private')}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{t('create_private')}</p>
                 </button>
               </div>
@@ -371,7 +371,7 @@ export default function CreateGroupPage() {
                 ) : (
                   <>
                     <CameraIcon className="w-10 h-10 text-gray-300 mb-1" />
-                    <span className="text-xs text-gray-500">Upload photo</span>
+                    <span className="text-xs text-gray-500">{t('groups:creategroup.upload_photo', 'Upload photo')}</span>
                   </>
                 )}
               </div>
@@ -388,7 +388,7 @@ export default function CreateGroupPage() {
                 onClick={() => { setAvatarFile(null); setAvatarPreview(null) }}
                 className="text-sm text-red-500 font-semibold hover:underline"
               >
-                Remove photo
+                {t('groups:creategroup.remove_photo', 'Remove photo')}
               </button>
             )}
           </div>
@@ -424,14 +424,14 @@ export default function CreateGroupPage() {
             </div>
             <div className="flex justify-center gap-4">
               <button onClick={() => setStep(1)} className="text-xs text-navy font-semibold hover:underline">
-                Edit details
+                {t('groups:creategroup.edit_details', 'Edit details')}
               </button>
               <button onClick={() => setStep(2)} className="text-xs text-navy font-semibold hover:underline">
-                Edit photo
+                {t('groups:creategroup.edit_photo', 'Edit photo')}
               </button>
             </div>
             <p className="text-xs text-gray-500 text-center px-4">
-              Only followers of {selectedEntityInfo?.name ?? 'the linked parish or organization'} will be able to see and join this group.
+              {t('groups:creategroup.only_followers', 'Only followers of {{name}} will be able to see and join this group.', { name: selectedEntityInfo?.name ?? t('groups:creategroup.linked_entity', 'the linked parish or organization') })}
             </p>
           </div>
         )}
@@ -444,7 +444,7 @@ export default function CreateGroupPage() {
               disabled={!canAdvance()}
               className="flex-1 py-3.5 bg-gold text-navy font-bold rounded-xl text-sm disabled:opacity-40 hover:bg-gold/90 transition-colors"
             >
-              Continue
+              {t('groups:creategroup.continue', 'Continue')}
             </button>
           ) : (
             <button

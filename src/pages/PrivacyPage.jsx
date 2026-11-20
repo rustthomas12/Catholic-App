@@ -25,7 +25,7 @@ export default function PrivacyPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Privacy Policy</h1>
-          <p className="text-xs text-gray-500 mb-6">Last updated: April 4, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: November 18, 2026</p>
 
           <Section title="1. Who We Are">
             <p>inFold is built by Thomas Rust in Massachusetts. We are a solo-founded Catholic social network. Our mission is to serve the Catholic community — not to profit from your data.</p>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong>Account information:</strong> your name, email address, parish selection, and vocation state that you provide at signup</li>
               <li><strong>Content you create:</strong> posts, comments, and prayer requests you share</li>
-              <li><strong>Usage data:</strong> which features you use and when you log in (collected anonymously via PostHog — no personal identifiers)</li>
+              <li><strong>Error reports:</strong> if the app crashes, it sends us the error message, the page you were on and your browser type, linked to your account so we can fix the problem. Error reports stay in our own database and are deleted after 30 days.</li>
               <li><strong>Device information:</strong> browser type, for PWA functionality only</li>
             </ul>
           </Section>

@@ -82,6 +82,34 @@ export default function PrayerRequestsPage() {
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [fetchIntentions])
 
+  // "Prayed" counts from other people: re-read the counts of the requests on
+  // screen every 15 s while the page is visible (realtime can't see other
+  // people's requests through the privacy view)
+  const loadedIds = intentions.slice(0, 60).map((i) => i.id).join(',')
+  useEffect(() => {
+    if (!loadedIds) return
+    const ids = loadedIds.split(',')
+    const tick = async () => {
+      if (document.visibilityState !== 'visible') return
+      const { data } = await supabase.from('prayer_request_feed').select('id, prayer_count').in('id', ids)
+      if (!data?.length) return
+      const counts = new Map(data.map((r) => [r.id, r.prayer_count]))
+      setIntentions((prev) => {
+        let changed = false
+        const next = prev.map((i) => {
+          const c = counts.get(i.id)
+          if (c == null || c === i.prayer_count) return i
+          changed = true
+          // Never show fewer than the prayer you just added is counted for
+          return { ...i, prayer_count: i.is_prayed_by_me ? Math.max(c, 1) : c }
+        })
+        return changed ? next : prev
+      })
+    }
+    const timer = setInterval(tick, 15000)
+    return () => clearInterval(timer)
+  }, [loadedIds])
+
   async function handleSubmit() {
     const trimmed = content.trim()
     if (!trimmed) return
@@ -164,14 +192,14 @@ export default function PrayerRequestsPage() {
       <ReportModal
         isOpen={!!reportId}
         onClose={() => setReportId(null)}
-        title="Report this prayer request"
+        title={t('feed:prayer.report_this_prayer_request', 'Report this prayer request')}
         onSubmit={(reason, notes) => reportContent('prayer_request', reportId, reason, notes)}
       />
       <div className="max-w-2xl mx-auto pb-24">
 
         {/* Header */}
         <div className="bg-navy px-4 py-4 flex items-center gap-3 sticky sticky-top z-10">
-          <button aria-label="Back"
+          <button aria-label={t('feed:prayer.back', 'Back')}
             onClick={goBack}
             className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-white/70 hover:text-white"
           >
@@ -185,7 +213,7 @@ export default function PrayerRequestsPage() {
 
         {/* Compose */}
         <div className="bg-white border-b border-gray-100 px-4 py-4">
-          <p className="text-sm font-semibold text-navy mb-3">Share an intention with your community</p>
+          <p className="text-sm font-semibold text-navy mb-3">{t('feed:prayer.share_an_intention_with_your_community', 'Share an intention with your community')}</p>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
@@ -230,7 +258,7 @@ export default function PrayerRequestsPage() {
         ) : intentions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <p className="text-4xl mb-3">🙏</p>
-            <p className="font-semibold text-navy mb-1">No intentions yet</p>
+            <p className="font-semibold text-navy mb-1">{t('feed:prayer.no_intentions_yet', 'No intentions yet')}</p>
             <p className="text-gray-500 text-sm">{t('prayer.empty')}</p>
           </div>
         ) : (
@@ -287,7 +315,7 @@ function PrayerCard({ intention, onPray, onReport, onDelete, t }) {
             <button
               type="button"
               onClick={onReport}
-              aria-label="Report this prayer request"
+              aria-label={t('feed:prayer.report_this_prayer_request', 'Report this prayer request')}
               className="w-9 h-9 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-navy hover:bg-lightbg"
             >
               <FlagIcon className="w-4 h-4" />

@@ -6,7 +6,7 @@ import { useSaintLibrary, useTodaySaint, useSaintFavorites } from '../hooks/useS
 import SaintCard from '../components/faith/SaintCard'
 
 const MONTHS = [
-  { value: null, label: 'All' },
+  { value: null, label: 'All', key: 'all' },
   { value: '01', label: 'Jan' },
   { value: '02', label: 'Feb' },
   { value: '03', label: 'Mar' },
@@ -22,9 +22,8 @@ const MONTHS = [
 ]
 
 export default function SaintsPage() {
-  useEffect(() => { document.title = 'Saints | inFold' }, [])
-
-  const { t } = useTranslation('faith')
+  const { t, i18n } = useTranslation('faith')
+  useEffect(() => { document.title = `${t('faith:saints.saints', 'Saints')} | inFold` }, [t])
   const [searchQuery, setSearchQuery] = useState('')
   const [activeMonth, setActiveMonth] = useState(null)
 
@@ -47,7 +46,7 @@ export default function SaintsPage() {
         <TopBar variant="navy" title={t('saints_title')} back={true} />
         <div className="bg-navy px-4 pb-5">
           <p className="text-white/75 text-sm ml-10">
-            Learn about the men and women who showed us how to live the faith
+            {t('faith:saints.learn_about_the_men_and_women', 'Learn about the men and women who showed us how to live the faith')}
           </p>
 
           {/* Search */}
@@ -61,7 +60,7 @@ export default function SaintsPage() {
               className="w-full bg-white pl-9 pr-9 py-2.5 rounded-xl text-sm text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
             {searchQuery && (
-              <button aria-label="Clear search"
+              <button aria-label={t('faith:saints.clear_search', 'Clear search')}
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
               >
@@ -91,7 +90,7 @@ export default function SaintsPage() {
                   />
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">No feast day today.</p>
+                <p className="text-gray-500 text-sm">{t('faith:saints.no_feast_day_today', 'No feast day today.')}</p>
               )}
             </section>
           )}
@@ -108,7 +107,7 @@ export default function SaintsPage() {
                     : 'bg-white text-gray-500 border border-gray-200 hover:border-navy'
                 }`}
               >
-                {label}
+                {value ? new Date(2000, Number(value) - 1, 1).toLocaleDateString(i18n.language, { month: 'short' }) : t('faith:saints.all', 'All')}
               </button>
             ))}
           </div>
@@ -147,18 +146,18 @@ export default function SaintsPage() {
               </div>
             ) : error ? (
               <div className="text-center py-10">
-                <p className="text-gray-500 text-sm">Could not load saints. Please try again.</p>
+                <p className="text-gray-500 text-sm">{t('faith:saints.could_not_load_saints_please_try', 'Could not load saints. Please try again.')}</p>
               </div>
             ) : saints.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
                 <p className="font-semibold text-navy text-sm">{t('saints_no_results')}</p>
-                <p className="text-gray-500 text-xs mt-1">Try a different name or clear your filter.</p>
+                <p className="text-gray-500 text-xs mt-1">{t('faith:saints.try_a_different_name_or_clear', 'Try a different name or clear your filter.')}</p>
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
                     className="mt-3 text-sm text-navy font-semibold hover:underline"
                   >
-                    Clear search
+                    {t('faith:saints.clear_search', 'Clear search')}
                   </button>
                 )}
               </div>

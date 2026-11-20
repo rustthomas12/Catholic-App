@@ -87,7 +87,11 @@
     "delete": "Eliminar intención",
     "delete_title": "¿Eliminar esta intención?",
     "delete_message": "Se eliminará para todos, junto con las oraciones contadas.",
-    "deleted": "Intención eliminada"
+    "deleted": "Intención eliminada",
+    "report_this_prayer_request": "Denunciar esta petición de oración",
+    "share_an_intention_with_your_community": "Comparte una intención con tu comunidad",
+    "no_intentions_yet": "Aún no hay intenciones",
+    "back": "Volver"
   },
   "report": {
     "title": "Reportar esta publicación",

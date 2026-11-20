@@ -99,7 +99,7 @@ export default function ConfessionTrackerPage() {
       .select('id, confessed_at')
       .single()
     if (error) {
-      toast.error('Could not save. Please try again.')
+      toast.error(t('premium:confession.could_not_save_please_try_again', 'Could not save. Please try again.'))
     } else {
       setHistory(prev => [data, ...prev].slice(0, 10))
       toast.success(t('tracker_logged'))
@@ -115,7 +115,7 @@ export default function ConfessionTrackerPage() {
       .delete()
       .eq('user_id', user.id)
     if (error) {
-      toast.error('Could not clear history.')
+      toast.error(t('premium:confession.could_not_clear_history', 'Could not clear history.'))
     } else {
       setHistory([])
       setClearConfirm(false)
@@ -139,7 +139,7 @@ export default function ConfessionTrackerPage() {
     if (error) {
       // Don't show a reminder setting the server never received
       setReminderDays(prev)
-      toast.error('Could not save your reminder. Please try again.')
+      toast.error(t('premium:confession.could_not_save_your_reminder_please', 'Could not save your reminder. Please try again.'))
       return
     }
     localStorage.setItem(REMINDER_KEY, String(val))
@@ -308,7 +308,7 @@ export default function ConfessionTrackerPage() {
               to="/premium/examination"
               className="text-xs font-bold text-navy bg-white border border-gold/40 px-3 py-2 min-h-[36px] rounded-xl hover:bg-gold/10 transition-colors flex-shrink-0 ml-3"
             >
-              Open →
+              {t('premium:confession.open', 'Open →')}
             </Link>
           </div>
 
@@ -367,14 +367,14 @@ export default function ConfessionTrackerPage() {
                 onClick={() => setClearConfirm(false)}
                 className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t('premium:confession.cancel', 'Cancel')}
               </button>
               <button
                 onClick={handleClearHistory}
                 disabled={clearing}
                 className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
-                {clearing ? 'Clearing…' : 'Clear all'}
+                {clearing ? t('premium:confession.clearing', 'Clearing…') : t('premium:confession.clear_all', 'Clear all')}
               </button>
             </div>
         </Modal>

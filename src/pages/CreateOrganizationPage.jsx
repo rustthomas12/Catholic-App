@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { checkEmail, checkUrl } from '../utils/validate'
 import { canPurchaseInApp } from '../lib/platform'
 import { invalidateMyMemberships } from '../lib/myMemberships'
+import { useTranslation } from 'react-i18next'
 
 const CATEGORIES = [
   'Apostolate', 'Charity', 'Education', 'Media', 'Men\'s Ministry',
@@ -17,6 +18,7 @@ const CATEGORIES = [
 ]
 
 export default function CreateOrganizationPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [saving, setSaving] = useState(false)
@@ -69,14 +71,14 @@ export default function CreateOrganizationPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!form.name.trim() || !form.category) {
-      toast.error('Name and category are required.')
+      toast.error(t('common:createorg.name_and_category_are_required', 'Name and category are required.'))
       return
     }
     if (!user) return
     // Ticked "chapter" without choosing the national organization used to
     // create a standalone one without saying so
     if (isChapter && !selectedParent) {
-      toast.error('Choose the national organization this chapter belongs to.')
+      toast.error(t('common:createorg.choose_the_national_organization_this_chapter', 'Choose the national organization this chapter belongs to.'))
       return
     }
     const email = checkEmail(form.email)
@@ -115,7 +117,7 @@ export default function CreateOrganizationPage() {
       .single()
 
     if (orgError) {
-      toast.error('Could not create organization.')
+      toast.error(t('common:createorg.could_not_create_organization', 'Could not create organization.'))
       setSaving(false)
       return
     }
@@ -126,7 +128,7 @@ export default function CreateOrganizationPage() {
       .insert({ org_id: org.id, user_id: user.id, role: 'admin' })
 
     if (memberError) {
-      toast.error('Organization created but could not add you as admin.')
+      toast.error(t('common:createorg.organization_created_but_could_not_add', 'Organization created but could not add you as admin.'))
     }
     invalidateMyMemberships() // the new org shows up in admin links right away
 
@@ -143,9 +145,9 @@ export default function CreateOrganizationPage() {
       // National org admins are notified by a DB trigger (migration 036)
 
       if (requestError) toast.error(`Organization created, but the chapter request to ${selectedParent.name} could not be sent. Please contact info@getinfold.app and we'll link it.`)
-      else toast.success('Organization created! Your chapter request has been sent.')
+      else toast.success(t('common:createorg.organization_created_your_chapter_request_has', 'Organization created! Your chapter request has been sent.'))
     } else {
-      toast.success('Organization created!')
+      toast.success(t('common:createorg.organization_created', 'Organization created!'))
     }
 
     navigate(`/org-admin/${org.id}`, { replace: true })
@@ -153,7 +155,7 @@ export default function CreateOrganizationPage() {
 
   return (
     <div className="min-h-screen bg-cream md:pl-60">
-      <TopBar title="New Organization" back="/organizations" />
+      <TopBar title={t('common:createorg.new_organization', 'New Organization')} back="/organizations" />
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -166,7 +168,7 @@ export default function CreateOrganizationPage() {
               <input
                 value={form.name}
                 onChange={e => handleChange('name', e.target.value)}
-                placeholder="e.g. Knights of Columbus Council 1234"
+                placeholder={t('common:createorg.e_g_knights_of_columbus_council', 'e.g. Knights of Columbus Council 1234')}
                 maxLength={120}
                 required
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy"
@@ -176,28 +178,28 @@ export default function CreateOrganizationPage() {
             {/* Category */}
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1 block">
-                Category <span className="text-red-400">*</span>
+                {t('common:createorg.category', 'Category')} <span className="text-red-400">*</span>
               </label>
-              <select aria-label="Category"
+              <select aria-label={t('common:createorg.category', 'Category')}
                 value={form.category}
                 onChange={e => handleChange('category', e.target.value)}
                 required
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-navy bg-white"
               >
-                <option value="">Select a category…</option>
+                <option value="">{t('common:createorg.select_a_category', 'Select a category…')}</option>
                 {CATEGORIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{t(`organizations.cat.${c}`, c)}</option>
                 ))}
               </select>
             </div>
 
             {/* Description */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">Description</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.description', 'Description')}</label>
               <textarea
                 value={form.description}
                 onChange={e => handleChange('description', e.target.value)}
-                placeholder="What does your organization do?"
+                placeholder={t('common:createorg.what_does_your_organization_do', 'What does your organization do?')}
                 rows={3}
                 maxLength={500}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
@@ -207,7 +209,7 @@ export default function CreateOrganizationPage() {
             {/* City + State */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">City</label>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.city', 'City')}</label>
                 <input
                   value={form.city}
                   onChange={e => handleChange('city', e.target.value)}
@@ -216,7 +218,7 @@ export default function CreateOrganizationPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">State</label>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.state', 'State')}</label>
                 <input
                   value={form.state}
                   onChange={e => handleChange('state', e.target.value)}
@@ -229,7 +231,7 @@ export default function CreateOrganizationPage() {
 
             {/* Website */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">Website</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.website', 'Website')}</label>
               <input
                 value={form.website}
                 onChange={e => handleChange('website', e.target.value)}
@@ -241,7 +243,7 @@ export default function CreateOrganizationPage() {
 
             {/* Email */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">Contact Email</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.contact_email', 'Contact Email')}</label>
               <input
                 value={form.email}
                 onChange={e => handleChange('email', e.target.value)}
@@ -263,8 +265,8 @@ export default function CreateOrganizationPage() {
                 {isChapter && <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </div>
               <div>
-                <p className="text-sm font-semibold text-navy">This is a chapter of a national organization</p>
-                <p className="text-xs text-gray-500">Link your local chapter to a national org presence</p>
+                <p className="text-sm font-semibold text-navy">{t('common:createorg.this_is_a_chapter_of_a', 'This is a chapter of a national organization')}</p>
+                <p className="text-xs text-gray-500">{t('common:createorg.link_your_local_chapter_to_a', 'Link your local chapter to a national org presence')}</p>
               </div>
             </button>
 
@@ -279,7 +281,7 @@ export default function CreateOrganizationPage() {
                         <p className="text-xs text-gray-500">{[selectedParent.city, selectedParent.state].filter(Boolean).join(', ')}</p>
                       )}
                     </div>
-                    <button aria-label="Clear selected organization"
+                    <button aria-label={t('common:createorg.clear_selected_organization', 'Clear selected organization')}
                       type="button"
                       onClick={() => { setSelectedParent(null); setParentSearch('') }}
                       className="p-1 rounded-lg hover:bg-navy/10 text-gray-500 hover:text-navy transition-colors"
@@ -294,7 +296,7 @@ export default function CreateOrganizationPage() {
                       <input
                         value={parentSearch}
                         onChange={e => setParentSearch(e.target.value)}
-                        placeholder="Search national organizations…"
+                        placeholder={t('common:createorg.search_national_organizations', 'Search national organizations…')}
                         className="flex-1 text-sm focus:outline-none bg-transparent"
                       />
                       {parentSearching && <LoadingSpinner size="sm" color="gray" />}
@@ -320,23 +322,23 @@ export default function CreateOrganizationPage() {
                       </div>
                     )}
                     {parentSearch.length >= 2 && !parentSearching && parentResults.length === 0 && (
-                      <p className="text-xs text-gray-500 mt-1 px-1">No national organizations found.</p>
+                      <p className="text-xs text-gray-500 mt-1 px-1">{t('common:createorg.no_national_organizations_found', 'No national organizations found.')}</p>
                     )}
                   </div>
                 )}
 
                 {selectedParent && (
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Message to national org (optional)</label>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">{t('common:createorg.message_to_national_org_optional', 'Message to national org (optional)')}</label>
                     <textarea
                       value={chapterMessage}
                       onChange={e => setChapterMessage(e.target.value)}
-                      placeholder="Tell them about your chapter…"
+                      placeholder={t('common:createorg.tell_them_about_your_chapter', 'Tell them about your chapter…')}
                       rows={2}
                       maxLength={300}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
                     />
-                    <p className="text-xs text-gray-500 mt-1">A request will be sent to the national org's admins for approval.</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('common:createorg.a_request_will_be_sent_to', "A request will be sent to the national org's admins for approval.")}</p>
                   </div>
                 )}
               </div>
@@ -349,11 +351,11 @@ export default function CreateOrganizationPage() {
             className="w-full bg-gold text-navy font-bold py-3 rounded-xl hover:bg-gold/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {saving && <LoadingSpinner size="sm" color="navy" />}
-            {saving ? 'Creating…' : 'Create Organization'}
+            {saving ? t('common:createorg.creating', 'Creating…') : t('common:createorg.create_organization', 'Create Organization')}
           </button>
           {canPurchaseInApp && (
             <p className="text-xs text-gray-500 text-center mt-3">
-              Organization dashboards include a free 90-day trial. You'll add a card at checkout and won't be charged until day 91.
+              {t('common:createorg.organization_dashboards_include_a_free_90', "Organization dashboards include a free 90-day trial. You'll add a card at checkout and won't be charged until day 91.")}
             </p>
           )}
         </form>

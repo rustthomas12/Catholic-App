@@ -25,9 +25,11 @@ import Feed from '../components/feed/Feed'
 import { safeImageUrl } from '../utils/validate'
 import useGoBack from '../hooks/useGoBack'
 import { invalidateMyMemberships } from '../lib/myMemberships'
+import { useTranslation } from 'react-i18next'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -105,7 +107,7 @@ function useOrganization(orgId) {
     } else {
       const { error: err } = await supabase.from('organization_members')
         .insert({ org_id: orgId, user_id: user.id })
-      if (err) toast.error('Could not join organization.')
+      if (err) toast.error(t('parish:org.could_not_join_organization', 'Could not join organization.'))
       else {
         setIsMember(true); setMyRole('member'); setMemberCount(c => c + 1)
         invalidateMyMemberships()
@@ -135,12 +137,13 @@ function useOrganization(orgId) {
       }
     }
     setJoinLoading(false)
-  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading, org?.name])
+  }, [user?.id, profile?.full_name, orgId, isMember, joinLoading, org?.name, t])
 
   return { org, loading, error, memberCount, isMember, myRole, joinLoading, join, isSubscribed, parentOrg, chapters }
 }
 
 export default function OrganizationPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const goBack = useGoBack('/organizations')
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
@@ -173,7 +176,7 @@ export default function OrganizationPage() {
       <div className="min-h-screen bg-cream md:pl-60 flex items-center justify-center p-8">
         <div className="text-center">
           <BuildingOffice2Icon className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="font-bold text-navy mb-1">Organization not found</p>
+          <p className="font-bold text-navy mb-1">{t('parish:org.organization_not_found', 'Organization not found')}</p>
           <Link to="/organizations" className="text-navy text-sm font-semibold hover:underline">
             ← Back to organizations
           </Link>
@@ -205,7 +208,7 @@ export default function OrganizationPage() {
               <BuildingOffice2Icon className="w-3.5 h-3.5" />
               <span>{parentOrg.name}</span>
               <ChevronRightIcon className="w-3 h-3" />
-              <span className="text-white/70">Chapter</span>
+              <span className="text-white/70">{t('parish:org.chapter', 'Chapter')}</span>
             </Link>
           )}
 
@@ -219,7 +222,7 @@ export default function OrganizationPage() {
               <div className="flex items-start gap-2 flex-wrap">
                 <h1 className="text-white font-bold text-lg leading-snug">{org.name}</h1>
                 {org.is_official && (
-                  <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title="Official Page" />
+                  <CheckBadgeIcon className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" title={t('parish:org.official_page', 'Official Page')} />
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-1.5 mt-1">
@@ -230,17 +233,17 @@ export default function OrganizationPage() {
                 )}
                 {org.org_type === 'national' && (
                   <span className="inline-flex items-center gap-1 text-xs bg-purple-500/20 text-purple-300 border border-purple-400/30 rounded-full px-2 py-0.5 font-semibold">
-                    National Org
+                    {t('parish:org.national_org', 'National Org')}
                   </span>
                 )}
                 {org.org_type === 'chapter' && (
                   <span className="inline-flex items-center gap-1 text-xs bg-white/10 text-white/70 border border-white/20 rounded-full px-2 py-0.5 font-semibold">
-                    Chapter
+                    {t('parish:org.chapter', 'Chapter')}
                   </span>
                 )}
                 {org.category && (
                   <span className="inline-block text-[10px] font-semibold text-white/60 bg-white/10 px-2 py-0.5 rounded-full capitalize">
-                    {org.category}
+                    {t(`organizations.cat.${org.category}`, org.category)}
                   </span>
                 )}
               </div>
@@ -250,8 +253,10 @@ export default function OrganizationPage() {
                 </p>
               )}
               <p className="text-gray-500 text-xs mt-1">
-                {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
-                {org.org_type === 'national' && chapters.length > 0 && ` · ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}`}
+                {memberCount === 1
+                  ? t('parish:org.members_one', '{{count}} member', { count: memberCount.toLocaleString() })
+                  : t('parish:org.members_other', '{{count}} members', { count: memberCount.toLocaleString() })}
+                {org.org_type === 'national' && chapters.length > 0 && ' · ' + (chapters.length === 1 ? t('parish:org.chapters_one', '{{count}} chapter', { count: 1 }) : t('parish:org.chapters_other', '{{count}} chapters', { count: chapters.length }))}
               </p>
             </div>
           </div>
@@ -266,7 +271,7 @@ export default function OrganizationPage() {
                   : 'bg-gold text-navy hover:bg-gold/90'
               }`}
             >
-              {joinLoading ? '…' : isMember ? 'Leave' : 'Join'}
+              {joinLoading ? '…' : isMember ? t('parish:org.leave', 'Leave') : t('parish:org.join', 'Join')}
             </button>
 
             {/* The form messages the org's admins in-app, so it doesn't need an email on file */}
@@ -276,7 +281,7 @@ export default function OrganizationPage() {
                 className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
               >
                 <EnvelopeIcon className="w-4 h-4" />
-                Contact
+                {t('parish:org.contact', 'Contact')}
               </button>
             )}
 
@@ -286,7 +291,7 @@ export default function OrganizationPage() {
                 className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors"
               >
                 <Cog6ToothIcon className="w-4 h-4" />
-                Manage Organization
+                {t('parish:org.manage_organization', 'Manage Organization')}
               </Link>
             )}
           </div>
@@ -304,7 +309,7 @@ export default function OrganizationPage() {
                 activeTab === tab.id ? 'border-navy text-navy' : 'border-transparent text-gray-500 hover:text-gray-600'
               }`}
             >
-              {tab.label}
+              {t(`parish:tabs.${tab.id}`, tab.label)}
             </button>
           ))}
         </div>
@@ -322,8 +327,8 @@ export default function OrganizationPage() {
           <Feed
             orgId={id}
             showCreatePost={isMember}
-            emptyMessage="No posts yet"
-            emptySubtext="This organization hasn't posted anything yet."
+            emptyMessage={t('parish:org.no_posts_yet', 'No posts yet')}
+            emptySubtext={t('parish:org.this_organization_hasn_t_posted_anything', "This organization hasn't posted anything yet.")}
           />
         )}
         {activeTab === 'events' && <ParishEvents orgId={id} />}
@@ -336,19 +341,20 @@ export default function OrganizationPage() {
 
 // ── ChaptersTab ────────────────────────────────────────────
 function ChaptersTab({ chapters }) {
+  const { t } = useTranslation()
   if (chapters.length === 0) {
     return (
       <div className="px-4 pt-8 text-center">
         <BuildingOffice2Icon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-        <p className="text-navy font-semibold">No chapters yet</p>
-        <p className="text-gray-500 text-sm mt-1">Local chapters will appear here once approved.</p>
+        <p className="text-navy font-semibold">{t('parish:org.no_chapters_yet', 'No chapters yet')}</p>
+        <p className="text-gray-500 text-sm mt-1">{t('parish:org.local_chapters_will_appear_here_once', 'Local chapters will appear here once approved.')}</p>
       </div>
     )
   }
 
   return (
     <div className="px-4 pt-4 pb-8 space-y-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{chapters.length} Chapter{chapters.length !== 1 ? 's' : ''}</p>
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{chapters.length === 1 ? t('parish:org.chapters_one', '{{count}} chapter', { count: 1 }) : t('parish:org.chapters_other', '{{count}} chapters', { count: chapters.length })}</p>
       {chapters.map(chapter => (
         <Link
           key={chapter.id}
@@ -400,6 +406,7 @@ function OrgAnnouncements({ orgId }) {
 }
 
 function OrgAbout({ org, parentOrg }) {
+  const { t } = useTranslation()
   return (
     <div className="px-4 pt-4 space-y-4 pb-8">
       {/* Parent org card for chapters */}
@@ -412,7 +419,7 @@ function OrgAbout({ org, parentOrg }) {
             <BuildingOffice2Icon className="w-5 h-5 text-purple-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-0.5">National Organization</p>
+            <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-0.5">{t('parish:org.national_organization', 'National Organization')}</p>
             <p className="text-sm font-semibold text-navy group-hover:underline truncate">{parentOrg.name}</p>
             {(parentOrg.city || parentOrg.state) && (
               <p className="text-xs text-gray-500">{[parentOrg.city, parentOrg.state].filter(Boolean).join(', ')}</p>
@@ -431,7 +438,7 @@ function OrgAbout({ org, parentOrg }) {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-navy px-4 py-3">
-          <h2 className="text-white font-bold text-sm">Contact & Info</h2>
+          <h2 className="text-white font-bold text-sm">{t('parish:org.contact_info', 'Contact & Info')}</h2>
         </div>
         <div className="divide-y divide-gray-50">
           {(org.address || org.city || org.state) && (() => {
@@ -487,9 +494,9 @@ function OrgAbout({ org, parentOrg }) {
       {/* Only for listed-but-unclaimed orgs (imported, no creator/admin) */}
       {!org.is_official && !org.created_by && (
         <div className="bg-navy/5 border border-navy/10 rounded-2xl p-4">
-          <p className="text-navy text-sm font-semibold mb-1">Is this your organization?</p>
+          <p className="text-navy text-sm font-semibold mb-1">{t('parish:org.is_this_your_organization', 'Is this your organization?')}</p>
           <p className="text-gray-500 text-xs">
-            Contact us to set up your official page and manage announcements, events, and more.
+            {t('parish:org.contact_us_to_set_up_your', 'Contact us to set up your official page and manage announcements, events, and more.')}
           </p>
         </div>
       )}
@@ -499,6 +506,7 @@ function OrgAbout({ org, parentOrg }) {
 
 // ── OrgContactModal ────────────────────────────────────────
 function OrgContactModal({ org, onClose }) {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
@@ -511,7 +519,7 @@ function OrgContactModal({ org, onClose }) {
     const { data: admins } = await supabase.rpc('org_admin_ids', { p_org_id: org.id })
     const recipients = (admins ?? []).map(r => r.user_id).filter(id => id && id !== user.id)
     if (!recipients.length) {
-      toast.error('This organization has no admin to contact yet.')
+      toast.error(t('parish:org.this_organization_has_no_admin_to', 'This organization has no admin to contact yet.'))
       setSending(false)
       return
     }
@@ -529,43 +537,43 @@ function OrgContactModal({ org, onClose }) {
       }))
     }
     if (error) {
-      toast.error('Could not send message. Please try again.')
+      toast.error(t('parish:org.could_not_send_message_please_try', 'Could not send message. Please try again.'))
     } else {
-      toast.success('Message sent.')
+      toast.success(t('parish:org.message_sent', 'Message sent.'))
       onClose()
     }
     setSending(false)
   }
 
   return (
-    <Modal isOpen onClose={onClose} title={`Contact ${org.name}`}>
+    <Modal isOpen onClose={onClose} title={t('parish:page.contact_name', 'Contact {{name}}', { name: org.name })}>
       {profile?.full_name && (
           <p className="text-xs text-gray-500 mb-4">Sent as {profile.full_name}.</p>
         )}
         <input
           value={subject}
           onChange={e => setSubject(e.target.value)}
-          placeholder="Subject (optional)"
+          placeholder={t('parish:org.subject_optional', 'Subject (optional)')}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:border-navy"
         />
         <textarea
             maxLength={1800}
           value={body}
           onChange={e => setBody(e.target.value)}
-          placeholder="Your message…"
+          placeholder={t('parish:org.your_message', 'Your message…')}
           rows={5}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-navy"
         />
         <div className="flex gap-2 justify-end mt-4">
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            Cancel
+            {t('parish:org.cancel', 'Cancel')}
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !body.trim() || !org.created_by}
             className="px-5 py-2 bg-navy text-white text-sm font-bold rounded-xl hover:bg-navy/90 disabled:opacity-50 transition-colors"
           >
-            {sending ? 'Sending…' : 'Send'}
+            {sending ? t('parish:org.sending', 'Sending…') : t('parish:org.send', 'Send')}
           </button>
         </div>
     </Modal>

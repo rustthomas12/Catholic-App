@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import TopBar from '../components/shared/TopBar'
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { ShieldCheckIcon } from '@heroicons/react/24/solid'
+import { useTranslation } from 'react-i18next'
 
 const SECTIONS = [
   {
@@ -120,6 +121,123 @@ const SECTIONS = [
   },
 ]
 
+// Spanish version of the same examination
+const SECTIONS_ES = [
+  {
+    title: 'Primer mandamiento',
+    subtitle: 'Yo soy el Señor tu Dios. No tendrás otros dioses fuera de mí.',
+    questions: [
+      '¿He dudado de mi fe o la he negado?',
+      '¿He descuidado la oración o la he hecho deprisa y sin atención?',
+      '¿He dado una importancia excesiva a las cosas materiales, al entretenimiento o a otra persona, dedicándoles más tiempo y atención que a Dios?',
+      '¿He consultado horóscopos o adivinos, o he caído en prácticas supersticiosas?',
+      '¿He sido desagradecido por las bendiciones de Dios?',
+      '¿He desesperado de la misericordia de Dios o he abusado de ella?',
+    ],
+  },
+  {
+    title: 'Segundo mandamiento',
+    subtitle: 'No tomarás el nombre del Señor tu Dios en vano.',
+    questions: [
+      '¿He usado sin respeto el nombre de Dios, de Jesús o de los santos?',
+      '¿He hecho un juramento falso o he jurado por el nombre de Dios mintiendo?',
+      '¿He maldecido o blasfemado contra Dios?',
+      '¿He dejado de tratar con la debida reverencia las cosas sagradas: iglesias, sacramentos, objetos benditos?',
+    ],
+  },
+  {
+    title: 'Tercer mandamiento',
+    subtitle: 'Santificarás el día del Señor.',
+    questions: [
+      '¿He faltado a misa los domingos o días de precepto sin una razón grave?',
+      '¿He estado distraído a propósito o he sido irrespetuoso durante la misa?',
+      '¿He hecho en domingo trabajos innecesarios que podía haber hecho otro día?',
+      '¿He dejado de descansar, rezar o pasar tiempo con mi familia el domingo?',
+    ],
+  },
+  {
+    title: 'Cuarto mandamiento',
+    subtitle: 'Honrarás a tu padre y a tu madre.',
+    questions: [
+      '¿He sido desobediente, irrespetuoso o poco amable con mis padres?',
+      '¿He descuidado mis deberes con mi cónyuge o mis hijos?',
+      '¿He dejado de cuidar a familiares mayores o enfermos?',
+      '¿He faltado al respeto a la autoridad legítima: en la Iglesia, en el trabajo o en la vida civil?',
+      '¿He dado mal ejemplo a los niños a mi cargo?',
+    ],
+  },
+  {
+    title: 'Quinto mandamiento',
+    subtitle: 'No matarás.',
+    questions: [
+      '¿He hecho daño físico a alguien o lo he puesto en peligro por imprudencia?',
+      '¿He guardado odio, rencor o deseos de venganza contra alguien?',
+      '¿Me he negado a perdonar a alguien que me ofendió?',
+      '¿He dado escándalo, llevando a otros a pecar con mis palabras o mi ejemplo?',
+      '¿He abusado del alcohol o de las drogas, o me he comportado de forma dañina para mi salud?',
+      '¿He hablado o actuado de modo que dañara la reputación de otra persona?',
+    ],
+  },
+  {
+    title: 'Sexto y noveno mandamientos',
+    subtitle: 'No cometerás adulterio. No desearás la mujer de tu prójimo.',
+    questions: [
+      '¿He sido infiel a mi cónyuge de pensamiento, palabra u obra?',
+      '¿Me he detenido voluntariamente en pensamientos o deseos impuros?',
+      '¿He visto pornografía u otro material impuro?',
+      '¿He tenido relaciones sexuales fuera del matrimonio?',
+      '¿Me he vestido o he hablado de forma inmodesta?',
+      '¿He usado anticonceptivos artificiales?',
+    ],
+  },
+  {
+    title: 'Séptimo y décimo mandamientos',
+    subtitle: 'No robarás. No codiciarás los bienes ajenos.',
+    questions: [
+      '¿He robado, hecho trampa o defraudado a alguien?',
+      '¿He desperdiciado el tiempo o los recursos de mi empleador?',
+      '¿He dejado de pagar deudas o de devolver lo que me prestaron?',
+      '¿He sentido envidia o celos de los bienes o el éxito de otros?',
+      '¿He estado demasiado apegado al dinero o a las cosas materiales?',
+      '¿He dejado de ayudar a los necesitados cuando podía hacerlo?',
+    ],
+  },
+  {
+    title: 'Octavo mandamiento',
+    subtitle: 'No darás falso testimonio contra tu prójimo.',
+    questions: [
+      '¿He mentido a propósito, aunque fuera en cosas pequeñas?',
+      '¿He chismeado o difundido sin necesidad información que perjudica a otros?',
+      '¿He juzgado a otros con dureza o falta de caridad?',
+      '¿He dañado la reputación de alguien con rumores o murmuraciones?',
+      '¿He dejado de guardar un secreto que me confiaron?',
+    ],
+  },
+  {
+    title: 'Preceptos de la Iglesia',
+    subtitle: 'Lo mínimo que la Iglesia pide para la vida católica.',
+    questions: [
+      '¿He comulgado al menos una vez durante el tiempo de Pascua?',
+      '¿He confesado mis pecados mortales al menos una vez al año?',
+      '¿He guardado los días de ayuno y abstinencia establecidos?',
+      '¿He ayudado al sostenimiento de la Iglesia según mis posibilidades?',
+      '¿He cumplido las leyes de la Iglesia sobre el matrimonio?',
+    ],
+  },
+  {
+    title: 'Examen general',
+    subtitle: 'Una reflexión más sobre tu vida interior.',
+    questions: [
+      '¿He sido orgulloso o arrogante: rechazando la corrección, presumiendo, poniéndome por encima de los demás?',
+      '¿He sido perezoso en la oración, la lectura espiritual o el crecimiento en la virtud?',
+      '¿Me he enojado con facilidad o me ha costado perdonar?',
+      '¿He perdido el tiempo que podía haber usado para servir a Dios o a los demás?',
+      '¿He dejado de hacer obras de misericordia cuando tuve ocasión?',
+      '¿He sido tibio en mi fe, ni frío ni caliente?',
+    ],
+  },
+]
+
 function Section({ section, isOpen, onToggle }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -153,7 +271,9 @@ function Section({ section, isOpen, onToggle }) {
 }
 
 export default function ExaminationPage() {
-  useEffect(() => { document.title = 'Examination of Conscience | inFold' }, [])
+  const { t, i18n } = useTranslation()
+  const sections = i18n.language?.startsWith('es') ? SECTIONS_ES : SECTIONS
+  useEffect(() => { document.title = `${t('faith:exam.examination_of_conscience', 'Examination of Conscience')} | inFold` }, [t])
   const [openSection, setOpenSection] = useState(null)
   const [expandAll, setExpandAll] = useState(false)
 
@@ -166,29 +286,29 @@ export default function ExaminationPage() {
     <div className="min-h-screen bg-cream md:pl-60">
       <div className="max-w-lg mx-auto pb-24">
 
-        <TopBar variant="navy" title="Examination of Conscience" back />
+        <TopBar variant="navy" title={t('faith:exam.examination_of_conscience', 'Examination of Conscience')} back />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">Sacrament of Penance</p>
-          <p className="text-white/75 text-sm ml-10 mt-1">Prepare your heart and mind before Confession.</p>
+          <p className="text-gold text-xs font-semibold uppercase tracking-widest ml-10">{t('faith:exam.sacrament_of_penance', 'Sacrament of Penance')}</p>
+          <p className="text-white/75 text-sm ml-10 mt-1">{t('faith:exam.prepare_your_heart_and_mind_before', 'Prepare your heart and mind before Confession.')}</p>
         </div>
 
         <div className="px-4 pt-5 space-y-4">
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
-            <p className="text-navy text-sm font-semibold mb-2">Before you begin, pray:</p>
+            <p className="text-navy text-sm font-semibold mb-2">{t('faith:exam.before_you_begin_pray', 'Before you begin, pray:')}</p>
             <p className="text-gray-600 text-sm leading-relaxed italic">
-              "Come, Holy Spirit, enlighten my mind that I may know my sins clearly, and move my heart to true contrition. Help me to make a sincere and complete confession."
+              {t('faith:exam.come_holy_spirit', '"Come, Holy Spirit, enlighten my mind that I may know my sins clearly, and move my heart to true contrition. Help me to make a sincere and complete confession."')}
             </p>
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{SECTIONS.length} sections</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t('faith:exam.sections', '{{count}} sections', { count: sections.length })}</p>
             <button onClick={() => setExpandAll(v => !v)} className="text-xs font-semibold text-navy hover:text-gold transition-colors">
-              {expandAll ? 'Collapse all' : 'Expand all'}
+              {expandAll ? t('faith:exam.collapse_all', 'Collapse all') : t('faith:exam.expand_all', 'Expand all')}
             </button>
           </div>
 
-          {SECTIONS.map((section, i) => (
+          {sections.map((section, i) => (
             <Section
               key={i}
               section={section}
@@ -198,9 +318,9 @@ export default function ExaminationPage() {
           ))}
 
           <div className="bg-gold/10 border border-gold/20 rounded-2xl px-5 py-4">
-            <p className="text-navy font-bold text-sm mb-2">Act of Contrition:</p>
+            <p className="text-navy font-bold text-sm mb-2">{t('faith:exam.act_of_contrition', 'Act of Contrition:')}</p>
             <p className="text-gray-700 text-sm leading-relaxed italic">
-              "O my God, I am heartily sorry for having offended Thee, and I detest all my sins because of Thy just punishments, but most of all because they offend Thee, my God, Who art all-good and deserving of all my love. I firmly resolve, with the help of Thy grace, to sin no more and to avoid the near occasions of sin. Amen."
+              {t('faith:exam.act_of_contrition_text', '"O my God, I am heartily sorry for having offended Thee, and I detest all my sins because of Thy just punishments, but most of all because they offend Thee, my God, Who art all-good and deserving of all my love. I firmly resolve, with the help of Thy grace, to sin no more and to avoid the near occasions of sin. Amen."')}
             </p>
           </div>
 
@@ -211,8 +331,8 @@ export default function ExaminationPage() {
             <div className="flex items-center gap-3">
               <ShieldCheckIcon className="w-5 h-5 text-gold" />
               <div>
-                <p className="font-semibold text-sm">Log your Confession</p>
-                <p className="text-white/50 text-xs">Track your last confession date</p>
+                <p className="font-semibold text-sm">{t('faith:exam.log_your_confession', 'Log your Confession')}</p>
+                <p className="text-white/50 text-xs">{t('faith:exam.track_your_last_confession_date', 'Track your last confession date')}</p>
               </div>
             </div>
             <ChevronRightIcon className="w-4 h-4 text-white/70" />

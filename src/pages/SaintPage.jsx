@@ -87,9 +87,9 @@ export default function SaintPage() {
     } else {
       try {
         await navigator.clipboard.writeText(url)
-        toast.success('Link copied to clipboard')
+        toast.success(t('faith:saint.link_copied_to_clipboard', 'Link copied to clipboard'))
       } catch {
-        toast.error('Could not copy link')
+        toast.error(t('faith:saint.could_not_copy_link', 'Could not copy link'))
       }
     }
   }
@@ -124,7 +124,7 @@ export default function SaintPage() {
     return (
       <div className="min-h-screen bg-white md:pl-60 flex items-center justify-center p-8">
         <div className="text-center">
-          <p className="font-bold text-navy mb-2">Saint not found</p>
+          <p className="font-bold text-navy mb-2">{t('faith:saint.saint_not_found', 'Saint not found')}</p>
           <button
             onClick={() => navigate('/saints')}
             className="text-gold text-sm font-semibold hover:underline"
@@ -160,13 +160,13 @@ export default function SaintPage() {
             className="flex items-center gap-1 text-gray-500 hover:text-navy text-sm transition-colors"
           >
             <ChevronLeftIcon className="w-4 h-4" />
-            Saints
+            {t('faith:saint.saints', 'Saints')}
           </button>
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
               className="p-2 text-gray-500 hover:text-navy transition-colors"
-              aria-label="Share"
+              aria-label={t('faith:saint.share', 'Share')}
             >
               <ShareIcon className="w-5 h-5" />
             </button>

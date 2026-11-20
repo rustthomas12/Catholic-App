@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { reportError } from '../../lib/errorReporting'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default class RouteErrorBoundary extends Component {
@@ -13,6 +14,7 @@ export default class RouteErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('Route error:', error, info)
+    reportError('render', error, info?.componentStack)
   }
 
   render() {

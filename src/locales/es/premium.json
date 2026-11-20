@@ -68,5 +68,14 @@
   "saints_feast_day": "Día de fiesta: {{date}}",
   "saints_patron_of": "Patrono de: {{causes}}",
   "saints_born": "Nacimiento: {{year}}",
-  "saints_died": "Fallecimiento: {{year}}"
+  "saints_died": "Fallecimiento: {{year}}",
+  "confession": {
+    "could_not_save_please_try_again": "No se pudo guardar. Inténtalo de nuevo.",
+    "could_not_clear_history": "No se pudo borrar el historial.",
+    "could_not_save_your_reminder_please": "No se pudo guardar tu recordatorio. Inténtalo de nuevo.",
+    "open": "Abrir →",
+    "cancel": "Cancelar",
+    "clearing": "Borrando…",
+    "clear_all": "Borrar todo"
+  }
 }

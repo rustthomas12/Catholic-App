@@ -4,9 +4,11 @@ import { CalendarDaysIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/out
 import { supabase } from '../../lib/supabase'
 import { format, isPast, isSameDay } from 'date-fns'
 import EventRsvpButtons from '../shared/EventRsvpButtons'
+import { useTranslation } from 'react-i18next'
 
 // Events for a parish, or for an organization when orgId is given
 export default function ParishEvents({ parishId, orgId }) {
+  const { t } = useTranslation()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -41,7 +43,7 @@ export default function ParishEvents({ parishId, orgId }) {
   if (error) {
     return (
       <div className="px-4 pt-4">
-        <p className="text-gray-500 text-sm text-center py-8">Could not load events.</p>
+        <p className="text-gray-500 text-sm text-center py-8">{t('parish:events.could_not_load_events', 'Could not load events.')}</p>
       </div>
     )
   }
@@ -55,8 +57,8 @@ export default function ParishEvents({ parishId, orgId }) {
       <div className="px-4 pt-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <CalendarDaysIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-          <p className="font-semibold text-navy text-sm">No upcoming events</p>
-          <p className="text-gray-500 text-xs mt-1">Check back later for events from this parish.</p>
+          <p className="font-semibold text-navy text-sm">{t('parish:events.no_upcoming_events', 'No upcoming events')}</p>
+          <p className="text-gray-500 text-xs mt-1">{t('parish:events.check_back_later_for_events_from', 'Check back later for events from this parish.')}</p>
         </div>
       </div>
     )
@@ -89,8 +91,8 @@ export default function ParishEvents({ parishId, orgId }) {
       {displayed.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <CalendarDaysIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-          <p className="font-semibold text-navy text-sm">No upcoming events</p>
-          <p className="text-gray-500 text-xs mt-1">Check back soon.</p>
+          <p className="font-semibold text-navy text-sm">{t('parish:events.no_upcoming_events', 'No upcoming events')}</p>
+          <p className="text-gray-500 text-xs mt-1">{t('parish:events.check_back_soon', 'Check back soon.')}</p>
         </div>
       ) : (
         displayed.map((event) => <EventCard key={event.id} event={event} />)

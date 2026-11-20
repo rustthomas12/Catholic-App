@@ -253,7 +253,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 12 | F10 | "Edit post" menu item only said "coming soon" | Implemented inline editing | 🔧 |
 | 13 | S7 | Sidebar highlighted Profile and Settings together on settings pages | Fixed active rules | 🔧 |
 | 14 | – | Dev only: PWA service worker booted the app twice → crash on reload | Disabled SW in dev | 🔧 |
-| 15 | – | Report-post sheet stretches full width on desktop | Cosmetic, not changed | open |
+| 15 | – | Report-post sheet stretches full width on desktop | Already fixed: the shared Modal is max-w-md from md up (checked 2026-11-18) | 🔧 |
 | 16 | – | `posts.like_count` / `comment_count` columns drift (non-authors can't update them under RLS); feed computes counts from rows so UI is correct | Not changed — consider DB triggers | open |
 | 17 | – | Profiles have no "Message" button | Suggestion | open |
 | 18 | G2 | **Group photos never saved** — the `groups` storage bucket was never created; upload failed silently | Migration 031 creates bucket (owner-scoped write policies replace "any signed-in user can overwrite any group image") | 🔧 applied |
@@ -263,14 +263,14 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 22 | X5 | Security: `/api/claim-sponsorship-code` trusted `userId` from the request | Uses the session user | 🔧 |
 | 23 | X5 | Security: `increment_member_count` / `decrement_member_count` RPCs callable by anyone (even signed out) | Revoked in migration 031 | 🔧 applied |
 | 24 | X5 | Checkout endpoints don't check login — but webhook never grants admin rights, so impact is only "pay for someone else's parish" | Not changed | open (low) |
-| 25 | X5 | Advisors: 19 functions with mutable search_path; leaked-password protection off | Not changed — enable leaked-password protection in Supabase Auth settings | open (low) |
+| 25 | X5 | Advisors: 19 functions with mutable search_path; leaked-password protection off | search_path: migration 090 pins the last one. Leaked-password protection: owner toggles it in Supabase Auth settings | 🔧 / owner |
 | 26 | G4 | Group feed empty state said "No groups found" + "Find my parish" | Group-specific copy; "Find my parish" only on home feed | 🔧 |
 | 27 | N1 | "1 days ago" | Singular/plural relative times | 🔧 |
 | 28 | DM2 | DM notification just said "You have a new message" | "Thomas Rust sent you a message" | 🔧 |
 | 29 | E5 | **No way to create a group event anywhere** (tab was always empty) | "New event" form for group admins | 🔧 |
 | 30 | E1/E4 | **Security: any user could create events on any parish/group/org**; no DELETE policy so admin delete-event did nothing | Migration 032 (applied) | 🔧 |
 | 31 | G7 | **Security: anyone could add themselves to any group — even private — as admin**; no UPDATE policy so "Make Moderator" did nothing | Migration 033 (applied); UI reports RLS no-ops | 🔧 |
-| 32 | G7 | Group settings has no way to change the group photo (groups made while uploads were broken can't get one) | Not changed — suggestion | open |
+| 32 | G7 | Group settings has no way to change the group photo (groups made while uploads were broken can't get one) | Group settings can add, change or remove the photo (2026-11-18) | 🔧 |
 | 33 | D6/D8 | **Parish admins were never notified of new followers or office messages** (clients can't read others' parish_admins rows) | Migration 034: DB triggers send both | 🔧 |
 | 34 | X5 | **Security: any user could create any notification for anyone with any sender** (phishing/impersonation) | Migration 034 drops the permissive policy | 🔧 |
 | 35 | O8 | Chapter-request notifications used nonexistent columns and never delivered | Fixed insert | 🔧 |
@@ -278,7 +278,7 @@ Status key: ⬜ not run · ✅ pass · ❌ fail (see Issues) · 🔧 fixed · �
 | 37 | PA8 | Stripe checkout page shows "Communio sandbox" (Stripe public business name) | Rename in Stripe → Settings → Public details | ⚠ you |
 | 38 | FA4/FA5/FA7 | **Prayer Journal, Rosary Tracker, Advent/Lent progress never saved** — their tables (migration 019) were never created | Applied 019; verified journal is private | 🔧 |
 | 39 | FA1 | **Readings showed the wrong psalm** (lectionary Ps 100 → Douay Ps 100 = Hebrew 101); credit said USCCB but text is Douay-Rheims | Psalm number mapping + credit line (live after deploy) | 🔧 |
-| 40 | FA3 | "1 prayers"; prayer count doesn't update live for others | Plural fixed; live count not changed | 🔧 / open |
+| 40 | FA3 | "1 prayers"; prayer count doesn't update live for others | Plural fixed; counts on screen refresh every 15 s while the page is visible (2026-11-18) | 🔧 |
 | 41 | FA3 | Two separate prayer systems (feed prayer-request posts vs /faith/prayer intentions) — confusing | Design note | open |
 | 42 | FA6 | Liturgy of the Hours is fixed text (not the day's office); Benedictus is cut off | Content note | open |
 | 43 | FA11 | Confession reminders say "notifications coming soon" | Not built | open |

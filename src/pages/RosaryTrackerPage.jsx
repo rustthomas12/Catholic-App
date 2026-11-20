@@ -3,7 +3,9 @@ import TopBar from '../components/shared/TopBar'
 import { LockClosedIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { format } from 'date-fns'
-import { useRosaryTracker, MYSTERY_NAMES, MYSTERY_INITIAL, MYSTERIES } from '../hooks/useRosaryTracker'
+import { useRosaryTracker, MYSTERY_NAMES as NAMES_EN, MYSTERY_INITIAL as INITIAL_EN, MYSTERIES as MYSTERIES_EN,
+  MYSTERY_NAMES_ES, MYSTERY_INITIAL_ES, MYSTERIES_ES } from '../hooks/useRosaryTracker'
+import { useTranslation } from 'react-i18next'
 
 const MYSTERY_COLORS = {
   joyful:    'bg-blue-50 border-blue-200 text-blue-700',
@@ -13,7 +15,12 @@ const MYSTERY_COLORS = {
 }
 
 export default function RosaryTrackerPage() {
-  useEffect(() => { document.title = 'Rosary Tracker | inFold' }, [])
+  const { t, i18n } = useTranslation()
+  const isEs = i18n.language?.startsWith('es')
+  const MYSTERY_NAMES = isEs ? MYSTERY_NAMES_ES : NAMES_EN
+  const MYSTERY_INITIAL = isEs ? MYSTERY_INITIAL_ES : INITIAL_EN
+  const MYSTERIES = isEs ? MYSTERIES_ES : MYSTERIES_EN
+  useEffect(() => { document.title = `${t('faith:rosary.rosary_tracker', 'Rosary Tracker')} | inFold` }, [t])
 
   const {
     recentDays, streak, loading, prayedToday,
@@ -40,9 +47,9 @@ export default function RosaryTrackerPage() {
       <div className="max-w-lg mx-auto pb-24">
 
         {/* Header */}
-        <TopBar variant="navy" title="Rosary Tracker" back="/faith" />
+        <TopBar variant="navy" title={t('faith:rosary.rosary_tracker', 'Rosary Tracker')} back="/faith" />
         <div className="bg-navy px-4 pb-6">
-          <p className="text-white/75 text-sm ml-10">Pray daily — build the habit</p>
+          <p className="text-white/75 text-sm ml-10">{t('faith:rosary.pray_daily_build_the_habit', 'Pray daily — build the habit')}</p>
         </div>
 
         <div className="px-4 pt-6 space-y-5">
@@ -54,14 +61,14 @@ export default function RosaryTrackerPage() {
             ) : (
               <>
                 <p className="text-5xl font-bold text-navy mb-1">{streak}</p>
-                <p className="text-sm text-gray-500">day{streak !== 1 ? 's' : ''} in a row 🔥</p>
+                <p className="text-sm text-gray-500">{streak === 1 ? t('faith:rosary.day_in_a_row', 'day in a row 🔥') : t('faith:rosary.days_in_a_row', 'days in a row 🔥')}</p>
               </>
             )}
           </div>
 
           {/* Today's mystery */}
           <div className={`rounded-2xl border p-4 ${MYSTERY_COLORS[todayMysteries]}`}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-1">Today's Mysteries</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1">{t('faith:rosary.today_s_mysteries', "Today's Mysteries")}</p>
             <p className="font-bold text-base">{MYSTERY_NAMES[todayMysteries]}</p>
           </div>
 
@@ -76,12 +83,12 @@ export default function RosaryTrackerPage() {
             }`}
           >
             {prayedToday && <CheckCircleIcon className="w-5 h-5 text-gold" />}
-            {logging ? 'Saving…' : prayedToday ? '✓ Prayed today' : 'Log rosary for today'}
+            {logging ? t('faith:rosary.saving', 'Saving…') : prayedToday ? t('faith:rosary.prayed_today', '✓ Prayed today') : t('faith:rosary.log_rosary_for_today', 'Log rosary for today')}
           </button>
 
           {/* 30-day calendar */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs font-bold text-navy mb-3">Last 30 Days</p>
+            <p className="text-xs font-bold text-navy mb-3">{t('faith:rosary.last_30_days', 'Last 30 Days')}</p>
             <div className="grid grid-cols-7 gap-1.5">
               {Array.from({ length: 30 }, (_, i) => {
                 const d = new Date()
@@ -92,7 +99,7 @@ export default function RosaryTrackerPage() {
                 return (
                   <div
                     key={key}
-                    title={mysteries ? MYSTERY_NAMES[mysteries] : format(d, 'MMM d')}
+                    title={mysteries ? MYSTERY_NAMES[mysteries] : d.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' })}
                     className={`aspect-square rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
                       mysteries
                         ? 'bg-gold text-navy'
@@ -106,7 +113,7 @@ export default function RosaryTrackerPage() {
                 )
               })}
             </div>
-            <p className="text-xs text-gray-500 mt-2">J = Joyful · S = Sorrowful · G = Glorious · L = Luminous</p>
+            <p className="text-xs text-gray-500 mt-2">{t('faith:rosary.legend', 'J = Joyful · S = Sorrowful · G = Glorious · L = Luminous')}</p>
           </div>
 
           {/* Mystery details */}

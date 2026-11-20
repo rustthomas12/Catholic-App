@@ -25,10 +25,10 @@ const VOCATIONS = [
 ]
 
 function passwordStrength(pw) {
-  if (!pw || pw.length < 8) return { level: 0, label: 'Too short', color: 'bg-red-400' }
+  if (!pw || pw.length < 8) return { level: 0, label: 'Too short', key: 'too_short', color: 'bg-red-400' }
   const hasSpecial = /[^a-zA-Z0-9]/.test(pw) || /\d/.test(pw)
-  if (hasSpecial) return { level: 2, label: 'Strong', color: 'bg-green-500' }
-  return { level: 1, label: 'Good', color: 'bg-orange-400' }
+  if (hasSpecial) return { level: 2, label: 'Strong', key: 'strong', color: 'bg-green-500' }
+  return { level: 1, label: 'Good', key: 'good', color: 'bg-orange-400' }
 }
 
 export default function SignupPage() {
@@ -258,7 +258,7 @@ export default function SignupPage() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
+              placeholder={t('auth:x.su_at_least', 'At least 8 characters')}
               icon={LockClosedIcon}
               rightIcon={showPassword ? EyeSlashIcon : EyeIcon}
               onRightIconClick={() => setShowPassword(v => !v)}
@@ -273,7 +273,7 @@ export default function SignupPage() {
                     <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.level - 1 ? strength.color : 'bg-gray-200'}`} />
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">{strength.label}</span>
+                <span className="text-xs text-gray-500">{t(`auth:strength.${strength.key}`, strength.label)}</span>
               </div>
             )}
           </div>
@@ -285,7 +285,7 @@ export default function SignupPage() {
               type={showPassword ? 'text' : 'password'}
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
-              placeholder="Repeat your password"
+              placeholder={t('auth:x.su_repeat_your', 'Repeat your password')}
               icon={LockClosedIcon}
               required
               error={errors.confirm}
@@ -312,7 +312,7 @@ export default function SignupPage() {
                   <p className="text-sm font-semibold text-navy truncate">{selectedParish.name}</p>
                   <p className="text-xs text-gray-500">{selectedParish.city}, {selectedParish.state}</p>
                 </div>
-                <button aria-label="Clear parish" type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
+                <button aria-label={t('auth:x.su_clear_parish', 'Clear parish')} type="button" onClick={() => { setSelectedParish(null); setParishQuery('') }}
                   className="text-gray-500 hover:text-navy p-1">
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -351,7 +351,7 @@ export default function SignupPage() {
 
                 {showDropdown && parishResults.length === 0 && parishQuery.length >= 2 && !parishSearching && (
                   <div className="mt-1 bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-500">
-                    No parishes found. Try a different search.
+                    {t('auth:x.su_no_parishes', 'No parishes found. Try a different search.')}
                   </div>
                 )}
               </>
@@ -385,10 +385,10 @@ export default function SignupPage() {
                 className="w-5 h-5 accent-navy cursor-pointer" />
             </div>
             <span className="text-sm text-gray-500 leading-snug">
-              {t('signup.terms').split('Terms of Service')[0]}
-              <Link to="/terms" target="_blank" className="text-navy underline">Terms of Service</Link>
-              {' and '}
-              <Link to="/privacy" target="_blank" className="text-navy underline">Privacy Policy</Link>
+              {t('auth:signup.terms_prefix', 'I agree to the')}{' '}
+              <Link to="/terms" target="_blank" className="text-navy underline">{t('auth:signup.terms_link', 'Terms of Service')}</Link>
+              {' '}{t('auth:signup.terms_and', 'and')}{' '}
+              <Link to="/privacy" target="_blank" className="text-navy underline">{t('auth:signup.privacy_link', 'Privacy Policy')}</Link>
             </span>
           </label>
           {errors.agreed && <p className="text-sm text-red-600 -mt-2">{errors.agreed}</p>}

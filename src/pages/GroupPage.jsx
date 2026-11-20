@@ -187,7 +187,7 @@ export default function GroupPage() {
   }
 
   if (canAccess === false) {
-    const entityName = group.parish?.name ?? 'this parish or organization'
+    const entityName = group.parish?.name ?? t('groups:locked.this_entity', 'this parish or organization')
     return (
       <div className="min-h-screen bg-cream md:pl-60">
         <div className="bg-navy px-4 pt-14 pb-5 max-w-3xl mx-auto flex flex-col items-center text-center">
@@ -197,16 +197,16 @@ export default function GroupPage() {
         </div>
         <div className="max-w-3xl mx-auto px-4 pt-8 flex flex-col items-center text-center gap-3">
           <LockClosedIcon className="w-10 h-10 text-gray-300" />
-          <p className="font-bold text-navy">Members only</p>
+          <p className="font-bold text-navy">{t('groups:locked.members_only', 'Members only')}</p>
           <p className="text-sm text-gray-500 max-w-xs">
-            This group is for followers of <span className="font-semibold text-navy">{entityName}</span>.
-            Follow that {group.org_id ? 'organization' : 'parish'} to join.
+            {t('groups:locked.for_followers', 'This group is for followers of')} <span className="font-semibold text-navy">{entityName}</span>.{' '}
+            {group.org_id ? t('groups:locked.follow_org', 'Follow that organization to join.') : t('groups:locked.follow_parish', 'Follow that parish to join.')}
           </p>
           <Link
             to="/groups"
             className="mt-2 text-sm font-semibold text-navy hover:underline"
           >
-            ← Back to groups
+            {t('groups:locked.back_to_groups', '← Back to groups')}
           </Link>
         </div>
       </div>
