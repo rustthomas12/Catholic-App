@@ -93,6 +93,9 @@ export function notificationPath(type, referenceId) {
     case 'post_flagged':
       return '/admin'
     // reference = parish id: the parish moderation queue (migration 099)
+    // reference = the post if the highlight is about one, else the parish (104)
+    case 'community_highlight':
+      return ref ? `/highlight/${ref}` : '/'
     case 'parish_post_flagged':
       return ref ? `/parish/${ref}/moderation` : '/notifications'
     case 'prayer_response':
