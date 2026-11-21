@@ -143,7 +143,6 @@ Repo → Settings → Secrets and variables → Actions:
 | `ANDROID_KEYSTORE_BASE64` | `base64 -w0 communio-upload.jks` |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | from §2.6 |
 | `PLAY_SERVICE_ACCOUNT_JSON` | Google Cloud service account JSON with *Release manager* access in Play Console → Users and permissions (optional; only for automatic Play uploads) |
-| `FIREBASE_DISTRIBUTION_SA_JSON` | Google Cloud service account JSON with the *Firebase App Distribution Admin* role, project `communio-d2e19` (optional; sends each main build to testers, see §4 Beta testers) |
 
 **The first Play upload must be manual:** download the `.aab` artifact from a
 release run and upload it in Play Console → Testing → Internal testing. After
@@ -227,16 +226,18 @@ visual emulator and one-click runs; it reuses the same SDK.
 - **Android before Play: Firebase App Distribution** (free, no Play account).
   Every push to `main` builds a release APK signed with the upload key and
   sends it to the `testers` group; testers get an email with an install link,
-  and each new build installs over the last one. One-time setup (you):
-  1. Firebase console → project `communio-d2e19` → Release & Monitor → App
-     Distribution → Get started (pick the Android app `app.getinfold`).
-  2. Testers & Groups → Add group, alias **`testers`** → add tester emails.
-  3. Google Cloud console (same project) → IAM & Admin → Service accounts →
-     Create → role **Firebase App Distribution Admin** → Keys → Add key →
-     JSON. Paste the whole file as the GitHub secret
-     `FIREBASE_DISTRIBUTION_SA_JSON`, then delete the downloaded file.
-  4. Testers open the email on their phone, accept, and install (Android asks
-     once to allow installs from their browser or the App Tester app).
+  and each new build installs over the last one. Set up 2026-11-21:
+  - Group **`testers`** (Firebase console → App Distribution → Testers &
+    Groups). Add people there, or
+    `npx firebase-tools appdistribution:testers:add EMAIL --group-alias testers --project communio-d2e19`.
+  - CI logs in to Google **without a key** (Workload Identity Federation):
+    pool/provider `github` in project `communio-d2e19` (number 178530452794)
+    trusts only `rustthomas12/Catholic-App` on `refs/heads/main`, which may
+    act as service account `github-app-distribution@communio-d2e19.iam.gserviceaccount.com`
+    (role: Firebase App Distribution Admin only). To revoke: delete the
+    provider or the service account in Google Cloud → IAM & Admin.
+  - Testers open the email on their phone, accept, and install (Android asks
+    once to allow installs from their browser or the App Tester app).
   Note: Play re-signs store builds with Google's key, so when the app moves to
   Play, testers uninstall this build once and install from Play.
 
