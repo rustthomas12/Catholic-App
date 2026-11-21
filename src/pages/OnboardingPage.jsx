@@ -20,7 +20,7 @@ export default function OnboardingPage() {
   const { profile, updateProfile, user } = useAuth()
   const navigate = useNavigate()
 
-  // The parish-setup step leads to a paid plan, so the iOS app skips it (3.1.1)
+  // The parish-setup step leads to a paid plan, so the store apps skip it
   const isClergy = canPurchaseInApp && ['ordained', 'religious'].includes(profile?.vocation_state)
   const totalSteps = isClergy ? 4 : 3
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
