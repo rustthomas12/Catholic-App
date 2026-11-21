@@ -18,7 +18,7 @@ import { useUnreadDMCount } from '../../lib/dmBadge'
 // live in the More sheet.
 export default function MeShortcuts() {
   const { t } = useTranslation('common')
-  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
+  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords, dioceseAdminRecords } = useAdminAccess()
   const unreadDMs = useUnreadDMCount()
   const [showAll, setShowAll] = useState(false)
 
@@ -26,6 +26,12 @@ export default function MeShortcuts() {
     ...(isPlatformAdmin
       ? [{ to: '/admin', Icon: ShieldExclamationIcon, label: t('nav.platform_admin'), hint: t('me.platform_admin_hint'), danger: true }]
       : []),
+    ...dioceseAdminRecords.map((r) => ({
+      to: `/diocese-admin/${r.diocese_id}`,
+      Icon: BuildingLibraryIcon,
+      label: r.dioceses?.name || 'My diocese',
+      hint: t('me.manage_diocese', 'Manage diocese plan'),
+    })),
     ...parishAdminRecords.map((r) => ({
       to: `/parish-admin/${r.parish_id}`,
       Icon: BuildingLibraryIcon,
