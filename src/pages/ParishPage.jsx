@@ -140,12 +140,14 @@ export default function ParishPage() {
           </div>
 
           {/* Application under review banner */}
-          {profile?.pending_pastor_parish_id === id && !adminRole && (
+          {profile?.pending_pastor_parish_id === id && (!adminRole || adminRole === 'pending') && (
             <div className="mt-4 flex items-start gap-3 bg-amber-400/20 border border-amber-400/30 rounded-2xl px-4 py-3">
               <span className="text-amber-300 text-base flex-shrink-0 mt-0.5">⏳</span>
               <div>
                 <p className="text-white font-semibold text-sm">{t('parish:page.application_under_review', 'Application under review')}</p>
-                <p className="text-white/70 text-xs mt-0.5">{t('parish:page.our_team_is_verifying_your_pastoral', "Our team is verifying your pastoral role — typically within 1–2 business days. We'll email you once approved.")}</p>
+                <p className="text-white/70 text-xs mt-0.5">{adminRole === 'pending'
+                  ? t('parish:page.provisional_verifying', "Your parish page is live. You can set up Mass times and parish details now; announcements and notifications unlock once we verify your role, usually within 1–2 business days.")
+                  : t('parish:page.our_team_is_verifying_your_pastoral', "Our team is verifying your pastoral role — typically within 1–2 business days. We'll email you once approved.")}</p>
               </div>
             </div>
           )}

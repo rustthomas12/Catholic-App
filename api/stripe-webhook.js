@@ -166,14 +166,19 @@ export default async function handler(req, res) {
           let alreadyAdmin = false
           if (adminUserId) {
             const { data: adminRow } = await supabase.from('parish_admins')
-              .select('id').eq('parish_id', parishId).eq('user_id', adminUserId).maybeSingle()
-            alreadyAdmin = !!adminRow
+              .select('role').eq('parish_id', parishId).eq('user_id', adminUserId).maybeSingle()
+            alreadyAdmin = !!adminRow && adminRow.role !== 'pending'
           }
 
-          // Do NOT auto-add to parish_admins — requires manual verification.
-          // Mark the applicant's profile as pending so the parish page shows
-          // "Application under review" until an admin approves.
+          // New pastor: provisional access right away (role 'pending': parish
+          // page, Mass times, settings, billing). Announcements, pushes,
+          // followers, messages and integrations unlock once a platform admin
+          // verifies them (migration 095). The profile flag drives the
+          // "verifying" banner and the admin review list.
           if (adminUserId && !alreadyAdmin) {
+            await supabase.from('parish_admins').upsert(
+              { parish_id: parishId, user_id: adminUserId, role: 'pending' },
+              { onConflict: 'parish_id,user_id', ignoreDuplicates: true })
             await supabase.from('profiles')
               .update({ pending_pastor_parish_id: parishId })
               .eq('id', adminUserId)

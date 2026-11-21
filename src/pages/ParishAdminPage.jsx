@@ -17,6 +17,7 @@ import {
   EnvelopeIcon,
   CreditCardIcon,
   ArrowsRightLeftIcon,
+  LockClosedIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { READ_EVENT } from '../hooks/useNotifications'
@@ -36,6 +37,9 @@ import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
 
 // Tabs a parish admin can use without an active subscription
 const FREE_TABS = ['billing', 'messages']
+// What a provisional pastor (role 'pending', awaiting verification) can open.
+// The database enforces the rest (migration 095).
+const PENDING_TABS = ['dashboard', 'masstimes', 'billing', 'settings']
 
 // Days until a no-card trial ends; null when the reminder doesn't apply
 function trialDaysLeft(subscription) {
@@ -190,6 +194,8 @@ export default function ParishAdminPage() {
 
   const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
   const daysLeft = trialDaysLeft(subscription)
+  const isPending = adminRole === 'pending'
+  const lockedForPending = isPending && !PENDING_TABS.includes(activeTab)
 
   const ActivePanel = {
     dashboard:     DashboardTab,
@@ -235,6 +241,7 @@ export default function ParishAdminPage() {
             >
               <Icon className="w-4 h-4" />
               {label}
+              {isPending && !PENDING_TABS.includes(id) && <LockClosedIcon className="w-3.5 h-3.5 text-gray-400" aria-label="Unlocks after verification" />}
             </button>
           ))}
         </div>
@@ -244,6 +251,16 @@ export default function ParishAdminPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         {/* Billing and parishioner messages stay open without a subscription,
             so a pastor never misses a message sent to the parish */}
+        {isPending && (
+          <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <p className="text-sm font-bold text-navy">We're verifying your role</p>
+            <p className="text-sm text-gray-600 mt-0.5">
+              Your parish page is live. Set up Mass times and parish details now. Announcements, events,
+              notifications, parishioners and messages unlock once we confirm you serve this parish,
+              usually within 1–2 business days.
+            </p>
+          </div>
+        )}
         {/* No-card trial ending soon: nudge toward autopay (reminders from day 75) */}
         {daysLeft !== null && daysLeft <= 15 && canPurchaseInApp && (
           <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-wrap items-center gap-3">
@@ -255,7 +272,20 @@ export default function ParishAdminPage() {
               className="bg-navy text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-navy/90 disabled:opacity-60" />
           </div>
         )}
-        {!FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
+        {lockedForPending ? (
+          <div className="text-center py-16 px-4">
+            <LockClosedIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+            <h3 className="font-bold text-navy text-lg mb-2">Unlocks after verification</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              To protect parishioners, this opens once we've confirmed your role at the parish.
+              We'll notify you as soon as you're verified.
+            </p>
+            <button onClick={() => setActiveTab('masstimes')}
+              className="bg-navy text-white font-bold px-6 py-3 rounded-xl hover:bg-navy/90 transition-colors">
+              Set up Mass times →
+            </button>
+          </div>
+        ) : !FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
           !canPurchaseInApp ? <IosPlanNotice kind="parish" /> :
           subscription?.status === 'paused' ? (
             <div className="text-center py-16 px-4">
@@ -999,7 +1029,8 @@ function ParishionersTab({ parishId }) {
         supabase
           .from('parish_admins')
           .select('user_id, created_at')
-          .eq('parish_id', parishId),
+          .eq('parish_id', parishId)
+          .neq('role', 'pending'),
       ])
 
       // Build a merged, deduplicated list — admins first, then followers

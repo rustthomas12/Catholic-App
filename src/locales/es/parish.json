@@ -112,7 +112,8 @@
     "contact_us_to_set_up_your": "Contáctanos para crear tu página oficial y administrar anuncios, eventos y más.",
     "mass_times": "Horarios de misa",
     "back": "Volver",
-    "contact": "Contactar"
+    "contact": "Contactar",
+    "provisional_verifying": "La página de tu parroquia ya está publicada. Puedes configurar los horarios de misa y los datos de la parroquia; los anuncios y las notificaciones se activan cuando verifiquemos tu función, normalmente en 1 o 2 días hábiles."
   },
   "tabs": {
     "feed": "Publicaciones",
