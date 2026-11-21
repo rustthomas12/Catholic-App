@@ -1,6 +1,6 @@
 import { applyNativeCors, returnUrl } from './_native.js'
 import Stripe from 'stripe'
-import { getSessionUser, isParishAdmin, parishHasAdmin, isPlatformAdmin, serviceSelect } from './_auth.js'
+import { getSessionUser, isParishAdmin, hasParishRole, parishHasAdmin, isPlatformAdmin, serviceSelect } from './_auth.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -20,8 +20,10 @@ export default async function handler(req, res) {
 
   // The caller subscribes for themselves: an existing admin of the parish, or
   // a pastor claiming a parish that has no admin yet (verified after payment)
+  // (a provisional pastor restarting checkout has a 'pending' row of their own)
   const callerIsAdmin = await isParishAdmin(caller.id, parishId)
   const allowed = callerIsAdmin
+    || await hasParishRole(caller.id, parishId)
     || !(await parishHasAdmin(parishId))
     || await isPlatformAdmin(caller.id)
   if (!allowed) return res.status(403).json({ error: 'This parish is already managed by another admin' })
@@ -86,7 +88,8 @@ export default async function handler(req, res) {
  * subscription and resumes it if the trial ended without one (paused).
  */
 async function addCard(req, res, caller, parishId) {
-  const allowed = await isParishAdmin(caller.id, parishId) || await isPlatformAdmin(caller.id)
+  // Provisional pastors can add a card during their trial too
+  const allowed = await hasParishRole(caller.id, parishId) || await isPlatformAdmin(caller.id)
   if (!allowed) return res.status(403).json({ error: 'Not an admin of this parish' })
 
   const [sub] = await serviceSelect(

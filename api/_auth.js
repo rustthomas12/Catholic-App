@@ -35,7 +35,15 @@ export async function isPlatformAdmin(userId) {
   return p?.is_admin === true
 }
 
+/** Verified admin or staff. Provisional ('pending') admins are not included. */
 export async function isParishAdmin(userId, parishId) {
+  return (await serviceSelect(
+    `parish_admins?parish_id=eq.${q(parishId)}&user_id=eq.${q(userId)}&role=neq.pending&select=id`
+  )).length > 0
+}
+
+/** Any parish_admins row, including a provisional pastor awaiting verification (billing only). */
+export async function hasParishRole(userId, parishId) {
   return (await serviceSelect(`parish_admins?parish_id=eq.${q(parishId)}&user_id=eq.${q(userId)}&select=id`)).length > 0
 }
 

@@ -219,7 +219,7 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('parish_admins').select('parish_id', { count: 'exact', head: true }).eq('user_id', user.id)
+    supabase.from('parish_admins').select('parish_id', { count: 'exact', head: true }).eq('user_id', user.id).neq('role', 'pending')
       .then(({ count }) => setIsParishAdmin((count ?? 0) > 0))
     supabase.from('group_members').select('group_id', { count: 'exact', head: true }).eq('user_id', user.id).eq('role', 'admin')
       .then(({ count }) => setIsGroupAdmin((count ?? 0) > 0))

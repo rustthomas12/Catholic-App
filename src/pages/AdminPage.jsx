@@ -921,20 +921,26 @@ function PendingPastors() {
   }, [])
   useEffect(() => { load() }, [load])
 
-  async function approve(row) {
+  // Admin access and the clergy badge are separate: a business manager or
+  // lay administrator can run the parish without being shown as clergy.
+  // Upserting role 'admin' replaces their provisional 'pending' row.
+  async function approve(row, withBadge) {
     setBusy(row.id)
     const parishId = row.pending_pastor_parish_id
     const { error } = await supabase.from('parish_admins').upsert(
       { parish_id: parishId, user_id: row.id, role: 'admin' }, { onConflict: 'parish_id,user_id' })
     // A refused update returns no rows rather than an error
     const { data: updated, error: pErr0 } = error ? { error } : await supabase.from('profiles')
-      .update({ is_verified_clergy: true, pending_pastor_parish_id: null }).eq('id', row.id).select('id')
+      .update(withBadge ? { is_verified_clergy: true, pending_pastor_parish_id: null } : { pending_pastor_parish_id: null })
+      .eq('id', row.id).select('id')
     const pErr = pErr0 || (!error && !updated?.length ? { message: 'their profile could not be updated' } : null)
     setBusy(null)
     if (error || pErr) { toast.error('Could not approve: ' + (error || pErr).message); return }
     await supabase.from('notifications').insert({
       user_id: row.id, type: 'pastor_verified', reference_id: parishId, actor_id: user.id, is_read: false,
-      message: `You're verified as pastor of ${row.parish?.name || 'your parish'}. Your parish dashboard is ready.`,
+      message: withBadge
+        ? `You're verified as pastor of ${row.parish?.name || 'your parish'}. Your full parish dashboard is unlocked.`
+        : `You're verified as an admin of ${row.parish?.name || 'your parish'}. Your full parish dashboard is unlocked.`,
     })
     toast.success(`${row.full_name} now manages ${row.parish?.name || 'the parish'}`)
     load()
@@ -972,8 +978,12 @@ function PendingPastors() {
               <p className='text-sm font-semibold text-navy truncate'>{r.full_name} <span className='text-gray-500 font-normal'>@{r.username} · {r.vocation_state}</span></p>
               <p className='text-xs text-gray-500 truncate'>{r.parish ? `${r.parish.name}, ${r.parish.city}, ${r.parish.state}` : r.pending_pastor_parish_id}</p>
             </div>
-            <button disabled={busy === r.id} onClick={() => approve(r)}
-              className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve</button>
+            <button disabled={busy === r.id} onClick={() => approve(r, true)}
+              title='Full dashboard access plus the verified clergy badge'
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve as clergy</button>
+            <button disabled={busy === r.id} onClick={() => approve(r, false)}
+              title='Full dashboard access, no clergy badge (business manager, lay administrator)'
+              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-navy text-navy disabled:opacity-50'>Approve, no badge</button>
             <ConfirmDeleteButton
               title='Decline this application?'
               message={`${r.full_name} will not manage ${r.parish?.name || 'this parish'}, and the free trial they started at checkout is canceled so they are never charged.`}
@@ -1015,7 +1025,7 @@ function TrialsEnding() {
     <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4'>
       <div className='flex items-center justify-between gap-2 mb-1'>
         <h3 className='text-sm font-bold text-navy'>
-          Trials ending ({urgent.length} to follow up{rows.length > urgent.length ? ` · ${rows.length} trials` : ''})
+          Trials ending ({urgent.length} to follow up{rows.length > urgent.length ? ` · ${rows.length} trial${rows.length === 1 ? '' : 's'}` : ''})
         </h3>
         {rows.length > urgent.length && (
           <button onClick={() => setShowAll(v => !v)} className='text-xs font-semibold text-navy hover:underline'>

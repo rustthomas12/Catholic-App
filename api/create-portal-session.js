@@ -49,6 +49,7 @@ export default async function handler(req, res) {
 
   let customerId = null
   if (parishId) {
+    // Any role, including a provisional pastor: billing stays open to them
     const isParishAdmin = (await select(
       `parish_admins?parish_id=eq.${encodeURIComponent(parishId)}&user_id=eq.${userId}&select=id`
     )).length > 0
@@ -128,6 +129,12 @@ async function declinePastor(req, res, callerId) {
     await patch(`parish_subscriptions?parish_id=eq.${encodeURIComponent(parishId)}`,
       { status: 'canceled', updated_at: new Date().toISOString() })
   }
+
+  // Remove their provisional dashboard access (verified roles are left alone)
+  await fetch(`${SUPABASE_URL}/rest/v1/parish_admins?parish_id=eq.${encodeURIComponent(parishId)}&user_id=eq.${encodeURIComponent(applicantId)}&role=eq.pending`, {
+    method: 'DELETE',
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, Prefer: 'return=minimal' },
+  })
 
   const r = await patch(`profiles?id=eq.${encodeURIComponent(applicantId)}`, { pending_pastor_parish_id: null })
   if (!r.ok) return res.status(500).json({ error: 'Trial canceled, but the application could not be cleared.', canceled })
