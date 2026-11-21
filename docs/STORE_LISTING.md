@@ -113,9 +113,9 @@ Google Play graphics: `store-assets/play-icon-512.png` (app icon) and
 ```
 inFold is a free Catholic community app. Sign in with the demo account above. It belongs to St. Paul the Apostle parish (Warren, MA), runs the "Daily Rosary Circle" group and has a few posts, including a prayer request, so you can see the feed, parish page, groups, readings and directory.
 
-User-generated content (guideline 1.2): everything members write can be reported — posts ("…" menu > Report post), comments, group chat messages and prayer requests (flag icon), direct messages (conversation menu > Report conversation), and profiles and groups (flag on their page). Reports go to our moderation queue, admins are notified immediately, and we act within 24 hours (remove content, suspend users). Members can block anyone from their profile, a post's menu, or a conversation; blocked users' content is hidden and they cannot message the blocker (Settings > Blocked users to unblock). Users must agree to the Terms (zero tolerance for objectionable content and abusive users) to sign up. Content Policy: https://app.getinfold.app/policy
+User-generated content (guideline 1.2): everything members write can be reported — posts ("…" menu > Report post), comments, group chat messages and prayer requests (flag icon), direct messages (conversation menu > Report conversation), and profiles and groups (flag on their page). Reports go to our moderation queue, admins are notified immediately, and we act within 24 hours (remove content, suspend users). Reports on a parish's posts also go to that parish's own moderators (pastor, staff and appointed parishioners), who can hide a post at once. Members must accept community guidelines before their first parish post, and community posts are limited to 3 a day. Members can block anyone from their profile, a post's menu, or a conversation; blocked users' content is hidden and they cannot message the blocker (Settings > Blocked users to unblock). Users must agree to the Terms (zero tolerance for objectionable content and abusive users) to sign up. Content Policy: https://app.getinfold.app/policy
 
-Payments: the iOS app sells nothing and shows no prices. Every member feature is free. Parishes and Catholic organizations can subscribe to administrative tools (a B2B service sold directly to the organization, guideline 3.1.3(c)), but that can't be started, changed or linked to from the iOS app: those screens only say plans can't be started in the iOS app. A parish that already subscribes can use its dashboard in the app (guideline 3.1.3(b)).
+Payments: the iOS app sells nothing and shows no prices. Every member feature is free. Parishes, dioceses and Catholic organizations can subscribe to administrative tools (a B2B service sold directly to the organization, guideline 3.1.3(c)), but that can't be started, changed or linked to from the iOS app: those screens only say plans can't be started in the iOS app. A parish that already subscribes can use its dashboard in the app (guideline 3.1.3(b)).
 
 Account deletion: Settings > Delete my account (content is hidden immediately; the account is permanently erased after 90 days). Details: https://app.getinfold.app/delete-account
 
@@ -134,10 +134,12 @@ Answer **"Yes, we collect data"**, then for each type below choose:
 | Contact Info | Name, Email Address |
 | User Content | Photos or Videos, Emails or Text Messages (direct messages), Other User Content (posts, comments, prayer requests) |
 | Identifiers | User ID, Device ID (push notification token) |
+| Usage Data | Product Interaction (which parish announcements were seen and which notifications were opened; parishes see totals only) |
+| Diagnostics | Crash Data (error message, page and browser type when the app crashes; deleted after 30 days) |
 | Location | Coarse Location — **not linked**, App Functionality (only sent to find nearby parishes, not stored; the iOS app asks for approximate location only — `NSLocationDefaultAccuracyReduced`) |
 
 Not collected: health, financial info, contacts, browsing/search history,
-purchases, diagnostics, advertising data.
+purchases, advertising data.
 
 ## Apple — Age rating
 New questionnaire answers: no violence, sexual content, profanity, drugs,
@@ -168,6 +170,8 @@ Uses only standard encryption (HTTPS). Already declared in the app
 | Messages (in-app) | Yes | Optional | App functionality |
 | Other user-generated content | Yes | Optional | App functionality |
 | Device or other IDs (push token) | Yes | Optional | App functionality |
+| App interactions (announcements seen, notifications opened) | Yes | Required | App functionality, Analytics (parish totals only) |
+| Crash logs | Yes | Required | App functionality |
 
 ## Google Play — Content rating (IARC questionnaire)
 Category: **Social / Communication**. Violence, sexuality, language,

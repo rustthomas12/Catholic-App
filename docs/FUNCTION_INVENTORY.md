@@ -76,6 +76,11 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | PA9 | Integrations: Facebook start, Flocknote, website webhook, custom email; toggle; disconnect | ✅ Facebook start; ✅ webhook URLs are test-pinged and refused if they reject posts 🔧 pause showed even when not saved; ⚠️ connecting needs a real endpoint / Flocknote key |
 | PA10 | Settings: edit details (validation) | ✅ |
 | PA11 | Access check (non-admin redirected, retry on failure) | ✅ |
+| PA12 | Moderation tab: flag queue, hide post/comment, appoint moderators (098–100) | ✅ |
+| PA13 | Feature a post; From the parish strip on Home, seen tracking (101) | ✅ |
+| PA14 | Community tab: weekly prompts on/off; 3 posts/day limit; guidelines on first post (106) | ✅ |
+| PA15 | Reach tab (7/30/90 days, totals only); trial summary in last 15 days (107) | ✅ |
+| PA16 | Billing: "Covered by the diocese plan" note; covered parish unlocked (108) | ✅ |
 
 ## 6. Groups
 | ID | Function | Status |
@@ -135,6 +140,9 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | N3 | Preferences: each switch saves and is honoured server-side; turn all off/on | ✅ (earlier rounds) |
 | N4 | Web push subscribe / unsubscribe; native push token | 🚫 needs a device |
 | N5 | Push prompt (after 3rd session), install prompt | 🔧 prompt counted page loads as sessions; said "enabled" after a decline |
+| N6 | Push rules: in-app-only types, quiet hours 9pm–8am (held, delivered at 8am), 5/day cap on parish/group posts, clergy always push (102) | ✅ |
+| N7 | 7pm community highlight, "Community posts" switch (103–105) | ✅ |
+| N8 | Push open tracking (?pn= link, stripped after recording) (107) | ✅ |
 
 ## 11. Profile & settings
 | ID | Function | Status |
@@ -155,6 +163,8 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | AD5 | Assign parish pastor / org admin | 🔧 refused profile update reported as success |
 | AD6 | Pending pastors approve / decline | 🔧 Decline left the checkout trial running (billed on day 91); now cancels it, with confirmation |
 | AD7 | Parish clusters: create, add/remove parish, delete | ✅ 🔧 delete had no confirmation; remove button was labelled "Close" |
+| AD8 | Diocese accounts: create, appoint admin (108) | ✅ |
+| AD9 | Diocese dashboard /diocese-admin/:id: add/remove parishes, roll-up, start plan, manage billing (108) | ✅ add/remove, roll-up, covered state 🚫 checkout needs the Stripe price |
 
 ## 13. Marketing site & public pages
 | ID | Function | Status |
@@ -173,6 +183,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | S5 | integrations (facebook start/callback, flocknote, webhook — SSRF guarded) | ✅ |
 | S6 | readings (date validation, caching) | ✅ 🔧 impossible dates (2026-13-99) went to the upstream sites; now 400 |
 | S7 | morning-offering / readings reminders (cron secret) | ✅ refuse callers without the secret (401) |
+| S9 | diocese (set-parish with prorated quantity, checkout, portal; diocese admins only) | ✅ add, refuse removing the last parish of a running plan 🚫 Stripe calls untested until the price exists |
 | S8 | native-return | ✅ can't redirect off-site (claim-sponsorship-code and track-return retired 2026-11-21 with the Premium tier) |
 
 ## 15. Server: edge functions, cron, triggers
@@ -182,6 +193,8 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | E2 | distribute-post (integrations, webhook re-check) | ✅ deployed v9 |
 | E3 | deliver-scheduled-posts | ✅ |
 | E4 | send-form-email (contact / parish application emails) | 🔧 a failed/unsent email was still marked emailed (code only — redeploy needed) |
+| E7 | trial-reminders (day 75 / 85 "add a card" emails with reach summary) | ✅ selection; returns {"due":0} 🚫 real email not sent |
+| E8 | Cron: deliver-held-pushes, community-highlights, weekly-prompts, trial-reminders | ✅ |
 | E5 | Cron: event reminders, confession reminders, org announcements, scheduled posts, purge deleted accounts | ✅ all 5 database jobs ran on schedule, 0 failures in 7 days |
 | E6 | Triggers: word filter, counts (likes, comments, members, RSVPs, prayers), guards (post/comment/DM/group/org/parish/profile updates), notification preferences / repeats / blocked, last-admin guards, deleted-profile content hiding, notification cleanup | ✅ all 45 triggers enabled; like/comment/member/RSVP/prayer counts match; no hidden-user content visible; no notifications to missing posts or from blocked users; no banned words in posts ⚠️ 3 Civitas Dei chapters from May have no admin (predate the last-admin guard) |
 
