@@ -70,6 +70,7 @@ const FormationPage            = lazy(() => import('./pages/FormationPage'))
 const MorningOfferingPage      = lazy(() => import('./pages/MorningOfferingPage'))
 const PrivateIntentionsPage    = lazy(() => import('./pages/PrivateIntentionsPage'))
 const PastorOnboardingPage              = lazy(() => import('./pages/PastorOnboardingPage'))
+const PastorInvitePage                  = lazy(() => import('./pages/PastorInvitePage'))
 const PastorVerificationPendingPage     = lazy(() => import('./pages/PastorVerificationPendingPage'))
 const AppContactPage                    = lazy(() => import('./pages/AppContactPage'))
 const BlockedUsersPage                  = lazy(() => import('./pages/BlockedUsersPage'))
@@ -223,6 +224,7 @@ function AppInner() {
           <Route path="/faith/formation/:program"      element={<ProtectedRoute><RouteErrorBoundary><FormationPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/morning-offering"        element={<ProtectedRoute><RouteErrorBoundary><MorningOfferingPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/pastor-setup"                  element={<ProtectedRoute><RouteErrorBoundary><PastorOnboardingPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/pastor-invite/:token"         element={<ProtectedRoute><RouteErrorBoundary><PastorInvitePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/pastor-verification-pending"   element={<ProtectedRoute><RouteErrorBoundary><PastorVerificationPendingPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/contact"                       element={<ProtectedRoute><RouteErrorBoundary><AppContactPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/faith/intentions"              element={<ProtectedRoute><RouteErrorBoundary><PrivateIntentionsPage /></RouteErrorBoundary></ProtectedRoute>} />

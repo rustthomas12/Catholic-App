@@ -30,6 +30,17 @@ export default async function handler(req, res) {
   const adminUserId = caller.id
   const adminEmail  = caller.email
 
+  // Who is signing up (step 1 "What's your role?"); staff name their pastor,
+  // who gets an email invite from the webhook
+  const clip = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '')
+  const applicantRole = ['pastor', 'staff', 'clergy'].includes(req.body?.applicantRole) ? req.body.applicantRole : 'pastor'
+  const staffTitle  = applicantRole === 'staff' ? clip(req.body?.staffTitle, 80) : ''
+  const pastorName  = applicantRole === 'staff' ? clip(req.body?.pastorName, 120) : ''
+  const pastorEmail = applicantRole === 'staff' ? clip(req.body?.pastorEmail, 254).toLowerCase() : ''
+  if (pastorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pastorEmail)) {
+    return res.status(400).json({ error: "Please check your pastor's email address" })
+  }
+
   const TIER_PRICES = {
     small:     process.env.STRIPE_PRICE_PARISH_SMALL,
     medium:    process.env.STRIPE_PRICE_PARISH_MEDIUM,
@@ -58,6 +69,10 @@ export default async function handler(req, res) {
         parish_id: parishId,
         admin_user_id: adminUserId,
         billing_type: 'parish_' + (tierKey || 'medium'),
+        applicant_role: applicantRole,
+        staff_title: staffTitle,
+        pastor_name: pastorName,
+        pastor_email: pastorEmail,
       },
       subscription_data: {
         trial_period_days: parseInt(process.env.STRIPE_PARISH_TRIAL_DAYS || '90'),

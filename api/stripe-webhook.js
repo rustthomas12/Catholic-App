@@ -1,3 +1,4 @@
+/* global process */
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
@@ -50,6 +51,65 @@ async function checkoutSubscription(session) {
     console.error('Could not load the new subscription:', err.message)
     return { stripe_subscription_id: typeof session.subscription === 'string' ? session.subscription : null }
   }
+}
+
+const APP_URL = process.env.APP_URL || 'https://app.getinfold.app'
+
+// User-entered text going into an email
+const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c])
+}
+
+async function sendEmail(payload) {
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey || resendKey === 're_placeholder') return false
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'inFold <noreply@getinfold.app>', ...payload }),
+  })
+  return r.ok
+}
+
+// Records who applied, in what role (migration 096), and for staff signups
+// emails the named pastor an invite link. Accepting it only gives the pastor
+// provisional access; a platform admin still verifies everyone.
+async function recordParishApplication(session, parishName, applicantName) {
+  const m = session.metadata || {}
+  const role = ['pastor', 'staff', 'clergy'].includes(m.applicant_role) ? m.applicant_role : 'pastor'
+  const { data: app, error } = await supabase.from('parish_applications').upsert({
+    parish_id: m.parish_id,
+    user_id: m.admin_user_id,
+    applicant_role: role,
+    staff_title: m.staff_title || null,
+    pastor_name: m.pastor_name || null,
+    pastor_email: m.pastor_email || null,
+  }, { onConflict: 'parish_id,user_id' }).select('invite_token, invite_sent_at').single()
+  if (error) { console.error('Could not record the application:', error.message); return null }
+
+  if (role === 'staff' && m.pastor_email && !app.invite_sent_at) {
+    const link = `${APP_URL}/pastor-invite/${app.invite_token}`
+    const sent = await sendEmail({
+      to: [m.pastor_email],
+      subject: `${applicantName || 'Your parish staff'} set up ${parishName || 'your parish'} on inFold`,
+      html:
+        '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1B2A4A">' +
+        '<p>Dear ' + esc(m.pastor_name || 'Father') + ',</p>' +
+        '<p>' + esc(applicantName || 'A member of your parish staff') + (m.staff_title ? ' (' + esc(m.staff_title) + ')' : '') +
+        ' has started setting up <strong>' + esc(parishName || 'your parish') + '</strong> on inFold, the Catholic parish app, ' +
+        'and named you as pastor.</p>' +
+        '<p>Accept to manage your parish page with them. It is free for 90 days, and no card is needed.</p>' +
+        '<p style="margin:28px 0"><a href="' + link + '" style="background:#1B2A4A;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Accept and review your parish</a></p>' +
+        '<p style="font-size:13px;color:#666">If you did not expect this, you can ignore this email; nothing changes until our team verifies the parish. ' +
+        'The link works for 30 days.</p></div>',
+    }).catch(() => false)
+    if (sent) {
+      await supabase.from('parish_applications').update({ invite_sent_at: new Date().toISOString() })
+        .eq('parish_id', m.parish_id).eq('user_id', m.admin_user_id)
+    }
+  }
+  return { role, ...app }
 }
 
 // Whether the parish can be billed automatically: a default card on the
@@ -194,6 +254,9 @@ export default async function handler(req, res) {
               const priest = profileRes.data
               const parish = parishRes.data
               const tierName = billingType.replace('parish_', '')
+              const meta = session.metadata || {}
+              await recordParishApplication(session, parish?.name, priest?.full_name)
+              const roleLabel = { pastor: 'Pastor', staff: 'Parish staff', clergy: 'Other clergy' }[meta.applicant_role] || 'Pastor'
               const resendKey = process.env.RESEND_API_KEY
               if (resendKey && resendKey !== 're_placeholder') {
                 const approvalSQL =
@@ -206,23 +269,29 @@ export default async function handler(req, res) {
                   body: JSON.stringify({
                     from: 'inFold <noreply@getinfold.app>',
                     to: ['info@getinfold.app'],
-                    subject: '[Verification Needed] Pastor Application — ' + (parish?.name || parishId),
+                    subject: '[Verification Needed] ' + roleLabel + ' Application — ' + (parish?.name || parishId),
                     html:
                       '<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto">' +
                       '<div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">' +
                       '<h2 style="color:#C9A84C;margin:0">Pastor Application — Verification Needed</h2></div>' +
                       '<div style="padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px">' +
                       '<table style="width:100%;border-collapse:collapse">' +
-                      '<tr><td style="padding:6px 0;color:#888;width:140px">Pastor</td><td>' + (priest?.full_name || 'Unknown') + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888;width:140px">Applicant</td><td>' + esc(priest?.full_name || 'Unknown') + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Role</td><td>' + roleLabel + (meta.staff_title ? ' · ' + esc(meta.staff_title) : '') + '</td></tr>' +
+                      (meta.applicant_role === 'staff'
+                        ? '<tr><td style="padding:6px 0;color:#888">Named pastor</td><td>' + esc(meta.pastor_name || 'Not given') +
+                          (meta.pastor_email ? ' &lt;' + esc(meta.pastor_email) + '&gt; (invite sent)' : ' (no email: confirm with the parish office)') + '</td></tr>'
+                        : '') +
                       '<tr><td style="padding:6px 0;color:#888">User ID</td><td style="font-family:monospace;font-size:12px">' + adminUserId + '</td></tr>' +
-                      '<tr><td style="padding:6px 0;color:#888">Parish</td><td>' + (parish?.name || parishId) + '</td></tr>' +
+                      '<tr><td style="padding:6px 0;color:#888">Parish</td><td>' + esc(parish?.name || parishId) + '</td></tr>' +
                       '<tr><td style="padding:6px 0;color:#888">Parish ID</td><td style="font-family:monospace;font-size:12px">' + parishId + '</td></tr>' +
                       '<tr><td style="padding:6px 0;color:#888">Location</td><td>' + [parish?.city, parish?.state].filter(Boolean).join(', ') + '</td></tr>' +
                       '<tr><td style="padding:6px 0;color:#888">Plan</td><td>' + tierName + '</td></tr>' +
                       '<tr><td style="padding:6px 0;color:#888">Stripe Customer</td><td>' + customerId + '</td></tr>' +
                       '</table>' +
                       '<hr style="border:none;border-top:1px solid #C9A84C;margin:20px 0"/>' +
-                      '<p style="font-size:13px;color:#555"><strong>To approve, run in Supabase SQL Editor:</strong></p>' +
+                      '<p style="font-size:13px;color:#555"><strong>Approve or decline in Platform Admin, Role Management</strong> (' + APP_URL + '/admin). ' +
+                      'Staff are approved without the clergy badge. Fallback SQL:</p>' +
                       '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;font-size:12px;white-space:pre-wrap">' + approvalSQL + '</pre>' +
                       '</div></div>',
                   }),

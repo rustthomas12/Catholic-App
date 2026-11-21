@@ -208,14 +208,17 @@ export default function ParishPage() {
               {t('parish:page.contact', 'Contact')}
             </button>
 
-            {/* Clergy-only: apply to manage this parish */}
-            {canPurchaseInApp && ['ordained', 'religious'].includes(profile?.vocation_state) && !adminRole && !profile?.pending_pastor_parish_id && isManaged === false && (
+            {/* Unmanaged parish: its pastor, clergy or staff can set it up
+                (signup asks the role; the team verifies) */}
+            {canPurchaseInApp && profile && !adminRole && !profile?.pending_pastor_parish_id && isManaged === false && (
               <button
                 onClick={() => navigate(`/pastor-setup?parish_id=${id}`)}
                 className="w-full sm:w-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-gold text-navy hover:bg-gold/90 transition-colors mt-1 sm:mt-0"
               >
                 <BuildingLibraryIcon className="w-4 h-4" />
-                {t('parish:page.apply_to_manage_this_parish', 'Apply to manage this parish')}
+                {['ordained', 'religious'].includes(profile?.vocation_state)
+                  ? t('parish:page.apply_to_manage_this_parish', 'Apply to manage this parish')
+                  : t('parish:page.work_here_set_up', 'Work at this parish? Set it up')}
               </button>
             )}
           </div>
