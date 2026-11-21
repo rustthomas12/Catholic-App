@@ -135,16 +135,19 @@ serve(async (req) => {
   if (!id) {
     return new Response('No record in payload', { status: 400 })
   }
-  const { data: record } = await supabase
-    .from('notifications')
-    .update({ pushed_at: new Date().toISOString() })
-    .eq('id', id)
-    .is('pushed_at', null)
-    .gt('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
-    .select('user_id, type, message, actor_id, reference_id')
-    .maybeSingle()
+  // claim_notification_push (migration 102) applies the push rules: in-app
+  // only types, quiet hours (held until 8am local, then woken by the
+  // deliver-held-pushes cron job) and the daily cap. It returns the row only
+  // if this call may push it, and marks it pushed in the same step.
+  const { data: claimed, error: claimError } = await supabase
+    .rpc('claim_notification_push', { p_id: id })
+  if (claimError) {
+    console.log(`claim_notification_push failed: ${claimError.message}`)
+    return new Response('Claim failed', { status: 500 })
+  }
+  const record = Array.isArray(claimed) ? claimed[0] : claimed
   if (!record) {
-    return new Response('Unknown, stale or already-sent notification', { status: 200 })
+    return new Response('Not pushed: held, in-app only, over the daily cap, stale or already sent', { status: 200 })
   }
 
   const { user_id, type, message, actor_id, reference_id } = record
@@ -154,7 +157,7 @@ serve(async (req) => {
   }
 
   // Notification preferences are enforced when the notification is inserted
-  // (apply_notification_preferences, migration 040) — a disabled type never
+  // (apply_notification_preferences, migration 040): a disabled type never
   // reaches this function.
 
   // Resolve actor name if present

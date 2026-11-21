@@ -113,6 +113,10 @@ function PushSection({ userId }) {
         <p className="text-xs text-gray-500 mb-4">
           {t('common:notif.get_notified_even_when_the_app', "Get notified even when the app isn't open.")}
         </p>
+        {/* Push rules, migration 102 */}
+        <p className="text-xs text-gray-500 -mt-2 mb-4">
+          {t('common:notif.push_rules', "Quiet hours: nothing buzzes between 9pm and 8am; anything that arrives then waits until 8am. Your own reminders still come at the time you chose. Likes and new-member alerts stay in the app, and parish and group updates are limited to 5 pushes a day.")}
+        </p>
 
         {!isSupported && (
           <p className="text-sm text-gray-500">
