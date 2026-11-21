@@ -1,4 +1,6 @@
-import { supabase, supabaseAuth } from '../lib/supabase'
+import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
+import { apiUrl } from '../lib/platform'
+import i18n from './i18n'
 import { shrinkImage } from './imageResize'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -29,6 +31,30 @@ async function ensureSession() {
 }
 
 /**
+ * Runs the server's photo safety check (Google SafeSearch) on a file the user
+ * just uploaded. Returns null when the photo can be used, or an error message.
+ * A blocked photo has already been deleted by the server; if the check itself
+ * couldn't run, the upload is removed so it isn't left behind unused.
+ */
+export async function checkUploadedImage(bucket, path) {
+  try {
+    const res = await fetch(apiUrl('/api/check-image'), {
+      method: 'POST',
+      headers: await authJsonHeaders(),
+      body: JSON.stringify({ bucket, path }),
+    })
+    const body = await res.json().catch(() => ({}))
+    if (res.ok && body.ok) return null
+    if (body.blocked) {
+      return i18n.t('common:photo_check.blocked',
+        "This photo can't be posted because it may break the community guidelines. Please choose a different photo.")
+    }
+  } catch { /* network error: fall through */ }
+  supabase.storage.from(bucket).remove([path]).catch(() => {})
+  return i18n.t('common:photo_check.failed', "Couldn't upload the photo. Please try again.")
+}
+
+/**
  * Uploads a user avatar.
  * Bucket: avatars   Path: {userId}/avatar.{ext}
  * RLS policy: (storage.foldername(name))[1] = auth.uid()::text
@@ -48,6 +74,8 @@ export async function uploadAvatar(userId, original) {
     .upload(path, file, { upsert: true, contentType: file.type })
 
   if (uploadError) return { url: null, error: uploadError.message }
+  const checkError = await checkUploadedImage('avatars', path)
+  if (checkError) return { url: null, error: checkError }
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
   return { url: data.publicUrl, error: null }
@@ -73,8 +101,35 @@ export async function uploadPostImage(userId, original) {
     .upload(path, file, { contentType: file.type })
 
   if (uploadError) return { url: null, error: uploadError.message }
+  const checkError = await checkUploadedImage('posts', path)
+  if (checkError) return { url: null, error: checkError }
 
   const { data } = supabase.storage.from('posts').getPublicUrl(path)
+  return { url: data.publicUrl, error: null }
+}
+
+/**
+ * Uploads a group photo.
+ * Bucket: groups   Path: group-avatars/{userId}/{timestamp}.{ext}
+ * RLS policy: folder[1] = 'group-avatars' and folder[2] = auth.uid()::text
+ */
+export async function uploadGroupPhoto(userId, original) {
+  const file = await shrinkImage(original, { maxDim: 512 })
+  const err = validateImage(file, AVATAR_MAX_BYTES)
+  if (err) return { url: null, error: err }
+
+  await ensureSession()
+
+  const path = `group-avatars/${userId}/${Date.now()}.${getExtension(file)}`
+  const { error: uploadError } = await supabase.storage
+    .from('groups')
+    .upload(path, file, { upsert: true, contentType: file.type })
+
+  if (uploadError) return { url: null, error: uploadError.message }
+  const checkError = await checkUploadedImage('groups', path)
+  if (checkError) return { url: null, error: checkError }
+
+  const { data } = supabase.storage.from('groups').getPublicUrl(path)
   return { url: data.publicUrl, error: null }
 }
 

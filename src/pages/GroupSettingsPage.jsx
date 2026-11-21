@@ -10,7 +10,8 @@ import { useGroup, invalidateGroupMemberships } from '../hooks/useGroups'
 import { GroupPageSkeleton } from '../components/shared/skeletons'
 import { toast } from '../components/shared/Toast'
 import Modal from '../components/shared/Modal'
-import { shrinkImage, PICK_MAX_BYTES } from '../utils/imageResize'
+import { PICK_MAX_BYTES } from '../utils/imageResize'
+import { uploadGroupPhoto } from '../utils/storage'
 
 export default function GroupSettingsPage() {
   const { t } = useTranslation('groups')
@@ -76,18 +77,13 @@ export default function GroupSettingsPage() {
     if (photoFile === null) updates.avatar_url = null
     if (photoFile) {
       // Same place the create-group wizard uploads to (your own folder)
-      const file = await shrinkImage(photoFile, { maxDim: 512 })
-      const ext = file.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop()
-      const path = `group-avatars/${user.id}/${Date.now()}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('groups')
-        .upload(path, file, { upsert: true, contentType: file.type })
-      if (uploadError) {
-        toast.error(t('photo_failed', 'Could not upload the photo. Please try again.'))
+      const { url, error: photoError } = await uploadGroupPhoto(user.id, photoFile)
+      if (photoError) {
+        toast.error(photoError)
         setSaving(false)
         return
       }
-      updates.avatar_url = supabase.storage.from('groups').getPublicUrl(path).data.publicUrl
+      updates.avatar_url = url
     }
 
     const { error } = await supabase.from('groups').update(updates).eq('id', id)
