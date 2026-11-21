@@ -398,6 +398,11 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
           </div>
         )}
         <div className="px-4 py-3">
+          {post.prompt_kind && (
+            <p className="text-xs font-semibold text-navy mb-2 inline-flex items-center gap-1">
+              <ChatBubbleLeftIcon className="w-3.5 h-3.5" />{t('feed:prompt.badge', 'Weekly prompt')}
+            </p>
+          )}
           {post.featured_at && !post.is_announcement && (
             <p className="text-xs font-semibold text-gold mb-2 inline-flex items-center gap-1">
               <StarIcon className="w-3.5 h-3.5" />{t('feed:feature.badge', 'Featured by the parish')}

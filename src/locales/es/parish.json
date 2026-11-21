@@ -206,6 +206,14 @@
     "remove_mod": "Quitar a {{name}} como moderador",
     "search_member": "Añadir moderador: busca entre tus feligreses",
     "mod_added": "Moderador añadido",
-    "mod_removed": "Moderador quitado"
+    "mod_removed": "Moderador quitado",
+    "prompts": "Temas semanales",
+    "prompts_help": "Temas de conversación que se publican en la comunidad de tu parroquia a tu nombre, una vez por semana. No envían una notificación push propia.",
+    "prompt_homily": "Comenta la homilía del domingo",
+    "prompt_homily_when": "Domingos, 2 p. m.",
+    "prompt_intention": "Comparte tu intención esta semana",
+    "prompt_intention_when": "Lunes, 8 a. m.",
+    "prompt_rides": "¿Necesitas transporte a Misa?",
+    "prompt_rides_when": "Jueves, 10 a. m."
   }
 }

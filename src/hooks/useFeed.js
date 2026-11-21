@@ -114,6 +114,7 @@ export function normalisePost(raw, currentUserId) {
     is_anonymous:     raw.is_anonymous     ?? false,
     is_removed:       raw.is_removed       ?? false,
     featured_at:      raw.featured_at      ?? null,
+    prompt_kind:      raw.prompt_kind      ?? null,
     created_at:       raw.created_at,
     author:           raw.author           ?? null,
     parish:           raw.parish           ?? null,
