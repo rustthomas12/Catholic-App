@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BuildingLibraryIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -83,23 +83,41 @@ export default function Feed({
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // First posts are in: lift the startup logo screen
-  useEffect(() => { if (!feedLoading) markAppReady() }, [feedLoading])
+  // The sections above the posts ("From the parish", "Coming up") load
+  // separately. Keep the skeleton until they've answered too, so the feed
+  // appears once instead of being pushed down a moment later. A slow section
+  // waits at most 2.5 seconds after the posts arrive.
+  const showStrip = !groupId && !orgId && !userId && (parishId ? filter === 'all' : (filter === 'all' || filter === 'parish'))
+  const showComing = filter === 'all' && !parishId && !groupId && !orgId && !userId
+  const [stripDone, setStripDone] = useState(false)
+  const [comingDone, setComingDone] = useState(false)
+  const [waitedEnough, setWaitedEnough] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  useEffect(() => {
+    if (feedLoading || revealed) return
+    const timer = setTimeout(() => setWaitedEnough(true), 2500)
+    return () => clearTimeout(timer)
+  }, [feedLoading, revealed])
+  const sidesReady = (!showStrip || stripDone) && (!showComing || comingDone)
+  // Once shown, later filter changes never bring the skeleton back
+  if (!revealed && !feedLoading && (sidesReady || waitedEnough)) setRevealed(true)
+  const showSkeleton = !revealed
+
+  // Everything is in: lift the startup logo screen
+  useEffect(() => { if (revealed) markAppReady() }, [revealed])
 
   // The "Events" filter lists events, not posts
   if (filter === 'events') return <MyEvents />
 
   // ── Loading state ────────────────────────────────────────
-  if (feed.loading) {
-    return (
-      <div>
-        {showCreatePost && <div className="pointer-events-none opacity-50"><div className="bg-white border-b border-gray-100 md:rounded-xl md:border md:shadow-sm md:mb-2 px-4 py-3 h-16" /></div>}
-        <PostCardSkeleton />
-        <PostCardSkeleton showImage />
-        <PostCardSkeleton />
-      </div>
-    )
-  }
+  const skeleton = (
+    <div>
+      {showCreatePost && <div className="pointer-events-none opacity-50"><div className="bg-white border-b border-gray-100 md:rounded-xl md:border md:shadow-sm md:mb-2 px-4 py-3 h-16" /></div>}
+      <PostCardSkeleton />
+      <PostCardSkeleton showImage />
+      <PostCardSkeleton />
+    </div>
+  )
 
   // ── Error state ──────────────────────────────────────────
   if (feed.error) {
@@ -122,6 +140,8 @@ export default function Feed({
 
   return (
     <div className="relative">
+      {showSkeleton && skeleton}
+      <div hidden={showSkeleton}>
 
       {/* New posts pill */}
       {incomingCount > 0 && (
@@ -141,15 +161,13 @@ export default function Feed({
 
       {/* Unseen announcements and featured posts: Home (home + followed
           parishes) and a parish's own feed */}
-      {!groupId && !orgId && !userId && (parishId ? filter === 'all' : (filter === 'all' || filter === 'parish')) && (
-        <FromTheParish parishId={parishId} />
-      )}
+      {showStrip && <FromTheParish parishId={parishId} onReady={() => setStripDone(true)} />}
 
       {/* Next few events, on the main Home feed only */}
-      {filter === 'all' && !parishId && !groupId && !orgId && !userId && <ComingUp onSeeAll={onSeeAllEvents} />}
+      {showComing && <ComingUp onSeeAll={onSeeAllEvents} onReady={() => setComingDone(true)} />}
 
       {/* Empty state */}
-      {feed.posts.length === 0 && (
+      {!feed.loading && feed.posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
           <BuildingLibraryIcon className="w-12 h-12 text-gray-200 mb-3" />
           <p className="font-semibold text-navy mb-1">
@@ -203,6 +221,7 @@ export default function Feed({
           <p className="text-xs text-gray-500 mt-0.5">{t('feed.caught_up_sub')}</p>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -122,8 +122,8 @@ export default function HomePage() {
         )}
 
         {/* Daily faith card */}
-        <div className="px-0 border-b border-gray-100">
-          <div className="px-4 py-3">
+        <div className="px-0">
+          <div className="px-4 pt-3 pb-2">
             <ReadingsCard
               variant="compact"
               readings={homeReadings}
@@ -136,25 +136,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* My parishes & organizations */}
-        {!communitiesLoading && (
-          <CommunitiesCard parishes={myParishes} orgs={myOrgs} className="bg-white border-b border-gray-100" />
-        )}
-
-        {/* Groups horizontal scroll */}
-        {groups.length > 0 && (
-          <div className="bg-white border-b border-gray-100 py-3">
-            <div className="flex items-center justify-between px-4 mb-2">
-              <h2 className="text-sm font-bold text-navy">{t('home.my_groups', 'My Groups')}</h2>
-              <Link to="/groups" className="text-xs text-gray-600 hover:text-navy inline-flex items-center min-h-[24px] px-1">{t('home.see_all', 'See all')}</Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 px-4" style={{ scrollbarWidth: 'none' }} tabIndex={0} role="region" aria-label={t('home.my_groups', 'My Groups')}>
-              {groups.map(g => (
-                <GroupCard key={g.id} group={g} compact isMember />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* My parishes & organizations: one slim row, the same height while
+            loading, so nothing below it jumps. Groups have their own tab. */}
+        <div className="px-4 pb-3">
+          <CommunitiesRow loading={communitiesLoading} parishes={myParishes} orgs={myOrgs} />
+        </div>
 
         {/* Feed section */}
         {groupsLoaded && !hasAnyMembership ? (
@@ -185,14 +171,14 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          <div className="border-t-4 border-gray-100">
+          <div className="border-t border-gray-100">
             <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
             <Feed
               filter={activeFilter}
               showCreatePost
               emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
               emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
-              showFindParish={activeFilter === 'all'}
+              showFindParish={activeFilter === 'all' && !hasCommunity}
               onSeeAllEvents={() => setActiveFilter('events')}
             />
           </div>
@@ -239,7 +225,7 @@ export default function HomePage() {
                   showCreatePost
                   emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
                   emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
-                  showFindParish={activeFilter === 'all'}
+                  showFindParish={activeFilter === 'all' && !hasCommunity}
                   onSeeAllEvents={() => setActiveFilter('events')}
                 />
               </div>
@@ -355,6 +341,48 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
 // ── My parishes & organizations card ───────────────────────
 // One entry point for every parish and organization you're part of; the
 // list itself is on /communities
+// Phone Home: one compact row under the readings, styled like the readings
+// card. Fixed height in every state (loading, none, some) so the feed below
+// never shifts when it loads.
+function CommunitiesRow({ loading, parishes, orgs }) {
+  const { t } = useTranslation()
+  const box = 'h-14 bg-white rounded-2xl border border-gray-100 shadow-sm px-3 flex items-center gap-3'
+  if (loading) {
+    return (
+      <div className={box} aria-hidden="true">
+        <div className="w-9 h-9 rounded-xl bg-lightbg animate-pulse" />
+        <div className="h-3 w-40 rounded bg-lightbg animate-pulse" />
+      </div>
+    )
+  }
+  const names = [...parishes, ...orgs].map(x => x.name)
+  if (names.length === 0) {
+    return (
+      <Link to="/directory" className={`${box} hover:bg-lightbg transition-colors`}>
+        <div className="w-9 h-9 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <BuildingLibraryIcon className="w-5 h-5 text-navy" />
+        </div>
+        <span className="flex-1 text-sm font-semibold text-navy">{t('home.find_my_parish', 'Find my parish')}</span>
+        <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      </Link>
+    )
+  }
+  const more = names.length - 1
+  return (
+    <Link to="/communities" className={`${box} hover:bg-lightbg transition-colors`}
+      aria-label={t('home.communities', 'My parishes and organizations')}>
+      <div className="w-9 h-9 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
+        <BuildingLibraryIcon className="w-5 h-5 text-navy" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-navy truncate">{names[0]}</p>
+        {more > 0 && <p className="text-[11px] text-gray-500">{t('home.plus_more', '+{{count}} more', { count: more })}</p>}
+      </div>
+      <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+    </Link>
+  )
+}
+
 function CommunitiesCard({ parishes, orgs, className }) {
   const { t } = useTranslation()
   if (parishes.length === 0 && orgs.length === 0) {
