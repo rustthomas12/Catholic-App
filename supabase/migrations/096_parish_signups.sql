@@ -1,5 +1,7 @@
 -- 096: who applied to run a parish, in what role, and the pastor invite
 --
+-- (Named parish_signups: parish_applications is the marketing contact form.)
+--
 -- Parish signup now asks "What's your role?" (pastor, parish staff, other
 -- clergy). Staff can do the whole setup and name their pastor, who gets an
 -- email invite. Accepting it gives the pastor provisional access (role
@@ -8,7 +10,7 @@
 --
 -- Rows are written by the Stripe webhook (service role) at checkout.
 
-CREATE TABLE IF NOT EXISTS parish_applications (
+CREATE TABLE IF NOT EXISTS parish_signups (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   parish_id           uuid NOT NULL REFERENCES parishes(id) ON DELETE CASCADE,
   user_id             uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -23,14 +25,14 @@ CREATE TABLE IF NOT EXISTS parish_applications (
   created_at          timestamptz NOT NULL DEFAULT now(),
   UNIQUE (parish_id, user_id)
 );
-CREATE INDEX IF NOT EXISTS parish_applications_accepted_by_idx ON parish_applications(invite_accepted_by);
+CREATE INDEX IF NOT EXISTS parish_signups_accepted_by_idx ON parish_signups(invite_accepted_by);
 
-ALTER TABLE parish_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE parish_signups ENABLE ROW LEVEL SECURITY;
 
 -- The applicant sees their own; platform admins see all (review list).
 -- No client writes: the webhook and the RPCs below do them.
-DROP POLICY IF EXISTS "Applicants and platform admins read applications" ON parish_applications;
-CREATE POLICY "Applicants and platform admins read applications" ON parish_applications
+DROP POLICY IF EXISTS "Applicants and platform admins read applications" ON parish_signups;
+CREATE POLICY "Applicants and platform admins read applications" ON parish_signups
   FOR SELECT USING (user_id = auth.uid() OR is_platform_admin());
 
 -- The profile guard (037) let only platform admins set
@@ -87,7 +89,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
                              WHERE pa.parish_id = a.parish_id AND pa.user_id = a.user_id) THEN 'withdrawn'
            ELSE 'open'
          END
-    FROM parish_applications a
+    FROM parish_signups a
     JOIN parishes p ON p.id = a.parish_id
     JOIN profiles pr ON pr.id = a.user_id
    WHERE a.invite_token = p_token AND a.applicant_role = 'staff'
@@ -99,12 +101,12 @@ GRANT EXECUTE ON FUNCTION pastor_invite_info(uuid) TO authenticated;
 CREATE OR REPLACE FUNCTION accept_pastor_invite(p_token uuid)
 RETURNS uuid
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE a parish_applications%ROWTYPE;
+DECLARE a parish_signups%ROWTYPE;
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Please sign in' USING ERRCODE = '42501';
   END IF;
-  SELECT * INTO a FROM parish_applications
+  SELECT * INTO a FROM parish_signups
    WHERE invite_token = p_token AND applicant_role = 'staff' FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'This invite link is not valid' USING ERRCODE = 'P0001';
@@ -135,7 +137,7 @@ BEGIN
                       WHERE parish_id = a.parish_id AND user_id = auth.uid() AND role <> 'pending');
   PERFORM set_config('infold.trusted_write', 'off', true);
 
-  UPDATE parish_applications
+  UPDATE parish_signups
      SET invite_accepted_by = auth.uid(), invite_accepted_at = now()
    WHERE id = a.id;
   RETURN a.parish_id;

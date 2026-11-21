@@ -78,7 +78,7 @@ async function sendEmail(payload) {
 async function recordParishApplication(session, parishName, applicantName) {
   const m = session.metadata || {}
   const role = ['pastor', 'staff', 'clergy'].includes(m.applicant_role) ? m.applicant_role : 'pastor'
-  const { data: app, error } = await supabase.from('parish_applications').upsert({
+  const { data: app, error } = await supabase.from('parish_signups').upsert({
     parish_id: m.parish_id,
     user_id: m.admin_user_id,
     applicant_role: role,
@@ -105,7 +105,7 @@ async function recordParishApplication(session, parishName, applicantName) {
         'The link works for 30 days.</p></div>',
     }).catch(() => false)
     if (sent) {
-      await supabase.from('parish_applications').update({ invite_sent_at: new Date().toISOString() })
+      await supabase.from('parish_signups').update({ invite_sent_at: new Date().toISOString() })
         .eq('parish_id', m.parish_id).eq('user_id', m.admin_user_id)
     }
   }

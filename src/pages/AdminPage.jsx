@@ -921,7 +921,7 @@ function PendingPastors() {
     // staff application whose invite they accepted
     const userIds = (people ?? []).map(p => p.id)
     const { data: apps } = userIds.length
-      ? await supabase.from('parish_applications')
+      ? await supabase.from('parish_signups')
           .select('parish_id, user_id, applicant_role, staff_title, pastor_name, pastor_email, invite_sent_at, invite_accepted_by, invite_accepted_at')
           .or(`user_id.in.(${userIds.join(',')}),invite_accepted_by.in.(${userIds.join(',')})`)
       : { data: [] }
