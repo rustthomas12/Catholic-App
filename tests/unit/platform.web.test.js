@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  isNative, apiUrl, publicOrigin, authRedirectUrl, deepLinkToPath, parseAuthTokens, APP_ORIGIN,
+  isNative, canPurchaseInApp, apiUrl, publicOrigin, authRedirectUrl, deepLinkToPath, parseAuthTokens, APP_ORIGIN,
 } from '../../src/lib/platform'
 
 // In jsdom Capacitor reports the 'web' platform — the web app must behave
@@ -8,6 +8,7 @@ import {
 describe('platform helpers on the web', () => {
   it('is not native', () => {
     expect(isNative).toBe(false)
+    expect(canPurchaseInApp).toBe(true) // plans are sold on the website
   })
 
   it('keeps API calls relative', () => {

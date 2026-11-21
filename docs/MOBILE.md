@@ -243,9 +243,10 @@ visual emulator and one-click runs; it reuses the same SDK.
       (⚠ see §7), list and map views work
 - [ ] Groups, group chat, messages, prayer requests, saints, rosary, journal,
       Liturgy of the Hours, formation
-- [ ] Parish admin / org admin (pastor account): start trial → Stripe sheet →
-      complete with a test card → returns to the app on the right screen;
-      Manage billing → portal → Done returns
+- [ ] Parish admin / org admin (pastor account): plan screens show the
+      neutral "can't be started or changed in the app" notice (no prices, no
+      Start Free Trial, no Manage billing); a subscribed parish's dashboard
+      works fully
 - [ ] Facebook page connect from Integrations (if configured)
 - [ ] Spanish language switch
 - [ ] Settings → Delete account works
@@ -337,7 +338,7 @@ Changes made so the iOS build passes review:
 
 | Apple guideline | Risk | Fix |
 |---|---|---|
-| 3.1.1 In-App Purchase | The iOS app showed parish/org plan prices and opened Stripe checkout and the billing portal | `canPurchaseInApp` (`src/lib/platform.js`) is false on iOS. Plan pickers, prices, "Start Free Trial", "Manage subscription", upgrade banners, pastor setup, the onboarding pastor step and "Apply to manage this parish" are hidden or replaced by `IosPlanNotice`, which only says plans can't be started in the iOS app (no link, no "go to our website": anti-steering). Subscribed parishes keep full dashboards. Web and Android are unchanged. |
+| 3.1.1 In-App Purchase | The iOS app showed parish/org plan prices and opened Stripe checkout and the billing portal | `canPurchaseInApp` (`src/lib/platform.js`) is false on iOS. Plan pickers, prices, "Start Free Trial", "Manage subscription", upgrade banners, pastor setup, the onboarding pastor step and "Apply to manage this parish" are hidden or replaced by `IosPlanNotice`, which only says plans can't be started in the iOS app (no link, no "go to our website": anti-steering). Subscribed parishes keep full dashboards. Since Nov 21, 2026 the same applies on Android (Google Play Payments policy); plans are sold on the website only. |
 | 3.1.1 | `/pitch` (investor deck with prices) was reachable in the app | Route removed from native builds |
 | 2.1 App completeness | "Days 8–28 coming soon" in Advent/Lent, "Full biography coming soon" on saints | Programs are presented as the complete 7-day series they are; empty biographies show nothing |
 | 5.1.1(ii) Data collection | Signup required choosing a vocation (effectively marital status) | Optional; the column was already nullable |

@@ -4,13 +4,14 @@ vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios' },
 }))
 
-const { isNative, isIOS, apiUrl, publicOrigin, authRedirectUrl, APP_ORIGIN } =
+const { isNative, isIOS, canPurchaseInApp, apiUrl, publicOrigin, authRedirectUrl, APP_ORIGIN } =
   await import('../../src/lib/platform')
 
 describe('platform helpers inside the iOS / Android app', () => {
   it('detects the native platform', () => {
     expect(isNative).toBe(true)
     expect(isIOS).toBe(true)
+    expect(canPurchaseInApp).toBe(false) // App Store 3.1.1
   })
 
   it('sends API calls to the hosted app', () => {
