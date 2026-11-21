@@ -5,16 +5,22 @@ import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import Glyph from '../components/shared/Glyph'
 
+// Every plan includes every feature; the price follows parish size.
 const TIERS = [
-  { label: 'Small', price: '$59', size: 'Under 200 parishioners', features: ['All platform features', 'Parish admin dashboard', 'Push notifications', '90-day free trial'] },
-  { label: 'Medium', price: '$119', size: '200–500 parishioners', featured: true, features: ['Everything in Small', 'Priority support', 'CSV export', 'Scheduled posts'] },
-  { label: 'Large', price: '$229', size: '500–1,500 parishioners', features: ['Everything in Medium', 'Multi-parish admin', 'Parish cluster support', 'Analytics'] },
-  { label: 'Cathedral', price: '$389', size: '1,500+ parishioners', features: ['Everything in Large', 'Dedicated onboarding', 'Custom contract available'] },
+  { label: 'Small', price: '$59', size: 'Under 200 parishioners', features: ['Every feature included', '90-day free trial, no card needed', 'Email support'] },
+  { label: 'Medium', price: '$119', size: '200–500 parishioners', featured: true, features: ['Every feature included', '90-day free trial, no card needed', 'Priority support'] },
+  { label: 'Large', price: '$229', size: '500–1,500 parishioners', features: ['Every feature included', '90-day free trial, no card needed', 'Priority support', 'Help setting up clusters and multi-parish staff'] },
+  { label: 'Cathedral', price: '$389', size: '1,500+ parishioners', features: ['Every feature included', '90-day free trial, no card needed', 'Dedicated onboarding', 'Custom contract available'] },
 ]
 
 const ADMIN_FEATURES = [
   { icon: '📊', title: 'Admin Dashboard', desc: 'Full control over your parish presence — posts, events, parishioners, and billing in one place.' },
-  { icon: '📣', title: 'Push Announcements', desc: "Send important announcements that land directly on parishioners' phones — no algorithm, no spam filter." },
+  { icon: '📣', title: 'Push Announcements', desc: "Announcements from the pastor and staff always reach parishioners' phones — no algorithm, no spam filter. Overnight posts arrive at 8am." },
+  { icon: '📌', title: 'From the Parish', desc: 'New announcements and posts you feature sit at the top of the home feed until each parishioner has seen them.' },
+  { icon: '📈', title: 'Reach', desc: 'See how many parishioners saw each announcement, how many are active each week, and how your parish is growing. Totals only, never who read what.' },
+  { icon: '🔕', title: 'Quiet Phones', desc: "Parishioner posts stay in the app, with one evening summary of the day's best post. Nobody gets more than five parish notifications a day." },
+  { icon: '🛡️', title: 'Moderation', desc: "Reported posts go to your moderation queue. Hide a post in one tap, appoint trusted parishioners as moderators, and set a 3-posts-a-day limit with community guidelines." },
+  { icon: '💬', title: 'Weekly Prompts', desc: "Optional weekly posts that get people talking: Sunday's homily, Monday's prayer intentions, Thursday's ride share to Mass." },
   { icon: '📅', title: 'Events & RSVPs', desc: 'Create events, set capacity, track who is going, and view a full attendee breakdown.' },
   { icon: '👥', title: 'Parishioner List', desc: 'See who follows your parish with name, vocation, and join date. Export to CSV anytime.' },
   { icon: '✏️', title: 'Mass Times Editor', desc: "Update your Mass schedule yourself — instantly visible to all followers. No webmaster needed." },
@@ -207,7 +213,37 @@ export default function ForParishesPage() {
           </div>
           <div className="bg-lightbg rounded-2xl p-6 text-center">
             <p className="text-navy font-semibold mb-1">All tiers include</p>
-            <p className="text-gray-500 text-sm">Parish admin dashboard · Announcements & events · Mass times editor · Push notifications · Community feed · Faith content · 90-day free trial</p>
+            <p className="text-gray-500 text-sm">Parish admin dashboard · Announcements & events · Mass times editor · Push notifications · Reach · Moderation · Scheduled posts · CSV export · Parish clusters & multi-parish staff · Community feed · Faith content · 90-day free trial</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Dioceses */}
+      <section id="dioceses" className="bg-navy py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-gold text-xs font-bold tracking-widest uppercase mb-3">For Dioceses</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white">One plan for your parishes.</h2>
+            <p className="text-white/60 mt-3 max-w-2xl mx-auto">
+              <span className="text-gold font-bold">$49 per parish per month</span>, whatever the parish's size. You choose which parishes to cover and can add more at any time.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+            {[
+              { title: 'You choose the parishes', desc: 'Start with a few and add more as they come on board. The bill adjusts automatically.' },
+              { title: 'See reach across the diocese', desc: 'Followers, weekly activity and announcement reach for every covered parish and in total. Totals only.' },
+              { title: 'Nobody pays twice', desc: "A parish already paying for itself stops being charged when its current paid month ends. Its page and data stay." },
+            ].map((f) => (
+              <div key={f.title} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <a href="mailto:info@getinfold.app?subject=Diocese%20plan" className="inline-block bg-gold text-navy font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-colors">
+              Talk to us about a diocese plan →
+            </a>
           </div>
         </div>
       </section>

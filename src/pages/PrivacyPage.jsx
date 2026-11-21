@@ -25,7 +25,7 @@ export default function PrivacyPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Privacy Policy</h1>
-          <p className="text-xs text-gray-500 mb-6">Last updated: November 18, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: November 20, 2026</p>
 
           <Section title="1. Who We Are">
             <p>inFold is built by Thomas Rust in Massachusetts. We are a solo-founded Catholic social network. Our mission is to serve the Catholic community — not to profit from your data.</p>
@@ -37,6 +37,8 @@ export default function PrivacyPage() {
               <li><strong>Account information:</strong> your name, email address, parish selection, and vocation state that you provide at signup</li>
               <li><strong>Content you create:</strong> posts, comments, and prayer requests you share</li>
               <li><strong>Error reports:</strong> if the app crashes, it sends us the error message, the page you were on and your browser type, linked to your account so we can fix the problem. Error reports stay in our own database and are deleted after 30 days.</li>
+              <li><strong>What you've seen and opened:</strong> when a parish announcement or featured post has been on your screen, or you open a notification, we record it. This keeps us from showing you the same post again and lets your parish see totals (for example, "142 people saw this announcement"). Parishes and dioceses only ever see totals, never who saw or opened what.</li>
+              <li><strong>Time zone:</strong> your device's time zone, so notifications that arrive overnight wait until 8am</li>
               <li><strong>Device information:</strong> browser type, for PWA functionality only</li>
             </ul>
           </Section>
@@ -53,7 +55,8 @@ export default function PrivacyPage() {
           <Section title="4. How We Use Your Information">
             <ul className="list-disc pl-5 space-y-1">
               <li>To provide and improve the inFold service</li>
-              <li>To send you notifications you have opted into</li>
+              <li>To send you notifications you have opted into, holding them overnight (9pm–8am your time) and limiting how many parish notifications arrive each day</li>
+              <li>To give parishes and dioceses total counts of how many people their announcements reached</li>
               <li>To show you relevant parish and group content</li>
               <li>To send transactional emails (welcome, password reset)</li>
             </ul>

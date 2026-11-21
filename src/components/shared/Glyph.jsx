@@ -4,6 +4,7 @@ import {
   DevicePhoneMobileIcon, GlobeAltIcon, LockClosedIcon, BoltIcon, PencilSquareIcon, BriefcaseIcon,
   ComputerDesktopIcon, MapPinIcon, Cog6ToothIcon, WrenchScrewdriverIcon, CreditCardIcon,
   ClipboardDocumentListIcon, FlagIcon, AcademicCapIcon, PaintBrushIcon, HeartIcon,
+  StarIcon, PresentationChartLineIcon, BellSlashIcon,
 } from '@heroicons/react/24/outline'
 import SacredIcon from './SacredIcon'
 
@@ -23,6 +24,7 @@ const HERO = {
   '⚡': BoltIcon, '✏': PencilSquareIcon, '💼': BriefcaseIcon, '💻': ComputerDesktopIcon, '📍': MapPinIcon,
   '⚙': Cog6ToothIcon, '🛠': WrenchScrewdriverIcon, '💳': CreditCardIcon, '📋': ClipboardDocumentListIcon,
   '🎯': FlagIcon, '🎓': AcademicCapIcon, '🎨': PaintBrushIcon, '🤍': HeartIcon,
+  '📌': StarIcon, '📈': PresentationChartLineIcon, '🔕': BellSlashIcon,
 }
 
 const norm = (e) => (e || '').replace(/\uFE0F/g, '').trim()

@@ -3,7 +3,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeftIcon, PlusIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { supabase, authJsonHeaders } from '../lib/supabase'
-import { apiUrl, openExternal } from '../lib/platform'
+import { apiUrl, openExternal, canPurchaseInApp } from '../lib/platform'
+import IosPlanNotice from '../components/shared/IosPlanNotice'
 import { containsIlike } from '../utils/search'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { toast } from '../components/shared/Toast'
@@ -146,7 +147,13 @@ export default function DioceseAdminPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24 space-y-6">
-        {/* Plan */}
+        {/* Plan. On iOS: status only, no prices or buttons (guideline 3.1.1) */}
+        {!canPurchaseInApp ? (
+          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p className="font-bold text-navy">{running ? `Plan active: ${covered.length} ${covered.length === 1 ? 'parish' : 'parishes'}` : 'No plan yet'}</p>
+            {!running && <div className="mt-1"><IosPlanNotice kind="diocese" compact /></div>}
+          </section>
+        ) : (
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[14rem]">
             {running ? (
@@ -183,6 +190,7 @@ export default function DioceseAdminPage() {
             </button>
           )}
         </section>
+        )}
 
         {/* Totals */}
         <section>
@@ -256,7 +264,7 @@ export default function DioceseAdminPage() {
                         className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-navy hover:bg-lightbg disabled:opacity-50">
                         <PlusIcon className="w-4 h-4 text-gold" /> {r.name}
                         <span className="text-gray-400">{r.city}</span>
-                        {running && <span className="ml-auto text-xs text-gray-400">+${PRICE_PER_PARISH}/mo</span>}
+                        {running && canPurchaseInApp && <span className="ml-auto text-xs text-gray-400">+${PRICE_PER_PARISH}/mo</span>}
                       </button>
                     </li>
                   ))}
