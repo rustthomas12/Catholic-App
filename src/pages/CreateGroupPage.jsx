@@ -8,7 +8,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
 import { invalidateGroupMemberships } from '../hooks/useGroups'
-import { shrinkImage, PICK_MAX_BYTES } from '../utils/imageResize'
+import { PICK_MAX_BYTES } from '../utils/imageResize'
+import { uploadGroupPhoto } from '../utils/storage'
 import SacredIcon from '../components/shared/SacredIcon'
 
 const CATEGORIES = [
@@ -155,17 +156,13 @@ export default function CreateGroupPage() {
       let avatarUrl = null
 
       if (avatarFile) {
-        const file = await shrinkImage(avatarFile, { maxDim: 512 })
-        const ext = file.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop()
-        const path = `group-avatars/${user.id}/${Date.now()}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('groups')
-          .upload(path, file, { upsert: true, contentType: file.type })
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from('groups').getPublicUrl(path)
-          avatarUrl = publicUrl
+        const { url, error: photoError } = await uploadGroupPhoto(user.id, avatarFile)
+        if (photoError) {
+          toast.error(photoError)
+          setSubmitting(false)
+          return
         }
+        avatarUrl = url
       }
 
       const { data: group, error } = await supabase

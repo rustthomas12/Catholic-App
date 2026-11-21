@@ -1,6 +1,11 @@
-// Shrink photos on the device before upload. A phone photo is often 4–8 MB at
-// 4000px+; feeds never show more than ~1600px, so uploading the original makes
-// posting slow on mobile data and makes every viewer download the full file.
+// Prepare photos on the device before upload:
+//  • Shrink them. A phone photo is often 4–8 MB at 4000px+; feeds never show
+//    more than ~1600px, so uploading the original makes posting slow on mobile
+//    data and makes every viewer download the full file.
+//  • Strip hidden metadata. Phone photos can carry the GPS location where they
+//    were taken (EXIF), which could reveal someone's home. Re-drawing the
+//    picture onto a canvas keeps only the pixels, so every photo is re-saved,
+//    even one that's already small.
 
 // Scale (w, h) down to fit inside a max × max box, keeping the aspect ratio.
 // Never scales up.
@@ -21,9 +26,10 @@ function loadImage(file) {
 }
 
 /**
- * Returns a smaller JPEG File, or the original file when shrinking isn't
- * possible or wouldn't help (GIFs keep their animation, tiny images stay as
- * they are, and any browser failure falls back to the original).
+ * Returns a re-saved JPEG File with no metadata, at most maxDim on its long
+ * side. GIFs are returned as they are so they keep their animation (phones
+ * don't write location into GIFs), and if the browser can't decode the file
+ * the original is returned.
  * Browsers apply EXIF rotation when decoding into <img>, so phone photos keep
  * the right orientation.
  */
@@ -33,8 +39,6 @@ export async function shrinkImage(file, { maxDim = 1600, quality = 0.85 } = {}) 
     const img = await loadImage(file)
     const { width, height } = fitWithin(img.naturalWidth, img.naturalHeight, maxDim)
     if (!width) return file
-    // Already small enough in both pixels and bytes: leave it alone
-    if (width === img.naturalWidth && file.size < 500 * 1024) return file
 
     const canvas = document.createElement('canvas')
     canvas.width = width
@@ -45,7 +49,7 @@ export async function shrinkImage(file, { maxDim = 1600, quality = 0.85 } = {}) 
     ctx.drawImage(img, 0, 0, width, height)
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
-    if (!blob || blob.size >= file.size) return file
+    if (!blob) return file
     const name = file.name.replace(/\.[^.]+$/, '') + '.jpg'
     return new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() })
   } catch {

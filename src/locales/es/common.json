@@ -454,5 +454,9 @@
     "this_event_isn_t_available": "Este evento no está disponible",
     "it_may_have_been_cancelled_or": "Puede que se haya cancelado o eliminado.",
     "go_to_your_feed": "Ir a tus publicaciones"
+  },
+  "photo_check": {
+    "blocked": "Esta foto no se puede publicar porque podría no cumplir las normas de la comunidad. Elige otra foto.",
+    "failed": "No se pudo subir la foto. Inténtalo de nuevo."
   }
 }
