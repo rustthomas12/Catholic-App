@@ -193,6 +193,7 @@ export default function HomePage() {
               emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
               emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
               showFindParish={activeFilter === 'all'}
+              onSeeAllEvents={() => setActiveFilter('events')}
             />
           </div>
         )}
@@ -239,6 +240,7 @@ export default function HomePage() {
                   emptyMessage={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.title`, (EMPTY[activeFilter] ?? EMPTY.all)[0])}
                   emptySubtext={t(`home.empty.${(EMPTY[activeFilter] ? activeFilter : 'all')}.body`, (EMPTY[activeFilter] ?? EMPTY.all)[1])}
                   showFindParish={activeFilter === 'all'}
+                  onSeeAllEvents={() => setActiveFilter('events')}
                 />
               </div>
             </>

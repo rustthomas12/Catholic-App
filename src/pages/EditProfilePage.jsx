@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { uploadAvatar } from '../utils/storage'
 import Avatar from '../components/shared/Avatar'
+import { AVATAR_PRESETS, EMBLEMS, presetAvatarUrl } from '../lib/sacredEmblems'
 import Button from '../components/shared/Button'
 import Modal from '../components/shared/Modal'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
@@ -14,14 +15,15 @@ import useGoBack from '../hooks/useGoBack'
 import { invalidateFollowedParishesCache } from '../hooks/useParish.js'
 import { PICK_MAX_BYTES } from '../utils/imageResize'
 import { useTranslation } from 'react-i18next'
+import SacredIcon from '../components/shared/SacredIcon'
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/
 
 const VOCATIONS = [
-  { value: 'single', emoji: '🙏', label: 'Single' },
-  { value: 'married', emoji: '💒', label: 'Married' },
-  { value: 'religious', emoji: '✝️', label: 'Religious' },
-  { value: 'ordained', emoji: '🕊️', label: 'Ordained' },
+  { value: 'single', icon: 'cross', label: 'Single' },
+  { value: 'married', icon: 'wedding', label: 'Married' },
+  { value: 'religious', icon: 'rosary', label: 'Religious' },
+  { value: 'ordained', icon: 'chalice', label: 'Ordained' },
 ]
 
 export default function EditProfilePage() {
@@ -85,9 +87,10 @@ export default function EditProfilePage() {
       bio !== (profile.bio || '') ||
       vocation !== (profile.vocation_state || '') ||
       avatarFile !== null ||
+      (avatarUrl || null) !== (profile.avatar_url || null) ||
       (parish?.id || null) !== (profile.parish_id || null)
     setHasChanges(changed)
-  }, [fullName, username, bio, vocation, avatarFile, parish, profile])
+  }, [fullName, username, bio, vocation, avatarFile, avatarUrl, parish, profile])
 
   // Username availability check
   useEffect(() => {
@@ -272,6 +275,31 @@ export default function EditProfilePage() {
             )}
           </div>
 
+          {/* Built-in profile pictures (src/lib/sacredEmblems.js) for anyone
+              who would rather not upload a photo */}
+          <div>
+            <p className="text-sm font-semibold text-navy mb-2">{t('common:editprofile.choose_design', 'Or choose a design')}</p>
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+              {AVATAR_PRESETS.map(p => {
+                const url = presetAvatarUrl(p.id)
+                const on = !avatarPreview && avatarUrl === url
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    aria-label={EMBLEMS[p.emblem].label}
+                    aria-pressed={on}
+                    title={EMBLEMS[p.emblem].label}
+                    onClick={() => { setAvatarUrl(url); setAvatarPreview(null); setAvatarFile(null) }}
+                    className={`aspect-square rounded-full overflow-hidden transition-shadow ${on ? 'ring-2 ring-gold ring-offset-2' : 'hover:ring-2 hover:ring-gray-200 hover:ring-offset-1'}`}
+                  >
+                    <img src={url} alt="" className="w-full h-full" loading="lazy" />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Full name */}
           <div>
             <label className="block text-sm font-semibold text-navy mb-1">
@@ -398,7 +426,7 @@ export default function EditProfilePage() {
                   className={`flex items-center gap-2 py-3 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[52px] ${
                     vocation === v.value ? 'border-navy bg-navy text-white' : 'border-gray-200 bg-white text-navy hover:border-navy'
                   }`}>
-                  <span className="text-lg leading-none">{v.emoji}</span>
+                  <SacredIcon name={v.icon} className="w-5 h-5 text-gold" />
                   <span>{t(`auth:signup.vocation_${v.value}`, v.label)}</span>
                 </button>
               ))}

@@ -16,12 +16,13 @@ import Button from '../components/shared/Button'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LanguageSwitcher from '../components/shared/LanguageSwitcher'
 import { LogoMark } from '../components/shared/Logo'
+import SacredIcon from '../components/shared/SacredIcon'
 
 const VOCATIONS = [
-  { value: 'single', emoji: '🙏', key: 'vocation_single' },
-  { value: 'married', emoji: '💒', key: 'vocation_married' },
-  { value: 'religious', emoji: '✝️', key: 'vocation_religious' },
-  { value: 'ordained', emoji: '🕊️', key: 'vocation_ordained' },
+  { value: 'single', icon: 'cross', key: 'vocation_single' },
+  { value: 'married', icon: 'wedding', key: 'vocation_married' },
+  { value: 'religious', icon: 'rosary', key: 'vocation_religious' },
+  { value: 'ordained', icon: 'chalice', key: 'vocation_ordained' },
 ]
 
 function passwordStrength(pw) {
@@ -370,7 +371,7 @@ export default function SignupPage() {
                       ? 'border-navy bg-navy text-white'
                       : 'border-gray-200 bg-white text-navy hover:border-navy'
                   }`}>
-                  <span className="text-lg leading-none">{v.emoji}</span>
+                  <SacredIcon name={v.icon} className="w-5 h-5 text-gold" />
                   <span>{t(`signup.${v.key}`)}</span>
                 </button>
               ))}

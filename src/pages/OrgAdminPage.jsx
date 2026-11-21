@@ -33,6 +33,7 @@ import ConfirmDeleteButton from '../components/shared/ConfirmDeleteButton'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import { checkEmail, checkUrl, safeImageUrl } from '../utils/validate'
+import { MapPinIcon } from '@heroicons/react/24/outline'
 
 // ── Tier helpers ───────────────────────────────────────────
 const STANDALONE_TIERS = [
@@ -565,7 +566,7 @@ function OrgEventsTab({ orgId, user }) {
                       {ev.end_time ? ` – ${format(parseISO(ev.end_time), 'h:mm a')}` : ''}
                     </p>
                   )}
-                  {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
+                  {ev.location && <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><MapPinIcon className="w-3.5 h-3.5" />{ev.location}</p>}
                   {ev.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{ev.description}</p>}
                 </div>
                 <ConfirmDeleteButton

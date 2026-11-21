@@ -30,7 +30,10 @@ export default defineConfig({
     react(),
     preloadHomeScreen(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt', not 'autoUpdate': autoUpdate reloaded the page the moment a
+      // new build was found, often seconds after opening, wiping whatever
+      // someone was typing. main.jsx now decides when reloading is safe.
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand/**/*.svg', 'brand/fonts/*.ttf'],
       devOptions: {
         // Off: the dev SW served stale /src/main.jsx and booted the app twice.
@@ -54,7 +57,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        skipWaiting: true,
+        skipWaiting: false,
         clientsClaim: true,
         // sw-push.js handles push events and notification clicks.
         // Loaded via importScripts so it runs after Workbox is set up.

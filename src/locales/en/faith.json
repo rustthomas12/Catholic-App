@@ -35,7 +35,7 @@
   "prayer_title": "Prayer Intentions",
   "prayer_see_all": "See all intentions →",
   "prayer_share": "Share an intention",
-  "prayer_count": "🙏 {{count}}",
+  "prayer_count_one": "{{count}} praying",
   "prayer_count_other": "{{count}} praying",
   "prayer_see_all_intentions": "See all intentions",
   "confession_tracker_cta": "Track your confession habit privately",
@@ -43,7 +43,7 @@
   "confession_tracker_premium_link": "Learn about Premium →",
   "confession_last": "Last confession: {{days}} days ago",
   "confession_first": "Log your first confession",
-  "confession_today": "You went to Confession today 🙏",
+  "confession_today": "You went to Confession today",
   "confession_go": "Go to tracker →",
   "season_advent": "Advent",
   "season_christmas": "Christmas",
@@ -51,5 +51,12 @@
   "season_lent": "Lent",
   "season_easter": "Easter",
   "season_holy_week": "Holy Week",
-  "feast_day_label": "✦ {{name}}"
+  "feast_day_label": "✦ {{name}}",
+  "journal": {
+    "mood_heavy": "Heavy",
+    "mood_okay": "Okay",
+    "mood_peaceful": "Peaceful",
+    "mood_joyful": "Joyful",
+    "mood_prayerful": "Prayerful"
+  }
 }

@@ -12,6 +12,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { formatRelativeTime } from '../utils/dates'
 import { toast } from '../components/shared/Toast'
 import useGoBack from '../hooks/useGoBack'
+import SacredIcon from '../components/shared/SacredIcon'
 
 const PAGE_SIZE = 30
 
@@ -257,7 +258,7 @@ export default function PrayerRequestsPage() {
           </div>
         ) : intentions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-            <p className="text-4xl mb-3">🙏</p>
+            <div className="mb-3 text-gold flex justify-center"><SacredIcon name="candle" className="w-10 h-10" /></div>
             <p className="font-semibold text-navy mb-1">{t('feed:prayer.no_intentions_yet', 'No intentions yet')}</p>
             <p className="text-gray-500 text-sm">{t('prayer.empty')}</p>
           </div>
@@ -340,8 +341,8 @@ function PrayerCard({ intention, onPray, onReport, onDelete, t }) {
       <p className="text-sm text-gray-800 leading-relaxed my-2">{intention.content}</p>
 
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-        <span className="text-xs text-gray-500">
-          🙏 {t('prayer.count', { count: intention.prayer_count })}
+        <span className="text-xs text-gray-500 inline-flex items-center gap-1">
+          <SacredIcon name="candle" className="w-3.5 h-3.5 text-gold" />{t('prayer.count', { count: intention.prayer_count })}
         </span>
         {intention.is_prayed_by_me ? (
           <span className="text-xs font-semibold text-gold flex items-center gap-1">

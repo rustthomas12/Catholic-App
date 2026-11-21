@@ -30,6 +30,9 @@ import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
+import { MapPinIcon } from '@heroicons/react/24/outline'
+import { HeartIcon } from '@heroicons/react/24/outline'
+import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
 
 // Tabs a parish admin can use without an active subscription
 const FREE_TABS = ['billing', 'messages']
@@ -66,6 +69,13 @@ function LoadFailed({ onRetry }) {
       </div>
     </div>
   )
+}
+
+// datetime-local wants local wall time; toISOString() is UTC, which put the
+// earliest allowed time 5-8 hours ahead for US users
+function localDateTimeInput(d) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export default function ParishAdminPage() {
@@ -292,8 +302,8 @@ function DashboardTab({ parishId }) {
                 <p className="text-sm text-navy line-clamp-2">{post.content}</p>
                 <div className="flex items-center gap-4 mt-1.5">
                   <span className="text-xs text-gray-500">{format(parseISO(post.created_at), 'MMM d, yyyy')}</span>
-                  <span className="text-xs text-gray-500">♥ {post.like_count ?? 0}</span>
-                  <span className="text-xs text-gray-500">💬 {post.comment_count ?? 0}</span>
+                  <span className="text-xs text-gray-500 inline-flex items-center gap-1"><HeartIcon className="w-3.5 h-3.5" />{post.like_count ?? 0}</span>
+                  <span className="text-xs text-gray-500 inline-flex items-center gap-1"><ChatBubbleOvalLeftIcon className="w-3.5 h-3.5" />{post.comment_count ?? 0}</span>
                 </div>
               </div>
             ))}
@@ -313,6 +323,7 @@ function AnnouncementsTab({ parishId }) {
   const [title, setTitle] = useState('')
   const [draft, setDraft] = useState('')
   const [scheduleFor, setScheduleFor] = useState('')
+  const [showSchedule, setShowSchedule] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -354,7 +365,7 @@ function AnnouncementsTab({ parishId }) {
     setSaving(true)
     const content = buildContent()
 
-    if (scheduleFor) {
+    if (showSchedule && scheduleFor) {
       const { error } = await supabase.from('scheduled_posts').insert({
         parish_id: parishId,
         author_id: user.id,
@@ -363,7 +374,7 @@ function AnnouncementsTab({ parishId }) {
         scheduled_for: new Date(scheduleFor).toISOString(),
       })
       if (error) { toast.error('Could not schedule announcement.') }
-      else { toast.success('Announcement scheduled.'); setTitle(''); setDraft(''); setScheduleFor(''); setComposing(false); load() }
+      else { toast.success('Announcement scheduled.'); setTitle(''); setDraft(''); setScheduleFor(''); setShowSchedule(false); setComposing(false); load() }
     } else {
       const { error } = await supabase.from('posts').insert({
         parish_id: parishId,
@@ -372,7 +383,7 @@ function AnnouncementsTab({ parishId }) {
         is_announcement: true,
       })
       if (error) { toast.error('Could not publish announcement.') }
-      else { toast.success('Announcement published.'); setTitle(''); setDraft(''); setScheduleFor(''); setComposing(false); load() }
+      else { toast.success('Announcement published.'); setTitle(''); setDraft(''); setScheduleFor(''); setShowSchedule(false); setComposing(false); load() }
     }
     setSaving(false)
   }
@@ -433,19 +444,35 @@ function AnnouncementsTab({ parishId }) {
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-navy resize-none focus:outline-none focus:border-navy"
           />
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 flex-1">
-              <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Schedule for:</label>
-              <input aria-label="Schedule for:"
-                type="datetime-local"
-                value={scheduleFor}
-                min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-                onChange={e => setScheduleFor(e.target.value)}
-                className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-navy focus:outline-none focus:border-navy"
-              />
+            {/* Scheduling is opt-in: the date box used to be always there,
+                and one tap on a phone filled it in, so "Publish Now" quietly
+                became "Schedule" and the announcement never went out. */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {showSchedule ? (
+                <>
+                  <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Schedule for:</label>
+                  <input aria-label="Schedule for:"
+                    type="datetime-local"
+                    value={scheduleFor}
+                    min={localDateTimeInput(new Date(Date.now() + 60000))}
+                    onChange={e => setScheduleFor(e.target.value)}
+                    className="flex-1 min-w-0 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-navy focus:outline-none focus:border-navy"
+                  />
+                  <button type="button" onClick={() => { setScheduleFor(''); setShowSchedule(false) }}
+                    className="text-xs font-semibold text-gray-500 hover:text-navy whitespace-nowrap min-h-[32px] px-1">
+                    Post now instead
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => setShowSchedule(true)}
+                  className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-navy min-h-[32px]">
+                  <ClockIcon className="w-3.5 h-3.5" /> Schedule for later
+                </button>
+              )}
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => { setComposing(false); setTitle(''); setDraft(''); setScheduleFor('') }}
+                onClick={() => { setComposing(false); setTitle(''); setDraft(''); setScheduleFor(''); setShowSchedule(false) }}
                 className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Cancel
@@ -455,7 +482,7 @@ function AnnouncementsTab({ parishId }) {
                 disabled={saving || !draft.trim()}
                 className="px-4 py-1.5 bg-gold text-navy text-sm font-bold rounded-xl hover:bg-gold/90 disabled:opacity-50 transition-colors"
               >
-                {saving ? 'Saving…' : scheduleFor ? 'Schedule' : 'Publish Now'}
+                {saving ? 'Saving…' : showSchedule && scheduleFor ? `Schedule for ${format(new Date(scheduleFor), 'MMM d, h:mm a')}` : 'Publish Now'}
               </button>
             </div>
           </div>
@@ -701,7 +728,7 @@ function EventsTab({ parishId }) {
                       {ev.end_time ? ` – ${format(parseISO(ev.end_time), 'h:mm a')}` : ''}
                     </p>
                   )}
-                  {ev.location && <p className="text-xs text-gray-500 mt-0.5">📍 {ev.location}</p>}
+                  {ev.location && <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><MapPinIcon className="w-3.5 h-3.5" />{ev.location}</p>}
                 </div>
                 <ConfirmDeleteButton
                   title="Delete this event?"

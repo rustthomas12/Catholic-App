@@ -6,7 +6,9 @@ import { useFeed } from '../../hooks/useFeed'
 import PostCard from './PostCard'
 import CreatePost from './CreatePost'
 import MyEvents from './MyEvents'
+import ComingUp from './ComingUp'
 import { PostCardSkeleton } from '../shared/skeletons'
+import { markAppReady } from '../../lib/appReady'
 
 /**
  * Feed — reusable feed component.
@@ -28,6 +30,7 @@ export default function Feed({
   emptyMessage,
   emptySubtext,
   emptyAction = null,
+  onSeeAllEvents = null,
 }) {
   const { t } = useTranslation('feed')
   const navigate = useNavigate()
@@ -78,6 +81,9 @@ export default function Feed({
     showIncoming()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // First posts are in: lift the startup logo screen
+  useEffect(() => { if (!feedLoading) markAppReady() }, [feedLoading])
 
   // The "Events" filter lists events, not posts
   if (filter === 'events') return <MyEvents />
@@ -131,6 +137,9 @@ export default function Feed({
 
       {/* Compose bar */}
       {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} orgId={orgId} />}
+
+      {/* Next few events, on the main Home feed only */}
+      {filter === 'all' && !parishId && !groupId && !orgId && !userId && <ComingUp onSeeAll={onSeeAllEvents} />}
 
       {/* Empty state */}
       {feed.posts.length === 0 && (

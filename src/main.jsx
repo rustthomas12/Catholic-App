@@ -21,7 +21,9 @@ if (isNative) {
 // old hashed filenames), reload once to pick up the fresh asset manifest.
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault()
-  window.location.reload()
+  // Don't wipe a half-written post; the screen that failed to load will
+  // show its error and the next navigation retries
+  if (safeToReload()) window.location.reload()
 })
 
 // ── Update banner shown when a new SW is waiting ──────────
@@ -31,7 +33,7 @@ function UpdateBanner({ onUpdate }) {
       className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between gap-3 px-4 py-3 bg-navy text-white shadow-lg"
       role="alert"
     >
-      <span className="text-sm font-medium">App updated — reload for the latest version.</span>
+      <span className="text-sm font-medium">A new version is ready. Reload when you've finished what you're writing.</span>
       <button
         onClick={onUpdate}
         className="flex-shrink-0 bg-gold text-navy text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-opacity-90 transition-colors"
@@ -42,12 +44,43 @@ function UpdateBanner({ onUpdate }) {
   )
 }
 
+// Reloading throws away anything typed but not sent, so only reload when
+// nothing is being written: no focused text field and every text box empty.
+function safeToReload() {
+  const el = document.activeElement
+  if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return false
+  for (const f of document.querySelectorAll('textarea, input:not([type]), input[type="text"], input[type="search"], input[type="url"], input[type="email"], [contenteditable="true"]')) {
+    if ((f.value ?? f.textContent ?? '').trim()) return false
+  }
+  return true
+}
+
+const LOADED_AT = Date.now()
+// Just opened (or in the background) with nothing typed: safe to switch now
+function canUpdateNow() {
+  return safeToReload() && (Date.now() - LOADED_AT < 15_000 || document.visibilityState === 'hidden')
+}
+
 function AppWithSWUpdater() {
   const [needsRefresh, setNeedsRefresh] = useState(false)
 
   const { updateServiceWorker } = useRegisterSW({
+    // A new version is ready. Just opened and nothing typed: switch now,
+    // before they start. Otherwise wait for the app to go to the background
+    // with nothing unsent, and offer the Reload banner meanwhile.
     onNeedRefresh() {
+      if (canUpdateNow()) {
+        updateServiceWorker(true)
+        return
+      }
       setNeedsRefresh(true)
+      const onHide = () => {
+        if (document.visibilityState === 'hidden' && safeToReload()) {
+          document.removeEventListener('visibilitychange', onHide)
+          updateServiceWorker(true)
+        }
+      }
+      document.addEventListener('visibilitychange', onHide)
     },
     onOfflineReady() {
       // PWA is ready for offline use — no user-visible notification needed

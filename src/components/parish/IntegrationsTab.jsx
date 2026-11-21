@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
+import { ArrowsRightLeftIcon, GlobeAltIcon, EnvelopeIcon, ComputerDesktopIcon, InboxArrowDownIcon } from '@heroicons/react/24/outline'
 import { formatDistanceToNow } from 'date-fns'
 import { supabase, authJsonHeaders } from '../../lib/supabase'
 import { apiUrl, isNative, openExternal } from '../../lib/platform'
@@ -11,14 +11,14 @@ const PLATFORMS = [
     id: 'facebook',
     name: 'Facebook Page',
     description: 'Auto-post every announcement to your parish Facebook page.',
-    icon: '📘',
+    icon: GlobeAltIcon,
     authType: 'oauth',
   },
   {
     id: 'flocknote',
     name: 'Flocknote',
     description: 'Send every announcement as a Flocknote email to your list.',
-    icon: '✉️',
+    icon: EnvelopeIcon,
     authType: 'api_key',
     fields: [
       { key: 'api_key',    label: 'API Key',            type: 'password' },
@@ -30,7 +30,7 @@ const PLATFORMS = [
     id: 'website_webhook',
     name: 'Parish Website',
     description: 'Send posts to your website via webhook (WordPress, eCatholic, etc.)',
-    icon: '🌐',
+    icon: ComputerDesktopIcon,
     authType: 'webhook',
     fields: [
       { key: 'webhook_url',    label: 'Webhook URL', type: 'url' },
@@ -41,7 +41,7 @@ const PLATFORMS = [
     id: 'email_webhook',
     name: 'Custom Email / Automation',
     description: 'Send to any email endpoint or automation tool (Make, Zapier, n8n).',
-    icon: '📩',
+    icon: InboxArrowDownIcon,
     authType: 'webhook',
     fields: [
       { key: 'webhook_url', label: 'Webhook URL', type: 'url' },
@@ -272,7 +272,7 @@ export default function IntegrationsTab({ parishId }) {
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: info */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0 mt-0.5">{platform.icon}</span>
+                    <span className="w-10 h-10 rounded-xl bg-lightbg flex items-center justify-center flex-shrink-0"><platform.icon className="w-5 h-5 text-navy" /></span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <h3 className="font-semibold text-navy text-sm">{platform.name}</h3>

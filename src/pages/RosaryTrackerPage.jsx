@@ -61,7 +61,7 @@ export default function RosaryTrackerPage() {
             ) : (
               <>
                 <p className="text-5xl font-bold text-navy mb-1">{streak}</p>
-                <p className="text-sm text-gray-500">{streak === 1 ? t('faith:rosary.day_in_a_row', 'day in a row 🔥') : t('faith:rosary.days_in_a_row', 'days in a row 🔥')}</p>
+                <p className="text-sm text-gray-500">{streak === 1 ? t('faith:rosary.day_in_a_row', 'day in a row') : t('faith:rosary.days_in_a_row', 'days in a row')}</p>
               </>
             )}
           </div>

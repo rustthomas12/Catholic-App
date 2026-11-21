@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
+import Glyph from '../components/shared/Glyph'
 
 const TIERS = [
   { label: 'Small', price: '$59', size: 'Under 200 parishioners', features: ['All platform features', 'Parish admin dashboard', 'Push notifications', '90-day free trial'] },
@@ -57,7 +58,7 @@ function ParishApplicationForm() {
   if (submitted) {
     return (
       <div className="text-center py-12">
-        <div className="text-5xl mb-4">✝</div>
+        <div className="mb-4 text-gold"><Glyph e="✝" className="w-12 h-12" /></div>
         <h3 className="text-2xl font-black text-navy mb-2">Thank you!</h3>
         <p className="text-gray-500 max-w-sm mx-auto">
           We'll be in touch within 1–2 business days to get your parish set up on inFold.
@@ -171,7 +172,7 @@ export default function ForParishesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {ADMIN_FEATURES.map((f, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 hover:shadow-md transition-shadow">
-                <div className="text-3xl mb-3">{f.icon}</div>
+                <div className="mb-3 text-gold">{<Glyph e={f.icon} className="w-9 h-9" />}</div>
                 <h3 className="font-bold text-navy text-base mb-2">{f.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
               </div>

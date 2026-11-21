@@ -10,6 +10,7 @@ import Avatar from '../shared/Avatar'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { toast } from '../shared/Toast'
 import { PICK_MAX_BYTES } from '../../utils/imageResize'
+import SacredIcon from '../shared/SacredIcon'
 
 const MAX_CHARS = 5000 // about 850 words: room for a reflection or homily (DB limit, migration 092)
 const WARN_CHARS = 4800
@@ -305,7 +306,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
 
             {/* Prayer request toggle */}
             <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isPrayerRequest ? 'border-gold' : 'border-gray-100'}`}>
-              <span className="text-sm text-gray-600">🙏 {t('post.prayer_toggle')}</span>
+              <span className="text-sm text-gray-600 inline-flex items-center gap-1.5"><SacredIcon name="candle" className="w-4 h-4 text-gold" />{t('post.prayer_toggle')}</span>
               <button
                 onClick={() => setIsPrayerRequest((p) => !p)}
                 className={`relative w-11 h-6 rounded-full transition-colors ${isPrayerRequest ? 'bg-navy' : 'bg-gray-300'}`}

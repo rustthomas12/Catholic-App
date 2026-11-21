@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import useGoBack from '../hooks/useGoBack'
 import { useTranslation } from 'react-i18next'
+import SacredIcon from '../components/shared/SacredIcon'
 
 const REASONS = [
   'I found a bug',
@@ -62,7 +63,7 @@ export default function AppContactPage() {
 
           {submitted ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-              <div className="text-5xl mb-4">✝</div>
+              <div className="mb-4 text-gold"><SacredIcon name="cross" className="w-12 h-12" /></div>
               <h2 className="font-black text-navy text-xl mb-2">{t('common:contact.message_sent', 'Message sent!')}</h2>
               <p className="text-gray-500 text-sm mb-6">
                 {t('common:contact.we_ll_get_back_to_you', "We'll get back to you within 1–2 business days.")}
