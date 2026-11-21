@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { postImagePath } from '../utils/storage'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth.jsx'
 import { createNotification } from '../lib/notifications'
@@ -321,13 +322,17 @@ export function usePost(postId, initialPost) {
   const deletePost = useCallback(async () => {
     if (!user) return { error: 'Not authenticated' }
 
-    const { error } = await supabase
+    const { data: deleted, error } = await supabase
       .from('posts')
       .delete()
       .eq('id', postId)
       .eq('author_id', user.id) // security: own only
+      .select('image_url')
 
     if (error) return { error: error.message }
+    // Remove the photo too, so it isn't left in storage (best effort)
+    const path = postImagePath(deleted?.[0]?.image_url)
+    if (path) supabase.storage.from('posts').remove([path]).catch(() => {})
     return { error: null }
   }, [user, postId])
 

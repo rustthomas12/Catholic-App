@@ -358,17 +358,19 @@ export default function ProfilePage() {
               showCreatePost={false}
               emptyMessage={
                 isOwnProfile
-                  ? 'Share your first post'
-                  : `${profile.full_name?.split(' ')[0] || 'They'} hasn't posted yet`
+                  ? t('feed:profile_empty.own_title', 'Share your first post')
+                  : profile.full_name
+                    ? t('feed:profile_empty.other_title', '{{name}} hasn\'t posted yet', { name: profile.full_name })
+                    : t('feed:profile_empty.other_title_anon', 'No posts yet')
               }
               emptySubtext={
                 isOwnProfile
-                  ? 'Share a thought, reflection, or prayer with your community'
+                  ? t('feed:profile_empty.own_body', 'Share a thought, reflection, or prayer with your community')
                   : ''
               }
               emptyAction={
                 isOwnProfile
-                  ? { label: 'Create a post', onClick: () => navigate('/') }
+                  ? { label: t('feed:profile_empty.own_action', 'Create a post'), onClick: () => navigate('/') }
                   : null
               }
             />

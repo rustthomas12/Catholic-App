@@ -151,5 +151,12 @@
   },
   "prompt": {
     "badge": "Tema semanal"
+  },
+  "profile_empty": {
+    "own_title": "Comparte tu primera publicación",
+    "own_body": "Comparte una idea, una reflexión o una oración con tu comunidad",
+    "own_action": "Crear una publicación",
+    "other_title": "{{name}} aún no ha publicado",
+    "other_title_anon": "Aún no hay publicaciones"
   }
 }
