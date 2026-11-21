@@ -275,6 +275,12 @@ export default function NotificationSettingsPage() {
       column: 'parish_posts',
     },
     {
+      icon: UserGroupIcon,
+      label: t('notifications.type_community', 'Community posts'),
+      description: t('notifications.type_community_desc', "One evening note (7pm) about the day's posts from parishioners in your parishes"),
+      column: 'community_posts',
+    },
+    {
       icon: HandRaisedIcon,
       label: t('notifications.type_prayer'),
       description: t('notifications.type_prayer_desc'),

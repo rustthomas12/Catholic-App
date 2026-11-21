@@ -33,6 +33,7 @@ function TypeIcon({ type, message }) {
       ? <CheckCircleIcon className={`${base} text-gold`} />
       : <XCircleIcon className={`${base} text-red-500`} />
   }
+  if (type === 'community_highlight') return <UserGroupIcon className={`${base} text-gold`} />
   if (type === 'parish_post') return <BuildingLibraryIcon className={`${base} text-navy`} />
   if (type === 'prayer_response') return <HandRaisedIcon className={`${base} text-gold`} />
   if (type === 'confession_reminder') return <ClipboardDocumentCheckIcon className={`${base} text-navy`} />

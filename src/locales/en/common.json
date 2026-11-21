@@ -123,7 +123,9 @@
     "type_messages_desc": "When someone sends you a message",
     "type_confession": "Confession Reminders",
     "type_confession_desc": "Gentle reminders for the Confession Tracker",
-    "turn_on_all": "Turn on all notifications"
+    "turn_on_all": "Turn on all notifications",
+    "type_community": "Community posts",
+    "type_community_desc": "One evening note (7pm) about the day's posts from parishioners in your parishes"
   },
   "me": {
     "you_manage": "You manage",

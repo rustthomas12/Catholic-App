@@ -170,7 +170,9 @@
     "type_messages_desc": "Cuando alguien te envía un mensaje",
     "type_confession": "Recordatorios de confesión",
     "type_confession_desc": "Recordatorios gentiles para el registro de confesiones",
-    "turn_on_all": "Activar todas las notificaciones"
+    "turn_on_all": "Activar todas las notificaciones",
+    "type_community": "Publicaciones de la comunidad",
+    "type_community_desc": "Un aviso por la tarde (7 p. m.) sobre las publicaciones del día de los feligreses de tus parroquias"
   },
   "me": {
     "you_manage": "Administras",
