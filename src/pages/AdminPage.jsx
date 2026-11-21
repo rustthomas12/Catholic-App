@@ -349,7 +349,7 @@ function AppErrors() {
       {rows === null ? (
         <div className='h-16 bg-white rounded-xl border border-gray-100 animate-pulse' />
       ) : groups.length === 0 ? (
-        <p className='bg-white rounded-xl border border-gray-100 p-4 text-sm text-gray-500'>No errors reported. 🎉</p>
+        <p className='bg-white rounded-xl border border-gray-100 p-4 text-sm text-gray-500'>No errors reported.</p>
       ) : (
         <ul className='bg-white rounded-xl border border-gray-100 divide-y divide-gray-50'>
           {groups.map((g) => (

@@ -3,6 +3,7 @@ import MarketingLayout, { APP_URL } from './MarketingLayout'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import { Link } from 'react-router-dom'
+import Glyph from '../components/shared/Glyph'
 
 const REASONS = [
   'I want to set up my parish',
@@ -68,7 +69,7 @@ export default function ContactPage() {
                   { icon: '✉️', label: 'Email', value: 'info@getinfold.app', href: 'mailto:info@getinfold.app' },
                 ].map((c, i) => (
                   <a key={i} href={c.href} className="flex items-start gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                    <span className="text-2xl">{c.icon}</span>
+                    <span className=" text-gold">{<Glyph e={c.icon} className="w-7 h-7" />}</span>
                     <div>
                       <p className="font-semibold text-navy text-sm">{c.label}</p>
                       <p className="text-gray-500 text-sm">{c.value}</p>
@@ -110,7 +111,7 @@ export default function ContactPage() {
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
             {submitted ? (
               <div className="text-center py-12">
-                <div className="text-5xl mb-4">✝</div>
+                <div className="mb-4 text-gold"><Glyph e="✝" className="w-12 h-12" /></div>
                 <h3 className="text-2xl font-black text-navy mb-2">Message received!</h3>
                 <p className="text-gray-500 max-w-sm mx-auto">
                   Thank you for reaching out. We'll get back to you within 1–2 business days.

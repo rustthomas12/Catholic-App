@@ -14,6 +14,8 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/shared/Toast'
 import { useTranslation } from 'react-i18next'
+import SacredIcon from '../components/shared/SacredIcon'
+import { LockClosedIcon } from '@heroicons/react/24/outline'
 
 const STATUS_LABELS = {
   active:   { label: 'Praying', key: 'praying', color: 'bg-blue-100 text-blue-700' },
@@ -172,7 +174,7 @@ export default function PrivateIntentionsPage() {
           {intentions.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {[
-                { key: 'active',   label: t('faith:intentions.praying', 'Praying'),  icon: '🙏' },
+                { key: 'active',   label: t('faith:intentions.praying', 'Praying'),  icon: <SacredIcon name="candle" className="w-5 h-5" /> },
                 { key: 'prayed',   label: t('faith:intentions.prayed', 'Prayed'),   icon: '✓' },
                 { key: 'answered', label: t('faith:intentions.answered', 'Answered'), icon: '✦' },
               ].map(s => (
@@ -183,7 +185,7 @@ export default function PrivateIntentionsPage() {
                     filter === s.key ? 'bg-navy border-navy' : 'bg-white border-gray-100 hover:bg-lightbg'
                   }`}
                 >
-                  <p className="text-lg mb-0.5">{s.icon}</p>
+                  <p className="text-lg mb-0.5 flex justify-center">{s.icon}</p>
                   <p className={`text-xl font-black ${filter === s.key ? 'text-white' : 'text-navy'}`}>
                     {counts[s.key]}
                   </p>
@@ -250,7 +252,7 @@ export default function PrivateIntentionsPage() {
 
           {/* Privacy notice */}
           <div className="flex items-start gap-2 px-1">
-            <span className="text-gray-500 text-lg mt-0.5">🔒</span>
+            <LockClosedIcon className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
             <p className="text-gray-500 text-xs leading-relaxed">
               {t('faith:intentions.your_prayer_intentions_are_completely_private', 'Your prayer intentions are completely private. They are stored securely and never visible to other users, parish admins, or anyone else.')}
             </p>
@@ -318,7 +320,7 @@ function IntentionCard({ intention, onStatus, onDelete }) {
               title={t('faith:intentions.move_back_to_praying', 'Move back to praying')}
               className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
               >
-              <span className="text-xs font-bold">🙏</span>
+              <SacredIcon name="candle" className="w-4 h-4" />
             </button>
           )}
           <button

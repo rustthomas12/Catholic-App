@@ -35,7 +35,7 @@
   "prayer_title": "Intenciones de oración",
   "prayer_see_all": "Ver todas las intenciones →",
   "prayer_share": "Compartir una intención",
-  "prayer_count": "🙏 {{count}}",
+  "prayer_count_one": "{{count}} orando",
   "prayer_count_other": "{{count}} orando",
   "prayer_see_all_intentions": "Ver todas las intenciones",
   "confession_tracker_cta": "Registra tu hábito de confesión de forma privada",
@@ -43,7 +43,7 @@
   "confession_tracker_premium_link": "Conocer Premium →",
   "confession_last": "Última confesión: hace {{days}} días",
   "confession_first": "Registra tu primera confesión",
-  "confession_today": "Fuiste a confesarte hoy 🙏",
+  "confession_today": "Fuiste a confesarte hoy",
   "confession_go": "Ir al registro →",
   "season_advent": "Adviento",
   "season_christmas": "Navidad",
@@ -66,8 +66,8 @@
   "rite_of": "Forma ordinaria",
   "rite_tlm": "Tradicional (1962)",
   "rosary": {
-    "day_in_a_row": "día seguido 🔥",
-    "days_in_a_row": "días seguidos 🔥",
+    "day_in_a_row": "día seguido",
+    "days_in_a_row": "días seguidos",
     "rosary_tracker": "Registro del Rosario",
     "pray_daily_build_the_habit": "Reza cada día y crea el hábito",
     "today_s_mysteries": "Misterios de hoy",
@@ -132,7 +132,12 @@
     "delete": "Eliminar",
     "delete_entry": "¿Eliminar la entrada?",
     "this_cannot_be_undone": "No se puede deshacer.",
-    "encryption_note": "🔒 Tu diario se cifra en este dispositivo antes de guardarse. Solo este dispositivo puede leerlo: ni otros miembros, ni nuestro equipo, ni nadie con acceso a nuestros servidores. Las entradas no se pueden abrir en tus otros dispositivos y, si pierdes este dispositivo o eliminas la aplicación, no se podrán recuperar."
+    "encryption_note": "Tu diario se cifra en este dispositivo antes de guardarse. Solo este dispositivo puede leerlo: ni otros miembros, ni nuestro equipo, ni nadie con acceso a nuestros servidores. Las entradas no se pueden abrir en tus otros dispositivos y, si pierdes este dispositivo o eliminas la aplicación, no se podrán recuperar.",
+    "mood_heavy": "Abatido",
+    "mood_okay": "Normal",
+    "mood_peaceful": "En paz",
+    "mood_joyful": "Alegre",
+    "mood_prayerful": "En oración"
   },
   "offering": {
     "tip": "Consejo:",

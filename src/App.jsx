@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { markAppReady } from './lib/appReady'
 
 // Side-effect: initialize i18n
 import './utils/i18n'
@@ -159,10 +160,23 @@ function SuspendedBanner() {
   )
 }
 
+// Lift the logo screen once the first screen can draw. The signed-in Home
+// feed lifts it itself when its posts arrive (Feed.jsx).
+function BootGate() {
+  const { pathname } = useLocation()
+  const { user, loading } = useAuth()
+  useEffect(() => {
+    if (loading || (pathname === '/' && user)) return
+    requestAnimationFrame(() => markAppReady())
+  }, [pathname, user, loading])
+  return null
+}
+
 // ── Routes (needs Router context) ─────────────────────────
 function AppInner() {
   return (
     <>
+      <BootGate />
       <OfflineDetector />
       <LastActiveUpdater />
       <TimezoneSync />

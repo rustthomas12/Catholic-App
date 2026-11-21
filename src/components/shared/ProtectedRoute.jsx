@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import LoadingSpinner from './LoadingSpinner'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 // Routes that are never valid returnUrl targets (avoids redirect loops)
 const AUTH_PATHS = new Set(['/login', '/signup', '/forgot-password', '/reset-password', '/check-email'])
@@ -28,7 +29,7 @@ export default function ProtectedRoute({ children }) {
       <div className="min-h-screen bg-cream flex items-center justify-center px-6">
         <div className="max-w-sm w-full text-center bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">⚠️</span>
+            <ExclamationTriangleIcon className="w-7 h-7 text-amber-600" />
           </div>
           <h2 className="font-bold text-navy text-lg mb-2">Account under review</h2>
           <p className="text-gray-500 text-sm leading-relaxed">

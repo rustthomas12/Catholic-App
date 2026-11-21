@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Glyph from '../components/shared/Glyph'
 
 const slides = [
   { id: 1,  type: 'cover' },
@@ -150,7 +151,7 @@ function SlideSolution() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {pillars.map((p, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-8 hover:bg-white/8 transition-colors group">
-              <div className="text-4xl mb-4">{p.icon}</div>
+              <div className="mb-4 text-gold">{<Glyph e={p.icon} className="w-10 h-10" />}</div>
               <div className="text-xl font-bold text-white mb-3 group-hover:text-amber-400 transition-colors">{p.title}</div>
               <p className="text-white/60 text-sm leading-relaxed">{p.desc}</p>
             </div>
@@ -211,7 +212,7 @@ function SlideProduct() {
             <div className="space-y-4">
               {forParish.map((item, i) => (
                 <div key={i} className="flex gap-3">
-                  <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                  <span className="flex-shrink-0 mt-0.5 text-gold">{<Glyph e={item.icon} className="w-6 h-6" />}</span>
                   <div>
                     <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
                     <p className="text-white/55 text-xs leading-relaxed">{item.body}</p>
@@ -227,7 +228,7 @@ function SlideProduct() {
             <div className="space-y-4">
               {forParishioner.map((item, i) => (
                 <div key={i} className="flex gap-3">
-                  <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                  <span className="flex-shrink-0 mt-0.5 text-gold">{<Glyph e={item.icon} className="w-6 h-6" />}</span>
                   <div>
                     <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
                     <p className="text-white/55 text-xs leading-relaxed">{item.body}</p>
@@ -240,7 +241,7 @@ function SlideProduct() {
 
         {/* Parish OS statement */}
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
-          <div className="text-3xl flex-shrink-0">🔗</div>
+          <div className="flex-shrink-0 text-gold"><Glyph e="🔗" className="w-9 h-9" /></div>
           <div>
             <p className="text-amber-400 font-bold text-sm mb-1">inFold is the Parish OS.</p>
             <p className="text-white/60 text-sm leading-relaxed">
@@ -467,7 +468,7 @@ function SlideBusinessModel() {
 
         {/* Parish OS */}
         <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
-          <div className="text-3xl flex-shrink-0">⚙️</div>
+          <div className="flex-shrink-0 text-gold"><Glyph e="⚙️" className="w-9 h-9" /></div>
           <div>
             <p className="text-amber-400 font-bold text-sm mb-1">
               Parish OS — Professional Services
@@ -597,7 +598,7 @@ function SlideTraction() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {metrics.map((m, i) => (
             <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
-              <div className="text-3xl mb-3">{m.icon}</div>
+              <div className="mb-3 text-gold">{<Glyph e={m.icon} className="w-9 h-9" />}</div>
               <div className="text-2xl font-black text-amber-400 mb-1">{m.stat}</div>
               <p className="text-white/60 text-xs">{m.label}</p>
             </div>
@@ -617,7 +618,7 @@ function SlideTraction() {
                 { icon: '✉️', text: 'SENT Summit pitch competition — initial market validation and investor exposure' },
               ].map((d, i) => (
                 <div key={i} className="flex gap-2 items-start">
-                  <span className="text-base flex-shrink-0">{d.icon}</span>
+                  <span className="flex-shrink-0 text-gold">{<Glyph e={d.icon} className="w-5 h-5" />}</span>
                   <p className="text-white/60 text-xs leading-relaxed">{d.text}</p>
                 </div>
               ))}
@@ -687,7 +688,7 @@ function SlideFounder() {
             <div className="grid grid-cols-1 gap-3">
               {facts.map((f, i) => (
                 <div key={i} className="flex items-center gap-4 py-3 border-b border-white/5">
-                  <span className="text-2xl shrink-0">{f.icon}</span>
+                  <span className="shrink-0 text-gold">{<Glyph e={f.icon} className="w-7 h-7" />}</span>
                   <span className="text-white/70 text-sm">{f.label}</span>
                 </div>
               ))}
@@ -729,7 +730,7 @@ function SlideFounder() {
               { icon: '⚡', text: 'AI-assisted development permanently lowers the execution gap. A solo Catholic founder can now out-ship a funded team in this space.' },
             ].map((w, i) => (
               <div key={i} className="flex gap-3 items-start">
-                <span className="text-lg flex-shrink-0">{w.icon}</span>
+                <span className="flex-shrink-0 text-gold">{<Glyph e={w.icon} className="w-5 h-5" />}</span>
                 <p className="text-white/70 text-sm leading-relaxed">{w.text}</p>
               </div>
             ))}
@@ -821,7 +822,7 @@ function SlideAsk() {
 
         {/* Explicit ask statement */}
         <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-5 mb-6 flex items-start gap-4">
-          <div className="text-2xl flex-shrink-0">🎯</div>
+          <div className="flex-shrink-0 text-gold"><Glyph e="🎯" className="w-7 h-7" /></div>
           <div>
             <p className="text-amber-400 font-bold text-sm mb-1">The Ask: Pre-Seed Investment</p>
             <p className="text-white/70 text-sm leading-relaxed">
@@ -835,7 +836,7 @@ function SlideAsk() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {items.map((item, i) => (
             <div key={i} className="flex gap-5 rounded-2xl bg-white/5 border border-white/10 p-6 hover:bg-white/8 transition-colors">
-              <div className="text-3xl shrink-0">{item.icon}</div>
+              <div className="shrink-0 text-gold">{<Glyph e={item.icon} className="w-9 h-9" />}</div>
               <div>
                 <div className="text-white font-bold mb-1">{item.title}</div>
                 <p className="text-white/60 text-sm leading-relaxed">{item.body}</p>
@@ -879,11 +880,11 @@ function SlideVision() {
           <div className="space-y-4">
             {stages.map((s, i) => (
               <div key={i} className="flex gap-6 md:pl-14 relative">
-                <div className="absolute left-0 top-6 w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl hidden md:flex">
-                  {s.icon}
+                <div className="absolute left-0 top-6 w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-gold hidden md:flex">
+                  <Glyph e={s.icon} className="w-6 h-6" />
                 </div>
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-6 flex gap-5 w-full hover:bg-white/8 transition-colors">
-                  <div className="text-2xl md:hidden shrink-0">{s.icon}</div>
+                  <div className="md:hidden shrink-0 text-gold">{<Glyph e={s.icon} className="w-7 h-7" />}</div>
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-xs font-mono text-white/30">{s.period}</span>

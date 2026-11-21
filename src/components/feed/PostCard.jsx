@@ -27,6 +27,8 @@ import { CommentSkeleton } from '../shared/skeletons'
 import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
 import { publicOrigin } from '../../lib/platform'
+import SacredIcon from '../shared/SacredIcon'
+import { PencilIcon } from '@heroicons/react/24/outline'
 
 // ── Delete confirm modal ───────────────────────────────────
 function DeleteModal({ isOpen, onClose, onConfirm, loading }) {
@@ -341,7 +343,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
         <div className="px-4 py-3">
           {/* Prayer request badge */}
           {post.is_prayer_request && (
-            <p className="text-xs font-semibold text-gold mb-2">{t('post.prayer_badge')}</p>
+            <p className="text-xs font-semibold text-gold mb-2 inline-flex items-center gap-1"><SacredIcon name="candle" className="w-3.5 h-3.5" />{t('post.prayer_badge')}</p>
           )}
 
           {/* Header */}
@@ -437,7 +439,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                         onClick={() => { setMenuOpen(false); setEditDraft(post.content); setEditing(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
                       >
-                        ✏️ {t('post.edit')}
+                        <PencilIcon className="w-4 h-4" /> {t('post.edit')}
                       </button>
                       <button
                         onClick={() => { setMenuOpen(false); setShowDeleteModal(true) }}
@@ -478,7 +480,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                         onClick={() => { setMenuOpen(false); setEditDraft(post.content); setEditing(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
                       >
-                        ✏️ {t('post.edit')}
+                        <PencilIcon className="w-4 h-4" /> {t('post.edit')}
                       </button>
                       <button
                         onClick={() => { setMenuOpen(false); setShowDeleteModal(true) }}

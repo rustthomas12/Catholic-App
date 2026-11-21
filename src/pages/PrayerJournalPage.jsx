@@ -7,7 +7,15 @@ import { usePrayerJournal } from '../hooks/usePrayerJournal'
 import { toast } from '../components/shared/Toast'
 import { useTranslation } from 'react-i18next'
 
-const MOODS = ['😔', '😐', '🙂', '😊', '🙏']
+// Words, not emoji faces. Older entries saved a face; `old` maps it.
+const MOODS = [
+  { value: 'heavy',     old: '😔', label: 'Heavy',     es: 'Abatido' },
+  { value: 'okay',      old: '😐', label: 'Okay',      es: 'Normal' },
+  { value: 'peaceful',  old: '🙂', label: 'Peaceful',  es: 'En paz' },
+  { value: 'joyful',    old: '😊', label: 'Joyful',    es: 'Alegre' },
+  { value: 'prayerful', old: '🙏', label: 'Prayerful', es: 'En oración' },
+]
+const moodOf = (v) => MOODS.find(m => m.value === v || m.old === v)
 
 export default function PrayerJournalPage() {
   const { t } = useTranslation()
@@ -74,7 +82,7 @@ export default function PrayerJournalPage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 flex items-start gap-3">
             <ShieldCheckIcon className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-500 leading-relaxed">
-              {t('faith:journal.encryption_note', "🔒 Your journal is encrypted on this device before it's saved. Only this device can read it — not other members, not our team, not anyone with access to our servers. Entries can't be opened on your other devices, and if this device is lost or the app is removed, they can't be recovered.")}
+              {t('faith:journal.encryption_note', "Your journal is encrypted on this device before it's saved. Only this device can read it — not other members, not our team, not anyone with access to our servers. Entries can't be opened on your other devices, and if this device is lost or the app is removed, they can't be recovered.")}
             </p>
           </div>
 
@@ -105,18 +113,23 @@ export default function PrayerJournalPage() {
               />
               <div>
                 <p className="text-xs text-gray-500 mb-2">{t('faith:journal.mood', 'Mood')}</p>
-                <div className="flex gap-3">
-                  {MOODS.map(m => (
-                    <button
-                      key={m}
-                      onClick={() => setMood(mood === m ? null : m)}
-                      className={`text-xl w-9 h-9 rounded-full transition-colors ${
-                        mood === m ? 'bg-gold/20 ring-2 ring-gold' : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
+                <div className="flex gap-2 flex-wrap">
+                  {MOODS.map(m => {
+                    const on = moodOf(mood)?.value === m.value
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setMood(on ? null : m.value)}
+                        className={`text-xs font-semibold px-3 min-h-[36px] rounded-full border transition-colors ${
+                          on ? 'bg-gold/20 border-gold text-navy' : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {t(`faith:journal.mood_${m.value}`, m.label)}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
@@ -165,7 +178,7 @@ export default function PrayerJournalPage() {
                       )}
                       <p className="text-xs text-gray-500">
                         {format(parseISO(entry.created_at), 'MMMM d, yyyy · h:mm a')}
-                        {entry.mood && <span className="ml-2">{entry.mood}</span>}
+                        {moodOf(entry.mood) && <span className="ml-2 italic">{t(`faith:journal.mood_${moodOf(entry.mood).value}`, moodOf(entry.mood).label)}</span>}
                       </p>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">

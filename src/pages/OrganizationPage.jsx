@@ -26,6 +26,7 @@ import { safeImageUrl } from '../utils/validate'
 import useGoBack from '../hooks/useGoBack'
 import { invalidateMyMemberships } from '../lib/myMemberships'
 import { useTranslation } from 'react-i18next'
+import SacredIcon from '../components/shared/SacredIcon'
 
 // ── useOrganization ────────────────────────────────────────
 function useOrganization(orgId) {
@@ -396,7 +397,7 @@ function OrgAnnouncements({ orgId }) {
     <div className="px-4 pt-4 space-y-3">
       {items.map(a => (
         <div key={a.id} className="bg-gold/10 border border-gold/30 rounded-2xl p-4">
-          <p className="text-xs font-semibold text-gold mb-1">📢 Announcement · {formatRelativeTime(a.published_at || a.created_at)}</p>
+          <p className="text-xs font-semibold text-gold mb-1 flex items-center gap-1"><SacredIcon name="megaphone" className="w-3.5 h-3.5" />Announcement · {formatRelativeTime(a.published_at || a.created_at)}</p>
           {a.title && <p className="font-semibold text-navy text-sm mb-1">{a.title}</p>}
           <p className="text-sm text-gray-700 whitespace-pre-line">{a.content}</p>
         </div>

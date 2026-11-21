@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
+import Glyph from '../components/shared/Glyph'
 
 const FEATURES = [
   {
@@ -103,7 +104,7 @@ export default function FeaturesPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {cat.items.map((f, fi) => (
                   <div key={fi} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 hover:shadow-md transition-shadow">
-                    <div className="text-3xl mb-3">{f.icon}</div>
+                    <div className="mb-3 text-gold">{<Glyph e={f.icon} className="w-9 h-9" />}</div>
                     <h3 className="font-bold text-navy text-base mb-2">{f.title}</h3>
                     <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
                   </div>

@@ -83,5 +83,7 @@ export async function uploadPostImage(userId, original) {
  */
 export function getAvatarUrl(avatarUrl, size = 200) {
   if (!avatarUrl) return null
+  // Built-in designs (public/avatars) are SVGs: no resizing needed
+  if (avatarUrl.startsWith('/avatars/')) return avatarUrl
   return `${avatarUrl}?width=${size}&height=${size}&resize=cover`
 }

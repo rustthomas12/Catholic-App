@@ -348,7 +348,8 @@
     "your_changes_have_not_been_saved": "Tus cambios no se han guardado.",
     "discard": "Descartar",
     "keep_editing": "Seguir editando",
-    "letters_numbers_and_underscores_only_3": "Solo letras, números y guiones bajos. De 3 a 20 caracteres."
+    "letters_numbers_and_underscores_only_3": "Solo letras, números y guiones bajos. De 3 a 20 caracteres.",
+    "choose_design": "O elige un diseño"
   },
   "createorg": {
     "name_and_category_are_required": "El nombre y la categoría son obligatorios.",

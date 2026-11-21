@@ -44,7 +44,7 @@
     "block_body": "No verás sus publicaciones, comentarios, peticiones de oración ni mensajes, y no podrá enviarte mensajes. Puedes desbloquearlo en cualquier momento en Configuración.",
     "block_confirm": "Bloquear",
     "blocked": "{{name}} ha sido bloqueado",
-    "prayer_badge": "🙏 Petición de oración",
+    "prayer_badge": "Petición de oración",
     "at_place": "en {{name}}",
     "in_place": "en {{name}}",
     "from_place": "de {{name}}",
@@ -111,5 +111,11 @@
     "title_prayer_request": "Denunciar esta petición de oración",
     "title_profile": "Denunciar a esta persona",
     "title_group": "Denunciar este grupo"
+  },
+  "coming_up": {
+    "title": "Próximamente",
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "see_all": "Ver todos"
   }
 }

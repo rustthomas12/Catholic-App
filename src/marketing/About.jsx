@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
+import Glyph from '../components/shared/Glyph'
 
 export default function AboutPage() {
   useEffect(() => { document.title = 'About Us — inFold' }, [])
@@ -49,7 +50,7 @@ export default function AboutPage() {
               { icon: '🛡', label: 'Privacy-committed', desc: 'No ads. No data sold. No algorithm manipulation. Your spiritual life is not a product.' },
             ].map((v, i) => (
               <div key={i} className="flex gap-4 bg-lightbg rounded-2xl p-5">
-                <span className="text-2xl flex-shrink-0">{v.icon}</span>
+                <span className="flex-shrink-0 text-gold">{<Glyph e={v.icon} className="w-7 h-7" />}</span>
                 <div>
                   <p className="font-bold text-navy text-sm mb-1">{v.label}</p>
                   <p className="text-gray-500 text-sm leading-relaxed">{v.desc}</p>
@@ -79,7 +80,7 @@ export default function AboutPage() {
                   { icon: '📍', text: 'Parishioner — felt the isolation firsthand' },
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
-                    <span className="text-xl">{f.icon}</span>
+                    <span className="text-gold">{<Glyph e={f.icon} className="w-6 h-6" />}</span>
                     <span className="text-white/70 text-sm">{f.text}</span>
                   </div>
                 ))}

@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { toast } from '../components/shared/Toast'
 import { invalidateGroupMemberships } from '../hooks/useGroups'
 import { shrinkImage, PICK_MAX_BYTES } from '../utils/imageResize'
+import SacredIcon from '../components/shared/SacredIcon'
 
 const CATEGORIES = [
   { value: 'parish',       label: 'category_parish' },
@@ -413,7 +414,7 @@ export default function CreateGroupPage() {
                   </p>
                   {selectedEntityInfo && (
                     <p className="text-xs text-gold font-semibold mt-1">
-                      {selectedEntityInfo.type === 'parish' ? '⛪' : '🏛'} {selectedEntityInfo.name}
+                      <span className="inline-flex items-center gap-1"><SacredIcon name={selectedEntityInfo.type === 'parish' ? 'church' : 'jerusalemCross'} className="w-3.5 h-3.5" />{selectedEntityInfo.name}</span>
                     </p>
                   )}
                   {description && (

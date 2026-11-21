@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import MarketingLayout, { APP_URL } from './MarketingLayout'
+import Glyph from '../components/shared/Glyph'
+import { splitLeadingEmoji } from '../utils/emoji'
 
 export default function MarketingHome() {
   useEffect(() => { document.title = 'inFold — The Digital Parish Hall' }, [])
@@ -36,9 +38,14 @@ export default function MarketingHome() {
         </div>
 
         <div className="relative mt-12 flex flex-wrap justify-center gap-2.5 max-w-2xl">
-          {['⛪ Parish Feed','📖 Daily Readings','🌅 Morning Offering','🪞 Examination','🤝 Groups','📿 Rosary','🔔 Push Notifications','🤍 Private Intentions'].map((p,i) => (
-            <span key={i} className="bg-white/5 border border-white/10 text-white/50 text-xs px-4 py-2 rounded-full">{p}</span>
-          ))}
+          {['⛪ Parish Feed','📖 Daily Readings','🌅 Morning Offering','🪞 Examination','🤝 Groups','📿 Rosary','🔔 Push Notifications','🤍 Private Intentions'].map((p,i) => {
+            const [e, label] = splitLeadingEmoji(p)
+            return (
+              <span key={i} className="bg-white/5 border border-white/10 text-white/50 text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5">
+                <Glyph e={e} className="w-3.5 h-3.5 text-gold/80" />{label}
+              </span>
+            )
+          })}
         </div>
       </section>
 
@@ -71,7 +78,7 @@ export default function MarketingHome() {
               { icon: '🤝', title: 'Community', desc: 'Events with RSVP, groups, parish updates, and direct messaging; the life of the parish, extended.' },
             ].map((p, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-colors">
-                <div className="text-4xl mb-4">{p.icon}</div>
+                <div className="mb-4 text-gold">{<Glyph e={p.icon} className="w-10 h-10" />}</div>
                 <h3 className="text-xl font-bold text-white mb-3">{p.title}</h3>
                 <p className="text-white/60 text-sm leading-relaxed">{p.desc}</p>
               </div>
@@ -120,7 +127,7 @@ export default function MarketingHome() {
               { icon: '📱', title: 'Always Free for Individuals', desc: "Every Catholic can use inFold forever, at no cost. No premium tier, no paywalled prayers." },
             ].map((v, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                <div className="text-4xl mb-4">{v.icon}</div>
+                <div className="mb-4 text-gold">{<Glyph e={v.icon} className="w-10 h-10" />}</div>
                 <h3 className="font-bold text-navy text-lg mb-2">{v.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{v.desc}</p>
               </div>

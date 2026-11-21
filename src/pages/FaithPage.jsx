@@ -14,6 +14,7 @@ import { getDaysAgo } from '../utils/dates'
 import ReadingsCard from '../components/faith/ReadingsCard'
 import SaintCard from '../components/faith/SaintCard'
 import Avatar from '../components/shared/Avatar'
+import SacredIcon from '../components/shared/SacredIcon'
 
 // Module-level caches so returning to Faith shows the last values at once
 // while they refresh
@@ -163,7 +164,7 @@ export default function FaithPage() {
             to="/faith/morning-offering"
             className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
           >
-            <div className="w-10 h-10 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">☀️</div>
+            <div className="w-10 h-10 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0 text-gold"><SacredIcon name="sunrise" className="w-6 h-6" /></div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">{t('morning_offering', 'Morning Offering')}</p>
               <p className="text-gray-500 text-xs mt-0.5">{t('morning_offering_hint', 'Offer your day to God before it begins')}</p>
@@ -175,7 +176,7 @@ export default function FaithPage() {
             to="/faith/examination"
             className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
           >
-            <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">📋</div>
+            <div className="w-10 h-10 bg-navy/10 rounded-xl flex items-center justify-center flex-shrink-0 text-navy"><SacredIcon name="scroll" className="w-6 h-6" /></div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">{t('examination', 'Examination of Conscience')}</p>
               <p className="text-gray-500 text-xs mt-0.5">{t('examination_hint', 'Prepare your heart before Confession')}</p>
@@ -187,7 +188,7 @@ export default function FaithPage() {
             to="/faith/intentions"
             className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 hover:shadow-md transition-shadow"
           >
-            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">🙏</div>
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 text-red-700"><SacredIcon name="candle" className="w-6 h-6" /></div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy text-sm">{t('prayer_intentions', 'Prayer Intentions')}</p>
               <p className="text-gray-500 text-xs mt-0.5">{t('prayer_intentions_hint', 'Your private list of people and intentions')}</p>
@@ -258,8 +259,8 @@ function IntentionPreview({ intention }) {
           {intention.content}
         </p>
       </div>
-      <span className="text-xs text-gold font-semibold flex-shrink-0 mt-0.5">
-        🙏 {intention.prayer_count ?? 0}
+      <span className="text-xs text-gold font-semibold flex-shrink-0 mt-0.5 inline-flex items-center gap-1">
+        <SacredIcon name="candle" className="w-3.5 h-3.5" />{intention.prayer_count ?? 0}
       </span>
     </div>
   )
