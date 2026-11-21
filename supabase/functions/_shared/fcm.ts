@@ -113,17 +113,18 @@ export async function sendFcmToUsers(
   supabase: SupabaseClient,
   userIds: string[],
   payload: PushPayload,
-): Promise<{ sent: number; failed: number; expired: number }> {
-  if (!isFcmConfigured() || !userIds.length) return { sent: 0, failed: 0, expired: 0 }
+): Promise<{ sent: number; failed: number; expired: number; errors: string[] }> {
+  if (!isFcmConfigured() || !userIds.length) return { sent: 0, failed: 0, expired: 0, errors: [] }
 
   const { data: tokens, error } = await supabase
     .from('native_push_tokens')
     .select('token')
     .in('user_id', userIds)
-  if (error || !tokens?.length) return { sent: 0, failed: 0, expired: 0 }
+  if (error || !tokens?.length) return { sent: 0, failed: 0, expired: 0, errors: [] }
 
   let sent = 0
   let failed = 0
+  const errors: string[] = []
   const expired: string[] = []
   await Promise.allSettled(tokens.map(async ({ token }: { token: string }) => {
     try {
@@ -132,6 +133,7 @@ export async function sendFcmToUsers(
       else expired.push(token)
     } catch (err) {
       failed++
+      errors.push(`native: ${(err as Error).message.slice(0, 160)}`)
       console.error('[fcm] send failed:', (err as Error).message)
     }
   }))
@@ -139,5 +141,5 @@ export async function sendFcmToUsers(
   if (expired.length) {
     await supabase.from('native_push_tokens').delete().in('token', expired)
   }
-  return { sent, failed, expired: expired.length }
+  return { sent, failed, expired: expired.length, errors }
 }
