@@ -53,32 +53,44 @@ function tierForCount(count) {
   return 'cathedral'
 }
 
-// ── Step 1: Ask if they're a pastor ────────────────────────
-function StepAsk({ onYes, onSkip }) {
+// ── Step 1: What's your role? ───────────────────────────────
+const ROLES = [
+  { key: 'pastor', label: "I'm the pastor", desc: 'Pastor or parish administrator (priest)' },
+  { key: 'staff',  label: "I'm on the parish staff", desc: 'Secretary, business manager, communications. You can invite your pastor.' },
+  { key: 'clergy', label: "I'm other clergy", desc: 'Parochial vicar, deacon, or religious serving the parish' },
+]
+
+function StepRole({ onSelect, onSkip }) {
   return (
     <div className="text-center">
       <div className="w-16 h-16 bg-navy rounded-2xl flex items-center justify-center mx-auto mb-6">
         <BuildingLibraryIcon className="w-8 h-8 text-gold" />
       </div>
-      <h1 className="text-2xl font-black text-navy mb-2">Are you the pastor of a parish?</h1>
-      <p className="text-gray-500 text-sm mb-8 max-w-xs mx-auto">
-        As a priest, you can set up your parish on inFold — giving your parishioners
-        a home between Masses.
+      <h1 className="text-2xl font-black text-navy mb-2">Set up your parish on inFold</h1>
+      <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
+        Give your parishioners a home between Masses. What's your role at the parish?
       </p>
-      <div className="space-y-3">
-        <button
-          onClick={onYes}
-          className="w-full bg-navy text-white font-bold py-4 rounded-2xl hover:bg-navy/90 transition-colors"
-        >
-          Yes, set up my parish →
-        </button>
-        <button
-          onClick={onSkip}
-          className="w-full text-gray-500 text-sm py-3 hover:text-navy transition-colors"
-        >
-          Not right now
-        </button>
+      <div className="space-y-2.5 text-left">
+        {ROLES.map(r => (
+          <button
+            key={r.key}
+            onClick={() => onSelect(r.key)}
+            className="w-full flex items-center gap-3 border-2 border-gray-100 hover:border-gold rounded-2xl px-4 py-3.5 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-navy text-sm">{r.label}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{r.desc}</p>
+            </div>
+            <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </button>
+        ))}
       </div>
+      <button
+        onClick={onSkip}
+        className="w-full text-gray-500 text-sm py-3 mt-3 hover:text-navy transition-colors"
+      >
+        Not right now
+      </button>
     </div>
   )
 }
@@ -289,16 +301,31 @@ function StepSize({ parish, onSelect }) {
 }
 
 // ── Step 4: Trial + checkout ────────────────────────────────
-function StepTrial({ parish, tier, onBack }) {
+function StepTrial({ parish, tier, role, onBack }) {
   const [loading, setLoading] = useState(false)
+  const [staffTitle, setStaffTitle] = useState('')
+  const [pastorName, setPastorName] = useState('')
+  const [pastorEmail, setPastorEmail] = useState('')
+  const isStaff = role === 'staff'
 
   async function startTrial() {
+    if (isStaff && !pastorName.trim()) {
+      toast.error("Please enter your pastor's name")
+      return
+    }
+    if (isStaff && pastorEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pastorEmail.trim())) {
+      toast.error("Please check your pastor's email address")
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
         method: 'POST',
         headers: await authJsonHeaders(),
-        body: JSON.stringify({ parishId: parish.id, tierKey: tier.key }),
+        body: JSON.stringify({
+          parishId: parish.id, tierKey: tier.key, applicantRole: role,
+          ...(isStaff ? { staffTitle, pastorName, pastorEmail } : {}),
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Checkout failed')
@@ -352,6 +379,25 @@ function StepTrial({ parish, tier, onBack }) {
           </p>
         </div>
       </div>
+
+      {isStaff && (
+        <div className="mb-6 space-y-3">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Your pastor</p>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            We'll email your pastor an invite to manage the parish with you. If you leave the email
+            blank, our team confirms your role with the parish office instead.
+          </p>
+          <input value={staffTitle} onChange={e => setStaffTitle(e.target.value)} maxLength={80}
+            placeholder="Your title (e.g. Parish secretary)" aria-label="Your title"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
+          <input value={pastorName} onChange={e => setPastorName(e.target.value)} maxLength={120}
+            placeholder="Pastor's name (e.g. Fr. John Smith)" aria-label="Pastor's name"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
+          <input value={pastorEmail} onChange={e => setPastorEmail(e.target.value)} maxLength={254} type="email"
+            placeholder="Pastor's email (optional)" aria-label="Pastor's email"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy/20" />
+        </div>
+      )}
 
       {/* What's included */}
       <div className="mb-6">
@@ -407,9 +453,11 @@ export default function PastorOnboardingPage() {
   // Support pre-selecting a parish via ?parish_id= (from ParishPage "Apply" button)
   const preselectedParishId = new URLSearchParams(window.location.search).get('parish_id')
 
-  const [step, setStep] = useState(preselectedParishId ? 3 : 1)
+  // Step 1 (role) always comes first; a pre-selected parish skips the search
+  const [step, setStep] = useState(1)
   const [selectedParish, setSelectedParish] = useState(null)
   const [selectedTier, setSelectedTier] = useState(null)
+  const [role, setRole] = useState('pastor')
 
   // Load pre-selected parish if coming from ParishPage
   useEffect(() => {
@@ -429,13 +477,7 @@ export default function PastorOnboardingPage() {
     })
   }, [preselectedParishId])
 
-  // If not ordained/religious, redirect home
-  useEffect(() => {
-    if (profile && !['ordained', 'religious'].includes(profile.vocation_state)) {
-      navigate('/', { replace: true })
-    }
-  }, [profile, navigate])
-
+  // Open to lay parish staff too (step 1 asks the role); verification decides
   function handleSkip() {
     navigate('/', { replace: true })
   }
@@ -473,8 +515,8 @@ export default function PastorOnboardingPage() {
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         {step === 1 && (
-          <StepAsk
-            onYes={() => setStep(2)}
+          <StepRole
+            onSelect={r => { setRole(r); setStep(selectedParish ? 3 : 2) }}
             onSkip={handleSkip}
           />
         )}
@@ -503,6 +545,7 @@ export default function PastorOnboardingPage() {
           <StepTrial
             parish={selectedParish}
             tier={selectedTier}
+            role={role}
             onBack={() => setStep(3)}
           />
         )}

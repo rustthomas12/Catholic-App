@@ -917,18 +917,41 @@ function PendingPastors() {
       ? await supabase.from('parishes').select('id, name, city, state').in('id', ids)
       : { data: [] }
     const byId = Object.fromEntries((parishes ?? []).map(p => [p.id, p]))
-    setRows((people ?? []).map(p => ({ ...p, parish: byId[p.pending_pastor_parish_id] })))
+    // Role and pastor invite (migration 096): their own application, or the
+    // staff application whose invite they accepted
+    const userIds = (people ?? []).map(p => p.id)
+    const { data: apps } = userIds.length
+      ? await supabase.from('parish_signups')
+          .select('parish_id, user_id, applicant_role, staff_title, pastor_name, pastor_email, invite_sent_at, invite_accepted_by, invite_accepted_at')
+          .or(`user_id.in.(${userIds.join(',')}),invite_accepted_by.in.(${userIds.join(',')})`)
+      : { data: [] }
+    const own = (p) => (apps ?? []).find(a => a.user_id === p.id && a.parish_id === p.pending_pastor_parish_id)
+    const invitedVia = (p) => (apps ?? []).find(a => a.invite_accepted_by === p.id && a.parish_id === p.pending_pastor_parish_id)
+    const { data: inviters } = (apps ?? []).length
+      ? await supabase.from('profiles').select('id, full_name').in('id', [...new Set(apps.map(a => a.user_id))])
+      : { data: [] }
+    const nameOf = Object.fromEntries((inviters ?? []).map(x => [x.id, x.full_name]))
+    setRows((people ?? []).map(p => {
+      const via = invitedVia(p)
+      return {
+        ...p,
+        parish: byId[p.pending_pastor_parish_id],
+        application: own(p),
+        invitedBy: via ? nameOf[via.user_id] || 'parish staff' : null,
+      }
+    }))
   }, [])
   useEffect(() => { load() }, [load])
 
   // Admin access and the clergy badge are separate: a business manager or
   // lay administrator can run the parish without being shown as clergy.
   // Upserting role 'admin' replaces their provisional 'pending' row.
-  async function approve(row, withBadge) {
+  // Staff are approved as 'staff', never with the badge.
+  async function approve(row, withBadge, role = 'admin') {
     setBusy(row.id)
     const parishId = row.pending_pastor_parish_id
     const { error } = await supabase.from('parish_admins').upsert(
-      { parish_id: parishId, user_id: row.id, role: 'admin' }, { onConflict: 'parish_id,user_id' })
+      { parish_id: parishId, user_id: row.id, role }, { onConflict: 'parish_id,user_id' })
     // A refused update returns no rows rather than an error
     const { data: updated, error: pErr0 } = error ? { error } : await supabase.from('profiles')
       .update(withBadge ? { is_verified_clergy: true, pending_pastor_parish_id: null } : { pending_pastor_parish_id: null })
@@ -940,7 +963,7 @@ function PendingPastors() {
       user_id: row.id, type: 'pastor_verified', reference_id: parishId, actor_id: user.id, is_read: false,
       message: withBadge
         ? `You're verified as pastor of ${row.parish?.name || 'your parish'}. Your full parish dashboard is unlocked.`
-        : `You're verified as an admin of ${row.parish?.name || 'your parish'}. Your full parish dashboard is unlocked.`,
+        : `You're verified as ${role === 'staff' ? 'parish staff' : 'an admin'} of ${row.parish?.name || 'your parish'}. Your full parish dashboard is unlocked.`,
     })
     toast.success(`${row.full_name} now manages ${row.parish?.name || 'the parish'}`)
     load()
@@ -970,20 +993,39 @@ function PendingPastors() {
   if (!rows?.length) return null
   return (
     <div className='bg-white rounded-xl border border-amber-200 shadow-sm p-4 mt-4'>
-      <h3 className='text-sm font-bold text-navy mb-3'>Pending pastor applications ({rows.length})</h3>
+      <h3 className='text-sm font-bold text-navy mb-3'>Pending parish applications ({rows.length})</h3>
       <div className='space-y-2'>
         {rows.map(r => (
           <div key={r.id} className='flex flex-wrap items-center gap-2 border border-gray-100 rounded-lg px-3 py-2'>
             <div className='flex-1 min-w-0'>
               <p className='text-sm font-semibold text-navy truncate'>{r.full_name} <span className='text-gray-500 font-normal'>@{r.username} · {r.vocation_state}</span></p>
               <p className='text-xs text-gray-500 truncate'>{r.parish ? `${r.parish.name}, ${r.parish.city}, ${r.parish.state}` : r.pending_pastor_parish_id}</p>
+              <p className='text-xs text-navy mt-0.5'>
+                {r.invitedBy
+                  ? <>Named as pastor by {r.invitedBy}; accepted the invite</>
+                  : r.application?.applicant_role === 'staff'
+                    ? <>Parish staff{r.application.staff_title ? ` · ${r.application.staff_title}` : ''}. Named pastor: {r.application.pastor_name || 'not given'}
+                        {r.application.pastor_email
+                          ? (r.application.invite_accepted_at ? ' (accepted)' : r.application.invite_sent_at ? ` (invite sent to ${r.application.pastor_email})` : ` (${r.application.pastor_email}, invite not sent)`)
+                          : ' (no email: confirm with the parish office)'}</>
+                    : r.application?.applicant_role === 'clergy' ? 'Other clergy'
+                    : r.application ? 'Pastor' : 'Role not recorded (signed up before roles were asked)'}
+              </p>
             </div>
-            <button disabled={busy === r.id} onClick={() => approve(r, true)}
-              title='Full dashboard access plus the verified clergy badge'
-              className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve as clergy</button>
-            <button disabled={busy === r.id} onClick={() => approve(r, false)}
-              title='Full dashboard access, no clergy badge (business manager, lay administrator)'
-              className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-navy text-navy disabled:opacity-50'>Approve, no badge</button>
+            {r.application?.applicant_role === 'staff' ? (
+              <button disabled={busy === r.id} onClick={() => approve(r, false, 'staff')}
+                title='Full dashboard access as parish staff, no clergy badge'
+                className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve as staff</button>
+            ) : (
+              <>
+                <button disabled={busy === r.id} onClick={() => approve(r, true)}
+                  title='Full dashboard access plus the verified clergy badge'
+                  className='text-xs font-semibold px-3 py-1.5 rounded-lg bg-navy text-white disabled:opacity-50'>Approve as clergy</button>
+                <button disabled={busy === r.id} onClick={() => approve(r, false)}
+                  title='Full dashboard access, no clergy badge (business manager, lay administrator)'
+                  className='text-xs font-semibold px-3 py-1.5 rounded-lg border border-navy text-navy disabled:opacity-50'>Approve, no badge</button>
+              </>
+            )}
             <ConfirmDeleteButton
               title='Decline this application?'
               message={`${r.full_name} will not manage ${r.parish?.name || 'this parish'}, and the free trial they started at checkout is canceled so they are never charged.`}

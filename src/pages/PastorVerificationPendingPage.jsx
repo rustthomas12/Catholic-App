@@ -8,21 +8,21 @@ const STEPS = [
     icon: CheckCircleIcon,
     key: 'submitted',
     title: 'Application submitted',
-    body: 'Your billing information has been received and your 90-day free trial has started.',
+    body: 'Your 90-day free trial has started. No card needed until it ends.',
     done: true,
   },
   {
     icon: ClockIcon,
     key: 'review',
     title: 'Under review',
-    body: 'Our team will verify your pastoral role — typically within 1–2 business days.',
+    body: 'Your parish page is live now. Our team will verify your role, typically within 1–2 business days.',
     done: false,
   },
   {
     icon: BuildingLibraryIcon,
     key: 'activated',
     title: 'Parish activated',
-    body: "Once approved, you'll receive an email and your parish dashboard will be unlocked.",
+    body: "Once approved, announcements, events and notifications unlock. Meanwhile you can set up Mass times and parish details.",
     done: false,
   },
 ]
@@ -86,11 +86,19 @@ export default function PastorVerificationPendingPage() {
 
         {/* Info note */}
         <div className="bg-navy/5 border border-navy/10 rounded-xl px-4 py-3 mb-7 text-sm text-navy/70 leading-relaxed">
-          <span className="font-semibold text-navy">{t('parish:pending.what_to_expect', 'What to expect:')}</span> {t('parish:pending.expect_text', 'You’ll receive an email at your registered address once your account is approved. No action is needed on your end.')}
+          <span className="font-semibold text-navy">{t('parish:pending.what_to_expect', 'What to expect:')}</span> {t('parish:pending.expect_text', 'You’ll get a notification once you’re verified. Until then, set up Mass times and parish details from your dashboard.')}
         </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
+          {parishId && (
+            <Link
+              to={`/parish-admin/${parishId}?tab=masstimes`}
+              className="w-full bg-gold text-navy text-sm font-semibold py-3.5 rounded-xl text-center hover:bg-gold/90 transition-colors min-h-[52px] flex items-center justify-center"
+            >
+              {t('parish:pending.open_dashboard', 'Open your parish dashboard')}
+            </Link>
+          )}
           {parishId && (
             <Link
               to={`/parish/${parishId}`}
