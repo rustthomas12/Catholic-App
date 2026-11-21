@@ -216,7 +216,7 @@ export default function FaithPage() {
                   </p>
                 )}
                 <Link
-                  to="/premium/confession-tracker"
+                  to="/faith/confession-tracker"
                   className="inline-block mt-2 text-xs font-semibold text-navy hover:underline"
                 >
                   {t('confession_go')}

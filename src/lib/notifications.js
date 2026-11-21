@@ -95,7 +95,7 @@ export function notificationPath(type, referenceId) {
     case 'prayer_response':
       return '/faith/prayer'
     case 'confession_reminder':
-      return '/premium/confession-tracker'
+      return '/faith/confession-tracker'
     case 'direct_message':
       // reference_id is the sender — open that conversation
       return ref ? `/messages?to=${ref}` : '/messages'

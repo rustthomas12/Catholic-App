@@ -48,7 +48,7 @@ function notificationPath(type: string, ref: string | null): string {
     case 'prayer_response':
       return '/faith/prayer'
     case 'confession_reminder':
-      return '/premium/confession-tracker'
+      return '/faith/confession-tracker'
     case 'direct_message':
       return ref ? `/messages?to=${ref}` : '/messages'
     case 'event_reminder':

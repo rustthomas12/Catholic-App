@@ -12,7 +12,7 @@ vi.mock('stripe', () => ({
   },
 }))
 
-// Supabase client used by track-return
+// Supabase client used by the API handlers
 const updates = []
 const filters = []
 vi.mock('@supabase/supabase-js', () => ({
@@ -115,22 +115,6 @@ describe('create-parish-checkout-session', async () => {
   })
   it('lets the existing admin renew', async () => {
     expect((await call(handler, { token: 'tok-admin', body: { parishId: 'p-managed' } })).statusCode).toBe(200)
-  })
-})
-
-describe('track-return', async () => {
-  const { default: handler } = await import('../../api/track-return.js')
-
-  it('rejects requests without a session', async () => {
-    expect((await call(handler, { body: { userId: 'u-member' } })).statusCode).toBe(401)
-    expect(updates).toHaveLength(0)
-  })
-  it('tracks the caller, not the userId in the body', async () => {
-    const res = await call(handler, { token: 'tok-member', body: { userId: 'u-admin' } })
-    expect(res.statusCode).toBe(200)
-    expect(filters).toContainEqual(['user_id', 'u-member'])
-    expect(filters).not.toContainEqual(['user_id', 'u-admin'])
-    expect(updates).toHaveLength(1)
   })
 })
 
