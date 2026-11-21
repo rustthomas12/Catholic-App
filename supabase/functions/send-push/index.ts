@@ -181,6 +181,9 @@ serve(async (req) => {
     .eq('user_id', user_id)
 
   const notification = formatNotification(type, message, actorName, reference_id ?? null)
+  // ?pn=<id> lets the app record that this push was opened (migration 107):
+  // aggregate open counts for the parish Reach tab, never who opened what
+  notification.url = `${notification.url}${notification.url.includes('?') ? '&' : '?'}pn=${id}`
 
   // iOS / Android app devices (Firebase Cloud Messaging)
   const native = await sendFcmToUsers(supabase, [user_id], notification)

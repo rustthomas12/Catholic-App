@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { markAppReady } from './lib/appReady'
 
 // Side-effect: initialize i18n
@@ -175,11 +175,32 @@ function BootGate() {
   return null
 }
 
+// Opened from a push: send-push adds ?pn=<notification id> to the link.
+// Record the open (aggregate counts for the parish Reach tab, migration
+// 107) and drop the parameter from the address.
+function PushOpenTracker() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  useEffect(() => {
+    if (!user) return
+    const params = new URLSearchParams(location.search)
+    const pn = params.get('pn')
+    if (!pn) return
+    params.delete('pn')
+    if (/^[0-9a-f-]{36}$/i.test(pn)) supabase.rpc('mark_notification_opened', { p_id: pn }).then(() => {})
+    const search = params.toString()
+    navigate({ pathname: location.pathname, search: search ? `?${search}` : '', hash: location.hash }, { replace: true })
+  }, [location, navigate, user])
+  return null
+}
+
 // ── Routes (needs Router context) ─────────────────────────
 function AppInner() {
   return (
     <>
       <BootGate />
+      <PushOpenTracker />
       <OfflineDetector />
       <LastActiveUpdater />
       <TimezoneSync />
