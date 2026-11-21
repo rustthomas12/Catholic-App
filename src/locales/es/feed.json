@@ -126,5 +126,16 @@
     "hide_title": "¿Ocultar esta publicación?",
     "hide_body": "Desaparece de la parroquia para todos y se cierran sus reportes. No se avisa al autor. Puedes restaurarla desde la página de moderación de la parroquia.",
     "hide_confirm": "Ocultar publicación"
+  },
+  "strip": {
+    "title": "De la parroquia",
+    "community": "Comunidad"
+  },
+  "feature": {
+    "badge": "Destacada por la parroquia",
+    "feature": "Destacar para la parroquia",
+    "unfeature": "Dejar de destacar",
+    "featured_ok": "Destacada. Aparece en \"De la parroquia\" para quienes aún no la han visto.",
+    "unfeatured_ok": "Ya no está destacada"
   }
 }

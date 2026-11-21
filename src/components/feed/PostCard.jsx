@@ -29,7 +29,8 @@ import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
 import { publicOrigin } from '../../lib/platform'
 import SacredIcon from '../shared/SacredIcon'
-import { PencilIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, EyeSlashIcon, StarIcon } from '@heroicons/react/24/outline'
+import { observeSeen } from '../../lib/postSeen'
 
 // ── Delete confirm modal ───────────────────────────────────
 function DeleteModal({ isOpen, onClose, onConfirm, loading }) {
@@ -208,6 +209,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     reportPost,
     moderatePost,
     moderateComment,
+    featurePost,
   } = usePost(initialPost.id, initialPost)
 
   const [expanded, setExpanded] = useState(false)
@@ -229,7 +231,28 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
 
   const isOwnPost = user?.id === post.author?.id
   const { isBlocked, block } = useBlockedUsers()
-  const { canModerateParish } = useAdminAccess()
+  const { canModerateParish, canFeatureInParish } = useAdminAccess()
+  const isParishCommunityPost = !!post.parish?.id && !post.group && !post.org_id
+  const canFeature = isParishCommunityPost && !post.is_announcement && canFeatureInParish(post.parish.id)
+  const isOfficial = isParishCommunityPost && (post.is_announcement || !!post.featured_at)
+
+  // Official posts count as seen once on screen (drops them from the
+  // viewer's "From the parish" strip next time, migration 101)
+  const articleRef = useRef(null)
+  useEffect(() => {
+    if (!isOfficial || !user?.id) return
+    return observeSeen(articleRef.current, post.id)
+  }, [isOfficial, user?.id, post.id])
+
+  async function handleFeature() {
+    setMenuOpen(false)
+    const on = !post.featured_at
+    const { error } = await featurePost(on)
+    if (error) toast.error(error)
+    else toast.success(on
+      ? t('feed:feature.featured_ok', 'Featured. It shows in "From the parish" for everyone who hasn\'t seen it.')
+      : t('feed:feature.unfeatured_ok', 'No longer featured'))
+  }
   // Parish community posts only; group and org posts have their own admins
   const canModerate = !isOwnPost && !!post.parish?.id && !post.group && !post.org_id && canModerateParish(post.parish.id)
   const [showHideModal, setShowHideModal] = useState(false)
@@ -357,6 +380,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
   return (
     <>
       <article
+        ref={articleRef}
         className={[
           'bg-white border-b border-gray-100 md:rounded-xl md:border md:shadow-sm md:mb-2 overflow-hidden',
           post.is_prayer_request ? 'border-l-4 border-l-gold' : '',
@@ -374,6 +398,11 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
           </div>
         )}
         <div className="px-4 py-3">
+          {post.featured_at && !post.is_announcement && (
+            <p className="text-xs font-semibold text-gold mb-2 inline-flex items-center gap-1">
+              <StarIcon className="w-3.5 h-3.5" />{t('feed:feature.badge', 'Featured by the parish')}
+            </p>
+          )}
           {/* Prayer request badge */}
           {post.is_prayer_request && (
             <p className="text-xs font-semibold text-gold mb-2 inline-flex items-center gap-1"><SacredIcon name="candle" className="w-3.5 h-3.5" />{t('post.prayer_badge')}</p>
@@ -484,6 +513,15 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     </>
                   ) : (
                     <>
+                      {canFeature && (
+                        <button
+                          onClick={handleFeature}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
+                        >
+                          <StarIcon className="w-4 h-4 text-gold" />
+                          {post.featured_at ? t('feed:feature.unfeature', 'Stop featuring') : t('feed:feature.feature', 'Feature for the parish')}
+                        </button>
+                      )}
                       {canModerate && (
                         <button
                           onClick={() => { setMenuOpen(false); setShowHideModal(true) }}
@@ -534,6 +572,15 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     </>
                   ) : (
                     <>
+                      {canFeature && (
+                        <button
+                          onClick={handleFeature}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
+                        >
+                          <StarIcon className="w-4 h-4 text-gold" />
+                          {post.featured_at ? t('feed:feature.unfeature', 'Stop featuring') : t('feed:feature.feature', 'Feature for the parish')}
+                        </button>
+                      )}
                       {canModerate && (
                         <button
                           onClick={() => { setMenuOpen(false); setShowHideModal(true) }}
