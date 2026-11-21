@@ -98,7 +98,7 @@ The app still runs without Firebase config, but push notifications stay off.
 
 ### 2.4 Supabase
 - [x] New migrations `027_native_push_tokens.sql` and `028_user_blocks.sql`: **applied to production on 2026-10-12**
-- [ ] Auth → URL Configuration → **Redirect URLs**: add
+- [x] Auth → URL Configuration → **Redirect URLs** (checked 2026-11-21: present): add
       `https://app.getinfold.app/api/native-return**`
       Without it, confirmation and reset emails from the app fall back to the
       site URL.
