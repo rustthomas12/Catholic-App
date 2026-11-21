@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { FlagIcon, EyeSlashIcon, ArrowUturnLeftIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth.jsx'
 import { containsIlike } from '../../utils/search'
 import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
@@ -226,6 +227,7 @@ const PROMPTS = [
 
 export function PromptsPanel({ parishId }) {
   const { t } = useTranslation('parish')
+  const { user } = useAuth()
   const [enabled, setEnabled] = useState(null) // { kind: bool }
   const [saving, setSaving] = useState(null)
 
@@ -242,7 +244,6 @@ export function PromptsPanel({ parishId }) {
     const next = !enabled?.[kind]
     setSaving(kind)
     setEnabled(prev => ({ ...prev, [kind]: next }))
-    const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('parish_prompts').upsert(
       { parish_id: parishId, kind, enabled: next, updated_by: user?.id ?? null, updated_at: new Date().toISOString() },
       { onConflict: 'parish_id,kind' })
