@@ -114,7 +114,8 @@
     "back": "Volver",
     "contact": "Contactar",
     "provisional_verifying": "La página de tu parroquia ya está publicada. Puedes configurar los horarios de misa y los datos de la parroquia; los anuncios y las notificaciones se activan cuando verifiquemos tu función, normalmente en 1 o 2 días hábiles.",
-    "work_here_set_up": "¿Trabajas en esta parroquia? Configúrala"
+    "work_here_set_up": "¿Trabajas en esta parroquia? Configúrala",
+    "moderation": "Moderación"
   },
   "tabs": {
     "feed": "Publicaciones",
@@ -175,5 +176,36 @@
     "view_your_parish_page": "Ver la página de tu parroquia",
     "go_to_the_app": "Ir a la aplicación",
     "open_dashboard": "Abrir el panel de tu parroquia"
+  },
+  "moderation": {
+    "title": "Moderación",
+    "parish": "Parroquia",
+    "back": "Volver a la parroquia",
+    "not_allowed": "Solo los moderadores de esta parroquia pueden ver esta página.",
+    "reported": "Publicaciones reportadas",
+    "reported_help": "Oculta una publicación para retirarla para todos, o mantenla para cerrar los reportes. Quién la reportó se mantiene en privado.",
+    "none": "No hay reportes abiertos. Todo en orden.",
+    "member": "Miembro de la parroquia",
+    "has_photo": "(incluye una foto)",
+    "report_count_one": "{{count}} reporte",
+    "report_count_other": "{{count}} reportes",
+    "no_reason": "sin motivo",
+    "hide": "Ocultar publicación",
+    "keep": "Mantener publicación",
+    "open": "Abrir",
+    "hidden_ok": "Publicación ocultada",
+    "kept_ok": "Reportes cerrados",
+    "restored_ok": "Publicación restaurada",
+    "recently_hidden": "Ocultadas recientemente",
+    "recently_hidden_help": "Restaura una publicación si se ocultó por error.",
+    "restore": "Restaurar",
+    "error": "Algo salió mal. Inténtalo de nuevo.",
+    "moderators": "Moderadores",
+    "moderators_help": "Feligreses de confianza que pueden ocultar publicaciones y comentarios en la comunidad de tu parroquia. No pueden publicar anuncios ni ver nada más del panel.",
+    "no_mods": "Aún no hay moderadores. Tú y tu personal siempre pueden moderar.",
+    "remove_mod": "Quitar a {{name}} como moderador",
+    "search_member": "Añadir moderador: busca entre tus feligreses",
+    "mod_added": "Moderador añadido",
+    "mod_removed": "Moderador quitado"
   }
 }

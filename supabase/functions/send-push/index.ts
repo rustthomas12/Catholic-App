@@ -45,6 +45,8 @@ function notificationPath(type: string, ref: string | null): string {
       return '/organizations'
     case 'post_flagged':
       return '/admin'
+    case 'parish_post_flagged':
+      return ref ? `/parish/${ref}/moderation` : '/notifications'
     case 'prayer_response':
       return '/faith/prayer'
     case 'confession_reminder':
@@ -86,6 +88,7 @@ function formatNotification(type: string, message: string | null, actorName: str
     event_reminder:         { title: 'Event reminder',      body: body || `You have an upcoming event` },
     new_event:              { title: 'New event',           body: body || `A new event was added` },
     post_flagged:             { title: 'New report',             body: body || `Something was reported for review` },
+    parish_post_flagged:      { title: 'Post reported',          body: body || `A post in your parish was reported` },
     new_parish_member:        { title: 'New parish follower',     body: `${actor} is following your parish` },
     parish_message:           { title: 'New parish message',      body: body || `${actor} sent your parish a message` },
     pastor_verified:          { title: "You're verified",          body: body || 'Your parish dashboard is ready' },

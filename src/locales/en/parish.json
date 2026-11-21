@@ -44,5 +44,9 @@
     "discover_title": "Find your parish",
     "discover_body": "Search by name, city, or zip — or use your location to find parishes near you.",
     "find_near_me": "Find parishes near me"
+  },
+  "moderation": {
+    "report_count_one": "{{count}} report",
+    "report_count_other": "{{count}} reports"
   }
 }

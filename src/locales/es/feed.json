@@ -117,5 +117,14 @@
     "today": "Hoy",
     "tomorrow": "Mañana",
     "see_all": "Ver todos"
+  },
+  "moderate": {
+    "hide_post": "Ocultar de la parroquia",
+    "hide_comment": "Ocultar comentario (moderador)",
+    "post_hidden": "Publicación ocultada de la parroquia",
+    "comment_hidden": "Comentario ocultado",
+    "hide_title": "¿Ocultar esta publicación?",
+    "hide_body": "Desaparece de la parroquia para todos y se cierran sus reportes. No se avisa al autor. Puedes restaurarla desde la página de moderación de la parroquia.",
+    "hide_confirm": "Ocultar publicación"
   }
 }
