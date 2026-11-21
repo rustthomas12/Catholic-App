@@ -960,17 +960,17 @@ export default function AdminPage() {
         <section>
           <AppErrors />
         </section>
+
+        {/* Diocese plan accounts */}
+        <section>
+          <DioceseAccounts />
+        </section>
+
+        {/* Parish Clusters */}
+        <section>
+          <ParishClusters />
+        </section>
       </div>
-
-      {/* Diocese plan accounts */}
-      <section>
-        <DioceseAccounts />
-      </section>
-
-      {/* Parish Clusters */}
-      <section>
-        <ParishClusters />
-      </section>
 
       {/* Ban Confirmation Modal */}
       <Modal
