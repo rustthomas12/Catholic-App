@@ -19,6 +19,7 @@ import {
   ArrowsRightLeftIcon,
   LockClosedIcon,
   ShieldCheckIcon,
+  SignalIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { READ_EVENT } from '../hooks/useNotifications'
@@ -33,6 +34,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
 import { FlagQueue, ModeratorsPanel, PromptsPanel } from '../components/parish/ParishModeration'
+import { ReachTab, TrialSummary } from '../components/parish/ParishReach'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
@@ -83,6 +85,7 @@ function AddCardButton({ parishId, label, className }) {
 
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
+  { id: 'reach',         label: 'Reach',         Icon: SignalIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
   { id: 'events',        label: 'Events',        Icon: CalendarDaysIcon },
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
@@ -203,6 +206,7 @@ export default function ParishAdminPage() {
 
   const ActivePanel = {
     dashboard:     DashboardTab,
+    reach:         ReachTab,
     announcements: AnnouncementsTab,
     events:        EventsTab,
     masstimes:     MassTimesTab,
@@ -334,7 +338,7 @@ export default function ParishAdminPage() {
 }
 
 // ── Dashboard Tab ───────────────────────────────────────────
-function DashboardTab({ parishId }) {
+function DashboardTab({ parishId, subscription, adminRole }) {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -381,6 +385,15 @@ function DashboardTab({ parishId }) {
 
   return (
     <div className="space-y-6">
+      {/* Day-75 trial summary: what inFold did during the trial */}
+      {adminRole !== 'pending' && (
+        <TrialSummary parishId={parishId} subscription={subscription}
+          addCard={trialDaysLeft(subscription) !== null && canPurchaseInApp
+            ? <AddCardButton parishId={parishId} label="Keep it running: add a card"
+                className="bg-navy text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-navy/90 disabled:opacity-60" />
+            : null} />
+      )}
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {statCards.map(({ label, value, color }) => (
