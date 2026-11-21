@@ -215,3 +215,65 @@ export function ModeratorsPanel({ parishId }) {
     </section>
   )
 }
+
+// Weekly prompt threads (migration 106): the parish team turns each on or
+// off. They're posted under the pastor's name and don't push on their own.
+const PROMPTS = [
+  { kind: 'homily',    when: ['moderation.prompt_homily_when', 'Sundays, 2pm'],     title: ['moderation.prompt_homily', "Discuss Sunday's homily"] },
+  { kind: 'intention', when: ['moderation.prompt_intention_when', 'Mondays, 8am'],  title: ['moderation.prompt_intention', 'Share your intention this week'] },
+  { kind: 'rides',     when: ['moderation.prompt_rides_when', 'Thursdays, 10am'],   title: ['moderation.prompt_rides', 'Need a ride to Mass?'] },
+]
+
+export function PromptsPanel({ parishId }) {
+  const { t } = useTranslation('parish')
+  const [enabled, setEnabled] = useState(null) // { kind: bool }
+  const [saving, setSaving] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('parish_prompts').select('kind, enabled').eq('parish_id', parishId)
+      .then(({ data }) => {
+        if (!cancelled) setEnabled(Object.fromEntries((data ?? []).map(r => [r.kind, r.enabled])))
+      })
+    return () => { cancelled = true }
+  }, [parishId])
+
+  async function toggle(kind) {
+    const next = !enabled?.[kind]
+    setSaving(kind)
+    setEnabled(prev => ({ ...prev, [kind]: next }))
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('parish_prompts').upsert(
+      { parish_id: parishId, kind, enabled: next, updated_by: user?.id ?? null, updated_at: new Date().toISOString() },
+      { onConflict: 'parish_id,kind' })
+    setSaving(null)
+    if (error) {
+      setEnabled(prev => ({ ...prev, [kind]: !next }))
+      toast.error(t('moderation.error', 'Something went wrong. Please try again.'))
+    }
+  }
+
+  return (
+    <section>
+      <h3 className="font-bold text-navy mb-1">{t('moderation.prompts', 'Weekly prompts')}</h3>
+      <p className="text-xs text-gray-500 mb-3">
+        {t('moderation.prompts_help', "Conversation starters posted in your parish's community under your name, once a week. They don't send a push of their own.")}
+      </p>
+      <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+        {enabled === null ? <div className="p-4"><LoadingSpinner /></div> : PROMPTS.map(p => (
+          <div key={p.kind} className="flex items-center gap-3 px-4 py-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-navy">{t(...p.title)}</p>
+              <p className="text-xs text-gray-500">{t(...p.when)}</p>
+            </div>
+            <button role="switch" aria-checked={!!enabled[p.kind]} aria-label={t(...p.title)}
+              disabled={saving === p.kind} onClick={() => toggle(p.kind)}
+              className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-60 ${enabled[p.kind] ? 'bg-navy' : 'bg-gray-300'}`}>
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${enabled[p.kind] ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}

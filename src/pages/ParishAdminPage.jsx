@@ -32,7 +32,7 @@ import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
-import { FlagQueue, ModeratorsPanel } from '../components/parish/ParishModeration'
+import { FlagQueue, ModeratorsPanel, PromptsPanel } from '../components/parish/ParishModeration'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
@@ -88,7 +88,7 @@ const TABS = [
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
   { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
-  { id: 'moderation',    label: 'Moderation',    Icon: ShieldCheckIcon },
+  { id: 'moderation',    label: 'Community',     Icon: ShieldCheckIcon },
   { id: 'billing',       label: 'Billing',       Icon: CreditCardIcon },
   { id: 'integrations',  label: 'Integrations',  Icon: ArrowsRightLeftIcon },
   { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
@@ -1282,8 +1282,9 @@ const PARISH_TIERS = [
 function ModerationTab({ parishId, adminRole }) {
   return (
     <div className="space-y-8">
-      <h2 className="font-bold text-navy">Moderation</h2>
+      <h2 className="font-bold text-navy">Community</h2>
       <FlagQueue parishId={parishId} />
+      <PromptsPanel parishId={parishId} />
       {/* Only the parish admin (not staff) appoints moderators */}
       {adminRole === 'admin' && <ModeratorsPanel parishId={parishId} />}
     </div>

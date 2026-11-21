@@ -55,8 +55,12 @@ function DestinationSheet({ isOpen, onClose, options, selected, onSelect }) {
 // ── Compose modal ──────────────────────────────────────────
 function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestination, orgId = null }) {
   const { t } = useTranslation('feed')
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const isSuspended = !!profile?.suspended_at
+  // Community guidelines, accepted once before a first parish post (106).
+  // Clergy and platform admins aren't asked.
+  const [showGuidelines, setShowGuidelines] = useState(false)
+  const [acceptingGuidelines, setAcceptingGuidelines] = useState(false)
 
   const [content, setContent] = useState('')
   const [image, setImage] = useState(null)        // File
@@ -124,11 +128,29 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  async function handlePost() {
+  const needsGuidelines = destination?.type === 'parish' && !orgId
+    && !profile?.community_guidelines_accepted_at
+    && !profile?.is_verified_clergy && !profile?.is_admin
+
+  async function acceptGuidelines() {
+    setAcceptingGuidelines(true)
+    const { error } = await supabase.rpc('accept_community_guidelines')
+    setAcceptingGuidelines(false)
+    if (error) { toast.error(t('common:status.error', { ns: 'common' })); return }
+    setShowGuidelines(false)
+    await refreshProfile?.()
+    handlePost(true)
+  }
+
+  async function handlePost(guidelinesJustAccepted = false) {
     const trimmed = content.trim()
     if (!trimmed) return
     if (isSuspended) {
       toast.error('Your account is under review. You cannot post at this time.')
+      return
+    }
+    if (needsGuidelines && guidelinesJustAccepted !== true) {
+      setShowGuidelines(true)
       return
     }
     setPosting(true)
@@ -246,7 +268,7 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
             </button>
             <span className="text-base font-semibold text-navy">New Post</span>
             <button
-              onClick={handlePost}
+              onClick={() => handlePost()}
               disabled={!content.trim() || posting || overLimit || isSuspended}
               className="bg-gold text-navy text-sm font-bold px-4 py-1.5 rounded-full min-h-[36px] disabled:opacity-40 flex items-center gap-1.5"
             >
@@ -339,6 +361,33 @@ function ComposeModal({ isOpen, onClose, onPost, destinations, defaultDestinatio
               {charCount}/{MAX_CHARS}
             </span>
           </div>
+
+          {showGuidelines && (
+            <div className="absolute inset-0 z-10 bg-white md:rounded-2xl rounded-t-2xl flex flex-col" role="region" aria-label={t('guidelines.title', 'Community guidelines')}>
+              <div className="flex-1 overflow-y-auto px-5 pt-5 pb-3">
+                <h2 className="text-lg font-bold text-navy mb-1">{t('guidelines.title', 'Community guidelines')}</h2>
+                <p className="text-sm text-gray-600 mb-4">{t('guidelines.intro', 'Before your first post: this is your parish family. Please help keep it a good place.')}</p>
+                <ul className="space-y-3 text-sm text-gray-700">
+                  <li>✓ {t('guidelines.kind', 'Be kind and charitable. Disagree without attacking anyone.')}</li>
+                  <li>✓ {t('guidelines.topic', 'Keep it about faith and parish life. No selling, ads or political campaigning.')}</li>
+                  <li>✓ {t('guidelines.privacy', "Respect privacy. Don't share someone's personal details or prayer needs without their permission.")}</li>
+                  <li>✓ {t('guidelines.content', 'Nothing hateful, explicit or misleading.')}</li>
+                  <li>✓ {t('guidelines.limit', 'Up to 3 community posts a day. Prayer requests are always open.')}</li>
+                </ul>
+                <p className="text-xs text-gray-500 mt-4">{t('guidelines.moderation', 'Your parish team can hide posts that break these guidelines.')}</p>
+              </div>
+              <div className="flex gap-2 justify-end px-5 py-4 border-t border-gray-100">
+                <button onClick={() => setShowGuidelines(false)} className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-navy min-h-[44px]">
+                  {t('common:actions.cancel', { ns: 'common' })}
+                </button>
+                <button onClick={acceptGuidelines} disabled={acceptingGuidelines}
+                  className="px-4 py-2 text-sm font-bold text-navy bg-gold rounded-xl disabled:opacity-60 min-h-[44px] flex items-center gap-1.5">
+                  {acceptingGuidelines && <LoadingSpinner size="sm" color="navy" />}
+                  {t('guidelines.accept', 'I agree, post')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

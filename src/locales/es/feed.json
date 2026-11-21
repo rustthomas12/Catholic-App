@@ -137,5 +137,19 @@
     "unfeature": "Dejar de destacar",
     "featured_ok": "Destacada. Aparece en \"De la parroquia\" para quienes aún no la han visto.",
     "unfeatured_ok": "Ya no está destacada"
+  },
+  "guidelines": {
+    "title": "Normas de la comunidad",
+    "intro": "Antes de tu primera publicación: esta es tu familia parroquial. Ayúdanos a que siga siendo un buen lugar.",
+    "kind": "Sé amable y caritativo. Puedes no estar de acuerdo sin atacar a nadie.",
+    "topic": "Habla de la fe y la vida parroquial. Nada de ventas, anuncios ni campañas políticas.",
+    "privacy": "Respeta la privacidad. No compartas datos personales ni necesidades de oración de otros sin su permiso.",
+    "content": "Nada de odio, contenido explícito ni engaños.",
+    "limit": "Hasta 3 publicaciones al día en la comunidad. Las peticiones de oración siempre están abiertas.",
+    "moderation": "El equipo de tu parroquia puede ocultar publicaciones que no sigan estas normas.",
+    "accept": "Acepto, publicar"
+  },
+  "prompt": {
+    "badge": "Tema semanal"
   }
 }
