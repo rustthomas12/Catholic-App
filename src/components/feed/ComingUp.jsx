@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { CalendarDaysIcon } from '@heroicons/react/24/outline'
@@ -7,9 +8,11 @@ import { useMyUpcomingEvents, sourceOf } from '../../hooks/useMyUpcomingEvents'
 // "Coming up": the next few events from your parishes, groups and
 // organizations, at the top of the main feed. Events used to appear only
 // under the Events filter, so people thought they were missing.
-export default function ComingUp({ onSeeAll }) {
+export default function ComingUp({ onSeeAll, onReady }) {
   const { t } = useTranslation('feed')
-  const { events } = useMyUpcomingEvents({ limit: 3, withinDays: 14 })
+  const { events, error } = useMyUpcomingEvents({ limit: 3, withinDays: 14 })
+  const settled = events !== null || !!error
+  useEffect(() => { if (settled) onReady?.() }, [settled]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!events?.length) return null
 
   const when = (d) => isToday(d) ? t('coming_up.today', 'Today')

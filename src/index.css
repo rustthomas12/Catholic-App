@@ -103,6 +103,11 @@ h3, h4 { font-weight: 600 !important; }
     background: #C9A84C;
     border-radius: 3px;
   }
+  /* Sideways rows (filters, chips) set scrollbar-width: none; older
+     Android WebViews ignore it and drew a navy/gold bar under them */
+  [style*="scrollbar-width: none"]::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ── Component classes ── */

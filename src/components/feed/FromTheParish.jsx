@@ -14,7 +14,7 @@ import PostCard from './PostCard'
  * PostCard / lib/postSeen); it stays for this visit and is gone next time.
  * The same posts also stay in the timeline below. Not ranked: newest first.
  */
-export default function FromTheParish({ parishId = null }) {
+export default function FromTheParish({ parishId = null, onReady }) {
   const { t } = useTranslation('feed')
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
@@ -33,8 +33,10 @@ export default function FromTheParish({ parishId = null }) {
         const order = new Map(ids.map((id, i) => [id, i]))
         setPosts(data.map((r) => normalisePost(r, user.id)).sort((a, b) => order.get(a.id) - order.get(b.id)))
       })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) onReady?.() })
     return () => { cancelled = true }
-  }, [parishId, user])
+  }, [parishId, user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!posts.length) return null
 
