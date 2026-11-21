@@ -78,7 +78,8 @@ function formatNotification(type: string, message: string | null, actorName: str
     group_invite:           { title: 'Group invitation',      body: `${actor} invited you to a group` },
     group_request:          { title: 'Join request',          body: `${actor} wants to join your group` },
     group_request_response: { title: 'Group update',          body: body || `Your group request was reviewed` },
-    parish_post:            { title: 'Parish announcement', body: body || `New announcement from your parish` },
+    // Announcements and clergy/staff posts (migration 092) share this type
+    parish_post:            { title: 'From your parish',      body: body || `New post from your parish` },
     prayer_response:        { title: 'Prayer response',     body: `${actor} prayed for your intention` },
     confession_reminder:    { title: 'Confession reminder',  body: body || `Time to prepare for confession` },
     direct_message:         { title: 'New message',         body: `${actor} sent you a message` },
@@ -180,7 +181,7 @@ serve(async (req) => {
       return new Response('No push subscriptions for user', { status: 200 })
     }
     return new Response(
-      JSON.stringify({ sent: native.sent, failed: native.failed }),
+      JSON.stringify({ sent: native.sent, failed: native.failed, ...(native.errors.length ? { reasons: native.errors } : {}) }),
       { headers: { 'Content-Type': 'application/json' }, status: 200 }
     )
   }
@@ -194,6 +195,10 @@ serve(async (req) => {
     url: notification.url,
     tag: notification.tag,
   })
+
+  // Why each failed device failed, returned to the caller for diagnosis
+  // (the caller already had to own a fresh, unsent notification id)
+  const reasons: string[] = [...native.errors]
 
   // Send to all subscribed devices, cleaning up expired ones
   const results = await Promise.allSettled(
@@ -209,6 +214,7 @@ serve(async (req) => {
         // or for a device that no longer exists — remove those too, or they
         // fail on every notification.
         const reason = String(err.body ?? err.message ?? '')
+        reasons.push(`web ${new URL(sub.endpoint).host}: ${err.statusCode} ${reason.slice(0, 120)}`)
         console.log(`Push to ${new URL(sub.endpoint).host} failed: ${err.statusCode} ${reason.slice(0, 200)}`)
         const dead = err.statusCode === 410 || err.statusCode === 404 ||
           /VapidPkHashMismatch|BadDeviceToken|Unregistered|ExpiredSubscription|BadWebPushTopic/i.test(reason)
@@ -231,7 +237,7 @@ serve(async (req) => {
   console.log(`Push for user ${user_id}: ${sent} sent, ${failed} failed (type: ${type})`)
 
   return new Response(
-    JSON.stringify({ sent, failed }),
+    JSON.stringify({ sent, failed, ...(reasons.length ? { reasons } : {}) }),
     { headers: { 'Content-Type': 'application/json' }, status: 200 }
   )
 })

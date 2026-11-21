@@ -406,11 +406,16 @@ function AnnouncementsTab({ parishId }) {
       is_announcement: true,
     })
     if (insertError) { toast.error('Could not send announcement.'); return }
-    await supabase
+    // Remove the scheduled copy so the scheduler doesn't send it again.
+    // (Marking it published was silently refused by RLS, which only lets
+    // authors edit unpublished rows, so every "Send now" went out twice.)
+    const { data: removed } = await supabase
       .from('scheduled_posts')
-      .update({ published: true, published_at: new Date().toISOString() })
+      .delete()
       .eq('id', scheduledPost.id)
-    toast.success('Announcement sent to parish feed.')
+      .select('id')
+    if (!removed?.length) toast.error('Sent, but the scheduled copy could not be removed. Delete it so it is not sent again.')
+    else toast.success('Announcement sent to parish feed.')
     load()
   }
 
