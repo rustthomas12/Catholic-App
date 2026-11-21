@@ -29,8 +29,18 @@ const IGNORE = [
 
 const clip = (s, n) => (s == null ? null : String(s).slice(0, n))
 
+// Dev servers and local builds (hot reloads cause false crashes) stay out of
+// the production log. Error boundaries call reportError directly, so the
+// check lives here rather than only in installErrorReporting.
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|.+\.localhost|.+\.test)$/i
+export const isLocalHost = (hostname) => LOCAL_HOST.test(hostname || '')
+// Unit tests (MODE 'test') exercise the reporter, so they aren't skipped
+const isLocal = () => import.meta.env.MODE !== 'test'
+  && (import.meta.env.DEV || isLocalHost(location.hostname))
+
 export function reportError(kind, error, extraStack) {
   try {
+    if (isLocal()) return
     const message = clip(error?.message ?? error ?? 'Unknown error', 500)
     if (!message || IGNORE.some((re) => re.test(message))) return
     const key = `${kind}:${message}`

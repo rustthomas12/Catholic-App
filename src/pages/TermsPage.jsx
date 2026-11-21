@@ -25,7 +25,7 @@ export default function TermsPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h1 className="text-2xl font-bold text-navy mb-1">Terms of Service</h1>
-          <p className="text-xs text-gray-500 mb-6">Last updated: October 22, 2026</p>
+          <p className="text-xs text-gray-500 mb-6">Last updated: November 21, 2026</p>
 
           <Section title="1. Acceptance of Terms">
             <p>By creating an account, you agree to these Terms of Service. If you do not agree, please do not use inFold.</p>
@@ -62,7 +62,9 @@ export default function TermsPage() {
           </Section>
 
           <Section title="6. Parish and Organization Subscriptions">
-            <p>inFold is free for individual members, and every member feature is included at no cost. Parishes and Catholic organizations may subscribe to administrative tools. Those subscriptions are purchased by the parish or organization on our website, billed monthly or annually via Stripe, and can be cancelled at any time; access continues until the end of the current billing period. We do not offer refunds for partial periods. We may change pricing with 30 days notice.</p>
+            <p>inFold is free for individual members, and every member feature is included at no cost. Parishes, dioceses and Catholic organizations may subscribe to administrative tools. Those subscriptions are purchased by the parish, diocese or organization on our website, billed monthly or annually via Stripe, and can be cancelled at any time; access continues until the end of the current billing period. We do not offer refunds for partial periods. We may change pricing with 30 days notice.</p>
+            <p className="mt-2"><strong>Free trial.</strong> Parish plans start with a 90-day free trial, and no card is needed to begin. If a card is on file when the trial ends, the plan continues automatically on monthly autopay at the price shown when you signed up. If no card is on file, the plan pauses: your parish page and everything your parishioners posted stay, but announcements, events and notifications from the dashboard stop until a card is added. Adding a card resumes the plan, and billing starts that day. We will email reminders before the trial ends.</p>
+            <p className="mt-2"><strong>Diocese plans.</strong> A diocese may cover the parishes it chooses for a flat price per parish per month, billed to the diocese on card autopay. Adding or removing a parish adjusts the bill, prorated. When a parish that already pays for its own plan becomes covered, its own subscription ends at the end of the period it has already paid for, so it is not charged twice. If the diocese plan ends, covered parishes keep their pages and content and may start their own plan.</p>
           </Section>
 
           <Section title="7. Termination">
