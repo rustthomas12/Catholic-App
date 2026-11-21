@@ -4,7 +4,7 @@ const insert = vi.fn(() => Promise.resolve({ error: null }))
 vi.mock('../../src/lib/supabase', () => ({ supabase: { from: () => ({ insert }) } }))
 vi.mock('../../src/lib/platform', () => ({ platform: 'web' }))
 
-const { reportError } = await import('../../src/lib/errorReporting')
+const { reportError, isLocalHost } = await import('../../src/lib/errorReporting')
 
 describe('error reporting', () => {
   beforeEach(() => insert.mockClear())
@@ -24,6 +24,11 @@ describe('error reporting', () => {
     reportError('render', new Error('Boom two'))
     reportError('render', new Error('Boom two'))
     expect(insert).toHaveBeenCalledTimes(1)
+  })
+
+  it('treats dev and local hosts as local (their crashes stay out of the log)', () => {
+    for (const h of ['localhost', '127.0.0.1', '[::1]', 'app.localhost', 'infold.test']) expect(isLocalHost(h)).toBe(true)
+    for (const h of ['app.getinfold.app', 'getinfold.app', 'localhost.example.com', '']) expect(isLocalHost(h)).toBe(false)
   })
 
   it('ignores errors that are not app bugs', () => {

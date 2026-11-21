@@ -28,7 +28,7 @@ function fetchReadingsOnce(dateStr, lang = 'en') {
 
   const controller = new AbortController()
   const fetchTimeout = setTimeout(() => controller.abort(), 5000)
-  const endpoint = lang === 'es' ? `/api/readings?date=${dateStr}&lang=es` : `/api/readings?date=${dateStr}`
+  const endpoint = `/api/readings?date=${dateStr}`
 
   _promises[lang] = fetch(apiUrl(endpoint), { signal: controller.signal })
     .then(res => {

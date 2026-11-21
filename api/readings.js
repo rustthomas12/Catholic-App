@@ -408,10 +408,11 @@ function parseDate(date) {
 // ── Handler ────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (applyNativeCors(req, res, { publicData: true })) return
-  const { date, lang, rite } = req.query
+  // ?lang=es gets the same English text: the app links to USCCB's Spanish
+  // readings (no licensed Spanish source; universalis.com was removed)
+  const { date, rite } = req.query
 
   // Route to sub-handlers based on query params
-  if (lang === 'es') return handleSpanish(req, res)
   if (rite === 'tlm') return handleTLM(req, res)
 
   const isoDate = parseDate(date)
@@ -471,26 +472,6 @@ export default async function handler(req, res) {
     date: isoDate,
     usccbLink: cpbjrRes.usccbLink ?? `https://bible.usccb.org/bible/readings/${mm}${dd}${yyyy.slice(2)}.cfm`,
   })
-}
-
-// ── Spanish readings (Universalis) ─────────────────────────
-async function handleSpanish(req, res) {
-  const { date } = req.query
-  if (!/^\d{8}$/.test(date ?? '') || !parseDate(date)) {
-    return res.status(400).json({ success: false, error: 'Invalid date format, expected YYYYMMDD' })
-  }
-  try {
-    const response = await fetch('https://universalis.com/es/' + date + '/mass.htm', {
-      headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'text/html,application/xhtml+xml' },
-      signal: AbortSignal.timeout(8000),
-    })
-    if (!response.ok) return res.status(200).json({ success: false, html: null })
-    const html = await response.text()
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600')
-    return res.status(200).json({ success: true, html })
-  } catch {
-    return res.status(200).json({ success: false, html: null })
-  }
 }
 
 // ── TLM readings (Missale Meum) ─────────────────────────────
