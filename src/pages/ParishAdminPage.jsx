@@ -37,6 +37,43 @@ import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
 // Tabs a parish admin can use without an active subscription
 const FREE_TABS = ['billing', 'messages']
 
+// Days until a no-card trial ends; null when the reminder doesn't apply
+function trialDaysLeft(subscription) {
+  if (subscription?.status !== 'trialing' || subscription.has_payment_method || !subscription.trial_ends_at) return null
+  return Math.max(0, Math.ceil((parseISO(subscription.trial_ends_at) - Date.now()) / 86400000))
+}
+
+// Opens Stripe to save a card for autopay; the webhook resumes a paused plan
+async function openAddCard(parishId) {
+  const res = await fetch(apiUrl('/api/create-parish-checkout-session'), {
+    method: 'POST',
+    headers: await authJsonHeaders(),
+    body: JSON.stringify({ parishId, action: 'add-card' }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not open Stripe')
+  await openExternal(data.url)
+}
+
+function AddCardButton({ parishId, label, className }) {
+  const [busy, setBusy] = useState(false)
+  async function go() {
+    setBusy(true)
+    try {
+      await openAddCard(parishId)
+      if (isNative) setBusy(false)
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong.')
+      setBusy(false)
+    }
+  }
+  return (
+    <button onClick={go} disabled={busy} className={className}>
+      {busy ? 'Opening…' : label}
+    </button>
+  )
+}
+
 const TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
@@ -120,18 +157,27 @@ export default function ParishAdminPage() {
     init()
   }, [parishId, user, isAdmin, authLoading, navigate, retryKey])
 
+  const loadSubscription = useCallback(() => supabase
+    .from('parish_subscriptions')
+    .select('status, trial_ends_at, current_period_end, stripe_customer_id, has_payment_method')
+    .eq('parish_id', parishId)
+    .maybeSingle()
+    .then(({ data }) => {
+      setSubscription(data)
+      setSubLoading(false)
+    })
+    .catch(() => setSubLoading(false)), [parishId])
+
+  useEffect(() => { loadSubscription() }, [loadSubscription])
+
+  // Back from Stripe after saving a card: the webhook may land a few seconds later
+  const cardAdded = searchParams.get('card') === 'added'
   useEffect(() => {
-    supabase
-      .from('parish_subscriptions')
-      .select('status, trial_ends_at, current_period_end, stripe_customer_id')
-      .eq('parish_id', parishId)
-      .maybeSingle()
-      .then(({ data }) => {
-        setSubscription(data)
-        setSubLoading(false)
-      })
-      .catch(() => setSubLoading(false))
-  }, [parishId])
+    if (!cardAdded) return
+    toast.success('Card saved. Your parish plan is on monthly autopay.')
+    const timer = setTimeout(loadSubscription, 4000)
+    return () => clearTimeout(timer)
+  }, [cardAdded, loadSubscription])
 
   if (loading) {
     return (
@@ -143,6 +189,7 @@ export default function ParishAdminPage() {
   if (loadFailed) return <LoadFailed onRetry={() => { setLoading(true); setRetryKey((k) => k + 1) }} />
 
   const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
+  const daysLeft = trialDaysLeft(subscription)
 
   const ActivePanel = {
     dashboard:     DashboardTab,
@@ -197,8 +244,31 @@ export default function ParishAdminPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         {/* Billing and parishioner messages stay open without a subscription,
             so a pastor never misses a message sent to the parish */}
+        {/* No-card trial ending soon: nudge toward autopay (reminders from day 75) */}
+        {daysLeft !== null && daysLeft <= 15 && canPurchaseInApp && (
+          <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+            <p className="flex-1 min-w-[12rem] text-sm text-amber-900">
+              <span className="font-bold">Your free trial ends {daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`}.</span>{' '}
+              Add a card so announcements and notifications keep running on autopay. You won't be charged before the trial ends.
+            </p>
+            <AddCardButton parishId={parishId} label="Add a card"
+              className="bg-navy text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-navy/90 disabled:opacity-60" />
+          </div>
+        )}
         {!FREE_TABS.includes(activeTab) && !subLoading && !hasActiveSub ? (
           !canPurchaseInApp ? <IosPlanNotice kind="parish" /> :
+          subscription?.status === 'paused' ? (
+            <div className="text-center py-16 px-4">
+              <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+              <h3 className="font-bold text-navy text-lg mb-2">Your free trial has ended</h3>
+              <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+                Your parish page and everything your parishioners posted are still here. Add a card to turn
+                announcements, events and notifications back on. Billing starts today on monthly autopay.
+              </p>
+              <AddCardButton parishId={parishId} label="Add a card to resume →"
+                className="bg-gold text-navy font-bold px-6 py-3 rounded-xl hover:bg-gold/90 disabled:opacity-60 transition-colors" />
+            </div>
+          ) :
           <div className="text-center py-16 px-4">
             <CreditCardIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
             <h3 className="font-bold text-navy text-lg mb-2">Activate your parish dashboard</h3>
@@ -1247,6 +1317,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
       active:   { label: 'Active', cls: 'bg-green-100 text-green-700' },
       past_due: { label: 'Past Due', cls: 'bg-amber-100 text-amber-700' },
       canceled: { label: 'Canceled', cls: 'bg-red-100 text-red-600' },
+      paused:   { label: 'Paused', cls: 'bg-amber-100 text-amber-700' },
     }
     const s = map[status] || { label: status, cls: 'bg-gray-100 text-gray-600' }
     return <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${s.cls}`}>{s.label}</span>
@@ -1276,7 +1347,7 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
             <p className="text-sm text-gray-500 mb-3">Your previous plan was canceled. Choose a plan to reactivate your parish dashboard.</p>
           )}
           <p className="font-bold text-navy text-lg mb-1">Start your free 90-day trial</p>
-          <p className="text-sm text-gray-500 mb-5">A card is required at checkout; you won't be charged until day 91. Choose the plan that fits your parish.</p>
+          <p className="text-sm text-gray-500 mb-5">No card needed to start. Add one any time before day 91 to keep things running on monthly autopay. Choose the plan that fits your parish.</p>
 
           {/* Tier selector */}
           <div className="grid grid-cols-2 gap-3 mb-5">
@@ -1336,7 +1407,26 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
           {subscription.status === 'trialing' && subscription.trial_ends_at && (
             <p className="text-sm text-gray-500">
               Trial ends {format(parseISO(subscription.trial_ends_at), 'MMMM d, yyyy')}
+              {subscription.has_payment_method ? ' · Card on file for autopay' : ''}
             </p>
+          )}
+          {subscription.status === 'paused' && (
+            <p className="text-sm text-gray-500">
+              Your free trial ended without a card, so the plan is paused. Nothing has been deleted.
+            </p>
+          )}
+          {canPurchaseInApp && (subscription.status === 'paused'
+            || (subscription.status === 'trialing' && !subscription.has_payment_method)) && (
+            <div className="mt-4 bg-lightbg rounded-xl p-4">
+              <p className="text-sm text-navy mb-3">
+                {subscription.status === 'paused'
+                  ? 'Add a card to resume. Billing starts today on monthly autopay.'
+                  : "Add a card now for autopay. You won't be charged until the trial ends."}
+              </p>
+              <AddCardButton parishId={parishId}
+                label={subscription.status === 'paused' ? 'Add a card to resume →' : 'Add a card for autopay →'}
+                className="bg-navy text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-navy/90 disabled:opacity-60" />
+            </div>
           )}
           {subscription.status === 'active' && subscription.current_period_end && (
             <p className="text-sm text-gray-500">

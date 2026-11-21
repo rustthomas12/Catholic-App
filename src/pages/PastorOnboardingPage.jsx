@@ -314,8 +314,8 @@ function StepTrial({ parish, tier, onBack }) {
     <div>
       <h1 className="text-2xl font-black text-navy mb-2">Start your free trial</h1>
       <p className="text-gray-500 text-sm mb-6">
-        You will <span className="font-semibold text-navy">not be charged for 90 days</span>.
-        Enter your card now to keep things running after your trial.
+        <span className="font-semibold text-navy">No card needed</span> to start your 90 days free.
+        Add one any time before the trial ends to keep things running on monthly autopay.
       </p>
 
       {/* Parish + plan summary */}
@@ -345,10 +345,10 @@ function StepTrial({ parish, tier, onBack }) {
       <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
         <CheckCircleSolid className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-bold text-green-800 text-sm">3 months free — no charge until day 91</p>
+          <p className="font-bold text-green-800 text-sm">3 months free, no card required</p>
           <p className="text-green-700 text-xs mt-0.5 leading-relaxed">
-            Your card is saved now so there's no interruption when the trial ends.
-            Cancel any time before day 91 and you will never be charged.
+            If no card is added by day 91, the plan simply pauses. Your parish page and
+            everything parishioners posted stay put, and adding a card turns it back on.
           </p>
         </div>
       </div>
@@ -380,7 +380,7 @@ function StepTrial({ parish, tier, onBack }) {
         disabled={loading}
         className="w-full bg-navy text-white font-bold py-4 rounded-2xl hover:bg-navy/90 disabled:opacity-60 transition-colors mb-3"
       >
-        {loading ? 'Preparing checkout…' : 'Start Free Trial →'}
+        {loading ? 'Preparing…' : 'Start Free Trial →'}
       </button>
 
       <button
@@ -391,7 +391,7 @@ function StepTrial({ parish, tier, onBack }) {
       </button>
 
       <p className="text-center text-gray-500 text-xs mt-3">
-        Secured by Stripe · Cancel anytime · No charge for 90 days
+        Secured by Stripe · No card needed · Cancel anytime
       </p>
     </div>
   )
