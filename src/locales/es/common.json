@@ -308,7 +308,8 @@
     "when_a_member_reports_a_post": "Cuando un miembro denuncia una publicación para revisarla",
     "you_can_turn_individual_notifications_back": "Puedes volver a activar cada notificación cuando quieras.",
     "cancel": "Cancelar",
-    "turn_off_all": "Desactivar todas"
+    "turn_off_all": "Desactivar todas",
+    "push_rules": "Horas de silencio: nada suena entre las 9 p. m. y las 8 a. m.; lo que llegue en ese horario espera hasta las 8 a. m. Tus propios recordatorios llegan a la hora que elegiste. Los \"me gusta\" y los avisos de nuevos miembros se quedan en la app, y las novedades de parroquias y grupos se limitan a 5 notificaciones push al día."
   },
   "blocked": {
     "something_went_wrong_please_try_again": "Algo salió mal. Inténtalo de nuevo.",
