@@ -4,6 +4,7 @@ import { authRedirectUrl } from '../lib/platform'
 import i18n, { setLanguage } from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
 import { clearFeedCaches } from './useFeed.js'
+import { resetPostSeen } from '../lib/postSeen'
 import { clearGroupCaches } from './useGroups.js'
 import { clearPageCache } from '../lib/pageCache.js'
 
@@ -188,6 +189,7 @@ export function AuthProvider({ children }) {
           setLoading(false)
           clearParishCaches()
           clearFeedCaches()
+          resetPostSeen()
           clearGroupCaches()
           clearPageCache()
           return

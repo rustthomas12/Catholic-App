@@ -48,6 +48,7 @@ export function usePost(postId, initialPost) {
         comment_count: row.comment_count ?? p.comment_count,
         content:       row.content       ?? p.content,
         image_url:     row.image_url !== undefined ? row.image_url : p.image_url,
+        featured_at:   row.featured_at !== undefined ? row.featured_at : p.featured_at,
       }))
     })
   }, [postId])
@@ -308,6 +309,14 @@ export function usePost(postId, initialPost) {
     return { error: null }
   }, [])
 
+  // ── featurePost (parish team, migration 101) ───────────────
+  const featurePost = useCallback(async (on) => {
+    const { error } = await supabase.rpc('feature_post', { p_post_id: postId, p_on: on })
+    if (error) return { error: ['42501', 'P0001'].includes(error.code) ? error.message : 'Could not update the post' }
+    setPost((p) => ({ ...p, featured_at: on ? new Date().toISOString() : null }))
+    return { error: null }
+  }, [postId])
+
   // ── deletePost ─────────────────────────────────────────────
   const deletePost = useCallback(async () => {
     if (!user) return { error: 'Not authenticated' }
@@ -394,5 +403,6 @@ export function usePost(postId, initialPost) {
     reportPost,
     moderatePost,
     moderateComment,
+    featurePost,
   }
 }

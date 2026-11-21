@@ -113,6 +113,10 @@ export function useAdminAccess() {
     !!isAdmin
     || parishAdminRecords.some((r) => r.parish_id === parishId && r.role !== 'pending')
     || moderatorParishIds.includes(parishId))
+  // Feature posts: verified parish team or platform admin, not moderators
+  // (mirrors feature_post(), migration 101)
+  const canFeatureInParish = (parishId) => !!parishId && (
+    !!isAdmin || parishAdminRecords.some((r) => r.parish_id === parishId && r.role !== 'pending'))
   return {
     isPlatformAdmin: isAdmin || false,
     isParishAdmin: parishAdminRecords.length > 0,
@@ -121,6 +125,7 @@ export function useAdminAccess() {
     orgAdminRecords,
     moderatorParishIds,
     canModerateParish,
+    canFeatureInParish,
     loading: userId ? !(mine && snap.loaded) : false,
   }
 }

@@ -7,6 +7,7 @@ import PostCard from './PostCard'
 import CreatePost from './CreatePost'
 import MyEvents from './MyEvents'
 import ComingUp from './ComingUp'
+import FromTheParish from './FromTheParish'
 import { PostCardSkeleton } from '../shared/skeletons'
 import { markAppReady } from '../../lib/appReady'
 
@@ -137,6 +138,12 @@ export default function Feed({
 
       {/* Compose bar */}
       {showCreatePost && <CreatePost onPost={handleNewPost} groupId={groupId} parishId={parishId} orgId={orgId} />}
+
+      {/* Unseen announcements and featured posts: Home (home + followed
+          parishes) and a parish's own feed */}
+      {!groupId && !orgId && !userId && (parishId ? filter === 'all' : (filter === 'all' || filter === 'parish')) && (
+        <FromTheParish parishId={parishId} />
+      )}
 
       {/* Next few events, on the main Home feed only */}
       {filter === 'all' && !parishId && !groupId && !orgId && !userId && <ComingUp onSeeAll={onSeeAllEvents} />}
