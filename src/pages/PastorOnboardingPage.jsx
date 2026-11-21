@@ -46,6 +46,12 @@ const TIERS = [
   },
 ]
 
+// Signup funnel (migration 097): parish-level milestones for the platform
+// admin. Fire-and-forget; never blocks signup.
+function recordStep(step, parishId) {
+  supabase.rpc('record_signup_step', { p_step: step, p_parish_id: parishId ?? null }).then(() => {}, () => {})
+}
+
 function tierForCount(count) {
   if (count < 200) return 'small'
   if (count < 500) return 'medium'
@@ -455,6 +461,8 @@ export default function PastorOnboardingPage() {
 
   // Step 1 (role) always comes first; a pre-selected parish skips the search
   const [step, setStep] = useState(1)
+
+  useEffect(() => { recordStep('started') }, [])
   const [selectedParish, setSelectedParish] = useState(null)
   const [selectedTier, setSelectedTier] = useState(null)
   const [role, setRole] = useState('pastor')
@@ -472,7 +480,7 @@ export default function PastorOnboardingPage() {
         setStep(2)
         return
       }
-      if (data) setSelectedParish(data)
+      if (data) { setSelectedParish(data); recordStep('parish_chosen', data.id) }
       else setStep(2) // unknown id: pick from the list instead of a blank card
     })
   }, [preselectedParishId])
@@ -523,7 +531,7 @@ export default function PastorOnboardingPage() {
         {step === 2 && (
           <>
             <StepParish
-              onSelect={parish => { setSelectedParish(parish); setStep(3) }}
+              onSelect={parish => { setSelectedParish(parish); recordStep('parish_chosen', parish.id); setStep(3) }}
             />
             <button onClick={() => setStep(1)} className="w-full text-sm text-gray-500 hover:text-navy transition-colors text-center mt-4 py-1">
               ← Back
@@ -533,7 +541,7 @@ export default function PastorOnboardingPage() {
         {step === 3 && selectedParish && (
           <StepSize
             parish={selectedParish}
-            onSelect={tier => { setSelectedTier(tier); setStep(4) }}
+            onSelect={tier => { setSelectedTier(tier); recordStep('plan_chosen', selectedParish.id); setStep(4) }}
           />
         )}
         {step === 3 && selectedParish && (

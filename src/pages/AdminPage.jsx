@@ -641,6 +641,7 @@ export default function AdminPage() {
           </div>
           <PendingPastors />
           <TrialsEnding />
+          <SignupFunnel />
         </section>
 
         {/* Flagged Posts */}
@@ -1110,6 +1111,89 @@ function TrialsEnding() {
             )
           })}
         </div>
+      )}
+    </div>
+  )
+}
+
+// Parish signup funnel (migration 097): how many reached each step in the
+// window, and each parish's furthest step. Parish-level counts only.
+const FUNNEL_LABELS = {
+  started: 'Opened signup',
+  parish_chosen: 'Chose a parish',
+  plan_chosen: 'Chose a plan',
+  trial_started: 'Started trial',
+  profile_updated: 'Edited parish page',
+  verified: 'Verified',
+  first_announcement: 'First announcement',
+  members_25: '25 members',
+  paid: 'Paid',
+}
+
+function SignupFunnel() {
+  const [days, setDays] = useState(90)
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase.rpc('admin_signup_funnel', { p_days: days }).then(({ data: d, error }) => {
+      if (!cancelled) setData(error ? { steps: [], parishes: [] } : d)
+    })
+    return () => { cancelled = true }
+  }, [days])
+
+  const steps = data?.steps ?? []
+  const max = Math.max(1, ...steps.map(st => st.count))
+
+  return (
+    <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4'>
+      <div className='flex items-center justify-between gap-2 mb-1'>
+        <h3 className='text-sm font-bold text-navy'>Parish signup funnel</h3>
+        <select value={days} onChange={e => setDays(Number(e.target.value))} aria-label='Time window'
+          className='text-xs border border-gray-200 rounded-lg px-2 py-1 text-navy'>
+          <option value={30}>Last 30 days</option>
+          <option value={90}>Last 90 days</option>
+          <option value={365}>Last year</option>
+        </select>
+      </div>
+      <p className='text-xs text-gray-500 mb-3'>
+        First time each parish reached each step (the first step counts people). Tracking started Nov 21, 2026.
+      </p>
+      {!data ? <LoadingSpinner /> : (
+        <>
+          <div className='space-y-1.5'>
+            {steps.map((st, i) => {
+              const prev = i > 0 ? steps[i - 1].count : null
+              const drop = prev ? Math.round(100 - (st.count / prev) * 100) : null
+              return (
+                <div key={st.step} className='flex items-center gap-2 text-xs'>
+                  <span className='w-36 flex-shrink-0 text-gray-600 truncate'>{FUNNEL_LABELS[st.step] || st.step}</span>
+                  <div className='flex-1 h-4 bg-gray-50 rounded'>
+                    <div className='h-4 bg-navy/80 rounded' style={{ width: `${(st.count / max) * 100}%` }} />
+                  </div>
+                  <span className='w-8 text-right font-semibold text-navy tabular-nums'>{st.count}</span>
+                  <span className='w-12 text-right text-gray-400 tabular-nums'>{drop !== null && drop > 0 ? `-${drop}%` : ''}</span>
+                </div>
+              )
+            })}
+          </div>
+          {data.parishes?.length > 0 && (
+            <div className='mt-4 border-t border-gray-100 pt-3'>
+              <p className='text-xs font-semibold text-gray-500 mb-2'>Parishes by furthest step</p>
+              <div className='space-y-1'>
+                {data.parishes.map(r => (
+                  <div key={r.parish_id} className='flex items-center gap-2 text-xs'>
+                    <Link to={`/parish/${r.parish_id}`} className='flex-1 min-w-0 truncate text-navy hover:underline'>
+                      {r.name}<span className='text-gray-400'> · {[r.city, r.state].filter(Boolean).join(', ')}</span>
+                    </Link>
+                    <span className='text-gray-600'>{FUNNEL_LABELS[r.furthest] || r.furthest}</span>
+                    <span className='w-20 text-right text-gray-400'>{new Date(r.last_at).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
