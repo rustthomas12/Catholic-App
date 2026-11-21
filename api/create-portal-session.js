@@ -100,7 +100,7 @@ async function declinePastor(req, res, callerId) {
   const [sub] = await select(
     `parish_subscriptions?parish_id=eq.${encodeURIComponent(parishId)}&select=stripe_subscription_id,status`
   )
-  if (sub?.stripe_subscription_id && ['trialing', 'active', 'past_due'].includes(sub.status)) {
+  if (sub?.stripe_subscription_id && ['trialing', 'paused', 'active', 'past_due'].includes(sub.status)) {
     try {
       const s = await stripe.subscriptions.retrieve(sub.stripe_subscription_id)
       if (s.metadata?.admin_user_id === applicantId && s.status !== 'canceled') {

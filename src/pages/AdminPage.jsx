@@ -640,6 +640,7 @@ export default function AdminPage() {
             <AssignParishPastor />
           </div>
           <PendingPastors />
+          <TrialsEnding />
         </section>
 
         {/* Flagged Posts */}
@@ -983,6 +984,81 @@ function PendingPastors() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// Parish trials and paused plans, for following up with pastors who haven't
+// added a card. Trials start without one (migration 093); with no card by
+// day 91, Stripe pauses the plan until a card is added.
+function TrialsEnding() {
+  const [rows, setRows] = useState(null)
+  const [showAll, setShowAll] = useState(false)
+
+  useEffect(() => {
+    supabase.rpc('admin_trials_ending').then(({ data }) => {
+      const now = Date.now()
+      setRows((data ?? []).map(r => ({
+        ...r,
+        days_left: r.trial_ends_at ? Math.ceil((new Date(r.trial_ends_at) - now) / 86400000) : null,
+      })))
+    })
+  }, [])
+
+  if (!rows?.length) return null
+  const daysLeft = (r) => r.days_left
+  const needsFollowUp = (r) => r.status === 'paused' || (!r.has_payment_method && (daysLeft(r) ?? 99) <= 21)
+  const urgent = rows.filter(needsFollowUp)
+  const shown = showAll ? rows : urgent
+
+  return (
+    <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4'>
+      <div className='flex items-center justify-between gap-2 mb-1'>
+        <h3 className='text-sm font-bold text-navy'>
+          Trials ending ({urgent.length} to follow up{rows.length > urgent.length ? ` · ${rows.length} trials` : ''})
+        </h3>
+        {rows.length > urgent.length && (
+          <button onClick={() => setShowAll(v => !v)} className='text-xs font-semibold text-navy hover:underline'>
+            {showAll ? 'Only follow-ups' : 'Show all trials'}
+          </button>
+        )}
+      </div>
+      <p className='text-xs text-gray-500 mb-3'>Paused plans, and trials with no card and 3 weeks or less left.</p>
+      {shown.length === 0 ? (
+        <p className='text-sm text-gray-500'>Nothing to follow up right now.</p>
+      ) : (
+        <div className='space-y-2'>
+          {shown.map(r => {
+            const d = daysLeft(r)
+            return (
+              <div key={r.parish_id} className='border border-gray-100 rounded-lg px-3 py-2'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Link to={`/parish/${r.parish_id}`} className='text-sm font-semibold text-navy hover:underline flex-1 min-w-0 truncate'>
+                    {r.parish_name}<span className='text-gray-500 font-normal'> · {[r.city, r.state].filter(Boolean).join(', ')}</span>
+                  </Link>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    r.status === 'paused' ? 'bg-red-100 text-red-600'
+                      : r.has_payment_method ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {r.status === 'paused' ? 'Paused, no card'
+                      : r.has_payment_method ? 'Card on file'
+                      : d === null ? 'No card' : d <= 0 ? 'No card · ends today' : `No card · ${d} day${d === 1 ? '' : 's'} left`}
+                  </span>
+                </div>
+                <div className='mt-1 space-y-0.5'>
+                  {(r.contacts ?? []).length === 0
+                    ? <p className='text-xs text-gray-500'>No admin yet</p>
+                    : r.contacts.map(c => (
+                      <p key={c.email} className='text-xs text-gray-600 truncate'>
+                        {c.name || 'Unnamed'} <span className='text-gray-400'>({c.role})</span>{' '}
+                        <a href={`mailto:${c.email}`} className='text-navy hover:underline'>{c.email}</a>
+                      </p>
+                    ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

@@ -328,7 +328,7 @@ export default function OnboardingPage() {
               </div>
               <div className="w-full bg-gold/10 border border-gold/20 rounded-2xl px-4 py-3 text-left">
                 <p className="text-navy text-xs font-semibold mb-1">{t('auth:onb.includes_a_90_day_free_trial', 'Includes a 90-day free trial')}</p>
-                <p className="text-gray-500 text-xs">{t('auth:onb.a_card_is_required_at_checkout', "A card is required at checkout; you're not charged until day 91. Cancel any time.")}</p>
+                <p className="text-gray-500 text-xs">{t('auth:onb.no_card_needed_trial', 'No card needed to start. Add one before day 91 for monthly autopay, or the plan simply pauses.')}</p>
               </div>
               <div className="w-full space-y-3">
                 <Button variant="gold" fullWidth className="min-h-[52px] text-base font-semibold"

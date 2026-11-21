@@ -52,6 +52,51 @@ async function checkoutSubscription(session) {
   }
 }
 
+// Whether the parish can be billed automatically: a default card on the
+// subscription or on the customer. Drives the "add a card" nudges.
+async function hasCardOnFile(sub) {
+  if (sub?.default_payment_method) return true
+  try {
+    const customerId = typeof sub?.customer === 'string' ? sub.customer : sub?.customer?.id
+    if (!customerId) return false
+    const customer = await stripe.customers.retrieve(customerId)
+    return !!customer?.invoice_settings?.default_payment_method
+  } catch (err) {
+    console.error('Could not check the card on file:', err.message)
+    return undefined // unknown: leave the stored value alone
+  }
+}
+
+function cardField(value) {
+  return value === undefined ? {} : { has_payment_method: value }
+}
+
+// A parish admin saved a card (Checkout in setup mode, action 'add-card').
+// Make it the default for autopay, and resume the plan if the free trial
+// ended without a card and Stripe paused it.
+async function handleParishCardAdded(session) {
+  const parishId = session.metadata?.parish_id
+  const subId    = session.metadata?.subscription_id
+  if (!parishId || !subId || !session.setup_intent) return
+  const setupIntent = await stripe.setupIntents.retrieve(
+    typeof session.setup_intent === 'string' ? session.setup_intent : session.setup_intent.id)
+  const pm = typeof setupIntent.payment_method === 'string' ? setupIntent.payment_method : setupIntent.payment_method?.id
+  if (!pm) return
+
+  await stripe.customers.update(session.customer, { invoice_settings: { default_payment_method: pm } })
+  let sub = await stripe.subscriptions.update(subId, { default_payment_method: pm })
+  if (sub.status === 'paused') {
+    // Billing starts today; the trial is already over
+    sub = await stripe.subscriptions.resume(subId, { billing_cycle_anchor: 'now', proration_behavior: 'none' })
+  }
+
+  await supabase.from('parish_subscriptions').update({
+    ...subscriptionFields(sub),
+    has_payment_method: true,
+    updated_at: new Date().toISOString(),
+  }).eq('parish_id', parishId)
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -94,15 +139,26 @@ export default async function handler(req, res) {
         const tier         = session.metadata?.tier
         const customerId   = session.customer
 
+        if (session.mode === 'setup' && session.metadata?.purpose === 'parish_add_card') {
+          await handleParishCardAdded(session)
+          break
+        }
+
         // Parish subscription checkout
         if (parishId && billingType?.startsWith('parish_')) {
           const adminUserId = session.metadata?.admin_user_id
 
+          const checkoutSub = await checkoutSubscription(session)
+          // Trials can now start without a card (payment_method_collection: if_required)
+          const card = checkoutSub.stripe_subscription_id
+            ? await hasCardOnFile(await stripe.subscriptions.retrieve(checkoutSub.stripe_subscription_id)).catch(() => undefined)
+            : undefined
           await supabase.from('parish_subscriptions').upsert({
             parish_id: parishId,
             stripe_customer_id: customerId,
             status: 'trialing',
-            ...(await checkoutSubscription(session)),
+            ...checkoutSub,
+            ...cardField(card),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
 
@@ -239,8 +295,11 @@ export default async function handler(req, res) {
       }
 
       // ── Subscription created / updated ──────────────────────
+      // paused / resumed: a no-card trial that ends is paused; adding a card resumes it
       case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
+      case 'customer.subscription.updated':
+      case 'customer.subscription.paused':
+      case 'customer.subscription.resumed': {
         const sub        = event.data.object
         const customerId = sub.customer
         const status     = sub.status  // active, past_due, canceled, trialing, etc.
@@ -255,6 +314,7 @@ export default async function handler(req, res) {
             parish_id: parishId,
             stripe_customer_id: customerId,
             ...subscriptionFields(sub),
+            ...cardField(await hasCardOnFile(sub)),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'parish_id' })
           break
