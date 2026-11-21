@@ -68,12 +68,14 @@ jobs:
     name: Android
     needs: web
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # keyless Google login for App Distribution (main only)
     env:
       ANDROID_VERSION_CODE: ${{ github.run_number }}
       HAS_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
       HAS_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
-      HAS_FIREBASE_DIST: ${{ secrets.FIREBASE_DISTRIBUTION_SA_JSON != '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -106,8 +108,9 @@ jobs:
       # Testers: every push to main builds a release APK signed with the
       # upload key (so each new build installs over the last one) and sends
       # it to the "testers" group in Firebase App Distribution, which emails
-      # an install link. Needs FIREBASE_DISTRIBUTION_SA_JSON (service account
-      # with the "Firebase App Distribution Admin" role). See docs/MOBILE.md.
+      # an install link. Google login is keyless (Workload Identity
+      # Federation): Google trusts only this repo's main branch to act as the
+      # github-app-distribution service account. No secret. See docs/MOBILE.md.
       - name: Signed release APK for testers
         if: env.HAS_KEYSTORE == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || inputs.release)
         working-directory: android
@@ -126,19 +129,20 @@ jobs:
           name: infold-android-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
 
+      - name: Google login (keyless)
+        if: env.HAS_KEYSTORE == 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/178530452794/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-app-distribution@communio-d2e19.iam.gserviceaccount.com
       - name: Send to testers (Firebase App Distribution)
-        if: env.HAS_KEYSTORE == 'true' && env.HAS_FIREBASE_DIST == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || inputs.release)
-        env:
-          SA_JSON: ${{ secrets.FIREBASE_DISTRIBUTION_SA_JSON }}
+        if: env.HAS_KEYSTORE == 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
-          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/firebase-sa.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
           APP_ID=$(jq -r '.client[] | select(.client_info.android_client_info.package_name == "app.getinfold") | .client_info.mobilesdk_app_id' android/app/google-services.json)
           NOTES="Build ${{ github.run_number }}: $(git log -1 --pretty=%s)"
           npx --yes firebase-tools@13.29.1 appdistribution:distribute \
             android/app/build/outputs/apk/release/app-release.apk \
             --app "$APP_ID" --groups testers --release-notes "$NOTES"
-          rm -f "$RUNNER_TEMP/firebase-sa.json"
 
       - name: Signed release bundle
         if: inputs.release && env.HAS_KEYSTORE == 'true'
