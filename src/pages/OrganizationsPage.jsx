@@ -49,10 +49,8 @@ function useOrgSearch() {
     const category = categoryFilter || null
     const state    = stateFilter ? stateFilter.trim().toUpperCase() : null
 
-    if (trimmed.length < 2 && !category && !state) {
-      setResults([])
-      return
-    }
+    // No filters: browse everything (official first) instead of an empty
+    // page. Organizations were only findable by typing their name.
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
@@ -62,6 +60,7 @@ function useOrgSearch() {
         .from('organizations')
         .select('id, name, slug, description, category, city, state, is_official, org_type')
         .order('is_official', { ascending: false })
+        .order('name')
         .limit(40)
 
       // Each active filter is AND-ed
@@ -173,21 +172,15 @@ export default function OrganizationsPage() {
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [stateFilter, setStateFilter] = useState('')
-  const { results, loading: searchLoading, search, clear } = useOrgSearch()
+  const { results, loading: searchLoading, search } = useOrgSearch()
   const { orgs: myOrgs, loading: myOrgsLoading } = useMyOrgs(user?.id)
   const [subscribedOrgIds, setSubscribedOrgIds] = useState(new Set())
 
   // Trigger search whenever any filter changes
   useEffect(() => {
-    const hasName = query.trim().length >= 2
-    const hasCategory = !!categoryFilter
-    const hasState = !!stateFilter
-    if (hasName || hasCategory || hasState) {
-      search(query, categoryFilter, stateFilter)
-    } else {
-      clear()
-    }
-  }, [query, categoryFilter, stateFilter, search, clear])
+    // A single typed letter isn't a search yet: keep browsing everything
+    search(query.trim().length >= 2 ? query : '', categoryFilter, stateFilter)
+  }, [query, categoryFilter, stateFilter, search])
 
   // Fetch subscription status for visible orgs
   useEffect(() => {
@@ -205,12 +198,14 @@ export default function OrganizationsPage() {
   }, [myOrgs, results])
 
   const isSearching = query.trim().length >= 2 || !!categoryFilter || !!stateFilter
+  // Browsing: everything except the organizations already listed as yours
+  const myOrgIds = new Set(myOrgs.map(o => o.id))
+  const browseList = isSearching ? [] : results.filter(o => !myOrgIds.has(o.id))
 
   const clearAll = () => {
     setQuery('')
     setCategoryFilter('')
     setStateFilter('')
-    clear()
   }
 
   const hasActiveFilters = !!categoryFilter || !!stateFilter
@@ -304,13 +299,15 @@ export default function OrganizationsPage() {
             </section>
           )}
 
-          {/* Search results */}
-          {isSearching && (
+          {/* Search results, or every organization while not searching */}
+          {(isSearching || browseList.length > 0 || searchLoading) && (
             <section>
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 {searchLoading
-                  ? 'Searching…'
-                  : `Results${results.length ? ` (${results.length})` : ''}`}
+                  ? t('organizations.searching', 'Searching…')
+                  : isSearching
+                    ? `${t('organizations.results', 'Results')}${results.length ? ` (${results.length})` : ''}`
+                    : t('organizations.all', 'All organizations')}
               </h2>
 
               {searchLoading ? (
@@ -327,7 +324,7 @@ export default function OrganizationsPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {results.map((org) => (
+                  {(isSearching ? results : browseList).map((org) => (
                     <OrgCard key={org.id} org={org} isSubscribed={subscribedOrgIds.has(org.id)} />
                   ))}
                 </div>
@@ -336,7 +333,7 @@ export default function OrganizationsPage() {
           )}
 
           {/* Empty state */}
-          {!isSearching && myOrgs.length === 0 && !myOrgsLoading && (
+          {!isSearching && myOrgs.length === 0 && !myOrgsLoading && !searchLoading && browseList.length === 0 && (
             <section>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
                 <div className="w-14 h-14 bg-lightbg rounded-2xl flex items-center justify-center mx-auto mb-3">

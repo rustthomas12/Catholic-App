@@ -4,6 +4,7 @@
   "readings_date": "{{date}}",
   "readings_loading": "Cargando las lecturas de hoy...",
   "readings_error": "Lecturas no disponibles",
+  "readings_official_link": "Leer el texto oficial en USCCB.org (inglés)",
   "readings_link": "Abrir USCCB.org",
   "readings_credit": "Referencias de las lecturas del leccionario de la USCCB · Texto bíblico: World English Bible (dominio público)",
   "first_reading": "Primera lectura",

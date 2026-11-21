@@ -11,8 +11,8 @@ import LoadingSpinner from '../shared/LoadingSpinner'
 import { toast } from '../shared/Toast'
 import { PICK_MAX_BYTES } from '../../utils/imageResize'
 
-const MAX_CHARS = 500
-const WARN_CHARS = 450
+const MAX_CHARS = 5000 // about 850 words: room for a reflection or homily (DB limit, migration 092)
+const WARN_CHARS = 4800
 
 // ── Destination selector sheet ─────────────────────────────
 function DestinationSheet({ isOpen, onClose, options, selected, onSelect }) {

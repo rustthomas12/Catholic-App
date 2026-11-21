@@ -85,6 +85,9 @@
     "all_states": "Todos los estados",
     "adjust_filters": "Prueba a cambiar la búsqueda o los filtros",
     "discover_hint": "Busca por nombre, categoría o estado para encontrar ministerios y apostolados.",
+    "all": "Todas las organizaciones",
+    "searching": "Buscando…",
+    "results": "Resultados",
     "cat": {
       "Apostolate": "Apostolado",
       "Charity": "Caridad",
@@ -159,8 +162,8 @@
     "type_comments_desc": "Cuando alguien comenta en tu publicación",
     "type_groups": "Actividad de grupos",
     "type_groups_desc": "Solicitudes de ingreso y aprobaciones",
-    "type_parish": "Anuncios",
-    "type_parish_desc": "Cuando tu parroquia o una organización a la que perteneces publica un anuncio",
+    "type_parish": "Publicaciones parroquiales",
+    "type_parish_desc": "Anuncios de tus parroquias y organizaciones, y publicaciones del clero y del personal parroquial",
     "type_prayer": "Respuestas de oración",
     "type_prayer_desc": "Cuando alguien ora por tu intención",
     "type_events": "Eventos",
@@ -431,7 +434,14 @@
     "national": "Nacional",
     "chapter": "Capítulo",
     "you_re_not_in_any_organizations": "Aún no perteneces a ninguna organización.",
-    "browse_organizations": "Explorar organizaciones"
+    "browse_organizations": "Explorar organizaciones",
+    "home_explainer": "Aparece en tu perfil y es donde van tus publicaciones, salvo que elijas otro lugar.",
+    "also_following": "También sigues",
+    "make_home": "Hacer mi parroquia",
+    "home_set": "{{name}} es ahora tu parroquia",
+    "pick_home_from_list": "Elige tu parroquia: toca \"Hacer mi parroquia\" en una de abajo.",
+    "no_home": "Aún no has elegido tu parroquia.",
+    "dashboard": "Panel"
   },
   "notfound": {
     "page_not_found": "Página no encontrada",

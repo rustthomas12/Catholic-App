@@ -12,11 +12,20 @@ export default function PushPrompt() {
   const { user } = useAuth()
   const { isSupported, permission, isSubscribed, subscribe, isLoading } =
     usePushNotifications(user?.id)
-  const [show, setShow] = useState(false)
+  const [ready, setReady] = useState(false)   // waited out the permission check
+  const [hidden, setHidden] = useState(false) // dismissed or finished here
   const [success, setSuccess] = useState(false)
 
+  // Only while notifications are still undecided. On the phone the
+  // permission is read asynchronously and starts as 'default', so the banner
+  // used to appear on every launch and stay up even after the check came
+  // back 'granted'. Derived on every render, so it disappears the moment
+  // notifications turn out to be on.
+  const eligible = isSupported && permission === 'default' && !isSubscribed && !!user
+
   useEffect(() => {
-    if (!isSupported || permission !== 'default' || isSubscribed || !user) return
+    if (!eligible) return
+    let timer
     try {
       // Count each app session once. This effect re-runs as the push state
       // loads, and it used to add a "session" every time — so the prompt
@@ -28,15 +37,19 @@ export default function PushPrompt() {
         localStorage.setItem(SESSION_COUNT_KEY, count.toString())
       }
       const dismissed = localStorage.getItem(DISMISSED_KEY)
-      if (count >= MIN_SESSIONS && !dismissed) setShow(true)
+      // Give the permission check a moment to finish before showing
+      if (count >= MIN_SESSIONS && !dismissed) timer = setTimeout(() => setReady(true), 1500)
     } catch { /* storage unavailable */ }
-  }, [isSupported, permission, isSubscribed, user])
+    return () => clearTimeout(timer)
+  }, [eligible])
+
+  const show = !hidden && ((eligible && ready) || success)
 
   if (!show) return null
 
   function dismiss() {
     try { localStorage.setItem(DISMISSED_KEY, 'true') } catch { /* ignore */ }
-    setShow(false)
+    setHidden(true)
   }
 
   async function handleEnable() {
@@ -46,8 +59,10 @@ export default function PushPrompt() {
       dismiss()
       return
     }
+    // Turned on from the banner: never offer it again on this device
+    try { localStorage.setItem(DISMISSED_KEY, 'true') } catch { /* ignore */ }
     setSuccess(true)
-    setTimeout(() => setShow(false), 1800)
+    setTimeout(() => setHidden(true), 1800)
   }
 
   return (

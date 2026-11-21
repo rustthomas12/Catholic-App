@@ -384,7 +384,7 @@ function CommunitiesCard({ parishes, orgs, className }) {
         <BuildingLibraryIcon className="w-5 h-5 text-navy" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-navy text-sm">{t('home.communities', 'My parishes & organizations')}</p>
+        <p className="font-bold text-navy text-sm">{t('home.communities', 'My parishes and organizations')}</p>
         <p className="text-xs text-gray-500 truncate">{preview}{more > 0 ? ` ${t('home.plus_more', '+{{count}} more', { count: more })}` : ''}</p>
         <p className="text-[11px] text-gray-500">{counts}</p>
       </div>
