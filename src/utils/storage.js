@@ -81,6 +81,13 @@ export async function uploadPostImage(userId, original) {
 /**
  * Returns a Supabase Storage public URL with optional transform params.
  */
+// Storage path of a post photo from its public URL ("…/object/public/posts/<path>")
+export function postImagePath(imageUrl) {
+  const marker = '/object/public/posts/'
+  const i = imageUrl ? imageUrl.indexOf(marker) : -1
+  return i === -1 ? null : decodeURIComponent(imageUrl.slice(i + marker.length).split('?')[0])
+}
+
 export function getAvatarUrl(avatarUrl, size = 200) {
   if (!avatarUrl) return null
   // Built-in designs (public/avatars) are SVGs: no resizing needed
