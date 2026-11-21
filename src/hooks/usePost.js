@@ -290,6 +290,24 @@ export function usePost(postId, initialPost) {
     [user, postId, post]
   )
 
+  // ── Moderation (parish moderators, migration 099) ──────────
+  // Hiding sets is_removed through a SECURITY DEFINER function; other open
+  // feeds drop the post or comment live through Realtime.
+  const moderatePost = useCallback(async () => {
+    const { error } = await supabase.rpc('moderate_post', { p_post_id: postId, p_action: 'hide' })
+    if (error) return { error: error.code === '42501' ? error.message : 'Could not hide the post' }
+    setGone(true)
+    return { error: null }
+  }, [postId])
+
+  const moderateComment = useCallback(async (commentId) => {
+    const { error } = await supabase.rpc('moderate_comment', { p_comment_id: commentId, p_action: 'hide' })
+    if (error) return { error: error.code === '42501' ? error.message : 'Could not hide the comment' }
+    setComments((prev) => prev.filter((c) => c.id !== commentId))
+    setPost((p) => ({ ...p, comment_count: Math.max(0, p.comment_count - 1) }))
+    return { error: null }
+  }, [])
+
   // ── deletePost ─────────────────────────────────────────────
   const deletePost = useCallback(async () => {
     if (!user) return { error: 'Not authenticated' }
@@ -374,5 +392,7 @@ export function usePost(postId, initialPost) {
     deletePost,
     editPost,
     reportPost,
+    moderatePost,
+    moderateComment,
   }
 }

@@ -40,7 +40,7 @@ function TypeIcon({ type, message }) {
   if (type === 'morning_offering_reminder') return <SunIcon className={`${base} text-gold`} />
   if (type === 'daily_readings_reminder') return <BookOpenIcon className={`${base} text-navy`} />
   if (type === 'direct_message') return <EnvelopeIcon className={`${base} text-navy`} />
-  if (type === 'post_flagged') return <ShieldExclamationIcon className={`${base} text-red-500`} />
+  if (type === 'post_flagged' || type === 'parish_post_flagged') return <ShieldExclamationIcon className={`${base} text-red-500`} />
   if (type === 'new_parish_member') return <UserPlusIcon className={`${base} text-gold`} />
   if (type === 'group_post') return <DocumentTextIcon className={`${base} text-navy`} />
   if (type === 'new_group_member') return <UserPlusIcon className={`${base} text-navy`} />

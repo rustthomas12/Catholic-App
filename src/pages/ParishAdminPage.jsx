@@ -18,6 +18,7 @@ import {
   CreditCardIcon,
   ArrowsRightLeftIcon,
   LockClosedIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { READ_EVENT } from '../hooks/useNotifications'
@@ -31,12 +32,14 @@ import { format, parseISO } from 'date-fns'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
+import { FlagQueue, ModeratorsPanel } from '../components/parish/ParishModeration'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
 
 // Tabs a parish admin can use without an active subscription
-const FREE_TABS = ['billing', 'messages']
+// Moderation stays open without a plan too: reports must always be handled
+const FREE_TABS = ['billing', 'messages', 'moderation']
 // What a provisional pastor (role 'pending', awaiting verification) can open.
 // The database enforces the rest (migration 095).
 const PENDING_TABS = ['dashboard', 'masstimes', 'billing', 'settings']
@@ -85,6 +88,7 @@ const TABS = [
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
   { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
+  { id: 'moderation',    label: 'Moderation',    Icon: ShieldCheckIcon },
   { id: 'billing',       label: 'Billing',       Icon: CreditCardIcon },
   { id: 'integrations',  label: 'Integrations',  Icon: ArrowsRightLeftIcon },
   { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
@@ -207,6 +211,7 @@ export default function ParishAdminPage() {
     settings:      SettingsTab,
     billing:       BillingTab,
     integrations:  IntegrationsTab,
+    moderation:    ModerationTab,
   }[activeTab]
 
   return (
@@ -1272,6 +1277,18 @@ const PARISH_TIERS = [
   { key: 'large',    label: 'Large',    price: 229, size: '500–1,500 parishioners',  suggested: false },
   { key: 'cathedral',label: 'Cathedral',price: 389, size: '1,500+ parishioners',     suggested: false },
 ]
+
+// ── Moderation Tab ──────────────────────────────────────────
+function ModerationTab({ parishId, adminRole }) {
+  return (
+    <div className="space-y-8">
+      <h2 className="font-bold text-navy">Moderation</h2>
+      <FlagQueue parishId={parishId} />
+      {/* Only the parish admin (not staff) appoints moderators */}
+      {adminRole === 'admin' && <ModeratorsPanel parishId={parishId} />}
+    </div>
+  )
+}
 
 // ── Billing Tab ─────────────────────────────────────────────
 function BillingTab({ parishId, parish, subscription, setSubscription }) {

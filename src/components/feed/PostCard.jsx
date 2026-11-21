@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import { usePost } from '../../hooks/usePost'
 import { useBlockedUsers } from '../../hooks/useBlockedUsers'
+import { useAdminAccess } from '../../hooks/useAdminAccess'
 import Avatar from '../shared/Avatar'
 import Modal from '../shared/Modal'
 import ReportModal from '../shared/ReportModal'
@@ -28,7 +29,7 @@ import { formatRelativeTime } from '../../utils/dates'
 import { toast } from '../shared/Toast'
 import { publicOrigin } from '../../lib/platform'
 import SacredIcon from '../shared/SacredIcon'
-import { PencilIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 // ── Delete confirm modal ───────────────────────────────────
 function DeleteModal({ isOpen, onClose, onConfirm, loading }) {
@@ -100,7 +101,7 @@ function ImageModal({ src, onClose }) {
 }
 
 // ── Comment item ───────────────────────────────────────────
-function CommentItem({ comment, currentUserId, onDelete }) {
+function CommentItem({ comment, currentUserId, onDelete, onModerate }) {
   const { t } = useTranslation('feed')
   const [showDelete, setShowDelete] = useState(false)
   const [showReport, setShowReport] = useState(false)
@@ -155,6 +156,16 @@ function CommentItem({ comment, currentUserId, onDelete }) {
           <TrashIcon className={`w-4 h-4 ${showDelete ? 'text-red-500' : 'text-gray-500'}`} />
         </button>
       )}
+      {!isOwn && onModerate && !comment.pending && (
+        <button
+          onClick={() => onModerate(comment.id)}
+          className="md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-red-600"
+          title={t('moderate.hide_comment', 'Hide comment (moderator)')}
+          aria-label={t('moderate.hide_comment', 'Hide comment (moderator)')}
+        >
+          <EyeSlashIcon className="w-4 h-4" />
+        </button>
+      )}
       {!isOwn && currentUserId && (
         <>
           <button
@@ -195,6 +206,8 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
     deletePost,
     editPost,
     reportPost,
+    moderatePost,
+    moderateComment,
   } = usePost(initialPost.id, initialPost)
 
   const [expanded, setExpanded] = useState(false)
@@ -216,6 +229,26 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
 
   const isOwnPost = user?.id === post.author?.id
   const { isBlocked, block } = useBlockedUsers()
+  const { canModerateParish } = useAdminAccess()
+  // Parish community posts only; group and org posts have their own admins
+  const canModerate = !isOwnPost && !!post.parish?.id && !post.group && !post.org_id && canModerateParish(post.parish.id)
+  const [showHideModal, setShowHideModal] = useState(false)
+  const [hideLoading, setHideLoading] = useState(false)
+
+  async function handleModeratePost() {
+    setHideLoading(true)
+    const { error } = await moderatePost()
+    setHideLoading(false)
+    setShowHideModal(false)
+    if (error) toast.error(error)
+    else toast.success(t('feed:moderate.post_hidden', 'Post hidden from the parish'))
+  }
+
+  async function handleModerateComment(commentId) {
+    const { error } = await moderateComment(commentId)
+    if (error) toast.error(error)
+    else toast.success(t('feed:moderate.comment_hidden', 'Comment hidden'))
+  }
   const TRUNCATE_LIMIT = 500
 
   // Parse optional title from first line (announcements only)
@@ -451,6 +484,15 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     </>
                   ) : (
                     <>
+                      {canModerate && (
+                        <button
+                          onClick={() => { setMenuOpen(false); setShowHideModal(true) }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 min-h-[44px]"
+                        >
+                          <EyeSlashIcon className="w-4 h-4" />
+                          {t('feed:moderate.hide_post', 'Hide from parish')}
+                        </button>
+                      )}
                       <button
                         onClick={() => { setMenuOpen(false); setShowReportModal(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
@@ -492,6 +534,15 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     </>
                   ) : (
                     <>
+                      {canModerate && (
+                        <button
+                          onClick={() => { setMenuOpen(false); setShowHideModal(true) }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 min-h-[44px]"
+                        >
+                          <EyeSlashIcon className="w-4 h-4" />
+                          {t('feed:moderate.hide_post', 'Hide from parish')}
+                        </button>
+                      )}
                       <button
                         onClick={() => { setMenuOpen(false); setShowReportModal(true) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-navy hover:bg-lightbg min-h-[44px]"
@@ -653,6 +704,7 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
                     comment={c}
                     currentUserId={user?.id}
                     onDelete={deleteComment}
+                    onModerate={canModerate ? handleModerateComment : undefined}
                   />
                 ))}
               </div>
@@ -690,6 +742,22 @@ const PostCard = memo(function PostCard({ post: initialPost, onDelete, showSourc
       </article>
 
       {/* Modals */}
+      {canModerate && (
+        <Modal isOpen={showHideModal} onClose={() => setShowHideModal(false)} title={t('feed:moderate.hide_title', 'Hide this post?')}>
+          <p className="text-sm text-gray-600 mb-4">
+            {t('feed:moderate.hide_body', "It disappears from the parish for everyone and any reports on it are closed. The author isn't notified. You can restore it from the parish moderation page.")}
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowHideModal(false)} className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-navy min-h-[44px]">
+              {t('common:actions.cancel')}
+            </button>
+            <button onClick={handleModeratePost} disabled={hideLoading}
+              className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-60 min-h-[44px]">
+              {hideLoading ? t('common:status.loading', 'Loading…') : t('feed:moderate.hide_confirm', 'Hide post')}
+            </button>
+          </div>
+        </Modal>
+      )}
       <DeleteModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

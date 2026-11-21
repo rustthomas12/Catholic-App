@@ -10,6 +10,7 @@ import {
   EnvelopeIcon,
   XMarkIcon,
   Cog6ToothIcon,
+  ShieldCheckIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
@@ -39,7 +40,7 @@ export default function ParishPage() {
   const navigate = useNavigate()
   const goBack = useGoBack('/directory')
   const { profile } = useAuth()
-  const { parishAdminRecords } = useAdminAccess()
+  const { parishAdminRecords, moderatorParishIds } = useAdminAccess()
   // ?tab=events etc. opens a tab directly (e.g. from an event reminder)
   const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'feed')
   const [showContact, setShowContact] = useState(false)
@@ -161,6 +162,16 @@ export default function ParishPage() {
               >
                 <Cog6ToothIcon className="w-4 h-4" />
                 {t('parish:page.manage_parish', 'Manage Parish')}
+              </Link>
+            )}
+            {/* Appointed moderators (migration 099) get the report queue only */}
+            {!adminRole && moderatorParishIds.includes(id) && (
+              <Link
+                to={`/parish/${id}/moderation`}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white/15 text-white rounded-xl text-sm font-semibold hover:bg-white/25 transition-colors"
+              >
+                <ShieldCheckIcon className="w-4 h-4" />
+                {t('parish:page.moderation', 'Moderation')}
               </Link>
             )}
 

@@ -23,24 +23,27 @@ let inflight = null   // { userId, promise }
 const listeners = new Set()
 
 async function load(userId) {
-  const [pf, pa, gm, om] = await Promise.all([
+  const [pf, pa, gm, om, pm] = await Promise.all([
     supabase.from('parish_follows').select('parish_id').eq('user_id', userId),
     supabase.from('parish_admins').select('parish_id, role').eq('user_id', userId),
     supabase.from('group_members').select('group_id, role').eq('user_id', userId),
     supabase.from('organization_members').select('org_id, role').eq('user_id', userId),
+    supabase.from('parish_moderators').select('parish_id').eq('user_id', userId),
   ])
   const error = pf.error || pa.error || gm.error || om.error
   if (error) throw error
+  // Moderators (migration 099): a failure here shouldn't break memberships
   return {
     parishFollows: (pf.data ?? []).map((r) => r.parish_id),
     parishAdmins: pa.data ?? [],
     groups: gm.data ?? [],
     orgs: om.data ?? [],
+    parishModerators: (pm.data ?? []).map((r) => r.parish_id),
   }
 }
 
 export function getMyMemberships(userId, { force = false } = {}) {
-  if (!userId) return Promise.resolve({ parishFollows: [], parishAdmins: [], groups: [], orgs: [] })
+  if (!userId) return Promise.resolve({ parishFollows: [], parishAdmins: [], groups: [], orgs: [], parishModerators: [] })
   if (!force && cache?.userId === userId && Date.now() - cache.ts < TTL) return Promise.resolve(cache.data)
   if (inflight?.userId === userId) return inflight.promise
   const promise = load(userId)
