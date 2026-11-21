@@ -1,6 +1,7 @@
 /* global process */
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { endParishOwnSubscription } from './_diocese.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -50,6 +51,29 @@ async function checkoutSubscription(session) {
   } catch (err) {
     console.error('Could not load the new subscription:', err.message)
     return { stripe_subscription_id: typeof session.subscription === 'string' ? session.subscription : null }
+  }
+}
+
+// Diocese plan (migration 108): one subscription, quantity = covered parishes
+async function saveDioceseSubscription(dioceseId, customerId, sub) {
+  const fields = subscriptionFields(sub)
+  await supabase.from('diocese_subscriptions').upsert({
+    diocese_id: dioceseId,
+    stripe_customer_id: customerId,
+    stripe_subscription_id: fields.stripe_subscription_id,
+    status: fields.status,
+    current_period_end: fields.current_period_end,
+    quantity: sub.items?.data?.[0]?.quantity ?? null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'diocese_id' })
+}
+
+// The plan just started: every parish it covers stops paying for itself
+async function endCoveredParishesOwnPlans(dioceseId) {
+  const { data: rows } = await supabase.from('diocese_parishes').select('parish_id').eq('diocese_id', dioceseId)
+  for (const r of rows ?? []) {
+    const result = await endParishOwnSubscription(stripe, r.parish_id)
+    console.log(`Diocese ${dioceseId} covers parish ${r.parish_id}: ${result}`)
   }
 }
 
@@ -201,6 +225,14 @@ export default async function handler(req, res) {
 
         if (session.mode === 'setup' && session.metadata?.purpose === 'parish_add_card') {
           await handleParishCardAdded(session)
+          break
+        }
+
+        // Diocese plan checkout
+        if (billingType === 'diocese' && session.metadata?.diocese_id && session.subscription) {
+          const subId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id
+          await saveDioceseSubscription(session.metadata.diocese_id, customerId, await stripe.subscriptions.retrieve(subId))
+          await endCoveredParishesOwnPlans(session.metadata.diocese_id)
           break
         }
 
@@ -382,6 +414,12 @@ export default async function handler(req, res) {
         const billingType = sub.metadata?.billing_type
         const interval   = sub.items?.data?.[0]?.price?.recurring?.interval
 
+        // Diocese plan
+        if (billingType === 'diocese' && sub.metadata?.diocese_id) {
+          await saveDioceseSubscription(sub.metadata.diocese_id, customerId, sub)
+          break
+        }
+
         // Parish subscription
         if (parishId) {
           await supabase.from('parish_subscriptions').upsert({
@@ -442,6 +480,15 @@ export default async function handler(req, res) {
         const sub        = event.data.object
         const customerId = sub.customer
         const parishId   = sub.metadata?.parish_id
+
+        // Diocese plan ended: its parishes are no longer covered
+        if (sub.metadata?.billing_type === 'diocese' && sub.metadata?.diocese_id) {
+          await supabase.from('diocese_subscriptions').update({
+            status: 'canceled',
+            updated_at: new Date().toISOString(),
+          }).eq('diocese_id', sub.metadata.diocese_id)
+          break
+        }
 
         // Parish subscription
         if (parishId) {

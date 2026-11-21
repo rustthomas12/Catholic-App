@@ -16,7 +16,7 @@ import { getMyMemberships, onMembershipsChanged } from '../lib/myMemberships'
  */
 
 const EMPTY = []
-let store = { userId: null, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, loaded: false }
+let store = { userId: null, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, dioceseAdminRecords: EMPTY, loaded: false }
 let inflight = null // { userId, promise }
 let fetchedAt = 0   // when the store was last filled
 const FRESH_MS = 60_000
@@ -32,7 +32,7 @@ function fetchAdminAccess(userId, { force = false } = {}) {
   if (inflight?.userId === userId && !force) return inflight.promise
   if (!force && store.loaded && store.userId === userId && Date.now() - fetchedAt < FRESH_MS) return
   if (store.userId !== userId) {
-    setStore({ userId, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, loaded: false })
+    setStore({ userId, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, dioceseAdminRecords: EMPTY, loaded: false })
   }
 
   const promise = (async () => {
@@ -60,6 +60,7 @@ function fetchAdminAccess(userId, { force = false } = {}) {
       parishAdminRecords: parishRows.map((r) => ({ ...r, parishes: parishMap[r.parish_id] ?? null })),
       orgAdminRecords: orgRows.map((r) => ({ ...r, organizations: orgMap[r.org_id] ?? null })),
       moderatorParishIds: m.parishModerators ?? EMPTY,
+      dioceseAdminRecords: m.dioceseAdmins ?? EMPTY,
       loaded: true,
     })
   })()
@@ -93,7 +94,7 @@ export function useAdminAccess() {
   useEffect(() => {
     if (!userId) {
       inflight = null
-      if (store.userId) setStore({ userId: null, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, loaded: false })
+      if (store.userId) setStore({ userId: null, parishAdminRecords: EMPTY, orgAdminRecords: EMPTY, moderatorParishIds: EMPTY, dioceseAdminRecords: EMPTY, loaded: false })
       return
     }
     fetchAdminAccess(userId) // shared: concurrent callers reuse one request
@@ -108,6 +109,7 @@ export function useAdminAccess() {
   const parishAdminRecords = mine ? snap.parishAdminRecords : EMPTY // [{ parish_id, role, parishes: { id, name, diocese } }]
   const orgAdminRecords = mine ? snap.orgAdminRecords : EMPTY       // [{ org_id, role, organizations: { id, name } }]
   const moderatorParishIds = mine ? snap.moderatorParishIds : EMPTY
+  const dioceseAdminRecords = mine ? snap.dioceseAdminRecords : EMPTY
   // Mirrors can_moderate_parish() (migration 099); the database decides
   const canModerateParish = (parishId) => !!parishId && (
     !!isAdmin
@@ -124,6 +126,7 @@ export function useAdminAccess() {
     isOrgAdmin: orgAdminRecords.length > 0,
     orgAdminRecords,
     moderatorParishIds,
+    dioceseAdminRecords,
     canModerateParish,
     canFeatureInParish,
     loading: userId ? !(mine && snap.loaded) : false,

@@ -139,6 +139,8 @@ export default function ParishAdminPage() {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState(null)
   const [subLoading, setSubLoading] = useState(true)
+  // Covered by a diocese plan (migration 108): counts as having a plan
+  const [dioceseCover, setDioceseCover] = useState(null)
 
   useEffect(() => { document.title = 'Parish Admin | inFold' }, [])
 
@@ -168,13 +170,17 @@ export default function ParishAdminPage() {
     init()
   }, [parishId, user, isAdmin, authLoading, navigate, retryKey])
 
-  const loadSubscription = useCallback(() => supabase
-    .from('parish_subscriptions')
-    .select('status, trial_ends_at, current_period_end, stripe_customer_id, has_payment_method')
-    .eq('parish_id', parishId)
-    .maybeSingle()
-    .then(({ data }) => {
+  const loadSubscription = useCallback(() => Promise.all([
+    supabase
+      .from('parish_subscriptions')
+      .select('status, trial_ends_at, current_period_end, stripe_customer_id, has_payment_method')
+      .eq('parish_id', parishId)
+      .maybeSingle(),
+    supabase.rpc('parish_plan_status', { p_parish_id: parishId }),
+  ])
+    .then(([{ data }, { data: plan }]) => {
       setSubscription(data)
+      setDioceseCover(plan?.covered ? { id: plan.diocese_id, name: plan.diocese_name } : null)
       setSubLoading(false)
     })
     .catch(() => setSubLoading(false)), [parishId])
@@ -199,8 +205,9 @@ export default function ParishAdminPage() {
   }
   if (loadFailed) return <LoadFailed onRetry={() => { setLoading(true); setRetryKey((k) => k + 1) }} />
 
-  const hasActiveSub = ['trialing', 'active'].includes(subscription?.status)
-  const daysLeft = trialDaysLeft(subscription)
+  const hasActiveSub = ['trialing', 'active'].includes(subscription?.status) || !!dioceseCover
+  // No "add a card" nudges for a parish its diocese pays for
+  const daysLeft = dioceseCover ? null : trialDaysLeft(subscription)
   const isPending = adminRole === 'pending'
   const lockedForPending = isPending && !PENDING_TABS.includes(activeTab)
 
@@ -330,6 +337,7 @@ export default function ParishAdminPage() {
             subscription={subscription}
             setSubscription={setSubscription}
             setActiveTab={setActiveTab}
+            dioceseCover={dioceseCover}
           />
         )}
       </div>
@@ -1305,7 +1313,7 @@ function ModerationTab({ parishId, adminRole }) {
 }
 
 // ── Billing Tab ─────────────────────────────────────────────
-function BillingTab({ parishId, parish, subscription, setSubscription }) {
+function BillingTab({ parishId, parish, subscription, setSubscription, dioceseCover }) {
   const { user } = useAuth()
   const [selectedTier, setSelectedTier] = useState('medium')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
@@ -1391,6 +1399,23 @@ function BillingTab({ parishId, parish, subscription, setSubscription }) {
     if (type.includes('subscription.deleted')) return 'Subscription canceled'
     if (type.includes('payment_failed')) return 'Payment failed'
     return type
+  }
+
+  if (dioceseCover) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <p className="text-gold text-xs font-bold tracking-widest uppercase mb-1">Your plan</p>
+          <h2 className="font-bold text-navy text-lg">Covered by the {dioceseCover.name} plan</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Your diocese pays for your parish's inFold plan, so everything is unlocked and there's nothing to pay here.
+            {subscription && ['trialing', 'active', 'past_due'].includes(subscription.status)
+              ? " Your parish's own subscription ends at the end of the period you already paid for, so you're never charged twice."
+              : ''}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

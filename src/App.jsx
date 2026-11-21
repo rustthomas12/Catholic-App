@@ -51,6 +51,7 @@ const ForgotPasswordPage       = lazy(() => import('./pages/ForgotPasswordPage')
 const ResetPasswordPage        = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage                = lazy(() => import('./pages/AdminPage'))
 const ParishAdminPage          = lazy(() => import('./pages/ParishAdminPage'))
+const DioceseAdminPage         = lazy(() => import('./pages/DioceseAdminPage'))
 const OrganizationsPage        = lazy(() => import('./pages/OrganizationsPage'))
 const MyCommunitiesPage        = lazy(() => import('./pages/MyCommunitiesPage'))
 const OrganizationPage         = lazy(() => import('./pages/OrganizationPage'))
@@ -273,6 +274,7 @@ function AppInner() {
           <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints/:id"                element={<ProtectedRoute><RouteErrorBoundary><SaintPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/admin"                     element={<ProtectedRoute><RouteErrorBoundary><AdminPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/diocese-admin/:id"        element={<ProtectedRoute><RouteErrorBoundary><DioceseAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/parish-admin/:parishId"    element={<ProtectedRoute><RouteErrorBoundary><ParishAdminPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/organizations"             element={<ProtectedRoute><RouteErrorBoundary><OrganizationsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/communities"               element={<ProtectedRoute><RouteErrorBoundary><MyCommunitiesPage /></RouteErrorBoundary></ProtectedRoute>} />

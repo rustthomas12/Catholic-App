@@ -123,7 +123,7 @@ function Navigation() {
   const navigate = useNavigate()
   const { isAuthenticated, profile, user, signOut } = useAuth()
   const { unreadCount } = useNotifications()
-  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords } = useAdminAccess()
+  const { isPlatformAdmin, parishAdminRecords, orgAdminRecords, dioceseAdminRecords } = useAdminAccess()
   const season = getLiturgicalSeason()
   const { t } = useTranslation('common')
   const [unreadDMs, setUnreadDMs] = useState(0)
@@ -347,7 +347,7 @@ function Navigation() {
           </Link>
 
           {/* Admin section */}
-          {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0) && (
+          {(isPlatformAdmin || parishAdminRecords.length > 0 || orgAdminRecords.length > 0 || dioceseAdminRecords.length > 0) && (
             <>
               <div className="mx-3 border-t border-white/10 my-1" />
               <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold text-white/70 uppercase tracking-widest">
@@ -363,6 +363,18 @@ function Navigation() {
                   <span className="text-sm font-medium">{t('nav.platform_admin')}</span>
                 </Link>
               )}
+
+              {dioceseAdminRecords.map(record => (
+                <Link key={record.diocese_id} to={`/diocese-admin/${record.diocese_id}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    location.pathname === `/diocese-admin/${record.diocese_id}` ? 'bg-white/10 text-gold' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}>
+                  <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate">
+                    {record.dioceses?.name || 'My diocese'}
+                  </span>
+                </Link>
+              ))}
 
               {parishAdminRecords.map(record => (
                 <Link key={record.parish_id} to={`/parish-admin/${record.parish_id}`}

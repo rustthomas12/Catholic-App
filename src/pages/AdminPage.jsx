@@ -214,6 +214,113 @@ function AssignOrgAdmin() {
   )
 }
 
+// ── Diocese accounts (migration 108) ───────────────────────
+// Dioceses sign up by talking to us: create the account here, matched to a
+// diocese name on the parish list, and appoint its admin. The admin then
+// picks parishes and starts the $49/parish plan at /diocese-admin/:id.
+function DioceseAccounts() {
+  const { user: me } = useAuth()
+  const [names, setNames] = useState([])
+  const [accounts, setAccounts] = useState([])
+  const [name, setName] = useState('')
+  const [user, setUser] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      supabase.from('parishes').select('diocese').not('diocese', 'is', null).limit(5000),
+      supabase.from('dioceses').select('id, name, diocese_admins(user_id, profiles(full_name)), diocese_subscriptions(status, quantity)').order('name'),
+    ]).then(([{ data: p }, { data: d }]) => {
+      if (cancelled) return
+      setNames([...new Set((p ?? []).map((r) => r.diocese).filter(Boolean))].sort())
+      setAccounts(d ?? [])
+    })
+    return () => { cancelled = true }
+  }, [reloadKey])
+
+  async function searchUsers(q) {
+    const trimmed = q.replace(/^@/, '').trim()
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, username')
+      .is('deleted_at', null)
+      .or(`full_name.ilike.${containsIlike(trimmed)},username.ilike.${containsIlike(trimmed)}`)
+      .limit(8)
+    return data || []
+  }
+
+  async function handleSave() {
+    if (!name || !user) return
+    setSaving(true)
+    let diocese = accounts.find((a) => a.name === name)
+    if (!diocese) {
+      const { data, error } = await supabase.from('dioceses').insert({ name, created_by: me?.id ?? null }).select('id, name').single()
+      if (error) { setSaving(false); toast.error('Could not create the diocese: ' + error.message); return }
+      diocese = data
+    }
+    const { error } = await supabase.from('diocese_admins').upsert(
+      { diocese_id: diocese.id, user_id: user.id }, { onConflict: 'diocese_id,user_id' }
+    )
+    setSaving(false)
+    if (error) { toast.error('Could not appoint the admin: ' + error.message); return }
+    toast.success(`${user.full_name} now manages the ${name} plan`)
+    setUser(null)
+    setReloadKey((k) => k + 1)
+  }
+
+  return (
+    <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3'>
+      <div className='flex items-center gap-2 mb-1'>
+        <BuildingLibraryIcon className='w-4 h-4 text-navy' />
+        <h3 className='text-sm font-bold text-navy'>Diocese accounts</h3>
+      </div>
+      {accounts.length > 0 && (
+        <ul className='divide-y divide-gray-50 text-sm'>
+          {accounts.map((a) => {
+            const sub = Array.isArray(a.diocese_subscriptions) ? a.diocese_subscriptions[0] : a.diocese_subscriptions
+            return (
+              <li key={a.id} className='py-2 flex flex-wrap items-center gap-x-3'>
+                <Link to={`/diocese-admin/${a.id}`} className='font-semibold text-navy hover:underline'>{a.name}</Link>
+                <span className='text-xs text-gray-500'>
+                  {(a.diocese_admins ?? []).map((x) => x.profiles?.full_name).filter(Boolean).join(', ') || 'no admin'}
+                  {' · '}{sub?.status ? `${sub.status}, ${sub.quantity ?? 0} parishes` : 'no plan yet'}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <div>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>Diocese</label>
+        <select value={name} onChange={(e) => setName(e.target.value)}
+          className='w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white'>
+          <option value=''>Choose a diocese…</option>
+          {names.map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className='text-xs font-semibold text-gray-500 mb-1 block'>Diocese admin</label>
+        <EntitySearch
+          placeholder='Search by name or @username…'
+          selected={user}
+          onSelect={setUser}
+          onClear={() => setUser(null)}
+          searchFn={searchUsers}
+          renderResult={u => u.username ? `${u.full_name} (@${u.username})` : u.full_name}
+          icon={UserCircleIcon}
+        />
+      </div>
+      <button onClick={handleSave} disabled={!name || !user || saving}
+        className='w-full flex items-center justify-center gap-2 bg-navy text-white text-sm font-bold py-2.5 rounded-xl hover:bg-navy/90 disabled:opacity-40 transition-colors'>
+        {saving ? <LoadingSpinner size='sm' color='white' /> : <CheckIcon className='w-4 h-4' />}
+        {saving ? 'Saving…' : 'Create account / appoint admin'}
+      </button>
+    </div>
+  )
+}
+
 // ── Assign Parish Pastor ───────────────────────────────────
 function AssignParishPastor() {
   const [parish, setParish] = useState(null)
@@ -854,6 +961,11 @@ export default function AdminPage() {
           <AppErrors />
         </section>
       </div>
+
+      {/* Diocese plan accounts */}
+      <section>
+        <DioceseAccounts />
+      </section>
 
       {/* Parish Clusters */}
       <section>
