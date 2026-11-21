@@ -80,7 +80,7 @@ export function ReachTab({ parishId }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <Stat value={data.followers} label="Parishioners on inFold" hint={`${Number(data.new_followers).toLocaleString()} new in this period`} />
             <Stat value={data.weekly_active} label="Active this week" hint="Posted, commented, liked or read an announcement" />
-            <Stat value={data.people_reached} label="Saw an announcement" hint={`${Number(data.announcement_count).toLocaleString()} announcements in this period`} />
+            <Stat value={data.people_reached} label="Saw an announcement" hint={`${Number(data.announcement_count).toLocaleString()} ${Number(data.announcement_count) === 1 ? 'announcement' : 'announcements'} in this period`} />
             <Stat value={data.pushes_opened} label="Opened a notification" hint={`${pct(data.pushes_opened, data.pushes_sent)} of ${Number(data.pushes_sent).toLocaleString()} sent`} />
             <Stat value={data.community_posts} label="Community posts" hint={`${Number(data.comments).toLocaleString()} comments`} />
             <Stat value={data.group_posts} label="Posts in parish groups" />
