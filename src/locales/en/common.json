@@ -83,8 +83,6 @@
     "no_messages_hint": "Start a conversation with another member.",
     "message_placeholder": "Message…",
     "search_placeholder": "Search by name…",
-    "premium_title": "Unlock direct messages",
-    "premium_body": "Send private messages to any inFold member. Available to supporters of the mission.",
     "you": "You"
   },
   "chat": {
@@ -125,7 +123,6 @@
     "type_messages_desc": "When someone sends you a message",
     "type_confession": "Confession Reminders",
     "type_confession_desc": "Gentle reminders for the Confession Tracker",
-    "type_confession_premium": "Available with Premium",
     "turn_on_all": "Turn on all notifications"
   },
   "me": {

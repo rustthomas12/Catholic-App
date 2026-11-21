@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { supabase, supabaseAuth, authJsonHeaders } from '../lib/supabase'
-import { apiUrl, authRedirectUrl } from '../lib/platform'
+import { supabase, supabaseAuth } from '../lib/supabase'
+import { authRedirectUrl } from '../lib/platform'
 import i18n, { setLanguage } from '../utils/i18n'
 import { clearParishCaches } from './useParish.js'
 import { clearFeedCaches } from './useFeed.js'
@@ -121,17 +121,6 @@ export function AuthProvider({ children }) {
           localStorage.setItem('infold-language', profileData.language)
         }
       } catch {}
-    }
-
-    // Fire-and-forget: track return visit for parish-sponsored users (once per session)
-    if (
-      profileData?.premium_source === 'parish_sponsored' &&
-      !sessionStorage.getItem('infold-return-tracked')
-    ) {
-      sessionStorage.setItem('infold-return-tracked', 'true')
-      authJsonHeaders()
-        .then(headers => fetch(apiUrl('/api/track-return'), { method: 'POST', headers }))
-        .catch(() => {})
     }
 
     return profileData

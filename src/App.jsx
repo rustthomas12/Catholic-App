@@ -237,9 +237,12 @@ function AppInner() {
           {/* Old "Support the Mission" links */}
           <Route path="/premium"                   element={<Navigate to="/" replace />} />
           <Route path="/premium/success"           element={<Navigate to="/" replace />} />
-          <Route path="/premium/examination"       element={<ProtectedRoute><RouteErrorBoundary><ExaminationPage /></RouteErrorBoundary></ProtectedRoute>} />
+          {/* Old paths from the retired Premium tier: kept as redirects because
+              earlier push notifications and installed apps still link to them */}
+          <Route path="/premium/examination"       element={<Navigate to="/faith/examination" replace />} />
           <Route path="/event/:id"                 element={<ProtectedRoute><RouteErrorBoundary><EventRedirectPage /></RouteErrorBoundary></ProtectedRoute>} />
-          <Route path="/premium/confession-tracker" element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/premium/confession-tracker" element={<Navigate to="/faith/confession-tracker" replace />} />
+          <Route path="/faith/confession-tracker"  element={<ProtectedRoute><RouteErrorBoundary><ConfessionTrackerPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints"                    element={<ProtectedRoute><RouteErrorBoundary><SaintsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/saints/:id"                element={<ProtectedRoute><RouteErrorBoundary><SaintPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/admin"                     element={<ProtectedRoute><RouteErrorBoundary><AdminPage /></RouteErrorBoundary></ProtectedRoute>} />

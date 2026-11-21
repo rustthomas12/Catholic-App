@@ -325,7 +325,7 @@ export default function ExaminationPage() {
           </div>
 
           <Link
-            to="/premium/confession-tracker"
+            to="/faith/confession-tracker"
             className="flex items-center justify-between bg-navy text-white rounded-2xl px-5 py-4 hover:bg-navy/90 transition-colors"
           >
             <div className="flex items-center gap-3">

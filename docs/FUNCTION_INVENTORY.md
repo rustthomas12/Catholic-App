@@ -173,7 +173,7 @@ Status: ✅ verified working · 🔧 fixed this pass · ⚠️ issue noted · �
 | S5 | integrations (facebook start/callback, flocknote, webhook — SSRF guarded) | ✅ |
 | S6 | readings (date validation, caching) | ✅ 🔧 impossible dates (2026-13-99) went to the upstream sites; now 400 |
 | S7 | morning-offering / readings reminders (cron secret) | ✅ refuse callers without the secret (401) |
-| S8 | claim-sponsorship-code, track-return, native-return | ✅ auth enforced; native-return can't redirect off-site |
+| S8 | native-return | ✅ can't redirect off-site (claim-sponsorship-code and track-return retired 2026-11-21 with the Premium tier) |
 
 ## 15. Server: edge functions, cron, triggers
 | ID | Function | Status |

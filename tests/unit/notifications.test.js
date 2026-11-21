@@ -30,7 +30,7 @@ describe('notificationPath', () => {
     expect(notificationPath('direct_message', 'u1')).toBe('/messages?to=u1')
     expect(notificationPath('direct_message', null)).toBe('/messages')
     expect(notificationPath('prayer_response', 'r1')).toBe('/faith/prayer')
-    expect(notificationPath('confession_reminder', null)).toBe('/premium/confession-tracker')
+    expect(notificationPath('confession_reminder', null)).toBe('/faith/confession-tracker')
     expect(notificationPath('post_flagged', 'p1')).toBe('/admin')
     expect(notificationPath('event_reminder', null)).toBe('/notifications')
   })

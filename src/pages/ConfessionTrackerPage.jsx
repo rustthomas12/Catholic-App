@@ -305,7 +305,7 @@ export default function ConfessionTrackerPage() {
               <p className="text-xs text-gray-500 mt-0.5">{t('examination_subtitle')}</p>
             </div>
             <Link
-              to="/premium/examination"
+              to="/faith/examination"
               className="text-xs font-bold text-navy bg-white border border-gold/40 px-3 py-2 min-h-[36px] rounded-xl hover:bg-gold/10 transition-colors flex-shrink-0 ml-3"
             >
               {t('premium:confession.open', 'Open →')}

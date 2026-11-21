@@ -25,7 +25,7 @@ async function userId(email) {
 const ROUTES = [
   '/', '/groups', '/directory', '/faith', '/faith/prayer', '/faith/journal', '/faith/rosary',
   '/faith/hours', '/faith/morning-offering', '/faith/intentions', '/faith/examination',
-  '/premium/confession-tracker', '/saints', '/notifications', '/messages', '/organizations',
+  '/faith/confession-tracker', '/saints', '/notifications', '/messages', '/organizations',
   '/profile', '/settings', '/settings/profile', '/settings/notifications', '/settings/blocked',
   '/contact',
 ]

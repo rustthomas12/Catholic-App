@@ -85,7 +85,7 @@ export const POST_SELECT = `
   *,
   author:profiles!author_id(
     id, full_name, username, avatar_url,
-    is_verified_clergy, is_premium, is_patron
+    is_verified_clergy
   ),
   parish:parishes!parish_id(id, name, city, state),
   group:groups!group_id(id, name),
