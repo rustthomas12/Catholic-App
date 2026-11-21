@@ -77,7 +77,7 @@ export default function SignupPage() {
       const { data } = await supabase
         .from('parishes')
         .select('id, name, city, state, diocese')
-        .or(`name.ilike.${containsIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9-]/g, '') || '00000'}`)
+        .or(`name.ilike.${containsIlike(parishQuery)},city.ilike.${containsIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9-]/g, '') || '00000'}`)
         .limit(8)
       setParishResults(data || [])
       setShowDropdown(true)
@@ -123,10 +123,10 @@ export default function SignupPage() {
   function validate() {
     const e = {}
     if (!fullName.trim() || fullName.trim().length < 2) e.fullName = 'Enter your full name'
-    if (!username.trim()) e.username = 'Choose a username'
-    else if (!USERNAME_REGEX.test(username.trim())) e.username = 'Must be 3–20 characters: letters, numbers, or underscores'
-    else if (usernameStatus === 'taken') e.username = 'That username is already taken'
-    else if (usernameStatus === 'checking') e.username = 'Still checking availability, please wait'
+    if (!username.trim()) e.username = t('signup.username_required', 'Choose a username')
+    else if (!USERNAME_REGEX.test(username.trim())) e.username = t('signup.username_invalid', 'Must be 3–20 characters: letters, numbers, or underscores.')
+    else if (usernameStatus === 'taken') e.username = t('signup.username_taken', 'This username is already taken.')
+    else if (usernameStatus === 'checking') e.username = t('signup.username_checking', 'Still checking availability, please wait')
     if (!email || !/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email'
     if (password.length < 8) e.password = t('signup.error_password_weak')
     if (password !== confirm) e.confirm = t('signup.error_password_match') || 'Passwords do not match'
@@ -185,7 +185,7 @@ export default function SignupPage() {
             label={t('signup.full_name')}
             value={fullName}
             onChange={e => setFullName(e.target.value)}
-            placeholder="Thomas Rust"
+            placeholder={t('signup.name_example', 'Maria Garcia')}
             icon={UserIcon}
             required
             error={errors.fullName}
@@ -195,7 +195,7 @@ export default function SignupPage() {
           {/* Username */}
           <div>
             <label className="block text-sm font-semibold text-navy mb-1">
-              Username <span className="text-red-500">*</span>
+              {t('signup.username', 'Username')} <span className="text-red-500">*</span>
             </label>
             <div className="relative flex items-center">
               <span className="absolute left-3 text-gray-500 font-medium select-none pointer-events-none">@</span>
@@ -231,10 +231,10 @@ export default function SignupPage() {
                 usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-500' :
                 usernameStatus === 'available' ? 'text-green-600' : 'text-gray-500'
               }`}>
-                {usernameStatus === 'taken' && 'This username is already taken.'}
-                {usernameStatus === 'invalid' && 'Must be 3–20 characters: letters, numbers, or underscores.'}
-                {usernameStatus === 'available' && 'Available!'}
-                {!usernameStatus && 'Letters, numbers, and underscores only.'}
+                {usernameStatus === 'taken' && t('signup.username_taken', 'This username is already taken.')}
+                {usernameStatus === 'invalid' && t('signup.username_invalid', 'Must be 3–20 characters: letters, numbers, or underscores.')}
+                {usernameStatus === 'available' && t('signup.username_available', 'Available!')}
+                {!usernameStatus && t('signup.username_hint', 'Letters, numbers, and underscores only.')}
               </p>
             )}
           </div>
@@ -303,7 +303,7 @@ export default function SignupPage() {
           {/* Parish search */}
           <div ref={dropdownRef} className="relative">
             <label className="block text-sm font-semibold text-navy mb-1">
-              {t('signup.parish')} <span className="text-gray-500 font-normal">(optional)</span>
+              {t('signup.parish')} <span className="text-gray-500 font-normal">({t('signup.optional', 'optional')})</span>
             </label>
 
             {selectedParish ? (

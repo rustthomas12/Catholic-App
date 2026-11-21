@@ -133,7 +133,7 @@ export default function EditProfilePage() {
       const { data } = await supabase
         .from('parishes')
         .select('id, name, city, state, diocese')
-        .or(`name.ilike.${fuzzyIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9]/g, '') || '0'}`)
+        .or(`name.ilike.${fuzzyIlike(parishQuery)},city.ilike.${fuzzyIlike(parishQuery)},zip.eq.${parishQuery.replace(/[^0-9]/g, '') || '0'}`)
         .limit(8)
       setParishResults(data || [])
       setShowDropdown(true)
