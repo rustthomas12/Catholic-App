@@ -13,6 +13,10 @@ export default {
         // Brand kit (brand/README.md); also CSS variables in index.css
         brand: { blue: 'var(--brand-blue)', navy: 'var(--brand-navy)', ink: 'var(--brand-ink)' },
         cream: '#FAF7F2',
+        // Marketing site (src/marketing)
+        'navy-deep': '#0E1830',
+        'gold-deep': '#9C7C2C',
+        'gold-light': '#E8D59A',
         lightbg: '#F0EDE8',
       },
       fontFamily: {

@@ -6,6 +6,9 @@ import { preloadHomeScreen } from './build/preloadHomeScreen.js'
 export default defineConfig({
   build: {
     rolldownOptions: {
+      // Two pages: the app (index.html) and the marketing site
+      // (marketing.html, served on getinfold.app by vercel.json)
+      input: { main: 'index.html', marketing: 'marketing.html' },
       output: {
         // date-fns otherwise splits into many ~1 KB files that the home
         // screen needs before it can draw (not used at startup itself, so
@@ -63,6 +66,11 @@ export default defineConfig({
         // Loaded via importScripts so it runs after Workbox is set up.
         importScripts: ['/sw-push.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
+        // The marketing site is a separate page with no offline support
+        globIgnores: [
+          'marketing.html', '**/marketing-*.{js,css}', '**/Marketing*.{js,css}', '**/cormorant-*.woff2',
+          '**/{Features,ForParishes,About,Contact}-*.js',
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

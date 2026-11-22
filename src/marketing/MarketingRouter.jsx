@@ -1,34 +1,69 @@
-import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import Home from './Home'
+import './marketing.css'
 
-const Home          = lazy(() => import('./Home'))
-const Features      = lazy(() => import('./Features'))
-const ForParishes   = lazy(() => import('./ForParishes'))
-const About         = lazy(() => import('./About'))
-const Contact       = lazy(() => import('./Contact'))
+// Home is in the first download so the landing page draws at once; the
+// other pages load when visited (and are prefetched after the first paint).
+const loaders = {
+  features: () => import('./Features'),
+  parishes: () => import('./ForParishes'),
+  about: () => import('./About'),
+  contact: () => import('./Contact'),
+}
+const Features = lazy(loaders.features)
+const ForParishes = lazy(loaders.parishes)
+const About = lazy(loaders.about)
+const Contact = lazy(loaders.contact)
 const PitchDeckPage = lazy(() => import('../pages/PitchDeckPage'))
+const IconSheet = import.meta.env.DEV ? lazy(() => import('./IconSheet')) : null
 
-function Spinner() {
-  return (
-    <div className="min-h-screen bg-navy flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
-    </div>
-  )
+function Fallback() {
+  return <div className="min-h-screen bg-navy-deep" />
+}
+
+const TITLES = {
+  '/': 'inFold — The Digital Parish Hall',
+  '/features': 'Features — inFold',
+  '/parishes': 'For Parishes — inFold',
+  '/about': 'About — inFold',
+  '/contact': 'Contact — inFold',
+}
+
+function PageEffects() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    document.title = TITLES[pathname] || TITLES['/']
+    if (hash) {
+      requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }))
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, hash])
+  // Fetch the other pages quietly once the browser is idle
+  useEffect(() => {
+    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1500))
+    idle(() => Object.values(loaders).forEach((l) => l().catch(() => {})))
+  }, [])
+  return null
 }
 
 export default function MarketingRouter() {
   return (
-    <Suspense fallback={<Spinner />}>
-      <Routes>
-        <Route path="/"          element={<Home />} />
-        <Route path="/features"  element={<Features />} />
-        <Route path="/parishes"  element={<ForParishes />} />
-        <Route path="/about"     element={<About />} />
-        <Route path="/contact"   element={<Contact />} />
-        <Route path="/pitch"     element={<PitchDeckPage />} />
-        {/* Catch-all → home */}
-        <Route path="*"          element={<Home />} />
-      </Routes>
-    </Suspense>
+    <>
+      <PageEffects />
+      <Suspense fallback={<Fallback />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/parishes" element={<ForParishes />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/pitch" element={<PitchDeckPage />} />
+          {IconSheet && <Route path="/__icons" element={<IconSheet />} />}
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </Suspense>
+    </>
   )
 }

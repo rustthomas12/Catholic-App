@@ -2,6 +2,26 @@
   "rewrites": [
     {
       "source": "/((?!api/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "getinfold.app"
+        }
+      ],
+      "destination": "/marketing.html"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.getinfold.app"
+        }
+      ],
+      "destination": "/marketing.html"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
