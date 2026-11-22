@@ -1,11 +1,10 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { markAppReady } from './lib/appReady'
 
 // Side-effect: initialize i18n
 import './utils/i18n'
 
-import MarketingRouter from './marketing/MarketingRouter'
 
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx'
 import ErrorBoundary from './components/shared/ErrorBoundary'
@@ -292,21 +291,41 @@ function AppInner() {
   )
 }
 
-// Serve the marketing site when accessed from the main domain
+// getinfold.app is the marketing site, a separate page (marketing.html,
+// routed by vercel.json). This app only reaches that domain when an old
+// offline copy installed there serves it: remove that copy and reload once.
 const isMarketingDomain =
   window.location.hostname === 'getinfold.app' ||
   window.location.hostname === 'www.getinfold.app'
 
+// Fallback if the reload still lands here: draw the marketing site in-app
+const MarketingRouter = lazy(() => import('./marketing/MarketingRouter'))
+
+function LeaveForMarketingSite() {
+  const [fallback] = useState(() => {
+    try { return sessionStorage.getItem('infold-marketing-reload') === '1' } catch { return true }
+  })
+  useEffect(() => {
+    markAppReady()
+    if (fallback) return
+    try { sessionStorage.setItem('infold-marketing-reload', '1') } catch { /* private mode */ }
+    Promise.all([
+      navigator.serviceWorker?.getRegistrations().then((rs) => Promise.all(rs.map((r) => r.unregister()))),
+      window.caches?.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k)))),
+    ]).catch(() => {}).finally(() => window.location.reload())
+  }, [fallback])
+  if (!fallback) return <div style={{ minHeight: '100vh', background: '#0E1830' }} />
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0E1830' }} />}>
+        <MarketingRouter />
+      </Suspense>
+    </BrowserRouter>
+  )
+}
+
 export default function App() {
-  if (isMarketingDomain) {
-    return (
-      <ErrorBoundary>
-        <BrowserRouter>
-          <MarketingRouter />
-        </BrowserRouter>
-      </ErrorBoundary>
-    )
-  }
+  if (isMarketingDomain) return <LeaveForMarketingSite />
 
   return (
     <ErrorBoundary>
