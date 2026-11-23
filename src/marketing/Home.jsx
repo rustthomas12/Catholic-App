@@ -43,13 +43,17 @@ function Hero() {
 
       <div className="relative max-w-5xl mx-auto">
         <div className="fade-in" style={d(0, 0, 100)}><Eyebrow light>Pro Ecclesia · Pro Fide</Eyebrow></div>
-        <h1 className="font-display font-semibold text-white text-[3.4rem] leading-[0.98] sm:text-7xl md:text-8xl lg:text-[7.5rem] mt-7">
-          <RisingWords text="The Digital" base={250} step={110} />
+        <h1 className="font-display font-semibold text-white text-[3.05rem] leading-[0.98] sm:text-7xl md:text-8xl lg:text-[7.5rem] mt-7">
+          <RisingWords text="Every announcement." base={250} step={110} />
           <br />
-          <span className="italic font-medium"><RisingWords text="Parish Hall" base={480} step={110} className="gilded pr-2" /></span>
+          <span className="italic font-medium"><RisingWords text="Every event." base={480} step={110} className="gilded pr-2" /></span>
         </h1>
         <p className="fade-in text-white/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mt-8" style={d(0, 0, 900)}>
-          inFold connects Catholics with their parish, their faith, and each other, without algorithms, ads, or noise.
+          Everything happening at your parish, in one place, the moment it&apos;s posted.
+        </p>
+        <p className="fade-in font-display italic text-gold/75 text-lg md:text-xl mt-5" style={d(0, 0, 1000)}>
+          &ldquo;My sheep hear my voice: and I know them, and they follow me.&rdquo;
+          <span className="not-italic smallcaps text-[11px] md:text-xs text-gold/60 ml-2 whitespace-nowrap">John 10:27</span>
         </p>
         <div className="fade-in flex flex-col sm:flex-row items-center justify-center gap-4 mt-11" style={d(0, 0, 1100)}>
           <GoldButton href={APP_URL} className="w-full sm:w-auto">Open the Free App</GoldButton>
