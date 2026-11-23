@@ -20,6 +20,23 @@ const preload = fonts.map((f) => `<link rel="preload" href="/assets/${f}" as="fo
 // shows at once instead of waiting for the JavaScript (see Reveal in ui.jsx)
 const revealNow = `<script>document.querySelectorAll('[data-reveal]').forEach(function(e){if(e.getBoundingClientRect().top<innerHeight*.9)e.classList.add('is-in')})</script>`
 
+// The stylesheet goes inline (about 14 KB compressed): the first paint needs
+// it, and as a separate file it queued behind 200 KB of JavaScript on slow
+// phones. Fonts are next in line; the JavaScript (which only takes over
+// markup already on screen) is fetched at low priority.
+const cssHref = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/)
+if (!cssHref) throw new Error('dist/marketing.html: stylesheet not found')
+const css = readFileSync('dist' + cssHref[1], 'utf8').replace(/<\/style/gi, '<\/style')
+function optimiseHead(html) {
+  return html
+    .replace(cssHref[0], '')
+    .replace(/\s*<link rel="manifest"[^>]*>/, '') // the app's install manifest; not for the website
+    .replace(/<link rel="modulepreload"/g, '<link rel="modulepreload" fetchpriority="low"')
+    .replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />
+    <style>${css}</style>
+    ${preload}`)
+}
+
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' })
@@ -29,14 +46,13 @@ try {
   for (const [path, meta] of Object.entries(PAGES)) {
     const body = await render(path)
     const url = SITE + (path === '/' ? '/' : path)
-    let html = template
+    let html = optimiseHead(template)
       .replace(/<title>[^<]*<\/title>/, `<title>${esc(meta.title)}</title>`)
       .replace(/(<meta name="description" content=")[^"]*"/, `$1${esc(meta.description)}"`)
       .replace(/(<meta property="og:title" content=")[^"]*"/, `$1${esc(meta.title)}"`)
       .replace(/(<meta property="og:description" content=")[^"]*"/, `$1${esc(meta.description)}"`)
       .replace(/(<link rel="canonical" href=")[^"]*"/, `$1${url}"`)
       .replace(/(<meta property="og:url" content=")[^"]*"/, `$1${url}"`)
-      .replace('</head>', `    ${preload}\n  </head>`)
       .replace('<div id="root"></div>', `<div id="root" data-path="${path}">${body}</div>${revealNow}`)
     const out = path === '/' ? 'dist/marketing.html' : `dist/m${path}.html`
     writeFileSync(out, html)
