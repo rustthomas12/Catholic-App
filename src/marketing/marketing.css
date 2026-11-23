@@ -65,7 +65,11 @@ body {
 .rv-scale { transform: scale(.94); }
 
 /* Headline words rise one after another */
-.word { display: inline-block; overflow: hidden; vertical-align: top; padding: .06em .02em .12em; margin: -.06em -.02em -.12em; }
+/* The clip box is padded (and pulled back with negative margins) so deep
+   italic descenders and overhangs, like the tail of "y", aren't cut off */
+.word { display: inline-block; overflow: hidden; vertical-align: top; padding: .06em .1em .32em; margin: -.06em -.1em -.32em; }
+/* Gold text is painted by its background: extend it under the descenders */
+.word > .gilded { padding: 0 .08em .28em; margin: 0 -.08em -.28em; }
 .word > span { display: inline-block; transform: translate3d(0, 110%, 0) rotate(4deg); opacity: 0;
                animation: word-rise 1.2s var(--ease-out) forwards; animation-delay: var(--d, 0ms); }
 @keyframes word-rise { to { transform: none; opacity: 1; } }
