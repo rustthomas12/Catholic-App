@@ -44,7 +44,7 @@ function setStoredProfile(userId, profile) {
 
 function clearStoredProfile(userId) {
   if (!userId) return
-  try { localStorage.removeItem('parish_profile_' + userId) } catch {}
+  try { localStorage.removeItem('parish_profile_' + userId); localStorage.removeItem('infold-communities:' + userId) } catch {}
 }
 
 // Keep the existing user object when nothing meaningful changed, so hooks

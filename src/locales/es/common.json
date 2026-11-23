@@ -255,7 +255,9 @@
     "org_count_other": "{{count}} organizaciones",
     "communities": "Mis parroquias y organizaciones",
     "plus_more": "+{{count}} más",
-    "admin_access": "Tu acceso de administrador"
+    "admin_access": "Tu acceso de administrador",
+    "my_parishes": "Mis parroquias",
+    "get_connected": "Conéctate"
   },
   "season": {
     "advent": "Adviento",

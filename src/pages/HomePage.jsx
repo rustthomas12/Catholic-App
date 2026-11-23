@@ -16,6 +16,7 @@ import { useReadings } from '../hooks/useReadings'
 import GroupCard from '../components/groups/GroupCard'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { LogoLockup } from '../components/shared/Logo'
+import TodayBand from '../components/home/TodayBand'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -121,30 +122,16 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Daily faith card */}
-        <div className="px-0">
-          <div className="px-4 pt-3 pb-2">
-            <ReadingsCard
-              variant="compact"
-              readings={homeReadings}
-              loading={readingsLoading}
-              error={readingsError}
-              liturgicalInfo={liturgicalInfo}
-              feastInfo={feastInfo}
-              todayFormatted={todayFormatted}
-            />
-          </div>
-        </div>
-
-        {/* My parishes & organizations: one slim row, the same height while
-            loading, so nothing below it jumps. Groups have their own tab. */}
-        <div className="px-4 pb-3">
-          <CommunitiesRow loading={communitiesLoading} parishes={myParishes} orgs={myOrgs} />
-        </div>
+        {/* Today's Gospel and your parishes: one slim band, so the feed
+            starts on the first screen */}
+        <TodayBand
+          readingsProps={{ readings: homeReadings, loading: readingsLoading, error: readingsError, liturgicalInfo, feastInfo }}
+          communities={{ loading: communitiesLoading, parishes: myParishes, orgs: myOrgs }}
+        />
 
         {/* Feed section */}
         {groupsLoaded && !hasAnyMembership ? (
-          <div className="border-t-4 border-gray-100 px-4 py-10 flex flex-col items-center text-center gap-4">
+          <div className="px-4 py-10 flex flex-col items-center text-center gap-4">
             <div className="flex gap-3 mb-1">
               <div className="w-12 h-12 bg-lightbg rounded-2xl flex items-center justify-center">
                 <BuildingLibraryIcon className="w-6 h-6 text-navy/75" />
@@ -171,7 +158,7 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          <div className="border-t border-gray-100">
+          <div className="pt-1">
             <FeedFilters activeFilter={activeFilter} onChange={setActiveFilter} />
             <Feed
               filter={activeFilter}
@@ -338,51 +325,9 @@ function AdminQuickAccess({ isPlatformAdmin, parishAdminRecords, orgAdminRecords
   )
 }
 
-// ── My parishes & organizations card ───────────────────────
+// ── My parishes & organizations card (desktop sidebar) ─────
 // One entry point for every parish and organization you're part of; the
 // list itself is on /communities
-// Phone Home: one compact row under the readings, styled like the readings
-// card. Fixed height in every state (loading, none, some) so the feed below
-// never shifts when it loads.
-function CommunitiesRow({ loading, parishes, orgs }) {
-  const { t } = useTranslation()
-  const box = 'h-14 bg-white rounded-2xl border border-gray-100 shadow-sm px-3 flex items-center gap-3'
-  if (loading) {
-    return (
-      <div className={box} aria-hidden="true">
-        <div className="w-9 h-9 rounded-xl bg-lightbg animate-pulse" />
-        <div className="h-3 w-40 rounded bg-lightbg animate-pulse" />
-      </div>
-    )
-  }
-  const names = [...parishes, ...orgs].map(x => x.name)
-  if (names.length === 0) {
-    return (
-      <Link to="/directory" className={`${box} hover:bg-lightbg transition-colors`}>
-        <div className="w-9 h-9 bg-gold/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <BuildingLibraryIcon className="w-5 h-5 text-navy" />
-        </div>
-        <span className="flex-1 text-sm font-semibold text-navy">{t('home.find_my_parish', 'Find my parish')}</span>
-        <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-      </Link>
-    )
-  }
-  const more = names.length - 1
-  return (
-    <Link to="/communities" className={`${box} hover:bg-lightbg transition-colors`}
-      aria-label={t('home.communities', 'My parishes and organizations')}>
-      <div className="w-9 h-9 bg-lightbg rounded-xl flex items-center justify-center flex-shrink-0">
-        <BuildingLibraryIcon className="w-5 h-5 text-navy" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-navy truncate">{names[0]}</p>
-        {more > 0 && <p className="text-[11px] text-gray-500">{t('home.plus_more', '+{{count}} more', { count: more })}</p>}
-      </div>
-      <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-    </Link>
-  )
-}
-
 function CommunitiesCard({ parishes, orgs, className }) {
   const { t } = useTranslation()
   if (parishes.length === 0 && orgs.length === 0) {

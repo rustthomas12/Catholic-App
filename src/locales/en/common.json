@@ -145,5 +145,9 @@
   "photo_check": {
     "blocked": "This photo can't be posted because it may break the community guidelines. Please choose a different photo.",
     "failed": "Couldn't upload the photo. Please try again."
+  },
+  "home": {
+    "my_parishes": "My parishes",
+    "get_connected": "Get connected"
   }
 }
