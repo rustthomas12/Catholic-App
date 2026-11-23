@@ -107,7 +107,7 @@ export function MarketingFooter() {
         <Reveal className="flex flex-col items-center text-center mb-16">
           <div className="rv"><LogoLockup onDark className="h-10 w-auto" /></div>
           <p className="rv font-display italic text-2xl md:text-3xl text-white/80 mt-6 max-w-xl" style={{ '--d': '100ms' }}>
-            The digital parish hall, connecting Catholics with their parish, their faith, and each other.
+            Every announcement, every event: everything happening at your parish, in one place.
           </p>
           <div className="rv mt-8" style={{ '--d': '200ms' }}><Ornament className="w-60 text-gold/60" /></div>
         </Reveal>
