@@ -1,7 +1,7 @@
 // Entry for the marketing site (marketing.html, served on getinfold.app).
 // Separate from the app so visitors download only this small site.
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import MarketingRouter from './MarketingRouter'
 
@@ -15,10 +15,21 @@ if ('serviceWorker' in navigator) {
   if (window.caches) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {})
 }
 
-createRoot(document.getElementById('root')).render(
+const app = (
   <StrictMode>
     <BrowserRouter>
       <MarketingRouter />
     </BrowserRouter>
   </StrictMode>
 )
+
+// Pages are pre-built at deploy (data-path names the page in the HTML).
+// Hydrate when it matches this address; otherwise draw from scratch.
+const root = document.getElementById('root')
+const path = window.location.pathname.replace(/\/+$/, '') || '/'
+if (root.firstElementChild && root.dataset.path === path) {
+  hydrateRoot(root, app)
+} else {
+  root.textContent = ''
+  createRoot(root).render(app)
+}

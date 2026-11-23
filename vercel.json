@@ -1,6 +1,26 @@
 {
   "rewrites": [
     {
+      "source": "/:page(features|parishes|about|contact)",
+      "has": [
+        {
+          "type": "host",
+          "value": "getinfold.app"
+        }
+      ],
+      "destination": "/m/:page.html"
+    },
+    {
+      "source": "/:page(features|parishes|about|contact)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.getinfold.app"
+        }
+      ],
+      "destination": "/m/:page.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "has": [
         {
@@ -32,6 +52,15 @@
         {
           "key": "Content-Type",
           "value": "application/json"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }

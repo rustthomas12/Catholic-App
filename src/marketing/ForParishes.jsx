@@ -15,11 +15,11 @@ const TIERS = [
 
 const ADMIN_FEATURES = [
   { icon: 'ledger', title: 'Admin Dashboard', desc: 'Full control over your parish presence: posts, events, parishioners, and billing in one place.' },
-  { icon: 'herald', title: 'Push Announcements', desc: "Announcements from the pastor and staff always reach parishioners' phones, with no algorithm and no spam filter. Overnight posts arrive at 8am." },
+  { icon: 'herald', title: 'Push Announcements', desc: "Announcements from the pastor and staff go straight to parishioners' phones, with no algorithm and no spam filter. Overnight posts arrive at 8am." },
   { icon: 'stellaMaris', title: 'From the Parish', desc: 'New announcements and posts you feature sit at the top of the home feed until each parishioner has seen them.' },
   { icon: 'reach', title: 'Reach', desc: 'See how many parishioners saw each announcement, how many are active each week, and how your parish is growing. Totals only, never who read what.' },
   { icon: 'moon', title: 'Quiet Phones', desc: "Parishioner posts stay in the app, with one evening summary of the day's best post. Nobody gets more than five parish notifications a day." },
-  { icon: 'shield', title: 'Moderation', desc: 'Reported posts go to your moderation queue. Hide a post in one tap, appoint trusted parishioners as moderators, and set a daily post limit with community guidelines.' },
+  { icon: 'shield', title: 'Moderation', desc: 'Reported posts go to your moderation queue. Hide a post in one tap, and appoint trusted parishioners as moderators. Community guidelines and a limit of three community posts per person a day keep things calm.' },
   { icon: 'scroll', title: 'Weekly Prompts', desc: "Optional weekly posts that get people talking: Sunday's homily, Monday's prayer intentions, Thursday's ride share to Mass." },
   { icon: 'calendar', title: 'Events & RSVPs', desc: 'Create events, set capacity, track who is going, and view a full attendee breakdown.' },
   { icon: 'register', title: 'Parishioner List', desc: 'See who follows your parish with name, vocation, and join date. Export to CSV anytime.' },
@@ -122,7 +122,7 @@ export default function ForParishesPage() {
         eyebrow="For Pastors & Parish Staff"
         title="Give your parishioners"
         accent="a home during the week."
-        sub="Replace scattered tools with one platform, and reach every parishioner with announcements that actually land: directly on their phone."
+        sub="Replace scattered tools with one platform, and reach parishioners with announcements that actually land: directly on their phones."
       >
         <GoldButton href="#apply">Apply for Your Parish <Arrow /></GoldButton>
       </PageHero>

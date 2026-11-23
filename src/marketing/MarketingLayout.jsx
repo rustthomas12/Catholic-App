@@ -33,7 +33,7 @@ export function MarketingNav() {
   return (
     <nav
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        solid ? 'bg-navy-deep/95 backdrop-blur-xl border-b border-gold/15 shadow-[0_10px_40px_-20px_rgba(0,0,0,.6)]' : 'bg-transparent border-b border-transparent'
+        solid ? 'bg-navy-deep/95 md:backdrop-blur-xl border-b border-gold/15 shadow-[0_10px_40px_-20px_rgba(0,0,0,.6)]' : 'bg-transparent border-b border-transparent'
       }`}
     >
       <div className={`max-w-6xl mx-auto px-6 flex items-center justify-between transition-all duration-500 ${solid ? 'py-3' : 'py-5'}`}>

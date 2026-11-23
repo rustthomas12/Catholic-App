@@ -48,15 +48,18 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gild 9s ease-in-out infinite;
+  /* One slow sweep of light, then still: an endless loop repaints the text every frame */
+  animation: gild 7s ease-in-out .6s 1 both;
 }
 @keyframes gild { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0% 0; } }
 
 /* ── Scroll reveal (Reveal component adds .is-in) ── */
-.rv { opacity: 0; transform: translate3d(0, 28px, 0); filter: blur(6px);
-      transition: opacity 1.1s var(--ease-out), transform 1.1s var(--ease-out), filter 1.1s var(--ease-out);
-      transition-delay: var(--d, 0ms); will-change: opacity, transform; }
-.is-in .rv, .rv.is-in { opacity: 1; transform: none; filter: none; }
+/* Opacity and transform only: the browser runs these on the GPU (a blur
+   filter or a permanent will-change on every card made phones stutter) */
+.rv { opacity: 0; transform: translate3d(0, 28px, 0);
+      transition: opacity 1.1s var(--ease-out), transform 1.1s var(--ease-out);
+      transition-delay: var(--d, 0ms); }
+.is-in .rv, .rv.is-in { opacity: 1; transform: none; }
 .rv-scale { transform: scale(.94); }
 
 /* Headline words rise one after another */
@@ -79,8 +82,9 @@ body {
 /* ── Rose window ── */
 .rose .ln { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 3.2s var(--ease-out) forwards; animation-delay: var(--d, 0ms); }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.rose-spin { animation: spin 240s linear infinite; transform-origin: 50% 50%; }
-.rose-spin-rev { animation: spin 360s linear infinite reverse; transform-origin: 50% 50%; }
+/* Each ring is its own HTML layer, so turning it is a GPU transform with no repaint */
+.rose-spin { animation: spin 240s linear infinite; transform-origin: 50% 50%; will-change: transform; }
+.rose-spin-rev { animation: spin 360s linear infinite reverse; transform-origin: 50% 50%; will-change: transform; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Light falling from above */
@@ -92,13 +96,17 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
   mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
   animation: breathe 8s ease-in-out infinite;
+  will-change: opacity;
 }
 @keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
 /* Dust in the light */
 .mote { position: absolute; bottom: -10px; width: var(--s, 3px); height: var(--s, 3px); border-radius: 50%;
         background: radial-gradient(circle, rgba(255, 240, 200, .95), rgba(232, 213, 154, 0) 70%);
-        animation: mote var(--t, 18s) linear infinite; animation-delay: var(--d, 0s); opacity: 0; }
+        animation: mote var(--t, 18s) linear infinite; animation-delay: var(--d, 0s); opacity: 0;
+        will-change: transform, opacity; }
+/* Half the dust on phones */
+@media (max-width: 767px) { .mote:nth-child(2n) { display: none; } }
 @keyframes mote {
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
   10% { opacity: .9; }
@@ -175,7 +183,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
                            transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  .rv, .word > span, .fade-in { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .rv, .word > span, .fade-in { opacity: 1 !important; transform: none !important; }
+  .rose-spin, .rose-spin-rev, .gilded, .rays { animation: none !important; }
   .rose .ln, .emb-draw .ln, .ornament .ln { stroke-dashoffset: 0 !important; }
   .emb-dot { opacity: 1 !important; }
   .mote, .notif { display: none; }

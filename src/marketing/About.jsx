@@ -21,7 +21,7 @@ const FOUNDER = [
 const VALUES = [
   { title: 'The Church comes first', body: "Every feature, every decision, every line of code is measured against one standard: does this serve the Church? If it doesn't, we don't build it." },
   { title: 'Free means free', body: 'When we say inFold is free for individuals, we mean it. No premium tier, no paywalled rosary, no upsell on your confession tracker. Your faith is not a revenue stream.' },
-  { title: 'Privacy is non-negotiable', body: 'Your prayer journal is private. Your confession dates are private. Your messages are private. A Catholic should be able to share their spiritual life without fear.' },
+  { title: 'Privacy is non-negotiable', body: 'Your confession dates are private. Your messages are private. A Catholic should be able to share their spiritual life without fear.' },
   { title: 'Parish first, platform second', body: 'inFold exists to strengthen the parish, not to replace it or compete with it. We measure success by how many Catholics are more connected to their local church.' },
 ]
 

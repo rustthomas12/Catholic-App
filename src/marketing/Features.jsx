@@ -13,7 +13,7 @@ const FEATURES = [
       { icon: 'calendar', title: 'Events & RSVP', desc: 'See upcoming parish events, RSVP with one tap, and get reminders.' },
       { icon: 'clock', title: 'Mass Times', desc: 'An always up-to-date Mass schedule for your parish, viewable by any follower.' },
       { icon: 'bell', title: 'Push Notifications', desc: 'Notifications for announcements and events, delivered to your phone.' },
-      { icon: 'church', title: 'Parish Directory', desc: '559 verified Massachusetts parishes in the directory.' },
+      { icon: 'church', title: 'Parish Directory', desc: 'Find your parish among the 558 Massachusetts parishes in the directory.' },
       { icon: 'links', title: 'Parish Clusters', desc: 'Multiple parishes under one pastoral name (e.g. Carlo Acutis Parish), shown together.' },
     ],
   },
@@ -21,8 +21,8 @@ const FEATURES = [
     id: 'community', numeral: 'II', category: 'Community',
     blurb: 'The friendships of parish life, carried through the week.',
     items: [
-      { icon: 'fellowship', title: 'Groups', desc: "Private groups linked to your parish or organization: men's group, young adults, prayer circles." },
-      { icon: 'temple', title: 'Organizations', desc: 'Knights of Columbus, FOCUS, Opus Dei, Civitas Dei: Catholic organizations alongside your parish.' },
+      { icon: 'fellowship', title: 'Groups', desc: "Public or private groups linked to your parish or organization: men's group, young adults, prayer circles." },
+      { icon: 'temple', title: 'Organizations', desc: 'Catholic organizations, such as councils, ministries, and apostolates, can have their own page and members alongside your parish.' },
       { icon: 'letter', title: 'Direct Messages', desc: 'Message any parishioner or organization member directly. No Facebook required.' },
       { icon: 'candle', title: 'Prayer Intentions', desc: 'Share intentions with your community. Tap "I\'ll pray" to intercede for others.' },
       { icon: 'quill', title: 'Parish Contact', desc: 'Send a message to your parish office from within the app.' },
@@ -33,11 +33,11 @@ const FEATURES = [
     id: 'faith', numeral: 'III', category: 'Faith',
     blurb: 'Daily prayer and preparation, kept close and kept private.',
     items: [
-      { icon: 'book', title: 'Daily Readings', desc: 'The full USCCB Mass readings, liturgical season, and calendar.' },
+      { icon: 'book', title: 'Daily Readings', desc: "The day's Mass readings with the liturgical season and feast, plus a link to the official USCCB text." },
       { icon: 'sunrise', title: 'Morning Offering', desc: 'Offer your day to God before it begins. Four classic prayers, including the traditional Apostleship of Prayer offering.' },
       { icon: 'lamp', title: 'Examination of Conscience', desc: 'A guided examination across the Ten Commandments and the Precepts of the Church, to prepare well for Confession.' },
       { icon: 'keys', title: 'Confession Tracker', desc: "Track your last confession and how many days it's been. Completely private." },
-      { icon: 'scroll', title: 'Prayer Journal', desc: 'A private place to keep your intentions and reflections.' },
+      { icon: 'crown', title: 'Saints', desc: 'The saint of the day, with a life and feast for each.' },
     ],
   },
   {
@@ -50,15 +50,14 @@ const FEATURES = [
       { icon: 'calendar', title: 'Event Management', desc: 'Create events, track RSVPs, and view attendee breakdowns.' },
       { icon: 'hourglass', title: 'Scheduled Posts', desc: 'Write posts in advance and schedule them to publish automatically.' },
       { icon: 'spires', title: 'Multi-Parish Clergy', desc: 'Pastors serving several parishes can be admin of each one.' },
-      { icon: 'links', title: 'Platform Integrations', desc: 'Post announcements to Facebook, Flocknote, and your website the moment you publish.' },
     ],
   },
   {
     id: 'platform', numeral: 'V', category: 'Platform',
     blurb: 'Quietly well made, on every device.',
     items: [
-      { icon: 'phone', title: 'Every Device', desc: 'iPhone, Android, and the web, all from one account.' },
-      { icon: 'orb', title: 'Bilingual (EN/ES)', desc: 'Full Spanish support for the 36% of US Catholics who are Hispanic.' },
+      { icon: 'phone', title: 'Every Device', desc: 'Works in the browser on iPhone, Android, and computers, all from one account. App Store and Google Play apps are on the way.' },
+      { icon: 'orb', title: 'Bilingual (EN/ES)', desc: 'The app in Spanish too, for the more than one in three US Catholics who are Hispanic. Scripture readings are in English for now.' },
       { icon: 'shield', title: 'Private & Secure', desc: 'No ads. No data sold. Your content is only visible to the right community.' },
       { icon: 'flame', title: 'Real-Time', desc: 'Chat, notifications, and feeds update the moment something happens.' },
     ],
@@ -77,7 +76,7 @@ function CategoryNav() {
     return () => io.disconnect()
   }, [])
   return (
-    <div className="sticky top-[64px] z-30 bg-cream/85 backdrop-blur-lg border-b border-navy/[0.06]">
+    <div className="sticky top-[64px] z-30 bg-cream/95 md:bg-cream/85 md:backdrop-blur-lg border-b border-navy/[0.06]">
       <div className="max-w-6xl mx-auto px-6 flex gap-1 overflow-x-auto py-3" style={{ scrollbarWidth: 'none' }}>
         {FEATURES.map((c) => (
           <a
