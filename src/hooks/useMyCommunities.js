@@ -8,6 +8,19 @@ import { useAdminAccess } from './useAdminAccess'
 // for the Home card and the My Communities page.
 //   parishes: [{ id, name, city, state, isHome, isAdmin }]   home parish first
 //   orgs:     [{ id, name, city, state, org_type, isAdmin }]
+//
+// The last list is remembered on the device, so Home and /communities show it
+// at once (it takes three requests to build) and refresh it quietly.
+const CACHE_PREFIX = 'infold-communities:'
+
+function readSaved(userId) {
+  if (!userId) return null
+  try {
+    const saved = JSON.parse(localStorage.getItem(CACHE_PREFIX + userId))
+    return Array.isArray(saved?.parishes) && Array.isArray(saved?.orgs) ? saved : null
+  } catch { return null }
+}
+
 export function useMyCommunities() {
   const { user, profile } = useAuth()
   const userId = user?.id
@@ -49,5 +62,14 @@ export function useMyCommunities() {
       .sort((a, b) => (b.isHome - a.isHome) || a.name.localeCompare(b.name))
   }, [followed, parishAdminRecords, profile?.parish_id])
 
-  return { parishes, orgs, loading: followedLoading || adminLoading || orgsLoading }
+  const loading = followedLoading || adminLoading || orgsLoading
+  const saved = useMemo(() => readSaved(userId), [userId])
+
+  useEffect(() => {
+    if (loading || !userId) return
+    try { localStorage.setItem(CACHE_PREFIX + userId, JSON.stringify({ parishes, orgs })) } catch { /* storage full or blocked */ }
+  }, [loading, userId, parishes, orgs])
+
+  if (loading && saved) return { parishes: saved.parishes, orgs: saved.orgs, loading: false }
+  return { parishes, orgs, loading }
 }
