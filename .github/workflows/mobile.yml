@@ -175,7 +175,9 @@ jobs:
   ios:
     name: iOS
     needs: web
-    runs-on: macos-15
+    # macOS 26 runners carry Xcode 27 (iOS 27 SDK), which Apple requires for
+    # uploads from April 2027 (ITMS-90725)
+    runs-on: macos-26
     env:
       HAS_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST != '' }}
       HAS_APPSTORE: ${{ secrets.APPSTORE_API_KEY_P8_BASE64 != '' }}
