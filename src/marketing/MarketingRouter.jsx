@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './Home'
 import './marketing.css'
+import { PAGES } from './pages'
 
 // Home is in the first download so the landing page draws at once; the
 // other pages load when visited (and are prefetched after the first paint).
@@ -22,21 +23,13 @@ function Fallback() {
   return <div className="min-h-screen bg-navy-deep" />
 }
 
-const TITLES = {
-  '/': 'inFold — The Digital Parish Hall',
-  '/features': 'Features — inFold',
-  '/parishes': 'For Parishes — inFold',
-  '/about': 'About — inFold',
-  '/contact': 'Contact — inFold',
-}
-
 function PageEffects() {
   const { pathname, hash } = useLocation()
   useEffect(() => {
-    document.title = TITLES[pathname] || TITLES['/']
+    document.title = (PAGES[pathname] || PAGES['/']).title
     if (hash) {
       requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }))
-    } else {
+    } else if (window.scrollY > 0) {
       window.scrollTo(0, 0)
     }
   }, [pathname, hash])

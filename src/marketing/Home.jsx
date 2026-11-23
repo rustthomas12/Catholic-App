@@ -7,11 +7,11 @@ import { d, glowHandlers, reduceMotion, useParallax } from './motion'
 
 const CHIPS = [
   ['church', 'Parish Feed'], ['book', 'Daily Readings'], ['sunrise', 'Morning Offering'], ['lamp', 'Examination'],
-  ['fellowship', 'Groups'], ['rosary', 'Rosary'], ['bell', 'Notifications'], ['candle', 'Private Intentions'],
+  ['fellowship', 'Groups'], ['keys', 'Confession Tracker'], ['bell', 'Notifications'], ['candle', 'Prayer Requests'],
 ]
 
 const LAYERS = [
-  { icon: 'church', numeral: 'I', title: 'Parish', desc: 'Announcements, events, Mass times, parish groups, and a community feed for every parish in America.' },
+  { icon: 'church', numeral: 'I', title: 'Parish', desc: 'Announcements, events, Mass times, parish groups, and a community feed for your parish.' },
   { icon: 'chalice', numeral: 'II', title: 'Faith', desc: 'Daily readings, saints, a private confession tracker, and prayer requests.' },
   { icon: 'fellowship', numeral: 'III', title: 'Community', desc: 'Events with RSVP, groups, parish updates, and direct messages: the life of the parish, extended.' },
 ]
@@ -23,7 +23,7 @@ const PROBLEMS = [
 ]
 
 const VALUES = [
-  { icon: 'shield', title: 'Your data is yours', desc: "We don't sell your information. Your prayer journal, confessions, and messages are private." },
+  { icon: 'shield', title: 'Your data is yours', desc: "We don't sell your information. Your confession tracker and your messages are private." },
   { icon: 'cross', title: 'Mission first', desc: 'Built by a practicing Catholic, for the Church. Revenue comes from parishes, not from your attention.' },
   { icon: 'lily', title: 'Always free for individuals', desc: 'Every Catholic can use inFold forever, at no cost. No premium tier, no paywalled prayers.' },
 ]
@@ -55,12 +55,12 @@ function Hero() {
           <GoldButton href={APP_URL} className="w-full sm:w-auto">Open the Free App</GoldButton>
           <GhostButton to="/parishes" LinkComp={Link} className="w-full sm:w-auto">Set Up Your Parish <Arrow /></GhostButton>
         </div>
-        <p className="fade-in text-white/40 text-sm mt-6 tracking-wide" style={d(0, 0, 1250)}>iPhone · Android · Desktop · Free for every Catholic</p>
+        <p className="fade-in text-white/40 text-sm mt-6 tracking-wide" style={d(0, 0, 1250)}>Works on any phone or computer · Free for every Catholic</p>
       </div>
 
       <div className="relative mt-16 flex flex-wrap justify-center gap-2.5 max-w-3xl">
         {CHIPS.map(([icon, label], i) => (
-          <span key={label} className="fade-in inline-flex items-center gap-2 rounded-full border border-gold/20 bg-white/[0.03] backdrop-blur-sm px-4 py-2 text-[13px] text-white/70" style={d(i, 70, 1400)}>
+          <span key={label} className="fade-in inline-flex items-center gap-2 rounded-full border border-gold/20 bg-white/[0.04] px-4 py-2 text-[13px] text-white/70" style={d(i, 70, 1400)}>
             <Emblem name={icon} className="w-4 h-4 text-gold" strokeWidth={2.4} />{label}
           </span>
         ))}
@@ -132,7 +132,7 @@ function PhoneShowcase() {
     { kind: 'Daily readings', from: 'Memorial of St. Cecilia', icon: 'book', text: '“Blessed are they who hear the word of God, and keep it.”' },
   ]
   // 0: empty → 1: notification → 2..5: cards arrive → hold → clear, repeat
-  const [step, setStep] = useState(() => (reduceMotion() ? 5 : 0))
+  const [step, setStep] = useState(0) // reduced motion: CSS shows every card
   const phoneRef = useRef(null)
   useEffect(() => {
     if (reduceMotion()) return
@@ -159,14 +159,14 @@ function PhoneShowcase() {
             The parish, <span className="italic text-gold-deep">in their pocket.</span>
           </h2>
           <p className="rv text-navy/60 text-lg leading-relaxed mt-6 max-w-lg" style={d(2)}>
-            Announcements from the pastor reach every parishioner&apos;s phone. Events, prayer requests, and the day&apos;s readings
+            Announcements from the pastor go straight to parishioners&apos; phones. Events, prayer requests, and the day&apos;s readings
             sit together in one calm feed, with no ads and nothing designed to keep people scrolling.
           </p>
           <ul className="mt-8 space-y-4">
             {[
               ['bell', 'Announcements arrive as a notification, never buried by an algorithm'],
               ['moon', 'Quiet by design: at most five parish notifications a day'],
-              ['keys', 'Confession tracker and prayer journal stay private, always'],
+              ['keys', 'Your confession tracker stays private, always'],
             ].map(([icon, t], i) => (
               <li key={t} className="rv flex items-start gap-4" style={d(i + 3)}>
                 <Medallion name={icon} size="w-11 h-11" icon="w-5 h-5" className="flex-shrink-0" style={d(i + 3)} />
@@ -191,7 +191,7 @@ function PhoneShowcase() {
                 </div>
                 <div className="pt-12 px-4">
                   <p className="font-display text-2xl font-semibold text-navy">Home</p>
-                  <p className="text-[11px] text-gold-deep smallcaps !tracking-[.15em] mt-0.5">Saturday · Ordinary Time</p>
+                  <p className="text-[11px] text-gold-deep smallcaps !tracking-[.15em] mt-0.5">Ordinary Time</p>
                 </div>
                 <div className="px-3 mt-3 space-y-2.5">
                   {cards.map((c, i) => (

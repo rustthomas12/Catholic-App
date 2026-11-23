@@ -1,13 +1,21 @@
-import { useEffect, useRef, useState, createElement, Fragment } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, createElement, Fragment } from 'react'
 import Emblem from './Emblem'
-import { reduceMotion, observe, d, useParallax } from './motion'
+import { observe, d, useParallax } from './motion'
 
 /** Adds .is-in once the element scrolls into view; children use .rv / .emb-draw. */
+// On pre-built pages a small script in the HTML marks the sections already on
+// screen before React starts (data-reveal); the layout effect keeps that state.
 export function Reveal({ as = 'div', className = '', children, style, ...rest }) {
   const [el, setEl] = useState(null)
   const [inView, setInView] = useState(false)
+  useLayoutEffect(() => {
+    if (el?.classList.contains('is-in')) setInView(true) // eslint-disable-line react-hooks/set-state-in-effect -- adopt the pre-hydration state before paint
+  }, [el])
   useEffect(() => (el ? observe(el, () => setInView(true)) : undefined), [el])
-  return createElement(as, { ref: setEl, className: `${className} ${inView ? 'is-in' : ''}`, style, ...rest }, children)
+  return createElement(as, {
+    ref: setEl, 'data-reveal': '', suppressHydrationWarning: true,
+    className: `${className} ${inView ? 'is-in' : ''}`, style, ...rest,
+  }, children)
 }
 
 /** Headline whose words rise in one after another. */
@@ -110,15 +118,13 @@ const ROSE = {
   roundels: trefoils(250, 250, 216, 16, 14),
 }
 
+// Two stacked SVGs (outer tracery, inner petals) turning in opposite
+// directions. Reduced motion is handled in CSS, so the markup never varies.
 export function RoseWindow({ className = '' }) {
-  if (reduceMotion()) return <RoseWindowSvg className={className} spin={false} />
-  return <RoseWindowSvg className={className} spin />
-}
-
-function RoseWindowSvg({ className, spin }) {
+  const svg = 'absolute inset-0 w-full h-full'
   return (
-    <svg viewBox="0 0 500 500" className={`rose ${className}`} fill="none" stroke="currentColor" strokeLinecap="round" aria-hidden="true">
-      <g className={spin ? 'rose-spin' : ''}>
+    <div className={`rose relative ${className}`} aria-hidden="true">
+      <svg viewBox="0 0 500 500" className={`rose-spin ${svg}`} fill="none" stroke="currentColor" strokeLinecap="round">
         {ROSE.rings.map((r, i) => (
           <circle key={r} className="ln" pathLength="1" cx="250" cy="250" r={r} strokeWidth={i === 6 ? 1.4 : 0.9} style={d(i, 140)} />
         ))}
@@ -127,12 +133,12 @@ function RoseWindowSvg({ className, spin }) {
         {ROSE.roundels.map(([x, y, r], i) => (
           <circle key={i} className="ln" pathLength="1" cx={x} cy={y} r={r} strokeWidth="0.8" style={d(i, 60, 900)} />
         ))}
-      </g>
-      <g className={spin ? 'rose-spin-rev' : ''}>
+      </svg>
+      <svg viewBox="0 0 500 500" className={`rose-spin-rev ${svg}`} fill="none" stroke="currentColor" strokeLinecap="round">
         <path className="ln" pathLength="1" d={ROSE.petalsInner} strokeWidth="1" style={d(2, 160)} />
         <path className="ln" pathLength="1" d="M250 214v72M214 250h72" strokeWidth="1.4" style={d(8, 160)} />
-      </g>
-    </svg>
+      </svg>
+    </div>
   )
 }
 
@@ -145,7 +151,6 @@ const MOTES = Array.from({ length: 22 }, (_, i) => ({
   x: `${((i % 5) - 2) * 18}px`,
 }))
 export function Motes() {
-  if (reduceMotion()) return null
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {MOTES.map((m, i) => (
