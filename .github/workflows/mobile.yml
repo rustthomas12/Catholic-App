@@ -175,8 +175,10 @@ jobs:
   ios:
     name: iOS
     needs: web
-    # macOS 26 runners carry Xcode 27 (iOS 27 SDK), which Apple requires for
-    # uploads from April 2027 (ITMS-90725)
+    # Newest runner image: latest-stable picks the newest Xcode installed on it
+    # (26.6 as of Nov 2026). Apple requires the iOS 27 SDK (Xcode 27) for
+    # uploads from April 2027 (ITMS-90725); this moves to it automatically
+    # once GitHub adds Xcode 27 to the image.
     runs-on: macos-26
     env:
       HAS_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST != '' }}
