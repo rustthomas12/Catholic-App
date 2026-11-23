@@ -51,10 +51,6 @@ function Hero() {
         <p className="fade-in text-white/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mt-8" style={d(0, 0, 900)}>
           Everything happening at your parish, in one place, the moment it&apos;s posted.
         </p>
-        <p className="fade-in font-display italic text-gold/75 text-lg md:text-xl mt-5" style={d(0, 0, 1000)}>
-          &ldquo;My sheep hear my voice: and I know them, and they follow me.&rdquo;
-          <span className="not-italic smallcaps text-[11px] md:text-xs text-gold/60 ml-2 whitespace-nowrap">John 10:27</span>
-        </p>
         <div className="fade-in flex flex-col sm:flex-row items-center justify-center gap-4 mt-11" style={d(0, 0, 1100)}>
           <GoldButton href={APP_URL} className="w-full sm:w-auto">Open the Free App</GoldButton>
           <GhostButton to="/parishes" LinkComp={Link} className="w-full sm:w-auto">Set Up Your Parish <Arrow /></GhostButton>
