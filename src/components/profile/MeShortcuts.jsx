@@ -8,8 +8,7 @@ import {
   ChevronRightIcon,
   Cog6ToothIcon,
   MapIcon,
-  ShieldExclamationIcon,
-} from '@heroicons/react/24/outline'
+  ShieldExclamationIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { useAdminAccess } from '../../hooks/useAdminAccess'
 import { useUnreadDMCount } from '../../lib/dmBadge'
 
@@ -50,6 +49,7 @@ export default function MeShortcuts() {
     { to: '/messages', Icon: ChatBubbleLeftRightIcon, label: t('nav.messages'), badge: unreadDMs },
     { to: '/directory', Icon: MapIcon, label: t('nav.directory') },
     { to: '/organizations', Icon: BuildingOffice2Icon, label: t('nav.organizations') },
+    { to: '/guide', Icon: QuestionMarkCircleIcon, label: t('guide.title', 'How inFold works') },
     { to: '/settings', Icon: Cog6ToothIcon, label: t('nav.settings') },
   ]
 

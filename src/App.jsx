@@ -44,6 +44,7 @@ const SaintsPage               = lazy(() => import('./pages/SaintsPage'))
 const SaintPage                = lazy(() => import('./pages/SaintPage'))
 const NotificationsPage        = lazy(() => import('./pages/NotificationsPage'))
 const SettingsPage             = lazy(() => import('./pages/SettingsPage'))
+const GuidePage                = lazy(() => import('./pages/GuidePage'))
 const NotificationSettingsPage = lazy(() => import('./pages/NotificationSettingsPage'))
 const CheckEmailPage           = lazy(() => import('./pages/CheckEmailPage'))
 const ForgotPasswordPage       = lazy(() => import('./pages/ForgotPasswordPage'))
@@ -257,6 +258,7 @@ function AppInner() {
           <Route path="/profile"                   element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/profile/:id"               element={<ProtectedRoute><RouteErrorBoundary><ProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings"                  element={<ProtectedRoute><RouteErrorBoundary><SettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
+          <Route path="/guide"                     element={<ProtectedRoute><RouteErrorBoundary><GuidePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/profile"          element={<ProtectedRoute><RouteErrorBoundary><EditProfilePage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/notifications"    element={<ProtectedRoute><RouteErrorBoundary><NotificationSettingsPage /></RouteErrorBoundary></ProtectedRoute>} />
           <Route path="/settings/blocked"          element={<ProtectedRoute><RouteErrorBoundary><BlockedUsersPage /></RouteErrorBoundary></ProtectedRoute>} />

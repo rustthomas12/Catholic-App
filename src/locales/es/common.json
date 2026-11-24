@@ -460,5 +460,12 @@
   "photo_check": {
     "blocked": "Esta foto no se puede publicar porque podría no cumplir las normas de la comunidad. Elige otra foto.",
     "failed": "No se pudo subir la foto. Inténtalo de nuevo."
+  },
+  "guide": {
+    "title": "Cómo funciona inFold",
+    "strip_admin": "Tu guía rápida para gestionarlo todo",
+    "strip_new": "¿Eres nuevo?",
+    "strip_cta": "Descubre dónde está todo →",
+    "strip_dismiss": "Cerrar"
   }
 }
