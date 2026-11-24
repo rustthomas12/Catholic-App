@@ -17,6 +17,7 @@ import GroupCard from '../components/groups/GroupCard'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { LogoLockup } from '../components/shared/Logo'
 import TodayBand from '../components/home/TodayBand'
+import GuideStrip from '../components/home/GuideStrip'
 
 const WELCOME_DISMISSED_KEY = 'parish_welcome_dismissed'
 
@@ -128,6 +129,7 @@ export default function HomePage() {
           readingsProps={{ readings: homeReadings, loading: readingsLoading, error: readingsError, liturgicalInfo, feastInfo }}
           communities={{ loading: communitiesLoading, parishes: myParishes, orgs: myOrgs }}
         />
+        <GuideStrip />
 
         {/* Feed section */}
         {groupsLoaded && !hasAnyMembership ? (
