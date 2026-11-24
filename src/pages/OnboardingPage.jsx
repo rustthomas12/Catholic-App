@@ -14,9 +14,18 @@ import { toast } from '../components/shared/Toast'
 import { LogoMark } from '../components/shared/Logo'
 import { canPurchaseInApp } from '../lib/platform'
 
-// A parish is on inFold while it has a subscription or trial
-const onInfold = (p) => !!p && (p.is_b2b_subscriber || ['active', 'trialing'].includes(p.subscription_status))
-const PARISH_COLS = 'id, name, city, state, is_b2b_subscriber, subscription_status'
+const PARISH_COLS = 'id, name, city, state'
+
+// Marks each parish with onInfold (plan, trial, sponsorship, diocese plan or
+// a claimed team: migration 112). On error, assume it is, so nobody is told
+// their active parish is missing.
+async function withInfoldFlag(list) {
+  if (!list?.length) return list ?? []
+  const { data, error } = await supabase.rpc('parishes_on_infold', { p_ids: list.map(p => p.id) })
+  const on = new Set(error ? list.map(p => p.id) : (data ?? []))
+  return list.map(p => ({ ...p, onInfold: on.has(p.id) }))
+}
+const onInfold = (p) => !!p?.onInfold
 
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
@@ -52,7 +61,7 @@ export default function OnboardingPage() {
     if (profile?.parish_id) {
       supabase.from('parishes').select(PARISH_COLS)
         .eq('id', profile.parish_id).single()
-        .then(({ data }) => { if (data) setParish(data) })
+        .then(async ({ data }) => { if (data) setParish((await withInfoldFlag([data]))[0]) })
     }
   }, [profile?.parish_id])
 
@@ -66,7 +75,7 @@ export default function OnboardingPage() {
         .select(PARISH_COLS)
         .or(`name.ilike.${fuzzyIlike(q)},city.ilike.${fuzzyIlike(q)}`)
         .limit(5)
-      setParishResults(data ?? [])
+      setParishResults(await withInfoldFlag(data))
       setParishSearching(false)
     }, 300)
     return () => clearTimeout(timer)

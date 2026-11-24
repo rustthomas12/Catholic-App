@@ -6,6 +6,22 @@
 -- (send-form-email, type 'parish_inquiry') with the parish's contact details
 -- and how many people have asked, so the owner can follow up.
 
+-- "On inFold": its own plan or trial, a sponsorship, a diocese plan that
+-- covers it, or a pastor/staff team that has claimed it
+CREATE OR REPLACE FUNCTION public.parishes_on_infold(p_ids uuid[])
+ RETURNS SETOF uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$
+  SELECT p.id FROM parishes p
+   WHERE p.id = ANY (p_ids[1:50])
+     AND (p.is_b2b_subscriber
+       OR coalesce(p.premium_sponsored, false)
+       OR p.subscription_status IN ('active', 'trialing', 'past_due')
+       OR EXISTS (SELECT 1 FROM parish_admins a WHERE a.parish_id = p.id)
+       OR EXISTS (SELECT 1 FROM diocese_parishes dp JOIN diocese_subscriptions ds ON ds.diocese_id = dp.diocese_id
+                   WHERE dp.parish_id = p.id AND ds.status IN ('active', 'trialing', 'past_due')))
+$$;
+REVOKE ALL ON FUNCTION parishes_on_infold(uuid[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION parishes_on_infold(uuid[]) TO authenticated;
+
 CREATE TABLE IF NOT EXISTS parish_inquiries (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   parish_id   uuid NOT NULL REFERENCES parishes(id) ON DELETE CASCADE,
@@ -23,9 +39,7 @@ DROP POLICY IF EXISTS parish_inquiries_insert ON parish_inquiries;
 CREATE POLICY parish_inquiries_insert ON parish_inquiries FOR INSERT TO authenticated
   WITH CHECK (
     user_id = auth.uid()
-    AND EXISTS (SELECT 1 FROM parishes p WHERE p.id = parish_id
-                AND NOT p.is_b2b_subscriber
-                AND coalesce(p.subscription_status, 'inactive') NOT IN ('active', 'trialing'))
+    AND NOT EXISTS (SELECT 1 FROM parishes_on_infold(ARRAY[parish_id]))
   );
 DROP POLICY IF EXISTS parish_inquiries_select ON parish_inquiries;
 CREATE POLICY parish_inquiries_select ON parish_inquiries FOR SELECT TO authenticated
