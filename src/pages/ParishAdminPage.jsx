@@ -1039,12 +1039,24 @@ function MassTimesTab({ parishId, parish, setParish }) {
 
 // ── Parishioners Tab ────────────────────────────────────────
 function ParishionersTab({ parishId }) {
+  const { user } = useAuth()
   const [parishioners, setParishioners] = useState([])
+  const [blocked, setBlocked] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [reload, setReload] = useState(0)
 
   useEffect(() => {
     async function load() {
+      // People blocked from the parish (migration 113)
+      const { data: bans } = await supabase.from('parish_bans')
+        .select('user_id, created_at').eq('parish_id', parishId).order('created_at', { ascending: false })
+      if (bans?.length) {
+        const { data: bp } = await supabase.from('profiles').select('id, full_name').in('id', bans.map(b => b.user_id))
+        const names = Object.fromEntries((bp ?? []).map(p => [p.id, p.full_name]))
+        setBlocked(bans.map(b => ({ ...b, full_name: names[b.user_id] ?? 'Former member' })))
+      } else setBlocked([])
+
       const [{ data: follows }, { data: admins }] = await Promise.all([
         supabase
           .from('parish_follows')
@@ -1067,7 +1079,7 @@ function ParishionersTab({ parishId }) {
         .map(a => ({ user_id: a.user_id, created_at: a.created_at, isAdmin: true }))
 
       const allEntries = [...adminOnlyEntries, ...followerEntries]
-      if (!allEntries.length) { setLoading(false); return }
+      if (!allEntries.length) { setParishioners([]); setLoading(false); return }
 
       const userIds = [...new Set(allEntries.map(e => e.user_id))]
       const { data: profiles } = await supabase
@@ -1078,13 +1090,27 @@ function ParishionersTab({ parishId }) {
       const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
       setParishioners(
         allEntries
-          .map(e => ({ created_at: e.created_at, isAdmin: e.isAdmin, profiles: profileMap[e.user_id] ?? null }))
+          .map(e => ({ user_id: e.user_id, created_at: e.created_at, isAdmin: e.isAdmin, profiles: profileMap[e.user_id] ?? null }))
           .filter(e => e.profiles)
       )
       setLoading(false)
     }
     load().catch(() => setLoading(false))
-  }, [parishId])
+  }, [parishId, reload])
+
+  async function block(p) {
+    const { error } = await supabase.rpc('block_from_parish', { p_parish_id: parishId, p_user_id: p.user_id })
+    if (error) { toast.error(error.message || 'Could not block this person.'); return }
+    toast.success(`${p.profiles.full_name ?? 'They'} can no longer join or post in this parish.`)
+    setReload(n => n + 1)
+  }
+
+  async function unblock(b) {
+    const { error } = await supabase.rpc('unblock_from_parish', { p_parish_id: parishId, p_user_id: b.user_id })
+    if (error) { toast.error('Could not unblock. Please try again.'); return }
+    toast.success(`${b.full_name} is unblocked. They can follow the parish again.`)
+    setReload(n => n + 1)
+  }
 
   const filtered = parishioners.filter(p => {
     const name = p.profiles?.full_name?.toLowerCase() ?? ''
@@ -1159,8 +1185,40 @@ function ParishionersTab({ parishId }) {
                 <span className="text-xs bg-navy/10 text-navy font-semibold px-2 py-0.5 rounded-full">Clergy</span>
               )}
               <span className="text-xs text-gray-500 flex-shrink-0">{format(parseISO(p.created_at), 'MMM yyyy')}</span>
+              {!p.isAdmin && p.user_id !== user?.id && (
+                <ConfirmDeleteButton
+                  title={`Block ${p.profiles.full_name ?? 'this person'}?`}
+                  message="They'll be removed from this parish and won't be able to follow it again, or post, comment or RSVP here. Their posts in this parish will be hidden. They won't be notified, and you can unblock them later."
+                  confirmLabel="Block"
+                  busyLabel="Blocking…"
+                  aria-label={`Block ${p.profiles.full_name ?? 'this person'} from the parish`}
+                  onConfirm={() => block(p)}
+                  className="text-xs font-semibold text-red-600 hover:text-red-700 px-2 flex-shrink-0"
+                >
+                  Block
+                </ConfirmDeleteButton>
+              )}
             </div>
           ))}
+        </div>
+      )}
+
+      {blocked.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-bold text-navy">Blocked ({blocked.length})</h3>
+          <p className="text-xs text-gray-500">These people can't follow the parish or post, comment or RSVP here.</p>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 overflow-hidden">
+            {blocked.map(b => (
+              <div key={b.user_id} className="px-4 py-3 flex items-center gap-3">
+                <p className="flex-1 min-w-0 text-sm text-navy truncate">{b.full_name}</p>
+                <span className="text-xs text-gray-500 flex-shrink-0">Blocked {format(parseISO(b.created_at), 'MMM d, yyyy')}</span>
+                <button type="button" onClick={() => unblock(b)}
+                  className="text-xs font-semibold text-navy border border-navy/20 px-3 py-1.5 rounded-xl hover:bg-navy/5 min-h-[36px] flex-shrink-0">
+                  Unblock
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

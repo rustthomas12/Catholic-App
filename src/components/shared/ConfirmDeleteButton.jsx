@@ -6,6 +6,7 @@ export default function ConfirmDeleteButton({
   title,
   message,
   confirmLabel = 'Delete',
+  busyLabel = 'Deleting…',
   cancelLabel = 'Cancel',
   onConfirm,
   className = '',
@@ -39,7 +40,7 @@ export default function ConfirmDeleteButton({
           </button>
           <button type="button" onClick={handleConfirm} disabled={busy}
             className="flex-1 min-h-[44px] bg-red-600 text-white rounded-xl text-sm font-semibold disabled:opacity-60">
-            {busy ? 'Deleting…' : confirmLabel}
+            {busy ? busyLabel : confirmLabel}
           </button>
         </div>
       </Modal>
