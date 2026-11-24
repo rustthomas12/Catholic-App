@@ -415,7 +415,6 @@ function StepTrial({ parish, tier, role, onBack }) {
             'Mass times editor',
             'Parishioner directory',
             'Push notifications',
-            'Platform integrations',
             'Community groups',
             '90-day free trial',
           ].map((f, i) => (
