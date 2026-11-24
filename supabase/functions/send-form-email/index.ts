@@ -18,7 +18,8 @@ serve(async (req) => {
     // the stored row (recent, not yet emailed) and email its contents, so a
     // forged or replayed call can't send anything.
     const table = type === 'contact' ? 'contact_submissions'
-      : type === 'parish_application' ? 'parish_applications' : null
+      : type === 'parish_application' ? 'parish_applications'
+      : type === 'parish_inquiry' ? 'parish_inquiries' : null
     if (!table || !request.id) return new Response('ignored', { status: 200 })
     const { data: payload } = await supabase
       .from(table)
@@ -75,6 +76,35 @@ serve(async (req) => {
     ${payload.notes ? `<hr style="border:none;border-top:1px solid #e5e5e5;margin:16px 0"/><p style="color:#555"><strong>Notes:</strong> ${esc(payload.notes)}</p>` : ''}
     <hr style="border:none;border-top:1px solid #C9A84C;margin:20px 0"/>
     <p style="font-size:12px;color:#888">Reply to <a href="mailto:${esc(payload.contact_email)}">${esc(payload.contact_email)}</a></p>
+  </div>
+</div>`
+    } else if (type === 'parish_inquiry') {
+      // A parishioner picked a parish that isn't on inFold (migration 112)
+      const [{ data: parish }, { data: person }, { count }] = await Promise.all([
+        supabase.from('parishes').select('name, city, state, diocese, phone, email, website').eq('id', payload.parish_id).maybeSingle(),
+        supabase.from('profiles').select('full_name').eq('id', payload.user_id).maybeSingle(),
+        supabase.from('parish_inquiries').select('id', { count: 'exact', head: true }).eq('parish_id', payload.parish_id),
+      ])
+      const name = parish?.name || 'A parish'
+      const asked = count ?? 1
+      subject = `[inFold] ${asked === 1 ? 'A parishioner is' : `${asked} parishioners are`} asking for ${name}`
+      const row = (k: string, v: string) => `<tr><td style="padding:6px 0;color:#888;width:120px">${k}</td><td style="padding:6px 0">${v}</td></tr>`
+      body = `
+<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#333">
+  <div style="background:#1B2A4A;padding:20px;border-radius:8px 8px 0 0">
+    <h2 style="color:#C9A84C;margin:0">Parishioners want ${esc(name)} on inFold</h2>
+  </div>
+  <div style="padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px">
+    <p style="line-height:1.6">${esc(person?.full_name || 'Someone')} chose ${esc(name)} as their parish. It isn't on inFold yet, so the app told them we'd reach out to the parish.
+      ${asked === 1 ? 'They are the first to ask.' : `<strong>${asked} people</strong> have asked for this parish so far.`}</p>
+    <table style="width:100%;border-collapse:collapse">
+      ${row('Parish', `<strong>${esc(name)}</strong>`)}
+      ${row('Location', esc([parish?.city, parish?.state].filter(Boolean).join(', ') || '—'))}
+      ${row('Diocese', esc(parish?.diocese || '—'))}
+      ${row('Phone', esc(parish?.phone || '—'))}
+      ${row('Email', parish?.email ? `<a href="mailto:${esc(parish.email)}">${esc(parish.email)}</a>` : '—')}
+      ${row('Website', parish?.website ? `<a href="${esc(parish.website)}">${esc(parish.website)}</a>` : '—')}
+    </table>
   </div>
 </div>`
     } else {

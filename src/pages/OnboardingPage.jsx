@@ -14,6 +14,19 @@ import { toast } from '../components/shared/Toast'
 import { LogoMark } from '../components/shared/Logo'
 import { canPurchaseInApp } from '../lib/platform'
 
+const PARISH_COLS = 'id, name, city, state'
+
+// Marks each parish with onInfold (plan, trial, sponsorship, diocese plan or
+// a claimed team: migration 112). On error, assume it is, so nobody is told
+// their active parish is missing.
+async function withInfoldFlag(list) {
+  if (!list?.length) return list ?? []
+  const { data, error } = await supabase.rpc('parishes_on_infold', { p_ids: list.map(p => p.id) })
+  const on = new Set(error ? list.map(p => p.id) : (data ?? []))
+  return list.map(p => ({ ...p, onInfold: on.has(p.id) }))
+}
+const onInfold = (p) => !!p?.onInfold
+
 export default function OnboardingPage() {
   useEffect(() => { document.title = 'Welcome | inFold' }, [])
   const { t } = useTranslation('auth')
@@ -46,9 +59,9 @@ export default function OnboardingPage() {
   // Load parish if user has one
   useEffect(() => {
     if (profile?.parish_id) {
-      supabase.from('parishes').select('id, name, city, state, diocese')
+      supabase.from('parishes').select(PARISH_COLS)
         .eq('id', profile.parish_id).single()
-        .then(({ data }) => { if (data) setParish(data) })
+        .then(async ({ data }) => { if (data) setParish((await withInfoldFlag([data]))[0]) })
     }
   }, [profile?.parish_id])
 
@@ -59,10 +72,10 @@ export default function OnboardingPage() {
     const timer = setTimeout(async () => {
       setParishSearching(true)
       const { data } = await supabase.from('parishes')
-        .select('id, name, city, state')
+        .select(PARISH_COLS)
         .or(`name.ilike.${fuzzyIlike(q)},city.ilike.${fuzzyIlike(q)}`)
         .limit(5)
-      setParishResults(data ?? [])
+      setParishResults(await withInfoldFlag(data))
       setParishSearching(false)
     }, 300)
     return () => clearTimeout(timer)
@@ -78,6 +91,11 @@ export default function OnboardingPage() {
       { parish_id: p.id, user_id: user.id },
       { onConflict: 'parish_id,user_id' }
     )
+    // Not on inFold yet: tell the owner a parishioner is asking (one per
+    // person and parish; a repeat pick is a harmless duplicate)
+    if (!onInfold(p)) {
+      await supabase.from('parish_inquiries').insert({ parish_id: p.id, user_id: user.id })
+    }
   }
 
   // Load suggested groups for step 2 — only from parishes the user follows
@@ -171,6 +189,14 @@ export default function OnboardingPage() {
                       {t('auth:onb.change', 'Change')}
                     </button>
                   </div>
+                  {!onInfold(parish) && (
+                    <div className="mt-3 rounded-lg bg-gold/10 border border-gold/30 px-3 py-2.5" role="status">
+                      <p className="text-xs font-semibold text-navy">{t('auth:onb.not_on_infold_title', "Your parish isn't on inFold yet")}</p>
+                      <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                        {t('auth:onb.not_on_infold_body', "We'll reach out to {{parish}} and let them know their parishioners are asking for it. You can still use inFold's daily readings, prayers and groups in the meantime.", { parish: parish.name })}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left space-y-2">
@@ -193,7 +219,14 @@ export default function OnboardingPage() {
                       {parishResults.map(p => (
                         <button key={p.id} onClick={() => selectParish(p)}
                           className="w-full text-left px-3 py-2.5 hover:bg-lightbg transition-colors border-b border-gray-50 last:border-0 min-h-[44px]">
-                          <p className="text-sm font-semibold text-navy">{p.name}</p>
+                          <p className="text-sm font-semibold text-navy flex items-center gap-2">
+                            <span className="min-w-0">{p.name}</span>
+                            {onInfold(p) && (
+                              <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold-deep bg-gold/15 rounded-full px-2 py-0.5">
+                                {t('auth:onb.on_infold', 'On inFold')}
+                              </span>
+                            )}
+                          </p>
                           <p className="text-xs text-gray-500">{p.city}, {p.state}</p>
                         </button>
                       ))}
