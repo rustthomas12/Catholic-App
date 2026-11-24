@@ -49,7 +49,9 @@ export function Toaster() {
         ariaProps: { role: 'status', 'aria-live': 'polite' },
         error: { ariaProps: { role: 'alert', 'aria-live': 'assertive' } },
       }}
-      containerStyle={{ zIndex: 9999 }}
+      // Phones: start below the notch / Dynamic Island (the default 16px
+      // from the top put toasts like "Posted" partly under it)
+      containerStyle={{ zIndex: 9999, top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
       gutter={8}
     />
   )
