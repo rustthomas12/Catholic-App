@@ -65,7 +65,7 @@ function SlideCover() {
             inFold
           </div>
           <div className="text-2xl md:text-3xl text-amber-400 font-light tracking-wide">
-            The Digital Parish Hall
+            Everything happening at your parish
           </div>
         </div>
         <div className="w-24 h-px bg-amber-500/50 mx-auto my-10" />
@@ -111,7 +111,7 @@ function SlideProblem() {
         <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-6 mb-4">
           <p className="text-amber-200/80 text-base leading-relaxed">
             <span className="text-amber-400 font-semibold">Parish emails go unread. Facebook is built for engagement, not community.</span>
-            {' '}No one has built the digital parish hall...until now.
+            {' '}Parishes need one place where every announcement and every event actually reaches their people.
           </p>
         </div>
        
@@ -125,17 +125,17 @@ function SlideSolution() {
     {
       icon: '⛪',
       title: 'Parish',
-      desc: 'Announcements, events, Mass times, and RSVP reach every parishioner without algorithm interference via push notifications.',
+      desc: 'Announcements, events with RSVP, Mass times and adoration sign-ups, delivered by push notification, with no algorithm deciding who sees them.',
     },
     {
       icon: '✝️',
       title: 'Faith',
-      desc: 'Daily readings, saints, morning offering, examination of conscience, confession tracker, and a private prayer intention list.',
+      desc: 'Daily readings (Ordinary Form or 1962 Missal), saint of the day, Morning Offering, examination of conscience, confession tracker and prayer requests.',
     },
     {
       icon: '🤝',
       title: 'Community',
-      desc: 'Groups, organizations (KoC, FOCUS, Opus Dei), parish clusters, prayer requests, direct messaging — the life of the parish, extended.',
+      desc: 'Groups with their own feed and chat, organizations, parish clusters and direct messaging: the life of the parish, extended through the week.',
     },
   ]
   return (
@@ -144,8 +144,8 @@ function SlideSolution() {
       <div className="max-w-5xl mx-auto w-full">
         <Tag color="green">02 · Solution</Tag>
         <h2 className="mt-6 text-4xl md:text-6xl font-black text-white leading-tight mb-2">
-          inFold is the<br />
-          <span className="text-amber-400">digital parish hall.</span>
+          Every announcement.<br />
+          <span className="text-amber-400">Every event. One app.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-10" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -173,15 +173,15 @@ function SlideSolution() {
 
 function SlideProduct() {
   const forParish = [
-    { icon: '📣', title: 'Publish once, distribute everywhere', body: 'One announcement auto-posts to inFold, Facebook, and Flocknote!' },
-    { icon: '📊', title: 'Full parish admin dashboard', body: 'Manage parishioners, events, Mass times, RSVP tracking, and a direct inbox — all in one place.' },
-    { icon: '🔔', title: 'Push notifications that land', body: 'OS-level alerts that bypass email spam filters and Facebook algorithms entirely.' },
-    { icon: '🏘', title: 'Built for how parishes actually work', body: 'Multi-parish clergy support, parish clusters, and a 90-day free trial with no per-seat fees.' },
+    { icon: '📊', title: 'Full parish admin dashboard', body: 'Announcements (scheduled ahead if needed), events and RSVPs, Mass times, parishioners, a direct inbox and reach totals, all in one place.' },
+    { icon: '🔔', title: 'Push notifications that land', body: 'Phone notifications that skip spam folders and algorithms, capped at 5 a day and never before 8am, so people keep them on.' },
+    { icon: '🌅', title: 'Adoration and holy hour sign-ups', body: 'Weekly or one-time adoration split into slots. Parishioners claim an hour on their phone; the pastor sees which hours still need someone.' },
+    { icon: '🛡', title: 'The pastor stays in control', body: 'Flagged-post review, appointed moderators, and blocking anyone who is not really part of the parish. Clergy announcements always reach people.' },
   ]
   const forParishioner = [
     { icon: '⛪', title: 'Parish at the center', body: 'Follow your parish, join groups and organizations, RSVP to events, and see your community\'s feed — all without social media.' },
-    { icon: '✝️', title: '10+ personal faith tools', body: 'Daily readings, morning offering, examination of conscience, rosary tracker, confession tracker, private prayer intentions, Liturgy of Hours, and formation programs.' },
-    { icon: '📱', title: 'Works like a native app', body: 'Add to home screen on any iPhone or Android. No App Store. No download barrier. Instant access.' },
+    { icon: '✝️', title: 'Daily faith, built in', body: 'Daily readings in English or Spanish (Ordinary Form or 1962 Missal), saint of the day, Morning Offering, examination of conscience, confession tracker and prayer requests.' },
+    { icon: '📱', title: 'Native iPhone and Android apps', body: 'Real iOS and Android apps (now in beta testing), plus the full app on the web. The whole app works in English and Spanish.' },
     { icon: '🔒', title: 'No algorithm. No ads. No data sold.', body: 'Your spiritual life is not a revenue stream. Revenue comes from parishes — not from your attention.' },
   ]
 
@@ -243,9 +243,9 @@ function SlideProduct() {
         <div className="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col md:flex-row items-center gap-4 md:gap-8">
           <div className="flex-shrink-0 text-gold"><Glyph e="🔗" className="w-9 h-9" /></div>
           <div>
-            <p className="text-amber-400 font-bold text-sm mb-1">inFold is the Parish OS.</p>
+            <p className="text-amber-400 font-bold text-sm mb-1">Next: publish once, reach everywhere.</p>
             <p className="text-white/60 text-sm leading-relaxed">
-              Every tool a parish touches — Facebook, Flocknote, email lists, the bulletin, the website — flows through inFold. One publish reaches every platform simultaneously. No pastor should need six tools to talk to their own parishioners.
+              On the roadmap: one announcement in inFold also posting to the parish Facebook page and website, and a Flocknote partnership. No pastor should need six tools to talk to their own parishioners.
             </p>
           </div>
         </div>
@@ -268,8 +268,8 @@ function SlideWhyNow() {
     },
     {
       n: '3',
-      title: 'Push notifications changed the game',
-      body: 'iOS 16.4 (2023) added web push for PWAs. For the first time, a web app can send OS-level alerts without a $100K+ native app build. inFold exists because of this.',
+      title: 'Reaching phones got cheap',
+      body: 'Push notifications and cross-platform frameworks mean one codebase now ships to the web, iPhone and Android. Reaching every parishioner’s phone no longer takes a $100K+ custom app build.',
     },
     {
       n: '4',
@@ -350,7 +350,6 @@ function SlideCompetition() {
     { feature: 'Parishioner-facing community', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: true },
     { feature: 'Daily faith content', infold: true, flocknote: false, hallow: true, parishsoft: false, facebook: false },
     { feature: 'Private confession tracker', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
-    { feature: 'Platform integrations (FB, Flocknote…)', infold: true, flocknote: false, hallow: false, parishsoft: false, facebook: false },
     { feature: 'No algorithm / no ads', infold: true, flocknote: true, hallow: true, parishsoft: true, facebook: false },
     { feature: 'Free for individuals', infold: true, flocknote: false, hallow: false, parishsoft: true, facebook: true },
     { feature: 'Parish admin dashboard', infold: true, flocknote: true, hallow: false, parishsoft: true, facebook: false },
@@ -419,7 +418,7 @@ function SlideBusinessModel() {
   const features = [
     'Parish admin dashboard', 'Announcements & events', 'Mass times editor',
     'Parishioner directory', 'Push notifications', 'Community feed',
-    'Platform integrations hub', 'Faith content', '90-day free trial',
+    'Adoration sign-ups', 'Moderation tools', 'Faith content', '90-day free trial (no card)',
   ]
   return (
     <SlideWrapper id={8}>
@@ -441,6 +440,9 @@ function SlideBusinessModel() {
             </div>
           ))}
         </div>
+        <p className="text-white/60 text-sm mb-8 -mt-4">
+          <span className="text-amber-400 font-semibold">Diocese plan:</span> $49 per covered parish per month, any size. The diocese chooses which parishes to cover.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
             <div className="text-white/50 text-xs uppercase tracking-widest mb-4">All tiers include</div>
@@ -476,7 +478,7 @@ function SlideBusinessModel() {
             <p className="text-white/60 text-sm leading-relaxed">
               Done-for-you digital setup and automation for parishes.
               One-time setup fee ($499–$1,999) + optional monthly retainer ($79–$129/mo).
-              Every Parish OS client is also a inFold subscriber.
+              Every Parish OS client is also an inFold subscriber.
               Combined Year 3 revenue: <span className="text-amber-400 font-semibold">$489K</span>.
             </p>
           </div>
@@ -521,7 +523,7 @@ function SlideGTM() {
       goal: '175–500 parishes, national presence',
       items: [
         'USCCB & national Catholic media relationships',
-        'Spanish-language expansion (36% of US Catholics)',
+        'Spanish-speaking parishes (app is already fully bilingual; 36% of US Catholics)',
         'Organization accounts: KofC, Exodus 90, FOCUS chapters',
       ],
       color: 'from-emerald-500/20 to-emerald-500/5',
@@ -575,13 +577,14 @@ function SlideGTM() {
 
 function SlideTraction() {
   const metrics = [
-    { icon: '⛪', stat: '559', label: 'Verified MA parishes in directory — national data in progress' },
-    { icon: '📱', stat: 'Live', label: 'PWA deployed — iOS & Android' },
-    { icon: '🛠', stat: '15+', label: 'Completed build phases' },
-    { icon: '💳', stat: 'Live', label: 'Stripe billing — 4-tier parish pricing' },
-    { icon: '🔔', stat: 'Live', label: 'Web push notifications + daily readings cron' },
-    { icon: '📔', stat: '10+', label: 'Faith tools: rosary, journal, confession, morning offering, examination, private intentions, hours, formation' },
-    { icon: '🔗', stat: 'Live', label: 'Platform integrations hub — auto-posts to Facebook, Flocknote, website webhooks on publish' },
+    { icon: '⛪', stat: '558', label: 'Massachusetts parishes listed with Mass times; national data in progress' },
+    { icon: '📱', stat: 'Beta', label: 'Native iOS (TestFlight) and Android apps, plus the web app' },
+    { icon: '💳', stat: 'Live', label: 'Stripe billing: 4 parish tiers, diocese plan, 90-day no-card trial' },
+    { icon: '🔔', stat: 'Live', label: 'Push notifications on phones and the web, with daily caps and quiet hours' },
+    { icon: '🌅', stat: 'Live', label: 'Adoration schedules with holy hour sign-ups' },
+    { icon: '🛡', stat: 'Live', label: 'Moderation: flag review, moderators, parish blocking, photo safety checks' },
+    { icon: '🌐', stat: 'EN · ES', label: 'Fully bilingual app, including daily readings' },
+    { icon: '👥', stat: 'Live', label: 'Groups with feed and chat, organizations, direct messages' },
   ]
   return (
     <SlideWrapper id={10}>
@@ -590,7 +593,7 @@ function SlideTraction() {
         <Tag color="green">09 · Traction & Milestones</Tag>
         <h2 className="mt-6 text-4xl md:text-5xl font-black text-white leading-tight mb-2">
           This is not a concept.<br />
-          <span className="text-amber-400">It exists. It's ready.</span>
+          <span className="text-amber-400">It's built. Now it needs parishes.</span>
         </h2>
         <div className="w-16 h-px bg-amber-500/50 my-8" />
 
@@ -609,13 +612,13 @@ function SlideTraction() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           {/* Demand signals */}
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-            <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Demand Signals</p>
+            <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Where We Are</p>
             <div className="space-y-3">
               {[
-                { icon: '🏛', text: '559 verified MA parishes in directory — national data expansion in progress' },
-                { icon: '📋', text: 'Parish application form live on marketing site — intake pipeline open' },
-                { icon: '🎯', text: '90-day free trial as conversion mechanism — zero friction to first paying parish' },
-                { icon: '✉️', text: 'SENT Summit pitch competition — initial market validation and investor exposure' },
+                { icon: '🎯', text: 'Pre-revenue. The product is complete and in beta with testers; first parish pilots are next.' },
+                { icon: '📋', text: 'Pastor sign-up and parish application flows are live on getinfold.app.' },
+                { icon: '🏛', text: 'When a parishioner picks a parish that is not on inFold yet, we log it and follow up with that parish: demand-led leads.' },
+                { icon: '✉️', text: 'Pilot playbook: one ministry first (choir, adoration, youth), no card, 90 days.' },
               ].map((d, i) => (
                 <div key={i} className="flex gap-2 items-start">
                   <span className="flex-shrink-0 text-gold">{<Glyph e={d.icon} className="w-5 h-5" />}</span>
@@ -629,11 +632,11 @@ function SlideTraction() {
             <p className="text-white/70 text-xs font-black uppercase tracking-widest mb-4">Milestone Timeline</p>
             <div className="space-y-3">
               {[
-                { done: true,  when: 'Q1–Q2 2026', what: 'Full platform built & deployed — parish admin, faith tools, integrations hub' },
-                { done: true,  when: 'Q2 2026',     what: '559 verified MA parishes in directory, Stripe billing, push notifications live' },
-                { done: false, when: 'Q3 2026',      what: 'First 5 paid parishes — Worcester & Boston diocese outreach' },
-                { done: false, when: 'Q1 2027',      what: 'First Lent campaign — 20 parishes, bulletin inserts, pulpit scripts' },
-                { done: false, when: '2027',          what: 'First diocese endorsement → 80–160 parishes in one relationship' },
+                { done: true,  when: 'Q1–Q2 2026', what: 'Platform built: parish admin, feed, events, faith content, Stripe billing' },
+                { done: true,  when: 'Q4 2026',     what: 'Native iOS and Android apps in beta; Spanish; adoration sign-ups; moderation tools' },
+                { done: false, when: 'Q1 2027',      what: 'App Store and Google Play launch; first parish pilots in Worcester & Boston' },
+                { done: false, when: 'Lent 2027',    what: 'First Lent campaign: 20 parishes, bulletin inserts, pulpit scripts' },
+                { done: false, when: '2027',          what: 'Facebook and website cross-posting; first diocese relationship' },
               ].map((m, i) => (
                 <div key={i} className="flex gap-3 items-start">
                   <span className={`text-xs font-bold mt-0.5 flex-shrink-0 ${m.done ? 'text-emerald-400' : 'text-amber-400'}`}>
@@ -654,11 +657,11 @@ function SlideTraction() {
             getinfold.app
           </a>
           <div className="flex flex-wrap gap-3">
-            {['React', 'Supabase', 'Vercel'].map((t, i) => (
+            {['React', 'Capacitor', 'Supabase', 'Vercel'].map((t, i) => (
               <span key={i} className="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">{t}</span>
             ))}
           </div>
-          <div className="text-white/70 text-sm">$0 infrastructure cost at current scale</div>
+          <div className="text-white/70 text-sm">Near-zero infrastructure cost at current scale</div>
         </div>
       </div>
     </SlideWrapper>
@@ -705,7 +708,7 @@ function SlideFounder() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-white/60">Stack</span>
-                  <span className="text-white/80">React · Supabase · Vercel · Claude Code</span>
+                  <span className="text-white/80">React · Capacitor · Supabase · Vercel · Claude Code</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-white/5">
                   <span className="text-white/60">Monthly cost</span>
@@ -806,7 +809,7 @@ function SlideAsk() {
     { icon: '⏱', title: 'Founder time', body: 'Reduce insurance hours. 20+ hours/week on inFold full-time.' },
     { icon: '🤝', title: 'Parish onboarding', body: 'Part-time community manager.' },
     { icon: '🎨', title: 'UX design pass', body: 'Professional design on the app before national launch.' },
-    { icon: '📱', title: 'Native mobile apps', body: 'iOS and Android wrappers to reach parishioners through the App Store and Google Play.' },
+    { icon: '🔗', title: 'Publish once, reach everywhere', body: 'Facebook and parish-website cross-posting, and a Flocknote partnership, so one announcement reaches every channel.' },
     { icon: '✝️', title: 'First Lent campaign', body: 'The single highest-leverage adoption window in the Church year.' },
   ]
   return (
@@ -826,7 +829,7 @@ function SlideAsk() {
           <div>
             <p className="text-amber-400 font-bold text-sm mb-1">The Ask: Pre-Seed Investment</p>
             <p className="text-white/70 text-sm leading-relaxed">
-              We are raising pre-seed capital to execute Phase 1 — signing 10–20 paying parishes in Massachusetts, establishing the first diocese relationship, and running the Lent 2027 adoption campaign. The product is built. The market is ready. We are asking for the capital to turn it on.
+              We are raising pre-seed capital to execute Phase 1: signing 10–20 paying parishes in Massachusetts, establishing the first diocese relationship, and running the Lent 2027 adoption campaign. The product is built, on the web, iPhone and Android. We are asking for the capital to put it in parishes.
             </p>
           </div>
         </div>
@@ -911,7 +914,7 @@ function SlideVision() {
 function SlideClosing() {
   return (
     <SlideWrapper id={15} className="items-center text-center">
-      <SlideNumber n={14} />
+      <SlideNumber n={15} />
       <div className="max-w-3xl mx-auto">
         <div className="text-7xl md:text-9xl font-black tracking-tight text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
           inFold
