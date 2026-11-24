@@ -20,6 +20,7 @@ import {
   LockClosedIcon,
   ShieldCheckIcon,
   SignalIcon,
+  SunIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { READ_EVENT } from '../hooks/useNotifications'
@@ -35,6 +36,7 @@ import EventRsvpButtons from '../components/shared/EventRsvpButtons'
 import IntegrationsTab from '../components/parish/IntegrationsTab'
 import { FlagQueue, ModeratorsPanel, PromptsPanel } from '../components/parish/ParishModeration'
 import { ReachTab, TrialSummary } from '../components/parish/ParishReach'
+import { AdorationAdmin } from '../components/parish/Adoration'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline'
@@ -88,6 +90,7 @@ const TABS = [
   { id: 'reach',         label: 'Reach',         Icon: SignalIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
   { id: 'events',        label: 'Events',        Icon: CalendarDaysIcon },
+  { id: 'adoration',     label: 'Adoration',     Icon: SunIcon },
   { id: 'masstimes',     label: 'Mass Times',    Icon: ClockIcon },
   { id: 'parishioners',  label: 'Parishioners',  Icon: UsersIcon },
   { id: 'messages',      label: 'Messages',      Icon: EnvelopeIcon },
@@ -216,6 +219,7 @@ export default function ParishAdminPage() {
     reach:         ReachTab,
     announcements: AnnouncementsTab,
     events:        EventsTab,
+    adoration:     AdorationAdmin,
     masstimes:     MassTimesTab,
     parishioners:  ParishionersTab,
     messages:      MessagesTab,

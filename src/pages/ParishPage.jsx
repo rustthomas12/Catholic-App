@@ -22,6 +22,7 @@ import { toast } from '../components/shared/Toast'
 import Feed from '../components/feed/Feed'
 import ParishPageSkeleton from '../components/shared/skeletons/ParishPageSkeleton'
 import ParishEvents from '../components/parish/ParishEvents'
+import { AdorationSignup } from '../components/parish/Adoration'
 import ParishGroups from '../components/parish/ParishGroups'
 import useGoBack from '../hooks/useGoBack'
 import { canPurchaseInApp } from '../lib/platform'
@@ -275,7 +276,12 @@ export default function ParishPage() {
           />
         )}
 
-        {activeTab === 'events' && <ParishEvents parishId={id} />}
+        {activeTab === 'events' && (
+          <>
+            <AdorationSignup parishId={id} />
+            <ParishEvents parishId={id} />
+          </>
+        )}
         {activeTab === 'groups' && <ParishGroups parishId={id} />}
         {activeTab === 'about' && (
           <ParishAbout parish={parish} cluster={cluster} isManaged={isManaged} />
