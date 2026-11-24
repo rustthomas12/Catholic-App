@@ -85,7 +85,12 @@ function AddCardButton({ parishId, label, className }) {
   )
 }
 
-const TABS = [
+// Cross-posting (Facebook, Flocknote, website) is on hold: Flocknote has no
+// public API and the Facebook connector needs updating. Keep the tab hidden
+// until it really works. Flip this to bring it back.
+const INTEGRATIONS_ENABLED = false
+
+const ALL_TABS = [
   { id: 'dashboard',     label: 'Dashboard',    Icon: ChartBarIcon },
   { id: 'reach',         label: 'Reach',         Icon: SignalIcon },
   { id: 'announcements', label: 'Announcements', Icon: MegaphoneIcon },
@@ -99,6 +104,7 @@ const TABS = [
   { id: 'integrations',  label: 'Integrations',  Icon: ArrowsRightLeftIcon },
   { id: 'settings',      label: 'Settings',      Icon: Cog6ToothIcon },
 ]
+const TABS = ALL_TABS.filter(t => INTEGRATIONS_ENABLED || t.id !== 'integrations')
 
 // ── Access guard ────────────────────────────────────────────
 function checkAccess(parishId, userId) {
@@ -136,7 +142,11 @@ export default function ParishAdminPage() {
   const { user, isAdmin, loading: authLoading } = useAuth()
   const [loadFailed, setLoadFailed] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard')
+  // A link to a hidden or unknown tab opens the dashboard instead
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get('tab')
+    return TABS.some(t => t.id === tab) ? tab : 'dashboard'
+  })
   const [parish, setParish] = useState(null)
   const [adminRole, setAdminRole] = useState(null)
   const [loading, setLoading] = useState(true)
